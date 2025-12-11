@@ -1,0 +1,127 @@
+/* ChurchOverview simple charts and lists */
+
+.chart-section {
+  margin-top: 1.5rem;
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e6e6e6;
+}
+
+.section-title {
+  margin-bottom: 0.8rem;
+  font-size: 1.05rem;
+}
+
+/* Horizontal bar rows for attendance */
+.bars-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.bar-label {
+  width: 120px;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.bar-track {
+  flex: 1;
+  height: 14px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #60a5fa, #4c6ef5);
+  border-radius: 10px;
+}
+
+/* small count at end */
+.bar-count {
+  width: 50px;
+  text-align: right;
+  font-weight: 600;
+}
+
+/* Money bars */
+.money-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 0.6rem;
+}
+
+.money-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.money-label {
+  width: 120px;
+}
+
+.money-track {
+  flex: 1;
+  height: 18px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.money-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #34d399, #059669);
+}
+
+.money-fill.expenses {
+  background: linear-gradient(90deg, #f87171, #ef4444);
+}
+
+.money-fill.net {
+  background: linear-gradient(90deg, #a78bfa, #7c3aed);
+}
+
+.money-value {
+  width: 160px;
+  text-align: right;
+  font-weight: 600;
+}
+
+/* events */
+.event-list {
+  margin-top: 0.6rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.event-card {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  padding: 0.8rem;
+  border-radius: 8px;
+}
+
+.event-title {
+  margin: 0 0 0.3rem 0;
+}
+
+.event-message {
+  margin: 0 0 0.5rem 0;
+  color: #444;
+}
+
+.event-date {
+  color: #666;
+  font-size: 0.85rem;
+}
