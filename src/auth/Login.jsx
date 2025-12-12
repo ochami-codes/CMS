@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import Input from "../components/Input";
 import Button from "../components/Button";
-import useAuth from "../hooks/useAuth";
+import {useAuth} from "../hooks/useAuth";
 
 export default function Login() {
   const { setUser } = useAuth();
