@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import useAuth from "../../hooks/useAuth";
+import {useAuth} from "../../hooks/useAuth";
 import { supabase } from "../../supabaseClient";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
