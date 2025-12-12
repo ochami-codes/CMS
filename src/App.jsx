@@ -33,10 +33,10 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route element={<PublicLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="pages/Home" element={<Home />} />
+            <Route path="auth/Login" element={<Login />} />
+            <Route path="auth/Register" element={<Register />} />
+            <Route path="auth/ResetPassword" element={<ResetPassword />} />
           </Route>
 
           {/* Protected Dashboard Routes */}
@@ -47,17 +47,16 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/dashboard/youth" element={<YouthDashboard />} />
-            <Route path="/dashboard/children" element={<ChildrenDashboard />} />
-            <Route path="/dashboard/treasury" element={<TreasuryDashboard />} />
-            <Route path="/dashboard/comms" element={<CommsDashboard />} />
-            <Route path="/dashboard/pastor" element={<PastorDashboard />} />
+            <Route path="pages/Dashboard" element={<Dashboard />} />
+            <Route path="pages/youth/YouthDashboard" element={<YouthDashboard />} />
+            <Route path="pages/children/ChildrenDashboard" element={<ChildrenDashboard />} />
+            <Route path="pages/treasury/TreasuryDashboard" element={<TreasuryDashboard />} />
+            <Route path="pages/pastor/PastorDashboard" element={<PastorDashboard />} />
 
             {/* Settings */}
-            <Route path="/dashboard/profile" element={<Profile />} />
+            <Route path="pages/settings/Profiles" element={<Profile />} />
             <Route
-              path="/dashboard/settings/change-password"
+              path="/pages/settings/ChangePassword"
               element={<ChangePassword />}
             />
           </Route>
