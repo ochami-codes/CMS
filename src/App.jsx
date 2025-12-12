@@ -20,7 +20,6 @@ import Dashboard from './pages/Dashboard';
 import YouthDashboard from './pages/youth/YouthDashboard';
 import ChildrenDashboard from './pages/children/ChildrenDashboard';
 import TreasuryDashboard from './pages/treasury/TreasuryDashboard';
-import CommsDashboard from './pages/communication/CommsDashboard';
 import PastorDashboard from './pages/pastor/PastorDashboard';
 
 // Settings
