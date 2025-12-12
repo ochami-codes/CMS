@@ -5,5 +5,4 @@ export const roles = {
   TREASURY: "treasury",
   YOUTH: "youth",
   CHILDREN: "children",
-  COMMS: "comms",
 };
