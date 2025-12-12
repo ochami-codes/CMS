@@ -23,7 +23,7 @@ import TreasuryDashboard from './pages/treasury/TreasuryDashboard';
 import PastorDashboard from './pages/pastor/PastorDashboard';
 
 // Settings
-import Profile from './pages/settings/Profile';
+import Profile from './pages/settings/Profiles';
 import ChangePassword from './pages/settings/ChangePassword';
 
 function App() {
