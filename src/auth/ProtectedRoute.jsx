@@ -1,18 +1,28 @@
 // src/auth/ProtectedRoute.jsx
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
 
 export default function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
-  // Wait while checking session
-  if (loading) return <Loader message= "Loading..."/>;
+  // Still checking auth state
+  if (loading) {
+    return <Loader message="Checking session…" />;
+  }
 
-  // If no user → redirect to login
-  if (!user) return <Navigate to="/login" replace />;
+  // Not authenticated → redirect to login
+  if (!user) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ from: location }}
+      />
+    );
+  }
 
-  // If children exist, render them
-  // Otherwise return <Outlet /> for nested routes
+  // Authenticated → render protected content
   return children ? children : <Outlet />;
 }
