@@ -4,7 +4,7 @@ import "../styles/dashboard.css";
 export default function Dashboard() {
   return (
     <DashboardLayout>
-      <div className="dashboard-page">
+      <div className="dashboard-layout">
 
         <h1 className="page-title">Dashboard</h1>
 
