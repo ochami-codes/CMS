@@ -1,7 +1,7 @@
 // src/components/Navbar.jsx
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
+import "../styles/dashboard.css";
 export default function Navbar({ title = "Dashboard" }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
