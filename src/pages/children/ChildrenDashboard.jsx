@@ -1,9 +1,9 @@
 import MemberList from "../../components/members/MemberList";
 import Attendance from "../../components/members/Attendance";
-
+import "../styles/dashboard.css";
 export default function ChildrenDashboard() {
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-layout">
       <h1 className="page-title">Children Department</h1>
       <p className="page-subtext">
         Manage children members, activities, attendance, and events.
