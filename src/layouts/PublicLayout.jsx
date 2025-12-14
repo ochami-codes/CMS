@@ -1,6 +1,6 @@
 // src/layouts/PublicLayout.jsx
 import { Outlet, Link } from 'react-router-dom';
-
+import "../styles/global.css";
 export default function PublicLayout() {
   return (
     <div>
