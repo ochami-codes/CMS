@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
-
+import "../../styles/dashboard.css";
 export default function PastorDashboard() {
   const [youthCount, setYouthCount] = useState(0);
   const [childrenCount, setChildrenCount] = useState(0);
@@ -25,7 +25,7 @@ export default function PastorDashboard() {
   }, []);
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-layout">
       <h1 className="page-title">Pastor Dashboard</h1>
       <p className="page-subtext">
         Overview of church departments and members.
