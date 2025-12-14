@@ -1,9 +1,9 @@
 import MemberList from "../../components/members/MemberList";
 import Attendance from "../../components/members/Attendance";
-
+import "../../styles/dashboard.css";
 export default function YouthDashboard() {
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-layout">
       <h1 className="page-title">Youth Department</h1>
       <p className="page-subtext">
         Manage youth members, activities, attendance, and events.
