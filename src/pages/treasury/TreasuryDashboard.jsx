@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
-
+import "../../styles/dashboard.css";
 export default function TreasuryDashboard() {
   const [offerings, setOfferings] = useState([]);
   const [expenses, setExpenses] = useState([]);
@@ -24,7 +24,7 @@ export default function TreasuryDashboard() {
   if (loading) return <p>Loading treasury data...</p>;
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-layout">
       <h1 className="page-title">Treasury Department</h1>
       <p className="page-subtext">
         View offerings, expenses, and financial reports.
