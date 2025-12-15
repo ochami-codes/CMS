@@ -1,4 +1,4 @@
-import "../styles/dashboard.css";
+import "../styles/global.css";
 
 export default function Dashboard() {
   return (
