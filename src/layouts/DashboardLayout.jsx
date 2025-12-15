@@ -2,7 +2,7 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
-import "../styles/dashboard.css";
+import "../styles/global.css";
 import Sidebar from "../components/Sidebar";
 
 export default function DashboardLayout() {
