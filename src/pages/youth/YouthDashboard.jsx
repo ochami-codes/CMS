@@ -3,7 +3,7 @@ import { useState } from "react";
 import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
 import Attendance from "../../components/members/Attendance";
-import "../../styles/dashboard.css";
+import "../../styles/global.css";
 
 export default function YouthDashboard() {
   const [refreshList, setRefreshList] = useState(false);
