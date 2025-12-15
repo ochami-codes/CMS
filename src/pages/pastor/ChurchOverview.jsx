@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { formatDate } from "../../utils/formatDate";
-import "./churchoverview.css";
+import "../../styles/global.css";
 export default function ChurchOverview() {
   const [counts, setCounts] = useState({
     youth: 0,
