@@ -1,9 +1,7 @@
-import DashboardLayout from "../layouts/DashboardLayout";
 import "../styles/dashboard.css";
 
 export default function Dashboard() {
   return (
-    <DashboardLayout>
       <div className="dashboard-layout">
 
         <h1 className="page-title">Dashboard</h1>
@@ -31,6 +29,5 @@ export default function Dashboard() {
         </div>
 
       </div>
-    </DashboardLayout>
   );
 }
