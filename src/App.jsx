@@ -45,24 +45,18 @@ function App() {
           <Route path="auth/callback" element={<AuthCallback />} />
 
           {/* Protected Dashboard Routes */}
-          <Route
-            path="dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="youth" element={<YouthDashboard />} />
-            <Route path="children" element={<ChildrenDashboard />} />
-            <Route path="treasury" element={<TreasuryDashboard />} />
-            <Route path="pastor" element={<PastorDashboard />} />
+          <Route element={<ProtectedRoute />}>
+  <Route path="dashboard" element={<DashboardLayout />}>
+    <Route index element={<Dashboard />} />
+    <Route path="youth" element={<YouthDashboard />} />
+    <Route path="children" element={<ChildrenDashboard />} />
+    <Route path="treasury" element={<TreasuryDashboard />} />
+    <Route path="pastor" element={<PastorDashboard />} />
 
-            {/* Settings */}
-            <Route path="settings/profiles" element={<Profiles />} />
-            <Route path="settings/change-password" element={<ChangePassword />} />
-          </Route>
+    <Route path="settings/profiles" element={<Profiles />} />
+    <Route path="settings/change-password" element={<ChangePassword />} />
+  </Route>
+</Route>
 
         </Routes>
       </Router>
