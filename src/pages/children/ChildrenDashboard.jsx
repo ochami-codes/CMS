@@ -1,6 +1,6 @@
 import MemberList from "../../components/members/MemberList";
 import Attendance from "../../components/members/Attendance";
-import "../../styles/dashboard.css";
+import "../../styles/global.css";
 export default function ChildrenDashboard() {
   return (
     <div className="dashboard-layout">
