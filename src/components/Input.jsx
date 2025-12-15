@@ -1,5 +1,5 @@
 // src/components/Input.jsx
-import "./input.css";
+import "../../styles/global.css";
 
 export default function Input({
   label,
