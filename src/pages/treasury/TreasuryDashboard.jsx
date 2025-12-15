@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
-import "../../styles/dashboard.css";
+import "../../styles/global.css";
 export default function TreasuryDashboard() {
   const [offerings, setOfferings] = useState([]);
   const [expenses, setExpenses] = useState([]);
