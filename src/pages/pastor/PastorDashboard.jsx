@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
-import "../../styles/dashboard.css";
+import "../../styles/global.css";
 export default function PastorDashboard() {
   const [youthCount, setYouthCount] = useState(0);
   const [childrenCount, setChildrenCount] = useState(0);
