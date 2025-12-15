@@ -1,4 +1,3 @@
-// src/components/Sidebar.jsx
 import { Link } from "react-router-dom";
 import "./Sidebar.css";
 
@@ -8,14 +7,14 @@ export default function Sidebar() {
       <h2 className="sidebar-title">ChurchApp</h2>
 
       <nav className="sidebar-links">
-        <Link to="/Dashboard">Overview</Link>
-        <Link to="/pages/youth/YouthDashboard">Youth</Link>
-        <Link to="/pages/children/ChildrenDashboard">Children</Link>
-        <Link to="/pages/treasury/TreasuryDashboard">Treasury</Link>
-        <Link to="/pages/pastor/PastorDashboard">Pastor</Link>
+        <Link to="/dashboard">Overview</Link>
+        <Link to="/dashboard/youth">Youth</Link>
+        <Link to="/dashboard/children">Children</Link>
+        <Link to="/dashboard/treasury">Treasury</Link>
+        <Link to="/dashboard/pastor">Pastor</Link>
       </nav>
 
-      <Link to="/pages/settings/profile" className="sidebar-profile-link">
+      <Link to="/dashboard/settings/profiles" className="sidebar-profile-link">
         Profile
       </Link>
     </aside>
