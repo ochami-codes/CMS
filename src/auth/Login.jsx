@@ -1,9 +1,10 @@
+// src/auth/Login.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import Input from "../components/Input";
 import Button from "../components/Button";
-import {useAuth} from "../hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Login() {
   const { setUser } = useAuth();
@@ -25,9 +26,9 @@ export default function Login() {
         password,
       });
 
-      if (supaError) {
-        setError(supaError.message);
-      } else {
+      if (supaError) setError(supaError.message);
+      else if (!data.user) setError("Invalid credentials");
+      else {
         setUser(data.user);
         navigate("/dashboard", { replace: true });
       }
@@ -70,19 +71,10 @@ export default function Login() {
       </form>
 
       <div style={{ marginTop: "1rem", display: "flex", justifyContent: "space-between" }}>
-        <Button
-          type="button"
-          onClick={() => navigate("/reset-password")}
-          style={{ background: "#555" }}
-        >
+        <Button type="button" onClick={() => navigate("/reset-password")} style={{ background: "#555" }}>
           Forgot Password?
         </Button>
-
-        <Button
-          type="button"
-          onClick={() => navigate("/register")}
-          style={{ background: "#555" }}
-        >
+        <Button type="button" onClick={() => navigate("/register")} style={{ background: "#555" }}>
           Register
         </Button>
       </div>
