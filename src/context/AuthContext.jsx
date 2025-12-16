@@ -1,40 +1,83 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
+// src/context/AuthContext.jsx
+import { createContext, useContext, useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
 
-export const AuthContext = createContext(); // <- export it
+export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch profile helper
+  const fetchProfile = async (userId) => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (!error) {
+      setProfile(data);
+    } else {
+      setProfile(null);
+    }
+  };
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    const loadSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+
+      if (currentUser) {
+        await fetchProfile(currentUser.id);
+      }
+
       setLoading(false);
+    };
+
+    loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+
+      if (currentUser) {
+        await fetchProfile(currentUser.id);
+      } else {
+        setProfile(null);
+      }
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
-
-    return () => listener.subscription.unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setProfile(null);
   };
 
-  const value = { user, setUser, loading, logout };
+  const value = {
+    user,
+    profile,
+    loading,
+    logout,
+  };
 
   return (
-    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
   );
 }
 
-// Hook for consuming context
 export function useAuth() {
   return useContext(AuthContext);
 }
