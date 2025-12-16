@@ -1,8 +1,8 @@
 // src/utils/permissions.js
-import { roles } from "./roles";
+import { ROLE_PERMISSIONS } from "./config/roles";
 
 export function canUser(role, permission) {
   if (role === "admin") return true;
   if (!permission) return true;
-  return roles[role]?.includes(permission);
+  return ROLE_PERMISSIONS[role]?.includes(permission);
 }
