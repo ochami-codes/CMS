@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
-export default function useAuthHandler(fetchProfile, setUser, setProfile, setLoading) {
+export default function useAuth(fetchProfile, setUser, setProfile, setLoading) {
   useEffect(() => {
     const loadSession = async () => {
       setLoading(true);
