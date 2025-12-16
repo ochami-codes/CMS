@@ -36,32 +36,31 @@ function App() {
           {/* Public Routes */}
           <Route element={<PublicLayout />}>
             <Route index element={<Home />} />
-            <Route path="login" element={<Login />} />
-            <Route path="register" element={<Register />} />
-            <Route path="reset-password" element={<ResetPassword />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
           </Route>
 
           {/* Auth callback (no layout) */}
-          <Route path="auth/callback" element={<AuthCallback />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
           {/* Protected Dashboard Routes */}
           <Route element={<ProtectedRoute />}>
-  <Route path="dashboard" element={<DashboardLayout />}>
-    <Route index element={<Dashboard />} />
-    <Route path="youth" element={<YouthDashboard />} />
-    <Route path="children" element={<ChildrenDashboard />} />
-    <Route path="treasury" element={<TreasuryDashboard />} />
-    <Route path="pastor" element={<PastorDashboard />} />
+            <Route path="/dashboard" element={<DashboardLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="youth" element={<YouthDashboard />} />
+              <Route path="children" element={<ChildrenDashboard />} />
+              <Route path="treasury" element={<TreasuryDashboard />} />
+              <Route path="pastor" element={<PastorDashboard />} />
 
-    <Route path="settings/profiles" element={<Profiles />} />
-    <Route path="settings/change-password" element={<ChangePassword />} />
-  </Route>
-</Route>
+              <Route path="settings/profiles" element={<Profiles />} />
+              <Route path="settings/change-password" element={<ChangePassword />} />
+            </Route>
+          </Route>
 
         </Routes>
       </Router>
     </AuthProvider>
   );
 }
-
 export default App;
