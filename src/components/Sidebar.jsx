@@ -11,22 +11,22 @@ const SIDEBAR_ITEMS = [
   },
   {
     label: "Youth",
-    path: "/dashboard/youth",
+    path: "youth",
     permission: "manage_youth",
   },
   {
     label: "Children",
-    path: "/dashboard/children",
+    path: "children",
     permission: "manage_children",
   },
   {
     label: "Treasury",
-    path: "/dashboard/treasury",
+    path: "treasury",
     permission: "view_finances",
   },
   {
     label: "Pastor",
-    path: "/dashboard/pastor",
+    path: "pastor",
     permission: "manage_departments",
   },
 ];
