@@ -1,22 +1,65 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { canUser } from "../utils/permissions";
 import "../styles/global.css";
 
+const SIDEBAR_ITEMS = [
+  {
+    label: "Overview",
+    path: "/dashboard",
+    permission: null,
+  },
+  {
+    label: "Youth",
+    path: "/dashboard/youth",
+    permission: "manage_youth",
+  },
+  {
+    label: "Children",
+    path: "/dashboard/children",
+    permission: "manage_children",
+  },
+  {
+    label: "Treasury",
+    path: "/dashboard/treasury",
+    permission: "view_finances",
+  },
+  {
+    label: "Pastor",
+    path: "/dashboard/pastor",
+    permission: "manage_departments",
+  },
+];
+
 export default function Sidebar() {
+  const { profile } = useAuth();
+
   return (
     <aside className="sidebar">
       <h2 className="sidebar-title">ChurchApp</h2>
 
       <nav className="sidebar-links">
-        <Link to="/dashboard">Overview</Link>
-        <Link to="/dashboard/youth">Youth</Link>
-        <Link to="/dashboard/children">Children</Link>
-        <Link to="/dashboard/treasury">Treasury</Link>
-        <Link to="/dashboard/pastor">Pastor</Link>
+        {SIDEBAR_ITEMS.filter(item =>
+          canUser(profile?.role, item.permission)
+        ).map(item => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) =>
+              isActive ? "active sidebar-link" : "sidebar-link"
+            }
+          >
+            {item.label}
+          </NavLink>
+        ))}
       </nav>
 
-      <Link to="/dashboard/settings/profiles" className="sidebar-profile-link">
+      <NavLink
+        to="/dashboard/settings/profiles"
+        className="sidebar-profile-link"
+      >
         Profile
-      </Link>
+      </NavLink>
     </aside>
   );
 }
