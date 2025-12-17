@@ -3,6 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import { canUser } from "../utils/permissions";
 import "../styles/global.css";
 
+// Sidebar items with permissions
 const SIDEBAR_ITEMS = [
   {
     label: "Overview",
@@ -28,6 +29,11 @@ const SIDEBAR_ITEMS = [
     label: "Pastor",
     path: "/dashboard/pastor",
     permission: "manage_departments",
+  },
+  {
+    label: "Manage Roles",
+    path: "/dashboard/manage-roles",
+    permission: "manage_users", // admin-only
   },
 ];
 
