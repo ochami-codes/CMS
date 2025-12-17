@@ -24,6 +24,9 @@ import PastorDashboard from "./pages/pastor/PastorDashboard";
 import Profiles from "./pages/settings/Profiles";
 import ChangePassword from "./pages/settings/ChangePassword";
 
+// Admin
+import ManageRoles from "./components/admin/ManageRoles";
+
 function App() {
   return (
     <AuthProvider>
@@ -49,8 +52,19 @@ function App() {
               <Route path="/dashboard/treasury" element={<TreasuryDashboard />} />
               <Route path="/dashboard/pastor" element={<PastorDashboard />} />
 
+              {/* Settings */}
               <Route path="/dashboard/settings/profiles" element={<Profiles />} />
               <Route path="/dashboard/settings/change-password" element={<ChangePassword />} />
+
+              {/* Admin-only */}
+              <Route
+                path="/dashboard/manage-roles"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <ManageRoles />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
           </Route>
         </Routes>
