@@ -1,17 +1,16 @@
-// src/auth/Register.jsx
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
-import Input from '../components/Input';
-import Button from '../components/Button';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
+import Input from "../components/Input";
+import Button from "../components/Button";
 
 export default function Register() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const navigate = useNavigate();
 
@@ -19,11 +18,11 @@ export default function Register() {
     e.preventDefault();
 
     if (loading) return; // prevent double submit
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
@@ -40,36 +39,32 @@ export default function Register() {
 
       if (error) throw error;
 
-      /**
-       * IMPORTANT:
-       * If email confirmation is enabled,
-       * user is NOT logged in yet.
-       */
+      // If email confirmation is required, show message and stop
       if (!data.session) {
         setSuccess(
-          'Registration successful! Please check your email to confirm your account.'
+          "Registration successful! Please check your email to confirm your account before logging in."
         );
         return;
       }
 
-      // If email confirmation is OFF
-      navigate('/dashboard');
+      // Email confirmation is OFF → user is already logged in
+      navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(err.message || 'Something went wrong');
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container relative">
+    <div className="auth-container relative max-w-md mx-auto p-6">
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
           <p className="text-sm">Creating your account…</p>
         </div>
       )}
 
-      <h2>Register</h2>
+      <h2 className="text-2xl font-bold mb-4">Register</h2>
 
       <form onSubmit={handleRegister} className="space-y-4">
         <Input
@@ -77,6 +72,7 @@ export default function Register() {
           label="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
           required
         />
 
@@ -85,6 +81,7 @@ export default function Register() {
           label="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          placeholder="********"
           required
         />
 
@@ -93,16 +90,27 @@ export default function Register() {
           label="Confirm Password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="********"
           required
         />
 
-        {error && <p className="error text-red-600">{error}</p>}
+        {error && <p className="text-red-600">{error}</p>}
         {success && <p className="text-green-600">{success}</p>}
 
         <Button type="submit" disabled={loading}>
-          {loading ? 'Please wait…' : 'Register'}
+          {loading ? "Please wait…" : "Register"}
         </Button>
       </form>
+
+      <div className="mt-4 flex justify-between">
+        <Button
+          type="button"
+          onClick={() => navigate("/login")}
+          style={{ background: "#555" }}
+        >
+          Back to Login
+        </Button>
+      </div>
     </div>
   );
 }
