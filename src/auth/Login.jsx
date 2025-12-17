@@ -1,13 +1,10 @@
-// src/auth/Login.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import Input from "../components/Input";
 import Button from "../components/Button";
-import { useAuth } from "../hooks/useAuth";
 
 export default function Login() {
-  const { setUser } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -21,17 +18,19 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { data, error: supaError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error: supaError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-      if (supaError) setError(supaError.message);
-      else if (!data.user) setError("Invalid credentials");
-      else {
-        setUser(data.user);
-        navigate("/dashboard", { replace: true });
+      if (supaError) {
+        setError(supaError.message);
+        return;
       }
+
+      // AuthContext will pick up the session automatically
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
@@ -42,7 +41,9 @@ export default function Login() {
   return (
     <div style={{ maxWidth: 400, margin: "0 auto", paddingTop: "4rem" }}>
       <h2>Login</h2>
-      <p style={{ color: "#555", marginBottom: "1rem" }}>Enter your account details.</p>
+      <p style={{ color: "#555", marginBottom: "1rem" }}>
+        Enter your account details.
+      </p>
 
       <form onSubmit={handleSubmit}>
         <Input
@@ -63,18 +64,35 @@ export default function Login() {
           required
         />
 
-        {error && <p style={{ color: "red", marginBottom: "12px" }}>{error}</p>}
+        {error && (
+          <p style={{ color: "red", marginBottom: "12px" }}>{error}</p>
+        )}
 
         <Button type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </Button>
       </form>
 
-      <div style={{ marginTop: "1rem", display: "flex", justifyContent: "space-between" }}>
-        <Button type="button" onClick={() => navigate("/reset-password")} style={{ background: "#555" }}>
+      <div
+        style={{
+          marginTop: "1rem",
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        <Button
+          type="button"
+          onClick={() => navigate("/reset-password")}
+          style={{ background: "#555" }}
+        >
           Forgot Password?
         </Button>
-        <Button type="button" onClick={() => navigate("/register")} style={{ background: "#555" }}>
+
+        <Button
+          type="button"
+          onClick={() => navigate("/register")}
+          style={{ background: "#555" }}
+        >
           Register
         </Button>
       </div>
