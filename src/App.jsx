@@ -43,7 +43,7 @@ function App() {
           {/* Auth callback (no layout) */}
           <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* Protected Routes */}
+          {/* Protected Routes (all authenticated users) */}
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
@@ -56,15 +56,19 @@ function App() {
               <Route path="/dashboard/settings/profiles" element={<Profiles />} />
               <Route path="/dashboard/settings/change-password" element={<ChangePassword />} />
 
-              {/* Admin-only */}
+              {/* Admin-only routes */}
               <Route
-                path="/dashboard/manage-roles"
-                element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
-                    <ManageRoles />
-                  </ProtectedRoute>
-                }
-              />
+                element={<ProtectedRoute allowedRoles={["admin"]} />}
+              >
+                <Route path="/dashboard/manage-roles" element={<ManageRoles />} />
+              </Route>
+
+              {/* Treasurer-only route example */}
+              <Route
+                element={<ProtectedRoute allowedRoles={["admin","treasurer"]} />}
+              >
+                <Route path="/dashboard/finances" element={<TreasuryDashboard />} />
+              </Route>
             </Route>
           </Route>
         </Routes>
