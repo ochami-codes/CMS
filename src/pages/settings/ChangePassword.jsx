@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../../supabaseClient";
-import {useAuth} from "../../hooks/useAuth";
+import {useAuth} from "../../context/AuthContext";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import { isStrongPassword } from "../../utils/validators";
