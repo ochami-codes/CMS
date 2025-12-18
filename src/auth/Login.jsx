@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { setUser, setProfile } = useAuth(); // if you adjust context to allow setting directly
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +20,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { error: supaError } =
+      const { data: loginData, error: supaError } =
         await supabase.auth.signInWithPassword({
           email,
           password,
@@ -29,7 +31,22 @@ export default function Login() {
         return;
       }
 
-      // AuthContext will pick up the session automatically
+      // Fetch profile
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("full_name, role, department")
+        .eq("id", loginData.user.id)
+        .single();
+
+      if (profileError) {
+        setError(profileError.message);
+        return;
+      }
+
+      // Store profile in AuthContext
+      setProfile(profile);
+
+      // Navigate to dashboard
       navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err.message || "Login failed");
@@ -41,10 +58,6 @@ export default function Login() {
   return (
     <div style={{ maxWidth: 400, margin: "0 auto", paddingTop: "4rem" }}>
       <h2>Login</h2>
-      <p style={{ color: "#555", marginBottom: "1rem" }}>
-        Enter your account details.
-      </p>
-
       <form onSubmit={handleSubmit}>
         <Input
           label="Email"
@@ -54,7 +67,6 @@ export default function Login() {
           placeholder="you@example.com"
           required
         />
-
         <Input
           label="Password"
           type="password"
@@ -63,39 +75,11 @@ export default function Login() {
           placeholder="********"
           required
         />
-
-        {error && (
-          <p style={{ color: "red", marginBottom: "12px" }}>{error}</p>
-        )}
-
+        {error && <p style={{ color: "red" }}>{error}</p>}
         <Button type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </Button>
       </form>
-
-      <div
-        style={{
-          marginTop: "1rem",
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <Button
-          type="button"
-          onClick={() => navigate("/reset-password")}
-          style={{ background: "#555" }}
-        >
-          Forgot Password?
-        </Button>
-
-        <Button
-          type="button"
-          onClick={() => navigate("/register")}
-          style={{ background: "#555" }}
-        >
-          Register
-        </Button>
-      </div>
     </div>
   );
 }
