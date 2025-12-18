@@ -1,13 +1,12 @@
+// src/auth/Login.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import Input from "../components/Input";
 import Button from "../components/Button";
-import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setUser, setProfile } = useAuth(); // if you adjust context to allow setting directly
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +19,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { data: loginData, error: supaError } =
+      const { error: supaError } =
         await supabase.auth.signInWithPassword({
           email,
           password,
@@ -31,22 +30,7 @@ export default function Login() {
         return;
       }
 
-      // Fetch profile
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("full_name, role, department")
-        .eq("id", loginData.user.id)
-        .single();
-
-      if (profileError) {
-        setError(profileError.message);
-        return;
-      }
-
-      // Store profile in AuthContext
-      setProfile(profile);
-
-      // Navigate to dashboard
+      // AuthContext will handle user + profile
       navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err.message || "Login failed");
@@ -58,6 +42,7 @@ export default function Login() {
   return (
     <div style={{ maxWidth: 400, margin: "0 auto", paddingTop: "4rem" }}>
       <h2>Login</h2>
+
       <form onSubmit={handleSubmit}>
         <Input
           label="Email"
@@ -67,6 +52,7 @@ export default function Login() {
           placeholder="you@example.com"
           required
         />
+
         <Input
           label="Password"
           type="password"
@@ -75,7 +61,9 @@ export default function Login() {
           placeholder="********"
           required
         />
+
         {error && <p style={{ color: "red" }}>{error}</p>}
+
         <Button type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </Button>
