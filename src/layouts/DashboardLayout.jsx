@@ -1,6 +1,6 @@
 // src/layouts/DashboardLayout.jsx
 import { Outlet, Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 import "../styles/global.css";
 import Sidebar from "../components/Sidebar";
