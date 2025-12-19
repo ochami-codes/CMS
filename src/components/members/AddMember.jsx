@@ -1,28 +1,35 @@
-// src/components/members/AddMember.jsx
 import { useState } from "react";
 import { supabase } from "../../supabaseClient";
-import { useNavigate } from "react-router-dom";
+import { memberFields } from "../../utils/memberFields";
 
-export default function AddMember({ department, onMemberAdded }) { // receive callback
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+export default function AddMember({ department, onMemberAdded }) {
+  const fields = memberFields[department] || [];
+
+  // Initialize form state with all fields empty
+  const initialState = Object.fromEntries(fields.map(f => [f.name, ""]));
+  const [formData, setFormData] = useState(initialState);
   const [loading, setLoading] = useState(false);
+
+  const handleChange = (e, fieldName) => {
+    setFormData(prev => ({ ...prev, [fieldName]: e.target.value }));
+  };
 
   const handleAdd = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.from("members").insert([
-      { name, phone, department },
-    ]);
+    try {
+      const tableName = department; // Supabase table must match department
+      const { error } = await supabase.from(tableName).insert([formData]);
 
-    setLoading(false);
-    if (!error) {
-      setName("");
-      setPhone("");
-      if (onMemberAdded) onMemberAdded(); // trigger parent refresh
-    } else {
-      console.error("Failed to add member:", error.message);
+      if (error) throw error;
+
+      setFormData(initialState); // reset form
+      if (onMemberAdded) onMemberAdded(); // notify parent to refresh list
+    } catch (err) {
+      console.error("Failed to add member:", err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -30,32 +37,20 @@ export default function AddMember({ department, onMemberAdded }) { // receive ca
     <form onSubmit={handleAdd} style={{ maxWidth: "400px" }}>
       <h2>Add Member to {department}</h2>
 
-      <label>Name</label>
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-        style={{ width: "100%", padding: "8px", marginBottom: "1rem" }}
-      />
+      {fields.map(f => (
+        <div key={f.name} style={{ marginBottom: "1rem" }}>
+          <label>{f.label}</label>
+          <input
+            type={f.type}
+            value={formData[f.name]}
+            onChange={(e) => handleChange(e, f.name)}
+            required={f.required}
+            style={{ width: "100%", padding: "8px" }}
+          />
+        </div>
+      ))}
 
-      <label>Phone</label>
-      <input
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        required
-        style={{ width: "100%", padding: "8px", marginBottom: "1rem" }}
-      />
-
-      <button
-        disabled={loading}
-        style={{
-          padding: "8px 16px",
-          background: "#0077b6",
-          color: "#fff",
-          borderRadius: "6px",
-          border: "none",
-        }}
-      >
+      <button disabled={loading}>
         {loading ? "Saving..." : "Add Member"}
       </button>
     </form>
