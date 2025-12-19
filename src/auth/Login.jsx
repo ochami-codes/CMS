@@ -67,6 +67,15 @@ export default function Login() {
         <Button type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </Button>
+<div style={{ marginTop: 12, textAlign: "right" }}>
+  <button
+    type="button"
+    onClick={() => navigate("/reset-password")}
+    className="link-button"
+  >
+    Forgot password?
+  </button>
+</div>
       </form>
     </div>
   );
