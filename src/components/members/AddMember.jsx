@@ -3,11 +3,10 @@ import { useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { useNavigate } from "react-router-dom";
 
-export default function AddMember({ department }) {
+export default function AddMember({ department, onMemberAdded }) { // receive callback
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -18,7 +17,13 @@ export default function AddMember({ department }) {
     ]);
 
     setLoading(false);
-    if (!error) navigate(`/dashboard/${department}`);
+    if (!error) {
+      setName("");
+      setPhone("");
+      if (onMemberAdded) onMemberAdded(); // trigger parent refresh
+    } else {
+      console.error("Failed to add member:", error.message);
+    }
   };
 
   return (
