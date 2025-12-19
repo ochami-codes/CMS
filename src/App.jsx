@@ -11,6 +11,7 @@ import AuthCallback from "./auth/AuthCallback";
 import Login from "./auth/Login";
 import Register from "./auth/Register";
 import ResetPassword from "./auth/ResetPassword";
+import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
 
 // Pages
 import Home from "./pages/Home";
@@ -32,18 +33,20 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public Routes */}
+
+          {/* Public routes */}
           <Route element={<PublicLayout />}>
             <Route index element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/reset-password-confirm" element={<ResetPasswordConfirm />} />
           </Route>
 
-          {/* Auth callback (no layout) */}
+          {/* Auth callback */}
           <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* Protected Routes (all authenticated users) */}
+          {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
@@ -56,21 +59,14 @@ function App() {
               <Route path="/dashboard/settings/profiles" element={<Profiles />} />
               <Route path="/dashboard/settings/change-password" element={<ChangePassword />} />
 
-              {/* Admin-only routes */}
-              <Route
-                element={<ProtectedRoute allowedRoles={["admin"]} />}
-              >
+              {/* Admin only */}
+              <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
                 <Route path="/dashboard/manage-roles" element={<ManageRoles />} />
               </Route>
 
-              {/* Treasurer-only route example */}
-              <Route
-                element={<ProtectedRoute allowedRoles={["admin","treasurer"]} />}
-              >
-                <Route path="/dashboard/finances" element={<TreasuryDashboard />} />
-              </Route>
             </Route>
           </Route>
+
         </Routes>
       </Router>
     </AuthProvider>
