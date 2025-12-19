@@ -1,15 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-export default function MemberList({ department }) {
+export default function MemberList({ department, refresh }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchMembers();
-  }, [department]);
 
   const fetchMembers = async () => {
     setLoading(true);
@@ -19,15 +15,28 @@ export default function MemberList({ department }) {
       .eq("department", department)
       .order("created_at", { ascending: false });
 
-    if (!error) setMembers(data);
+    if (error) {
+      console.error("Failed to fetch members:", error.message);
+    } else {
+      setMembers(data);
+    }
     setLoading(false);
   };
+
+  // Re-fetch when department or refresh changes
+  useEffect(() => {
+    fetchMembers();
+  }, [department, refresh]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this member?")) return;
 
     const { error } = await supabase.from("members").delete().eq("id", id);
-    if (!error) setMembers(members.filter((m) => m.id !== id));
+    if (error) {
+      console.error("Failed to delete member:", error.message);
+    } else {
+      setMembers(members.filter((m) => m.id !== id));
+    }
   };
 
   if (loading) return <p>Loading members...</p>;
@@ -37,19 +46,6 @@ export default function MemberList({ department }) {
       <h2 style={{ marginBottom: "1rem" }}>
         {department.toUpperCase()} Members
       </h2>
-
-      <Link
-        to={`/dashboard/${department}/add`}
-        style={{
-          padding: "6px 14px",
-          background: "#0077b6",
-          color: "#fff",
-          borderRadius: "6px",
-          textDecoration: "none",
-        }}
-      >
-        Add Member
-      </Link>
 
       <table
         style={{
@@ -68,46 +64,46 @@ export default function MemberList({ department }) {
         </thead>
 
         <tbody>
-          {members.map((m) => (
-            <tr key={m.id} style={{ borderBottom: "1px solid #eee" }}>
-              <td style={{ padding: "8px" }}>{m.name}</td>
-              <td style={{ padding: "8px" }}>{m.phone}</td>
-              <td style={{ padding: "8px" }}>
-                <button
-                  onClick={() =>
-                    navigate(`/dashboard/${department}/edit/${m.id}`)
-                  }
-                  style={{
-                    padding: "4px 10px",
-                    background: "#555",
-                    color: "#fff",
-                    borderRadius: "4px",
-                    marginRight: "10px",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  Edit
-                </button>
+          {members.length > 0 ? (
+            members.map((m) => (
+              <tr key={m.id} style={{ borderBottom: "1px solid #eee" }}>
+                <td style={{ padding: "8px" }}>{m.name}</td>
+                <td style={{ padding: "8px" }}>{m.phone}</td>
+                <td style={{ padding: "8px" }}>
+                  <button
+                    onClick={() =>
+                      navigate(`/dashboard/${department}/edit/${m.id}`)
+                    }
+                    style={{
+                      padding: "4px 10px",
+                      background: "#555",
+                      color: "#fff",
+                      borderRadius: "4px",
+                      marginRight: "10px",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Edit
+                  </button>
 
-                <button
-                  onClick={() => handleDelete(m.id)}
-                  style={{
-                    padding: "4px 10px",
-                    background: "#e63946",
-                    color: "#fff",
-                    borderRadius: "4px",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-
-          {members.length === 0 && (
+                  <button
+                    onClick={() => handleDelete(m.id)}
+                    style={{
+                      padding: "4px 10px",
+                      background: "#e63946",
+                      color: "#fff",
+                      borderRadius: "4px",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))
+          ) : (
             <tr>
               <td colSpan="3" style={{ padding: "8px", textAlign: "center" }}>
                 No members found
