@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../../supabaseClient";
-import { memberFields } from "../utils/memberFields";
+import { memberFields } from "../../utils/memberFields";
 
 export default function AddMember({ department, onMemberAdded }) {
   const fields = memberFields[department] || [];
