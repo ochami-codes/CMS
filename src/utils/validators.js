@@ -1,5 +1,4 @@
 // src/utils/validators.js
-
 // Check if a field is not empty
 export const isRequired = (value) => {
   return value !== undefined && value !== null && value.toString().trim() !== "";

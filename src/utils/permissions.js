@@ -1,4 +1,3 @@
-// src/utils/permissions.js
 import { ROLE_PERMISSIONS } from "../config/roles";
 
 export function canUser(role, permission) {
