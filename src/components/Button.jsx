@@ -14,4 +14,4 @@ export default function Button({ children, onClick, type = "button", disabled = 
     </button>
   );
 }
-}
+
