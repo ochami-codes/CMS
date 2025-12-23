@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import { supabase } from "../../supabaseClient";
 import profileForm from "./profileForm";
 import contributions from "./contributions";
