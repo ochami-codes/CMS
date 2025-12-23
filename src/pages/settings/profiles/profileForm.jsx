@@ -1,7 +1,7 @@
 // src/pages/settings/profileForm.jsx
 import React, { useState } from "react";
-import Input from "../../components/Input";
-import Button from "../../components/Button";
+import Input from "../../../components/Input";
+import Button from "../../../components/Button";
 
 const ProfileForm = ({ fullName, phone, email, onUpdate, loading, message }) => {
   const [localFullName, setLocalFullName] = useState(fullName);
