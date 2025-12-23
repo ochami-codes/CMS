@@ -97,7 +97,7 @@ const profilePage = () => {
   return (
     <div style={{ maxWidth: 520, margin: "0 auto" }}>
       <h2>Your Profile</h2>
-      <p style={{ color: "                               
+      <p style={{ color:"#666"}}>                              
         Manage your account information.
       </p>
       <ProfileForm
