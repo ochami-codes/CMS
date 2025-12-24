@@ -1,6 +1,6 @@
 import React from "react";
 
-const contributions = ({ contributions }) => {
+const Contributions = ({ contributions }) => {
   return (
     <ul>
       <li>Tithes: {contributions.tithes}</li>
@@ -11,4 +11,4 @@ const contributions = ({ contributions }) => {
   );
 };
 
-export default contributions;
+export default Contributions;

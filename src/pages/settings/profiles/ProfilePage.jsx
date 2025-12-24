@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import { supabase } from "../../../supabaseClient";
-import profileForm from "./ProfileForm";
-import contributions from "./Contributions";
-import summaryChart from "./SummaryChart";
+import ProfileForm from "./ProfileForm";
+import Contributions from "./Contributions";
+import SummaryChart from "./SummaryChart";
 
-const profilePage = () => {
+const ProfilePage = () => {
   const { user } = useAuth();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -117,4 +117,4 @@ const profilePage = () => {
   );
 };
 
-export default profilePage;
+export default ProfilePage;

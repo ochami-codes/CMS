@@ -1,7 +1,7 @@
 import React from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 
-const summaryChart = ({ contributions }) => {
+const SummaryChart = ({ contributions }) => {
   const pieChartData = [
     { name: "Tithes", value: contributions.tithes },
     { name: "Offerings", value: contributions.offerings },
@@ -33,4 +33,4 @@ const summaryChart = ({ contributions }) => {
   );
 };
 
-export default summaryChart;
+export default SummaryChart;

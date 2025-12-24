@@ -55,4 +55,4 @@ const ProfileForm = ({ fullName, phone, email, onUpdate, loading, message }) => 
   );
 };
 
-export default profileForm;
+export default ProfileForm;
