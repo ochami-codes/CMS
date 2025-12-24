@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import { supabase } from "../../../supabaseClient";
-import profileForm from "./profileForm";
-import contributions from "./contributions";
-import summaryChart from "./summaryChart";
+import profileForm from "./ProfileForm";
+import contributions from "./Contributions";
+import summaryChart from "./SummaryChart";
 
 const profilePage = () => {
   const { user } = useAuth();

@@ -23,7 +23,7 @@ import TreasuryDashboard from "./pages/treasury/TreasuryDashboard";
 import PastorDashboard from "./pages/pastor/PastorDashboard";
 
 // Settings
-import profilePage from "./pages/settings/profiles/profilePage";
+import ProfilePage from "./pages/settings/profiles/ProfilePage";
 import ChangePassword from "./pages/settings/ChangePassword";
 
 // Admin
@@ -57,7 +57,7 @@ function App() {
               <Route path="/dashboard/pastor" element={<PastorDashboard />} />
 
               {/* Settings */}
-              <Route path="/dashboard/settings/profiles" element={<profilePage />} />
+              <Route path="/dashboard/settings/profiles" element={<ProfilePage />} />
               <Route path="/dashboard/settings/change-password" element={<ChangePassword />} />
 
               {/* Admin only */}
