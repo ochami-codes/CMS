@@ -5,7 +5,9 @@ import App from './App';
 import './styles/global.css';
 import eruda from 'eruda';
 
-eruda.init();
+if (import.meta.env.DEV) {
+  eruda.init();
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
