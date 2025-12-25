@@ -10,7 +10,6 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import AuthCallback from "./auth/AuthCallback";
 import Login from "./auth/Login";
 import Register from "./auth/Register";
-
 import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
 
@@ -29,48 +28,51 @@ import ChangePassword from "./pages/settings/ChangePassword";
 // Admin
 import ManageRoles from "./components/admin/ManageRoles";
 
+// Toaster
+import { Toaster } from "react-hot-toast";
+
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-
-          {/* Public routes */}
-          <Route element={<PublicLayout />}>
-            <Route index element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/reset-password-confirm" element={<ResetPasswordConfirm />} />
-          </Route>
-
-          {/* Auth callback */}
-          <Route path="/auth/callback" element={<AuthCallback />} />
-
-          {/* Protected routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/dashboard/youth" element={<YouthDashboard />} />
-              <Route path="/dashboard/children" element={<ChildrenDashboard />} />
-              <Route path="/dashboard/treasury" element={<TreasuryDashboard />} />
-              <Route path="/dashboard/pastor" element={<PastorDashboard />} />
-
-              {/* Settings */}
-              <Route path="/dashboard/settings/profiles" element={<ProfilePage />} />
-              <Route path="/dashboard/settings/change-password" element={<ChangePassword />} />
-
-              {/* Admin only */}
-              <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-                <Route path="/dashboard/manage-roles" element={<ManageRoles />} />
-              </Route>
-
+    <>
+      <Toaster position="top-right" reverseOrder={false} />
+      <AuthProvider>
+        <Router>
+          <Routes>
+            {/* Public routes */}
+            <Route element={<PublicLayout />}>
+              <Route index element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/reset-password-confirm" element={<ResetPasswordConfirm />} />
             </Route>
-          </Route>
 
-        </Routes>
-      </Router>
-    </AuthProvider>
+            {/* Auth callback */}
+            <Route path="/auth/callback" element={<AuthCallback />} />
+
+            {/* Protected routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<DashboardLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard/youth" element={<YouthDashboard />} />
+                <Route path="/dashboard/children" element={<ChildrenDashboard />} />
+                <Route path="/dashboard/treasury" element={<TreasuryDashboard />} />
+                <Route path="/dashboard/pastor" element={<PastorDashboard />} />
+
+                {/* Settings */}
+                <Route path="/dashboard/settings/profiles" element={<ProfilePage />} />
+                <Route path="/dashboard/settings/change-password" element={<ChangePassword />} />
+
+                {/* Admin only */}
+                <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+                  <Route path="/dashboard/manage-roles" element={<ManageRoles />} />
+                </Route>
+              </Route>
+            </Route>
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </>
   );
 }
 

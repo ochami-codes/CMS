@@ -194,7 +194,9 @@ textarea:focus {
   font-weight: 600;
 }
 
-/* Charts & Bars */
+/* ==========================
+   Charts & Bars
+========================== */
 .chart-section {
   background: #fff;
   padding: 1rem;
@@ -277,6 +279,162 @@ textarea:focus {
 .event-title { font-weight: 600; margin-bottom: 0.3rem; }
 .event-message { margin-bottom: 0.5rem; color: #444; }
 .event-date { color: #666; font-size: 0.85rem; }
+
+/* ==========================
+   Custom Components
+========================== */
+
+/* AddMember Form */
+.add-member-form {
+  max-width: 400px;
+  margin: 0 auto 1.5rem;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.add-member-form .form-title {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.add-member-form .form-group {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.add-member-form .form-group label {
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+}
+
+.add-member-form .form-group input {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.add-member-form .form-group input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79,70,229,0.1);
+}
+
+.add-member-form .form-submit {
+  width: 100%;
+  padding: 10px;
+  background-color: #4f46e5;
+  color: #fff;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-member-form .form-submit:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.add-member-form .form-submit:hover:not(:disabled) {
+  background-color: #3730a3;
+}
+
+/* Attendance Table */
+.attendance-container {
+  max-width: 600px;
+  margin: 0 auto 1.5rem;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.attendance-title {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+}
+
+.attendance-table th,
+.attendance-table td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.attendance-table th {
+  background-color: #f1f1f1;
+  font-weight: 600;
+}
+
+.attendance-save-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #0077b6;
+  color: #fff;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.attendance-save-btn:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.attendance-save-btn:hover:not(:disabled) {
+  background-color: #005f86;
+}
+
+/* Member List Table */
+.member-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.member-list-table th,
+.member-list-table td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.member-list-table th {
+  background-color: #f1f1f1;
+  font-weight: 600;
+}
+
+.member-list-table .delete-btn {
+  padding: 4px 10px;
+  background-color: #e63946;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.member-list-table .delete-btn:disabled {
+  cursor: not-allowed;
+  background-color: #f69aa5;
+}
+
+.member-list-table .no-members {
+  text-align: center;
+  padding: 8px;
+}
 
 /* ==========================
    Fully Fluid Responsive

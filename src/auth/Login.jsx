@@ -70,7 +70,7 @@ export default function Login() {
 <div style={{ marginTop: 12, textAlign: "right" }}>
   <button
     type="button"
-    onClick={() => navigate("/reset-password")}
+    onClick={() => navigate("/reset-password-confirm")}
     className="link-button"
   >
     Forgot password?

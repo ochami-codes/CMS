@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { memberFields } from "../../utils/memberFields";
+import toast from "react-hot-toast";
+import "../../styles/global.css";
 
 export default function MemberList({ department, refresh }) {
   const config = memberFields[department];
@@ -9,51 +11,85 @@ export default function MemberList({ department, refresh }) {
 
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchMembers = async () => {
     if (!table) return;
     setLoading(true);
 
-    const { data, error } = await supabase.from(table).select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from(table)
+      .select("*")
+      .order("created_at", { ascending: false });
+
     if (!error && Array.isArray(data)) setMembers(data);
-    else { setMembers([]); if (error) console.error(error.message); }
+    else {
+      setMembers([]);
+      if (error) console.error(error.message);
+    }
 
     setLoading(false);
   };
 
-  useEffect(() => { fetchMembers(); }, [table, refresh]);
+  useEffect(() => {
+    fetchMembers();
+  }, [table, refresh]);
 
-  const handleDelete = async (id) => {
-    if (!table || !window.confirm("Are you sure?")) return;
-    const { error } = await supabase.from(table).delete().eq("id", id);
-    if (!error) setMembers(prev => prev.filter(m => m.id !== id));
+  const handleDelete = async id => {
+    if (!table) return;
+    if (!window.confirm("Are you sure you want to delete this member?")) return;
+
+    setDeletingId(id);
+    const toastId = toast.loading("Deleting member...");
+    try {
+      const { error } = await supabase.from(table).delete().eq("id", id);
+      if (error) throw error;
+
+      setMembers(prev => prev.filter(m => m.id !== id));
+      toast.success("Member deleted successfully!", { id: toastId });
+    } catch (err) {
+      toast.error("Failed to delete member: " + err.message, { id: toastId });
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   if (!table || !fields.length) return <p>No configuration for "{department}"</p>;
   if (loading) return <p>Loading members...</p>;
 
   return (
-    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+    <table className="member-list-table">
       <thead>
-        <tr style={{ background: "#f1f1f1" }}>
-          {fields.map(f => <th key={f.name} style={{ padding: 8 }}>{f.label}</th>)}
-          <th style={{ padding: 8 }}>Actions</th>
+        <tr>
+          {fields.map(f => (
+            <th key={f.name}>{f.label}</th>
+          ))}
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        {members.length ? members.map(m => (
-          <tr key={m.id} style={{ borderBottom: "1px solid #eee" }}>
-            {fields.map(f => <td key={f.name} style={{ padding: 8 }}>{m[f.name] ?? "-"}</td>)}
-            <td style={{ padding: 8 }}>
-              <button
-                style={{ padding: "4px 10px", background: "#e63946", color: "#fff", border: "none", borderRadius: 4 }}
-                onClick={() => handleDelete(m.id)}
-              >Delete</button>
-            </td>
-          </tr>
-        )) : (
+        {members.length ? (
+          members.map(m => (
+            <tr key={m.id}>
+              {fields.map(f => (
+                <td key={f.name}>{m[f.name] ?? "-"}</td>
+              ))}
+              <td>
+                <button
+                  onClick={() => handleDelete(m.id)}
+                  disabled={deletingId === m.id}
+                  className="delete-btn"
+                >
+                  {deletingId === m.id ? "Deleting..." : "Delete"}
+                </button>
+              </td>
+            </tr>
+          ))
+        ) : (
           <tr>
-            <td colSpan={fields.length + 1} style={{ textAlign: "center", padding: 8 }}>No members found</td>
+            <td colSpan={fields.length + 1} className="no-members">
+              No members found
+            </td>
           </tr>
         )}
       </tbody>
