@@ -7,9 +7,13 @@ import SummaryChart from "./SummaryChart";
 
 const ProfilePage = () => {
   const { user } = useAuth();
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState(user?.email || "");
+
+  const [profile, setProfile] = useState({
+    fullName: "",
+    phone: "",
+    email: user?.email || "",
+  });
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [contributions, setContributions] = useState({
@@ -19,76 +23,86 @@ const ProfilePage = () => {
     churchDevelopment: 0,
   });
 
-  // Load existing profile data from Supabase
   useEffect(() => {
-    const loadProfile = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("full_name, phone")
-        .eq("id", user?.id)
-        .single();
-      if (data) {
-        setFullName(data.full_name);
-        setPhone(data.phone);
+    if (!user) return;
+
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        // Load profile
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("full_name, phone")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) throw profileError;
+
+        if (profileData) {
+          setProfile({
+            fullName: profileData.full_name,
+            phone: profileData.phone,
+            email: user.email,
+          });
+        }
+
+        // Load contributions
+        const { data: contributionsData, error: contributionsError } = await supabase
+          .from("contributions")
+          .select("type, amount")
+          .eq("user_id", user.id);
+
+        if (contributionsError) throw contributionsError;
+
+        if (contributionsData) {
+          const formatted = {
+            tithes: 0,
+            offerings: 0,
+            campOfferings: 0,
+            churchDevelopment: 0,
+          };
+          contributionsData.forEach((c) => {
+            if (formatted[c.type] !== undefined) formatted[c.type] += c.amount;
+          });
+          setContributions(formatted);
+        }
+      } catch (err) {
+        console.error(err);
+        setMessage(err?.message || "Failed to load profile.");
+      } finally {
+        setLoading(false);
       }
     };
-    if (user) loadProfile();
+
+    loadData();
   }, [user]);
 
-  // Load contributions data
-  useEffect(() => {
-    const loadContributions = async () => {
-      const { data } = await supabase
-        .from("contributions")
-        .select("type, amount")
-        .eq("user_id", user?.id);
-      if (data) {
-        const contributionsData = {
-          tithes: 0,
-          offerings: 0,
-          campOfferings: 0,
-          churchDevelopment: 0,
-        };
-        data.forEach((contribution) => {
-          switch (contribution.type) {
-            case "tithes":
-              contributionsData.tithes += contribution.amount;
-              break;
-            case "offerings":
-              contributionsData.offerings += contribution.amount;
-              break;
-            case "campOfferings":
-              contributionsData.campOfferings += contribution.amount;
-              break;
-            case "churchDevelopment":
-              contributionsData.churchDevelopment += contribution.amount;
-              break;
-            default:
-              break;
-          }
-        });
-        setContributions(contributionsData);
-      }
-    };
-    if (user) loadContributions();
-  }, [user]);
-
-  const handleUpdate = async (fullName, phone, email) => {
+  const handleUpdate = async (updatedProfile) => {
     setLoading(true);
     setMessage("");
     try {
-      // Update profile table (custom)
+      // Update profile table
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({ full_name: fullName, phone })
+        .update({
+          full_name: updatedProfile.fullName,
+          phone: updatedProfile.phone,
+        })
         .eq("id", user.id);
+
       if (profileError) throw profileError;
+
       // Update email in auth
-      const { error: authError } = await supabase.auth.updateUser({ email });
+      const { error: authError } = await supabase.auth.updateUser({
+        email: updatedProfile.email,
+      });
+
       if (authError) throw authError;
+
+      setProfile(updatedProfile);
       setMessage("Profile updated successfully.");
     } catch (err) {
-      setMessage(err.message);
+      setMessage(err?.message || "Failed to update profile.");
     } finally {
       setLoading(false);
     }
@@ -97,20 +111,20 @@ const ProfilePage = () => {
   return (
     <div style={{ maxWidth: 520, margin: "0 auto" }}>
       <h2>Your Profile</h2>
-      <p style={{ color:"#666"}}>                              
-        Manage your account information.
-      </p>
+      <p style={{ color: "#666" }}>Manage your account information.</p>
+
       <ProfileForm
-        fullName={fullName}
-        phone={phone}
-        email={email}
+        profile={profile}
         onUpdate={handleUpdate}
         loading={loading}
         message={message}
       />
+
       <hr style={{ margin: "2rem 0" }} />
+
       <h3>Contributions</h3>
       <Contributions contributions={contributions} />
+
       <h3>Summary</h3>
       <SummaryChart contributions={contributions} />
     </div>

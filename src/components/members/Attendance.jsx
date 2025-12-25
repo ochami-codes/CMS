@@ -1,35 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../supabaseClient";
+import { memberFields } from "../../utils/memberFields";
 
 export default function Attendance({ department }) {
+  const config = memberFields[department];
+  const table = config?.table;
+
   const [members, setMembers] = useState([]);
-  const [attendance, setAttendance] = useState({}); // { memberId: true/false }
+  const [attendance, setAttendance] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  const today = useMemo(() => new Date().toISOString().split("T")[0], []);
 
-  // Fetch members and today's attendance
   useEffect(() => {
+    if (!table) return;
+
     const fetchData = async () => {
       setLoading(true);
 
-      // 1️⃣ Fetch members
-      const { data: membersData, error: membersError } = await supabase
-        .from("members")
-        .select("*")
-        .eq("department", department)
-        .order("name", { ascending: true });
+      // Fetch members
+      const { data: membersData, error: membersError } = await supabase.from(table).select("*").order("name", { ascending: true });
+      if (membersError) { console.error(membersError.message); setMembers([]); setLoading(false); return; }
+      setMembers(membersData ?? []);
 
-      if (membersError) {
-        console.error("Error fetching members:", membersError.message);
-        setLoading(false);
-        return;
-      }
-
-      setMembers(membersData || []);
-
-      // 2️⃣ Fetch today's attendance
+      // Fetch today's attendance
       const { data: attendanceData, error: attendanceError } = await supabase
         .from("attendance")
         .select("*")
@@ -37,96 +32,66 @@ export default function Attendance({ department }) {
         .eq("date", today);
 
       if (attendanceError) console.error(attendanceError.message);
-
-      const attendanceMap = {};
-      attendanceData?.forEach((record) => {
-        attendanceMap[record.member_id] = record.present;
-      });
-
-      setAttendance(attendanceMap);
+      const map = {};
+      attendanceData?.forEach(r => map[r.member_id] = r.present);
+      setAttendance(map);
       setLoading(false);
     };
 
     fetchData();
-  }, [department, today]);
+  }, [table, department, today]);
 
-  const toggleAttendance = (memberId) => {
-    setAttendance((prev) => ({
-      ...prev,
-      [memberId]: !prev[memberId],
-    }));
-  };
+  const toggleAttendance = id => setAttendance(prev => ({ ...prev, [id]: !prev[id] }));
 
   const saveAttendance = async () => {
+    if (!members.length) return;
     setSaving(true);
 
-    const records = members.map((m) => ({
+    const records = members.map(m => ({
       member_id: m.id,
       department,
       date: today,
-      present: attendance[m.id] || false,
+      present: attendance[m.id] ?? false,
     }));
 
-    const { error } = await supabase.from("attendance").upsert(records, {
-      onConflict: ["member_id", "date"],
-    });
-
+    const { error } = await supabase.from("attendance").upsert(records, { onConflict: ["member_id", "department", "date"] });
     setSaving(false);
-    if (!error) {
-      alert("Attendance saved successfully!");
-    } else {
-      alert("Error saving attendance: " + error.message);
-    }
+    if (error) alert("Error: " + error.message);
+    else alert("Attendance saved successfully!");
   };
 
+  if (!table) return <p>No configuration for "{department}"</p>;
   if (loading) return <p>Loading attendance...</p>;
 
   return (
     <div>
       <h2>{department.toUpperCase()} Attendance</h2>
-
-      <table style={{ width: "100%", marginTop: "1rem", borderCollapse: "collapse" }}>
+      <table style={{ width: "100%", marginTop: 8, borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ background: "#f1f1f1" }}>
-            <th style={{ padding: "8px" }}>Name</th>
-            <th style={{ padding: "8px" }}>Present</th>
+            <th style={{ padding: 8 }}>Name</th>
+            <th style={{ padding: 8 }}>Present</th>
           </tr>
         </thead>
         <tbody>
-          {members.map((m) => (
+          {members.length ? members.map(m => (
             <tr key={m.id} style={{ borderBottom: "1px solid #eee" }}>
-              <td style={{ padding: "8px" }}>{m.name}</td>
-              <td style={{ padding: "8px", textAlign: "center" }}>
-                <input
-                  type="checkbox"
-                  checked={attendance[m.id] || false}
-                  onChange={() => toggleAttendance(m.id)}
-                />
+              <td style={{ padding: 8 }}>{m.name}</td>
+              <td style={{ padding: 8, textAlign: "center" }}>
+                <input type="checkbox" checked={attendance[m.id] ?? false} onChange={() => toggleAttendance(m.id)} />
               </td>
             </tr>
-          ))}
-          {members.length === 0 && (
+          )) : (
             <tr>
-              <td colSpan="2" style={{ padding: "8px", textAlign: "center" }}>
-                No members found
-              </td>
+              <td colSpan={2} style={{ textAlign: "center", padding: 8 }}>No members found</td>
             </tr>
           )}
         </tbody>
       </table>
-
       <button
         onClick={saveAttendance}
         disabled={saving}
-        style={{
-          marginTop: "15px",
-          padding: "8px 16px",
-          background: "#0077b6",
-          color: "#fff",
-          border: "none",
-          borderRadius: "6px",
-          cursor: "pointer",
-        }}
+        style={{ marginTop: 12, padding: "8px 16px", background: "#0077b6", color: "#fff", border: "none", borderRadius: 6 }}
       >
         {saving ? "Saving..." : "Save Attendance"}
       </button>
