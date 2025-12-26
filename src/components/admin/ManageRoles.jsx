@@ -1,5 +1,5 @@
 // src/components/admin/ManageRoles.jsx
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 
 export default function ManageRoles() {
@@ -8,47 +8,9 @@ export default function ManageRoles() {
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [processingId, setProcessingId] = useState(null);
+
   const pageSize = 10;
-
-  const fetchUsers = async () => {
-    let query = supabase
-      .from("profiles")
-      .select("id, full_name, role, department")
-      .order("full_name", { ascending: true });
-
-    if (search) query = query.ilike("full_name", `%${search}%`);
-    if (departmentFilter) query = query.eq("department", departmentFilter);
-
-    // Pagination
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
-    query = query.range(from, to);
-
-    const { data, error } = await query;
-
-    if (error) console.error("Error fetching users:", error);
-    else setUsers(data);
-
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, [search, departmentFilter, page]);
-
-  const updateRole = async (id, newRole) => {
-    const { error } = await supabase
-      .from("profiles")
-      .update({ role: newRole })
-      .eq("id", id);
-
-    if (error) console.error("Error updating role:", error);
-    else {
-      setUsers((prev) =>
-        prev.map((u) => (u.id === id ? { ...u, role: newRole } : u))
-      );
-    }
-  };
 
   const roles = [
     "admin",
@@ -61,48 +23,137 @@ export default function ManageRoles() {
     "member",
   ];
 
-  if (loading) return <div>Loading users...</div>;
+  const fetchUsers = async () => {
+    setLoading(true);
+
+    let query = supabase
+      .from("profiles")
+      .select("id, full_name, role, department, is_active")
+      .eq("is_active", true)
+      .order("full_name");
+
+    if (search) query = query.ilike("full_name", `%${search}%`);
+    if (departmentFilter) query = query.eq("department", departmentFilter);
+
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error } = await query.range(from, to);
+
+    if (!error) {
+      setUsers(
+        data.map((u) => ({
+          ...u,
+          selectedRole: u.role,
+        }))
+      );
+    }
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [search, departmentFilter, page]);
+
+  /* ---------------- ROLE REQUEST ---------------- */
+  const requestRoleChange = async (user) => {
+    if (user.selectedRole === user.role) return;
+
+    setProcessingId(user.id);
+
+    const { error } = await supabase.from("role_requests").insert({
+      target_user: user.id,
+      requested_role: user.selectedRole,
+    });
+
+    if (error) {
+      alert("You are not allowed to request this role change.");
+      console.error(error);
+    } else {
+      alert("Role change request submitted for approval.");
+    }
+
+    setProcessingId(null);
+  };
+
+  /* ---------------- SOFT DELETE ---------------- */
+  const deactivateUser = async (id) => {
+    if (!confirm("Deactivate this member?")) return;
+
+    setProcessingId(id);
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ is_active: false })
+      .eq("id", id);
+
+    if (!error) {
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    }
+
+    setProcessingId(null);
+  };
+
+  if (loading) return <div className="p-4">Loading members...</div>;
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Role Management</h2>
+      <h2 className="text-xl font-bold mb-4">Manage Roles</h2>
 
       {/* Search & Filter */}
-      <div className="flex mb-4 gap-2">
+      <div className="flex gap-2 mb-4">
         <input
-          type="text"
+          className="border px-2 py-1 rounded flex-1"
           placeholder="Search by name"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border px-2 py-1 rounded flex-1"
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
         />
         <input
-          type="text"
+          className="border px-2 py-1 rounded flex-1"
           placeholder="Filter by department"
           value={departmentFilter}
-          onChange={(e) => setDepartmentFilter(e.target.value)}
-          className="border px-2 py-1 rounded flex-1"
+          onChange={(e) => {
+            setDepartmentFilter(e.target.value);
+            setPage(1);
+          }}
         />
       </div>
 
       {/* Users Table */}
       <table className="w-full border">
         <thead>
-          <tr className="border-b">
+          <tr className="border-b bg-gray-50">
             <th className="p-2 text-left">Name</th>
             <th className="p-2 text-left">Department</th>
-            <th className="p-2 text-left">Role</th>
+            <th className="p-2 text-left">Current Role</th>
+            <th className="p-2 text-left">New Role</th>
+            <th className="p-2 text-left">Actions</th>
           </tr>
         </thead>
+
         <tbody>
           {users.map((user) => (
             <tr key={user.id} className="border-b">
-              <td className="p-2">{user.full_name || "(No Name)"}</td>
+              <td className="p-2">{user.full_name || "(No name)"}</td>
               <td className="p-2">{user.department || "-"}</td>
+              <td className="p-2 font-semibold">{user.role}</td>
+
               <td className="p-2">
                 <select
-                  value={user.role}
-                  onChange={(e) => updateRole(user.id, e.target.value)}
+                  value={user.selectedRole}
+                  onChange={(e) =>
+                    setUsers((prev) =>
+                      prev.map((u) =>
+                        u.id === user.id
+                          ? { ...u, selectedRole: e.target.value }
+                          : u
+                      )
+                    )
+                  }
                   className="border px-2 py-1 rounded"
                 >
                   {roles.map((role) => (
@@ -111,6 +162,27 @@ export default function ManageRoles() {
                     </option>
                   ))}
                 </select>
+              </td>
+
+              <td className="p-2 flex gap-2">
+                <button
+                  disabled={
+                    user.selectedRole === user.role ||
+                    processingId === user.id
+                  }
+                  onClick={() => requestRoleChange(user)}
+                  className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-50"
+                >
+                  Request
+                </button>
+
+                <button
+                  onClick={() => deactivateUser(user.id)}
+                  disabled={processingId === user.id}
+                  className="px-3 py-1 bg-red-600 text-white rounded disabled:opacity-50"
+                >
+                  Deactivate
+                </button>
               </td>
             </tr>
           ))}
@@ -126,7 +198,9 @@ export default function ManageRoles() {
         >
           Previous
         </button>
+
         <span>Page {page}</span>
+
         <button
           disabled={users.length < pageSize}
           onClick={() => setPage(page + 1)}

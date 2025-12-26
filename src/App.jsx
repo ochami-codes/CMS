@@ -26,7 +26,7 @@ import ProfilePage from "./pages/settings/profiles/ProfilePage";
 import ChangePassword from "./pages/settings/ChangePassword";
 
 // Admin
-import ManageRoles from "./components/admin/ManageRoles";
+import AdminDashboard from "./components/admin/AdminDashboard";
 
 // Toaster
 import { Toaster } from "react-hot-toast";
@@ -65,7 +65,7 @@ function App() {
 
                 {/* Admin only */}
                 <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-                  <Route path="/dashboard/manage-roles" element={<ManageRoles />} />
+                  <Route path="/dashboard/admin" element={<AdminDashboard />} />
                 </Route>
               </Route>
             </Route>
