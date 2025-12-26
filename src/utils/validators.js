@@ -9,12 +9,14 @@ export const isEmail = (email) => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email);
 };
-
 // Password strength validation
 // Must be at least 6 characters, include a number and a letter
+// Allows special characters
 export const isStrongPassword = (password) => {
-  const regex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
-  return regex.test(password);
+  if (!password) return false;
+
+  const regex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
+  return regex.test(password.trim());
 };
 
 // Minimum length validator
