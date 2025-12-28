@@ -31,8 +31,8 @@ const SIDEBAR_ITEMS = [
     permission: "manage_departments",
   },
   {
-    label: "Manage Roles",
-    path: "/dashboard/manage-roles",
+    label: "Admin",
+    path: "/dashboard/admin",
     permission: "manage_users", // admin-only
   },
 ];
