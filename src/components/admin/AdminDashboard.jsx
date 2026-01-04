@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import ManageRoles from "./ManageRoles";
 import RoleRequests from "./RoleRequests";
-import { VITE_API_URL } from "../../config/api";
+import { API_BASE_URL } from "../../config/api";
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("manage");
   const [pendingCount, setPendingCount] = useState(0);
