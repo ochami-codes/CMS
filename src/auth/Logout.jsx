@@ -9,12 +9,12 @@ export default function Logout() {
 
   useEffect(() => {
     const doLogout = async () => {
-      await logout();
+      await logout(); // calls backend /auth/logout and clears context
       navigate("/login", { replace: true });
     };
 
     doLogout();
-  }, []);
+  }, [logout, navigate]);
 
   return (
     <div style={{ padding: "20px", textAlign: "center" }}>
@@ -22,5 +22,3 @@ export default function Logout() {
     </div>
   );
 }
-}
-

@@ -1,39 +1,59 @@
 // src/auth/Login.jsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { useNavigate, useLocation } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import { API_BASE_URL } from "../config/api";
+const API_URL = API_BASE_URL;
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const redirectTo = location.state?.from || "/dashboard";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
+
     setError("");
     setLoading(true);
 
     try {
-      const { error: supaError } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // IMPORTANT if using cookies
+        body: JSON.stringify({ email, password }),
+      });
 
-      if (supaError) {
-        setError(supaError.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Login failed");
         return;
       }
 
-      // AuthContext will handle user + profile
-      navigate("/dashboard", { replace: true });
+      /**
+       * Option A: backend uses httpOnly cookies (BEST)
+       * → nothing to store here
+       */
+
+      /**
+       * Option B: backend returns token
+       * localStorage.setItem("token", data.token);
+       */
+
+      navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError(err.message || "Login failed");
+      setError("Server unreachable. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -62,20 +82,23 @@ export default function Login() {
           required
         />
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && (
+          <p style={{ color: "red", marginTop: 8 }}>{error}</p>
+        )}
 
         <Button type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </Button>
-<div style={{ marginTop: 12, textAlign: "right" }}>
-  <button
-    type="button"
-    onClick={() => navigate("/reset-password")}
-    className="link-button"
-  >
-    Forgot password?
-  </button>
-</div>
+
+        <div style={{ marginTop: 12, textAlign: "right" }}>
+          <button
+            type="button"
+            onClick={() => navigate("/reset-password")}
+            className="link-button"
+          >
+            Forgot password?
+          </button>
+        </div>
       </form>
     </div>
   );

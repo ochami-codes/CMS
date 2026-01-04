@@ -1,13 +1,14 @@
 // src/auth/ResetPasswordConfirm.jsx
 import { useState } from "react";
-import { supabase } from "../supabaseClient";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { isStrongPassword } from "../utils/validators";
-import { useNavigate } from "react-router-dom";
-
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 export default function ResetPasswordConfirm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token"); // the password reset token from email link
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -32,18 +33,26 @@ export default function ResetPasswordConfirm() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/reset-password-confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password: newPassword }),
+      });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      setSuccess("Password reset successful. You can now sign in.");
-      setTimeout(() => navigate("/login"), 2000);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Failed to reset password.");
+      } else {
+        setSuccess("Password reset successful. You can now sign in.");
+        setTimeout(() => navigate("/login"), 2000);
+      }
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

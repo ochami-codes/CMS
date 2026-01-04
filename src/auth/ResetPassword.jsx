@@ -1,9 +1,8 @@
 // src/auth/ResetPassword.jsx
 import { useState } from "react";
-import { supabase } from "../supabaseClient";
 import Input from "../components/Input";
 import Button from "../components/Button";
-
+import { API_BASE_URL } from "../config/api";
 export default function ResetPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,17 +15,28 @@ export default function ResetPassword() {
     setError("");
     setMessage("");
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password-confirm`,
-    });
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/auth/reset-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        }
+      );
 
-    if (error) {
-      setError(error.message);
-    } else {
-      setMessage("Check your email for password reset instructions.");
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Failed to send reset link.");
+      } else {
+        setMessage("Check your email for password reset instructions.");
+      }
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

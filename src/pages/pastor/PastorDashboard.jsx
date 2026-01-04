@@ -1,28 +1,37 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../../supabaseClient";
+import { API_BASE_URL } from "../../config/api";
 import "../../styles/global.css";
+
 export default function PastorDashboard() {
   const [youthCount, setYouthCount] = useState(0);
   const [childrenCount, setChildrenCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCounts = async () => {
-      const { count: youth } = await supabase
-        .from("members")
-        .select("id", { count: "exact" })
-        .eq("department", "youth");
+      try {
+        const res = await fetch(`${API_BASE_URL}/pastor/overview`, {
+          credentials: "include",
+        });
 
-      const { count: children } = await supabase
-        .from("members")
-        .select("id", { count: "exact" })
-        .eq("department", "children");
+        if (!res.ok) throw new Error("Failed to load dashboard data");
 
-      setYouthCount(youth || 0);
-      setChildrenCount(children || 0);
+        const data = await res.json();
+        setYouthCount(data.youth ?? 0);
+        setChildrenCount(data.children ?? 0);
+      } catch (err) {
+        console.error(err.message);
+        setYouthCount(0);
+        setChildrenCount(0);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchCounts();
   }, []);
+
+  if (loading) return <p>Loading dashboard...</p>;
 
   return (
     <div className="dashboard-layout">

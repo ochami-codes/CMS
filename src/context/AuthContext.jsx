@@ -1,66 +1,54 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // supabase auth user
-  const [profile, setProfile] = useState(null); // profile from profiles table
+  const [user, setUser] = useState(null);       // user info
+  const [profile, setProfile] = useState(null); // profile from backend
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-  supabase.auth.getSession().then(({ data }) => {
-    if (data?.session) {
-      setUser(data.session.user);
-      fetchProfile(data.session.user.id);
-    } else {
-      setUser(null);
-      setProfile(null);
-      setLoading(false);
-    }
-  });
+  const API_URL = import.meta.env.VITE_API_URL;
 
-  const { data: authListener } = supabase.auth.onAuthStateChange(
-    async (_event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        fetchProfile(session.user.id);
-      } else {
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`${API_URL}/auth/me`, {
+          credentials: "include", // send cookies
+        });
+        const data = await res.json();
+
+        if (!data.user) {
+          setUser(null);
+          setProfile(null);
+        } else {
+          setUser(data.user);
+          setProfile(data.profile || null);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
         setUser(null);
         setProfile(null);
+      } finally {
         setLoading(false);
       }
-    }
-  );
+    };
 
-  return () => {
-    authListener?.subscription?.unsubscribe();
-  };
-}, []);
-
-  const fetchProfile = async (userId) => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("full_name, role, department")
-        .eq("id", userId)
-        .single();
-
-      if (error) throw error;
-      setProfile(data);
-    } catch (err) {
-      console.error("Failed to fetch profile:", err.message);
-      setProfile(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchUser();
+  }, [API_URL]);
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout failed:", err);
+    } finally {
+      setUser(null);
+      setProfile(null);
+    }
   };
 
   return (

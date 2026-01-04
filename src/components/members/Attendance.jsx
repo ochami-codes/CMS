@@ -1,60 +1,62 @@
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "../../supabaseClient";
-import { memberFields } from "../../utils/memberFields";
 import toast from "react-hot-toast";
 import "../../styles/global.css";
+import { API_BASE_URL } from "../../config/api";
 
 export default function Attendance({ department }) {
-  const config = memberFields[department];
-  const table = config?.table;
-
   const [members, setMembers] = useState([]);
   const [attendance, setAttendance] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const apiUrl = API_BASE_URL;
 
+  // ------------------ FETCH DATA ------------------
   useEffect(() => {
-    if (!table) return;
+    if (!department) return;
 
     const fetchData = async () => {
       setLoading(true);
 
-      // Fetch members
-      const { data: membersData, error: membersError } = await supabase
-        .from(table)
-        .select("*")
-        .order("name", { ascending: true });
-      if (membersError) {
-        console.error(membersError.message);
-        setMembers([]);
+      try {
+        // 1️⃣ Fetch members
+        const membersRes = await fetch(
+          `${apiUrl}/admin/members?department=${department}`,
+          { credentials: "include" }
+        );
+        const membersData = await membersRes.json();
+        if (!membersRes.ok) throw new Error(membersData.message || "Failed to fetch members");
+
+        setMembers(membersData.members ?? []);
+
+        // 2️⃣ Fetch today's attendance
+        const attendanceRes = await fetch(
+          `${import.meta.env.VITE_API_URL}/admin/attendance?department=${department}&date=${today}`,
+          { credentials: "include" }
+        );
+        const attendanceData = await attendanceRes.json();
+        if (!attendanceRes.ok) throw new Error(attendanceData.message || "Failed to fetch attendance");
+
+        const map = {};
+        attendanceData.records?.forEach(r => (map[r.member_id] = r.present));
+        setAttendance(map);
+      } catch (err) {
+        console.error(err.message);
+        toast.error(err.message);
+      } finally {
         setLoading(false);
-        return;
       }
-      setMembers(membersData ?? []);
-
-      // Fetch today's attendance
-      const { data: attendanceData, error: attendanceError } = await supabase
-        .from("attendance")
-        .select("*")
-        .eq("department", department)
-        .eq("date", today);
-
-      if (attendanceError) console.error(attendanceError.message);
-
-      const map = {};
-      attendanceData?.forEach(r => (map[r.member_id] = r.present));
-      setAttendance(map);
-      setLoading(false);
     };
 
     fetchData();
-  }, [table, department, today]);
+  }, [department, today]);
 
+  // ------------------ TOGGLE ------------------
   const toggleAttendance = id =>
     setAttendance(prev => ({ ...prev, [id]: !prev[id] }));
 
+  // ------------------ SAVE ------------------
   const saveAttendance = async () => {
     if (!members.length) return;
 
@@ -68,17 +70,28 @@ export default function Attendance({ department }) {
       present: attendance[m.id] ?? false,
     }));
 
-    const { error } = await supabase
-      .from("attendance")
-      .upsert(records, { onConflict: ["member_id", "department", "date"] });
+    try {
+      const res = await fetch(`${apiUrl}/admin/attendance`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ records }),
+      });
 
-    setSaving(false);
-    if (error)
-      toast.error("Error saving attendance: " + error.message, { id: toastId });
-    else toast.success("Attendance saved successfully!", { id: toastId });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to save attendance");
+
+      toast.success("Attendance saved successfully!", { id: toastId });
+    } catch (err) {
+      toast.error("Error saving attendance: " + err.message, { id: toastId });
+      console.error("SaveAttendance error:", err.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  if (!table) return <p>No configuration for "{department}"</p>;
+  // ------------------ RENDER ------------------
+  if (!department) return <p>No configuration for "{department}"</p>;
   if (loading) return <p>Loading attendance...</p>;
 
   return (

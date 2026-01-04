@@ -19,14 +19,14 @@ export default function ProtectedRoute({ allowedRoles }) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // 3️⃣ Profile not loaded yet
+  // 3️⃣ Profile may be null if backend doesn't return it
   if (!profile) {
     return <Loader message="Loading profile…" />;
   }
 
   // 4️⃣ If allowedRoles is set, check if the user’s role is allowed
   if (allowedRoles && !allowedRoles.includes(profile.role)) {
-    // Optionally, redirect to dashboard or show “Unauthorized”
+    // Redirect unauthorized users
     return <Navigate to="/dashboard" replace />;
   }
 

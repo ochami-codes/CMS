@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../../context/AuthContext";
+import { API_BASE_URL } from "../../../config/api";
 import { supabase } from "../../../supabaseClient";
 import ProfileForm from "./ProfileForm";
 import Contributions from "./Contributions";
@@ -14,95 +15,65 @@ const ProfilePage = () => {
     email: user?.email || "",
   });
 
+  const [contributions, setContributions] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [contributions, setContributions] = useState({
-    tithes: 0,
-    offerings: 0,
-    campOfferings: 0,
-    churchDevelopment: 0,
-  });
 
   useEffect(() => {
     if (!user) return;
 
-    const loadData = async () => {
+    const loadProfile = async () => {
       setLoading(true);
       try {
-        // Load profile
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("full_name, phone")
-          .eq("id", user.id)
-          .single();
+        const res = await fetch(`${API_BASE_URL}/profile`, {
+          credentials: "include",
+        });
 
-        if (profileError) throw profileError;
+        if (!res.ok) throw new Error("Failed to load profile");
 
-        if (profileData) {
-          setProfile({
-            fullName: profileData.full_name,
-            phone: profileData.phone,
-            email: user.email,
-          });
-        }
-
-        // Load contributions
-        const { data: contributionsData, error: contributionsError } = await supabase
-          .from("contributions")
-          .select("type, amount")
-          .eq("user_id", user.id);
-
-        if (contributionsError) throw contributionsError;
-
-        if (contributionsData) {
-          const formatted = {
-            tithes: 0,
-            offerings: 0,
-            campOfferings: 0,
-            churchDevelopment: 0,
-          };
-          contributionsData.forEach((c) => {
-            if (formatted[c.type] !== undefined) formatted[c.type] += c.amount;
-          });
-          setContributions(formatted);
-        }
+        const data = await res.json();
+        setProfile(data.profile);
+        setContributions(data.contributions);
       } catch (err) {
-        console.error(err);
-        setMessage(err?.message || "Failed to load profile.");
+        setMessage(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    loadData();
+    loadProfile();
   }, [user]);
 
   const handleUpdate = async (updatedProfile) => {
     setLoading(true);
     setMessage("");
+
     try {
-      // Update profile table
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          full_name: updatedProfile.fullName,
+      // 1) update profile (name, phone)
+      const res = await fetch(`${API_BASE_URL}/profile`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          fullName: updatedProfile.fullName,
           phone: updatedProfile.phone,
-        })
-        .eq("id", user.id);
-
-      if (profileError) throw profileError;
-
-      // Update email in auth
-      const { error: authError } = await supabase.auth.updateUser({
-        email: updatedProfile.email,
+        }),
       });
 
-      if (authError) throw authError;
+      if (!res.ok) throw new Error("Profile update failed");
+
+      // 2) update email (auth)
+      if (updatedProfile.email !== profile.email) {
+        const { error } = await supabase.auth.updateUser({
+          email: updatedProfile.email,
+        });
+        if (error) throw error;
+      }
 
       setProfile(updatedProfile);
       setMessage("Profile updated successfully.");
     } catch (err) {
-      setMessage(err?.message || "Failed to update profile.");
+      setMessage(err.message || "Failed to update profile.");
     } finally {
       setLoading(false);
     }

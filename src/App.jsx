@@ -7,7 +7,6 @@ import DashboardLayout from "./layouts/DashboardLayout";
 
 // Auth
 import ProtectedRoute from "./auth/ProtectedRoute";
-import AuthCallback from "./auth/AuthCallback";
 import Login from "./auth/Login";
 import Register from "./auth/Register";
 import ResetPassword from "./auth/ResetPassword";
@@ -46,9 +45,6 @@ function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/reset-password-confirm" element={<ResetPasswordConfirm />} />
             </Route>
-
-            {/* Auth callback */}
-            <Route path="/auth/callback" element={<AuthCallback />} />
 
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>

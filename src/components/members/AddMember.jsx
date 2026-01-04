@@ -1,13 +1,14 @@
 import { useState, useMemo } from "react";
-import { supabase } from "../../supabaseClient";
 import { memberFields } from "../../utils/memberFields";
 import toast from "react-hot-toast";
 import "../../styles/global.css";
+import { API_BASE_URL } from "../../config/api";
 
 export default function AddMember({ department, onMemberAdded }) {
   const config = memberFields[department];
   const fields = config?.fields ?? [];
   const table = config?.table;
+  const apiUrl = API_BASE_URL;
 
   const initialState = useMemo(
     () => Object.fromEntries(fields.map(f => [f.name, ""])),
@@ -20,25 +21,34 @@ export default function AddMember({ department, onMemberAdded }) {
     setFormData(prev => ({ ...prev, [name]: e.target.value }));
 
   const handleAdd = async e => {
-    e.preventDefault();
-    if (!table || !fields.length) return;
+  e.preventDefault();
+  if (!table || !fields.length) return;
 
-    const toastId = toast.loading("Adding member...");
-    setLoading(true);
-    try {
-      const { error } = await supabase.from(table).insert([formData]);
-      if (error) throw error;
+  const toastId = toast.loading("Adding member...");
+  setLoading(true);
 
-      setFormData(initialState);
-      onMemberAdded?.();
-      toast.success("Member added successfully!", { id: toastId });
-    } catch (err) {
-      toast.error("Failed to add member: " + err.message, { id: toastId });
-      console.error("AddMember error:", err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const res = await fetch(`${apiUrl}/admin/members/add`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ table, data: formData }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) throw new Error(result.message || "Failed to add member");
+
+    setFormData(initialState);
+    onMemberAdded?.();
+    toast.success("Member added successfully!", { id: toastId });
+  } catch (err) {
+    toast.error("Failed to add member: " + err.message, { id: toastId });
+    console.error("AddMember error:", err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (!table || !fields.length)
     return <p>No form configuration for "{department}"</p>;

@@ -1,8 +1,10 @@
+// src/auth/Register.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import { API_BASE_URL } from "../config/api";
+const API_URL = API_BASE_URL;
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -16,8 +18,8 @@ export default function Register() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    if (loading) return;
 
-    if (loading) return; // prevent double submit
     setError("");
     setSuccess("");
 
@@ -26,31 +28,41 @@ export default function Register() {
       return;
     }
 
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/login`,
+    try {
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (error) throw error;
+      const data = await res.json();
 
-      // If email confirmation is required, show message and stop
-      if (!data.session) {
+      if (!res.ok) {
+        setError(data.message || "Registration failed");
+        return;
+      }
+
+      /**
+       * Backend decides:
+       * - email confirmation ON → return message
+       * - email confirmation OFF → auto-login (optional)
+       */
+
+      if (data.requiresEmailConfirmation) {
         setSuccess(
-          "Registration successful! Please check your email to confirm your account before logging in."
+          "Registration successful! Please check your email to confirm your account."
         );
         return;
       }
 
-      // Email confirmation is OFF → user is already logged in
+      // Optional auto-login flow
       navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(err.message || "Something went wrong");
+      setError("Server unreachable. Please try again.");
     } finally {
       setLoading(false);
     }

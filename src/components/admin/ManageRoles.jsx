@@ -1,7 +1,6 @@
 // src/components/admin/ManageRoles.jsx
 import { useEffect, useState } from "react";
-import { supabase } from "../../supabaseClient";
-
+import { API_BASE_URL } from "../../config/api";
 export default function ManageRoles() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -9,6 +8,7 @@ export default function ManageRoles() {
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [page, setPage] = useState(1);
   const [processingId, setProcessingId] = useState(null);
+  const apiUrl = API_BASE_URL;
 
   const pageSize = 10;
 
@@ -23,33 +23,40 @@ export default function ManageRoles() {
     "member",
   ];
 
+  /* ---------------- FETCH USERS ---------------- */
   const fetchUsers = async () => {
     setLoading(true);
 
-    let query = supabase
-      .from("profiles")
-      .select("id, full_name, role, department, is_active")
-      .eq("is_active", true)
-      .order("full_name");
+    try {
+      const params = new URLSearchParams({
+        search,
+        department: departmentFilter,
+        page,
+        pageSize,
+      });
 
-    if (search) query = query.ilike("full_name", `%${search}%`);
-    if (departmentFilter) query = query.eq("department", departmentFilter);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/admin/users?${params}`,
+        { credentials: "include" }
+      );
 
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
+      if (!res.ok) {
+        throw new Error("Failed to fetch users");
+      }
 
-    const { data, error } = await query.range(from, to);
+      const data = await res.json();
 
-    if (!error) {
       setUsers(
-        data.map((u) => ({
+        data.users.map((u) => ({
           ...u,
           selectedRole: u.role,
         }))
       );
+    } catch (err) {
+      alert(err.message || "Error loading users");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -62,19 +69,31 @@ export default function ManageRoles() {
 
     setProcessingId(user.id);
 
-    const { error } = await supabase.from("role_requests").insert({
-      target_user: user.id,
-      requested_role: user.selectedRole,
-    });
+    try {
+      const res = await fetch(
+        `${apiUrl}/admin/role-requests`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            targetUserId: user.id,
+            requestedRole: user.selectedRole,
+          }),
+        }
+      );
 
-    if (error) {
-      alert("You are not allowed to request this role change.");
-      console.error(error);
-    } else {
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Not allowed");
+      }
+
       alert("Role change request submitted for approval.");
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setProcessingId(null);
     }
-
-    setProcessingId(null);
   };
 
   /* ---------------- SOFT DELETE ---------------- */
@@ -83,16 +102,26 @@ export default function ManageRoles() {
 
     setProcessingId(id);
 
-    const { error } = await supabase
-      .from("profiles")
-      .update({ is_active: false })
-      .eq("id", id);
+    try {
+      const res = await fetch(
+        `${apiUrl}/admin/users/${id}/deactivate`,
+        {
+          method: "PATCH",
+          credentials: "include",
+        }
+      );
 
-    if (!error) {
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to deactivate user");
+      }
+
       setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setProcessingId(null);
     }
-
-    setProcessingId(null);
   };
 
   if (loading) return <div className="p-4">Loading members...</div>;

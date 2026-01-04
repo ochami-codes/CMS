@@ -1,25 +1,32 @@
 import { useState, useEffect } from "react";
 import ManageRoles from "./ManageRoles";
 import RoleRequests from "./RoleRequests";
-import { supabase } from "../../supabaseClient";
-
+import { VITE_API_URL } from "../../config/api";
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("manage");
   const [pendingCount, setPendingCount] = useState(0);
 
-  // Fetch pending role requests count every 10 seconds
   const fetchPendingCount = async () => {
-    const { count, error } = await supabase
-      .from("role_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "pending");
+    try {
+      const res = await fetch(
+        `${VITE_API_URL}/admin/role-requests/pending-count`,
+        {
+          credentials: "include",
+        }
+      );
 
-    if (!error) setPendingCount(count);
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setPendingCount(data.count || 0);
+    } catch (err) {
+      console.error("Failed to fetch pending count:", err);
+    }
   };
 
   useEffect(() => {
     fetchPendingCount();
-    const interval = setInterval(fetchPendingCount, 10000); // every 10 seconds
+    const interval = setInterval(fetchPendingCount, 10000);
     return () => clearInterval(interval);
   }, []);
 

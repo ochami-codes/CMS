@@ -1,26 +1,22 @@
 import { useState } from "react";
-import { supabase } from "../../supabaseClient";
-import {useAuth} from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import { isStrongPassword } from "../../utils/validators";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../../config/api";
 
 export default function ChangePassword() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
-  const [currentPassword, setCurrentPassword] = useState(""); // optional, for UI only
+  const [currentPassword, setCurrentPassword] = useState(""); // optional, for UX only
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  // Note: Supabase's updateUser requires an authenticated session.
-  // We don't send currentPassword to Supabase here because updateUser uses the session.
-  // If you require verifying current password client-side, you'd have to re-authenticate first.
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,12 +41,17 @@ export default function ChangePassword() {
     setLoading(true);
 
     try {
-      const { data, error: supaError } = await supabase.auth.updateUser({
-        password: newPassword,
+      const res = await fetch(`${API_BASE_URL}/auth/change-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ currentPassword, newPassword }),
       });
 
-      if (supaError) {
-        setError(supaError.message || "Failed to update password.");
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Failed to update password.");
       } else {
         setSuccess("Password updated successfully. For security, please sign in again.");
       }
@@ -74,11 +75,9 @@ export default function ChangePassword() {
       </p>
 
       <form onSubmit={handleSubmit}>
-        {/* Optional current password input shown for UX (not sent to supabase) */}
         <Input
           label="Current password (optional)"
           type="password"
-          name="currentPassword"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
           placeholder="Current password"
@@ -87,7 +86,6 @@ export default function ChangePassword() {
         <Input
           label="New password"
           type="password"
-          name="newPassword"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           placeholder="At least 6 characters, include a number"
@@ -97,7 +95,6 @@ export default function ChangePassword() {
         <Input
           label="Confirm new password"
           type="password"
-          name="confirmPassword"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           placeholder="Repeat new password"
@@ -112,16 +109,12 @@ export default function ChangePassword() {
             {loading ? "Updating..." : "Update password"}
           </Button>
 
-          <Button
-            type="button"
-            onClick={() => navigate("/dashboard/profile")}
-          >
+          <Button type="button" onClick={() => navigate("/dashboard/profile")}>
             Cancel
           </Button>
         </div>
       </form>
 
-      {/* Show sign-out CTA if password updated */}
       {success && (
         <div style={{ marginTop: 16 }}>
           <p style={{ marginBottom: 8 }}>For security we recommend signing out and signing back in.</p>

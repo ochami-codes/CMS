@@ -1,71 +1,77 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../../supabaseClient";
-
+import  { API_BASE_URL } from "../../config/api";
 export default function RoleRequests() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
 
-  const fetchRequests = async () => {
-    const { data, error } = await supabase
-      .from("role_requests")
-      .select(`
-        id,
-        requested_role,
-        status,
-        created_at,
-        requester:profiles!role_requests_requester_fkey(full_name),
-        target_user:profiles!role_requests_target_user_fkey(id, full_name, role)
-      `)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
+  const API = API_BASE_URL;
 
-    if (!error) setRequests(data);
-    setLoading(false);
+  const fetchRequests = async () => {
+    try {
+      const res = await fetch(`${API}/admin/role-requests`, {
+        credentials: "include",
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setRequests(data);
+    } catch (err) {
+      console.error("Failed to fetch role requests", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchRequests();
-
-    // Auto-refresh every 10 seconds
-    const interval = setInterval(() => {
-      fetchRequests();
-    }, 10000);
-
-    return () => clearInterval(interval); // clean up on unmount
+    const interval = setInterval(fetchRequests, 10000);
+    return () => clearInterval(interval);
   }, []);
 
-  const approveRequest = async (request) => {
-    setProcessingId(request.id);
+  const approveRequest = async (req) => {
+    setProcessingId(req.id);
 
-    const { error: roleError } = await supabase
-      .from("profiles")
-      .update({ role: request.requested_role })
-      .eq("id", request.target_user.id);
+    try {
+      const res = await fetch(
+        `${API}/admin/role-requests/${req.id}/approve`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
 
-    if (roleError) {
-      alert("You are not allowed to approve this request.");
+      if (res.ok) {
+        setRequests((prev) => prev.filter((r) => r.id !== req.id));
+      }
+    } catch (err) {
+      alert("Failed to approve request.");
+    } finally {
       setProcessingId(null);
-      return;
     }
-
-    await supabase
-      .from("role_requests")
-      .update({ status: "approved" })
-      .eq("id", request.id);
-
-    setRequests((prev) => prev.filter((r) => r.id !== request.id));
-    setProcessingId(null);
   };
 
   const rejectRequest = async (id) => {
     setProcessingId(id);
-    await supabase
-      .from("role_requests")
-      .update({ status: "rejected" })
-      .eq("id", id);
-    setRequests((prev) => prev.filter((r) => r.id !== id));
-    setProcessingId(null);
+
+    try {
+      const res = await fetch(
+        `${API}/admin/role-requests/${id}/reject`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      if (res.ok) {
+        setRequests((prev) => prev.filter((r) => r.id !== id));
+      }
+    } catch (err) {
+      alert("Failed to reject request.");
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   if (loading) return <div className="p-4">Loading role requests...</div>;
@@ -94,7 +100,7 @@ export default function RoleRequests() {
                 <td className="p-2">{req.target_user.full_name}</td>
                 <td className="p-2">{req.target_user.role}</td>
                 <td className="p-2 font-semibold">{req.requested_role}</td>
-                <td className="p-2">{req.requester?.full_name}</td>
+                <td className="p-2">{req.requester.full_name}</td>
                 <td className="p-2 flex gap-2">
                   <button
                     onClick={() => approveRequest(req)}
