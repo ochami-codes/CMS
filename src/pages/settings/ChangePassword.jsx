@@ -10,7 +10,7 @@ export default function ChangePassword() {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
-  const [currentPassword, setCurrentPassword] = useState(""); // optional, for UX only
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -34,7 +34,9 @@ export default function ChangePassword() {
     }
 
     if (!isStrongPassword(newPassword)) {
-      setError("Password must be at least 6 characters and include a number and a letter.");
+      setError(
+        "Password must be at least 6 characters and include a number and a letter."
+      );
       return;
     }
 
@@ -53,7 +55,13 @@ export default function ChangePassword() {
       if (!res.ok) {
         setError(data.message || "Failed to update password.");
       } else {
-        setSuccess("Password updated successfully. For security, please sign in again.");
+        setSuccess(data.message || "Password updated successfully.");
+
+        // If backend signals logout, automatically log out
+        if (data.logout) {
+          await logout();
+          navigate("/login", { replace: true });
+        }
       }
     } catch (err) {
       setError(err.message || "An unexpected error occurred.");
@@ -62,16 +70,11 @@ export default function ChangePassword() {
     }
   };
 
-  const handleSignOut = async () => {
-    await logout();
-    navigate("/login", { replace: true });
-  };
-
   return (
     <div style={{ maxWidth: 520, margin: "0 auto" }}>
       <h2>Change Password</h2>
       <p style={{ color: "#555", marginBottom: "1rem" }}>
-        Change your account password. After a successful change you may need to sign in again.
+        Change your account password. You will be signed out after a successful change.
       </p>
 
       <form onSubmit={handleSubmit}>
@@ -114,16 +117,6 @@ export default function ChangePassword() {
           </Button>
         </div>
       </form>
-
-      {success && (
-        <div style={{ marginTop: 16 }}>
-          <p style={{ marginBottom: 8 }}>For security we recommend signing out and signing back in.</p>
-          <div style={{ display: "flex", gap: 8 }}>
-            <Button onClick={handleSignOut}>Sign out & sign in</Button>
-            <Button onClick={() => navigate("/dashboard/profile")}>Back to profile</Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,39 +1,35 @@
-// src/auth/ResetPassword.jsx
 import { useState } from "react";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { API_BASE_URL } from "../config/api";
+
 export default function ResetPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
 
   const handleReset = async (e) => {
     e.preventDefault();
+    if (loading) return;
+
     setLoading(true);
-    setError("");
     setMessage("");
 
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/auth/reset-password`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        }
+      await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      // ALWAYS show success message (even if email doesn't exist)
+      setMessage(
+        "If an account exists for this email, a password reset link has been sent."
       );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || "Failed to send reset link.");
-      } else {
-        setMessage("Check your email for password reset instructions.");
-      }
-    } catch (err) {
-      setError(err.message || "Something went wrong.");
+    } catch {
+      setMessage(
+        "If an account exists for this email, a password reset link has been sent."
+      );
     } finally {
       setLoading(false);
     }
@@ -52,10 +48,9 @@ export default function ResetPassword() {
           required
         />
 
-        {error && <p className="error">{error}</p>}
         {message && <p className="success">{message}</p>}
 
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading || !email}>
           {loading ? "Sending..." : "Send Reset Link"}
         </Button>
       </form>

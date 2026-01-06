@@ -1,20 +1,29 @@
-// src/auth/ResetPasswordConfirm.jsx
 import { useState } from "react";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { isStrongPassword } from "../utils/validators";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
+
 export default function ResetPasswordConfirm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get("token"); // the password reset token from email link
+  const token = searchParams.get("token");
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // 1️⃣ Invalid token guard
+  if (!token) {
+    return (
+      <div className="auth-container">
+        <p className="error">Invalid or expired reset link.</p>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,8 +57,8 @@ export default function ResetPasswordConfirm() {
         setSuccess("Password reset successful. You can now sign in.");
         setTimeout(() => navigate("/login"), 2000);
       }
-    } catch (err) {
-      setError(err.message || "Something went wrong.");
+    } catch {
+      setError("Unable to reset password. Please try again.");
     } finally {
       setLoading(false);
     }

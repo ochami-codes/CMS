@@ -1,20 +1,38 @@
 // src/auth/Register.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { API_BASE_URL } from "../config/api";
-const API_URL = API_BASE_URL;
+
+// Replace with your actual Admin role ID if needed
+const ADMIN_ROLE_ID = 1;
 
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [churchId, setChurchId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [churches, setChurches] = useState([]);
 
   const navigate = useNavigate();
+
+  // Fetch existing churches for dropdown
+  useEffect(() => {
+    const fetchChurches = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/churches`);
+        const data = await res.json();
+        setChurches(data || []);
+      } catch (err) {
+        console.error("Failed to fetch churches:", err);
+      }
+    };
+    fetchChurches();
+  }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -23,6 +41,11 @@ export default function Register() {
     setError("");
     setSuccess("");
 
+    // Validation
+    if (!email || !password || !confirmPassword || !churchId) {
+      setError("All fields are required");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -31,37 +54,30 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/auth/register`, {
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, church_id: churchId }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Registration failed");
+        setError(data.error || "Registration failed");
         return;
       }
 
-      /**
-       * Backend decides:
-       * - email confirmation ON → return message
-       * - email confirmation OFF → auto-login (optional)
-       */
+      setSuccess("Registration successful!");
 
-      if (data.requiresEmailConfirmation) {
-        setSuccess(
-          "Registration successful! Please check your email to confirm your account."
-        );
-        return;
+      // Navigate based on role returned from backend
+      if (data.user.role_id === ADMIN_ROLE_ID) {
+        navigate("/admin-dashboard", { replace: true });
+      } else {
+        navigate("/member-dashboard", { replace: true });
       }
 
-      // Optional auto-login flow
-      navigate("/dashboard", { replace: true });
     } catch (err) {
+      console.error(err);
       setError("Server unreachable. Please try again.");
     } finally {
       setLoading(false);
@@ -69,60 +85,56 @@ export default function Register() {
   };
 
   return (
-    <div className="auth-container relative max-w-md mx-auto p-6">
-      {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
-          <p className="text-sm">Creating your account…</p>
-        </div>
-      )}
-
+    <div className="auth-container max-w-md mx-auto p-6 relative">
       <h2 className="text-2xl font-bold mb-4">Register</h2>
+      {error && <p className="text-red-600 mb-2">{error}</p>}
+      {success && <p className="text-green-600 mb-2">{success}</p>}
 
       <form onSubmit={handleRegister} className="space-y-4">
         <Input
-          type="email"
           label="Email"
+          type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
           required
         />
-
         <Input
-          type="password"
           label="Password"
+          type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="********"
           required
         />
-
         <Input
-          type="password"
           label="Confirm Password"
+          type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="********"
           required
         />
 
-        {error && <p className="text-red-600">{error}</p>}
-        {success && <p className="text-green-600">{success}</p>}
+        {/* Church Selection */}
+        <div>
+          <label className="block mb-1">Church</label>
+          <select
+            value={churchId}
+            onChange={(e) => setChurchId(e.target.value)}
+            required
+            className="w-full border px-3 py-2 rounded"
+          >
+            <option value="">Select Church</option>
+            {churches.map((church) => (
+              <option key={church.id} value={church.id}>
+                {church.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <Button type="submit" disabled={loading}>
-          {loading ? "Please wait…" : "Register"}
+          {loading ? "Creating account…" : "Register"}
         </Button>
       </form>
-
-      <div className="mt-4 flex justify-between">
-        <Button
-          type="button"
-          onClick={() => navigate("/login")}
-          style={{ background: "#555" }}
-        >
-          Back to Login
-        </Button>
-      </div>
     </div>
   );
 }

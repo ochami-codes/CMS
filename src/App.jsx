@@ -11,6 +11,7 @@ import Login from "./auth/Login";
 import Register from "./auth/Register";
 import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
+import VerifyEmailInfo from "./auth/VerifyEmailInfo";
 
 // Pages
 import Home from "./pages/Home";
@@ -44,6 +45,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/reset-password-confirm" element={<ResetPasswordConfirm />} />
+              <Route path="/verify-email-info" element={<VerifyEmailInfo />} />
             </Route>
 
             {/* Protected routes */}
