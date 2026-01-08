@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import "../../styles/global.css";
 import { API_BASE_URL } from "../../config/api";
+import "../../styles/global.css";
 
 export default function Attendance({ department }) {
   const [members, setMembers] = useState([]);
@@ -18,21 +18,19 @@ export default function Attendance({ department }) {
 
     const fetchData = async () => {
       setLoading(true);
-
       try {
-        // 1️⃣ Fetch members
+        // 1️⃣ Fetch members for the department
         const membersRes = await fetch(
-          `${apiUrl}/admin/members?department=${department}`,
+          `${apiUrl}/members?department=${department}`,
           { credentials: "include" }
         );
         const membersData = await membersRes.json();
         if (!membersRes.ok) throw new Error(membersData.message || "Failed to fetch members");
-
         setMembers(membersData.members ?? []);
 
         // 2️⃣ Fetch today's attendance
         const attendanceRes = await fetch(
-          `${import.meta.env.VITE_API_URL}/admin/attendance?department=${department}&date=${today}`,
+          `${apiUrl}/attendance?department=${department}&date=${today}`,
           { credentials: "include" }
         );
         const attendanceData = await attendanceRes.json();
@@ -52,11 +50,10 @@ export default function Attendance({ department }) {
     fetchData();
   }, [department, today]);
 
-  // ------------------ TOGGLE ------------------
-  const toggleAttendance = id =>
-    setAttendance(prev => ({ ...prev, [id]: !prev[id] }));
+  // ------------------ TOGGLE ATTENDANCE ------------------
+  const toggleAttendance = (id) => setAttendance(prev => ({ ...prev, [id]: !prev[id] }));
 
-  // ------------------ SAVE ------------------
+  // ------------------ SAVE ATTENDANCE ------------------
   const saveAttendance = async () => {
     if (!members.length) return;
 
@@ -71,7 +68,7 @@ export default function Attendance({ department }) {
     }));
 
     try {
-      const res = await fetch(`${apiUrl}/admin/attendance`, {
+      const res = await fetch(`${apiUrl}/attendance`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

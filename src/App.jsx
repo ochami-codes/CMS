@@ -19,6 +19,7 @@ import Dashboard from "./pages/Dashboard";
 import YouthDashboard from "./pages/youth/YouthDashboard";
 import ChildrenDashboard from "./pages/children/ChildrenDashboard";
 import TreasuryDashboard from "./pages/treasury/TreasuryDashboard";
+import EnvelopeEntry from "./pages/treasury/EnvelopeEntry";
 import PastorDashboard from "./pages/pastor/PastorDashboard";
 
 // Settings
@@ -55,6 +56,7 @@ function App() {
                 <Route path="/dashboard/youth" element={<YouthDashboard />} />
                 <Route path="/dashboard/children" element={<ChildrenDashboard />} />
                 <Route path="/dashboard/treasury" element={<TreasuryDashboard />} />
+                <Route path="/dashboard/treasury/envelope" element={<EnvelopeEntry />}/>
                 <Route path="/dashboard/pastor" element={<PastorDashboard />} />
 
                 {/* Settings */}

@@ -16,7 +16,7 @@ export default function MemberList({ department, refresh }) {
 
     try {
       const res = await fetch(
-        `${apiUrl}/admin/members?department=${department}`,
+        `${apiUrl}/members?table=${department}`,
         { credentials: "include" }
       );
 
@@ -38,7 +38,6 @@ export default function MemberList({ department, refresh }) {
   }, [department, refresh]);
 
   const handleDelete = async (id) => {
-    if (!apiUrl || !department) return;
     if (!window.confirm("Are you sure you want to delete this member?")) return;
 
     setDeletingId(id);
@@ -46,9 +45,9 @@ export default function MemberList({ department, refresh }) {
 
     try {
       const res = await fetch(
-        `${apiUrl}/admin/members/${id}/delete`,
+        `${apiUrl}/members/${id}`,
         {
-          method: "POST",
+          method: "DELETE",
           credentials: "include",
         }
       );
@@ -56,7 +55,7 @@ export default function MemberList({ department, refresh }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to delete member");
 
-      setMembers((prev) => prev.filter((m) => m.id !== id));
+      setMembers(prev => prev.filter(m => m.id !== id));
       toast.success("Member deleted successfully!", { id: toastId });
     } catch (err) {
       toast.error("Failed to delete member: " + err.message, { id: toastId });
@@ -73,16 +72,16 @@ export default function MemberList({ department, refresh }) {
     <table className="member-list-table">
       <thead>
         <tr>
-          {Object.keys(members[0]).map((key) => (
+          {Object.keys(members[0]).map(key => (
             <th key={key}>{key}</th>
           ))}
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        {members.map((m) => (
+        {members.map(m => (
           <tr key={m.id}>
-            {Object.keys(m).map((key) => (
+            {Object.keys(m).map(key => (
               <td key={key}>{m[key] ?? "-"}</td>
             ))}
             <td>

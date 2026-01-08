@@ -11,17 +11,20 @@ export default function EditMember({ department }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // ------------------ FETCH MEMBER ------------------
   useEffect(() => {
     const fetchMember = async () => {
+      setLoading(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/admin/members/${id}`, {
+        const res = await fetch(`${API_BASE_URL}/members/${id}`, {
           credentials: "include",
         });
 
-        if (!res.ok) throw new Error("Failed to fetch member");
-
         const data = await res.json();
-        setMember(data);
+        if (!res.ok) throw new Error(data.message || "Failed to fetch member");
+
+        // backend returns { member: {...} }
+        setMember(data.member);
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -33,6 +36,7 @@ export default function EditMember({ department }) {
     fetchMember();
   }, [id]);
 
+  // ------------------ UPDATE ------------------
   const handleUpdate = async (e) => {
     e.preventDefault();
     if (!member) return;
@@ -41,20 +45,20 @@ export default function EditMember({ department }) {
     setError("");
 
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/members/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/members/${id}`, {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: member.name,
-          phone: member.phone,
+          updates: {
+            name: member.name,
+            phone: member.phone,
+          },
         }),
       });
 
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || "Failed to update member");
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to update member");
 
       navigate(`/dashboard/${department}`);
     } catch (err) {
@@ -65,11 +69,12 @@ export default function EditMember({ department }) {
     }
   };
 
+  // ------------------ UI ------------------
   if (loading) return <p>Loading member…</p>;
   if (!member) return <p>No member found</p>;
 
   return (
-    <form onSubmit={handleUpdate} style={{ maxWidth: "400px" }}>
+    <form onSubmit={handleUpdate} style={{ maxWidth: 400 }}>
       <h2>Edit Member</h2>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
@@ -79,9 +84,9 @@ export default function EditMember({ department }) {
         type="text"
         value={member.name ?? ""}
         onChange={(e) =>
-          setMember({ ...member, name: e.target.value })
+          setMember(prev => ({ ...prev, name: e.target.value }))
         }
-        style={{ width: "100%", padding: "8px", marginBottom: "1rem" }}
+        style={{ width: "100%", padding: 8, marginBottom: "1rem" }}
       />
 
       <label>Phone</label>
@@ -89,9 +94,9 @@ export default function EditMember({ department }) {
         type="tel"
         value={member.phone ?? ""}
         onChange={(e) =>
-          setMember({ ...member, phone: e.target.value })
+          setMember(prev => ({ ...prev, phone: e.target.value }))
         }
-        style={{ width: "100%", padding: "8px", marginBottom: "1rem" }}
+        style={{ width: "100%", padding: 8, marginBottom: "1rem" }}
       />
 
       <button
@@ -101,7 +106,7 @@ export default function EditMember({ department }) {
           padding: "8px 16px",
           background: "#0077b6",
           color: "#fff",
-          borderRadius: "6px",
+          borderRadius: 6,
           border: "none",
         }}
       >
