@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import { API_BASE_URL } from "../../../config/api";
-import { supabase } from "../../../supabaseClient";
 import ProfileForm from "./ProfileForm";
 import Contributions from "./Contributions";
 import SummaryChart from "./SummaryChart";
@@ -12,10 +11,10 @@ const ProfilePage = () => {
   const [profile, setProfile] = useState({
     fullName: "",
     phone: "",
-    email: user?.email || "",
+    email: "",
   });
 
-  const [contributions, setContributions] = useState({});
+  const [contributions, setContributions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -49,7 +48,6 @@ const ProfilePage = () => {
     setMessage("");
 
     try {
-      // 1) update profile (name, phone)
       const res = await fetch(`${API_BASE_URL}/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -57,18 +55,13 @@ const ProfilePage = () => {
         body: JSON.stringify({
           fullName: updatedProfile.fullName,
           phone: updatedProfile.phone,
+          email: updatedProfile.email, // 👈 backend handles auth update
         }),
       });
 
-      if (!res.ok) throw new Error("Profile update failed");
+      if (!res.ok) {
 
-      // 2) update email (auth)
-      if (updatedProfile.email !== profile.email) {
-        const { error } = await supabase.auth.updateUser({
-          email: updatedProfile.email,
-        });
-        if (error) throw error;
-      }
+        throw new Error("Profile update failed");
 
       setProfile(updatedProfile);
       setMessage("Profile updated successfully.");
