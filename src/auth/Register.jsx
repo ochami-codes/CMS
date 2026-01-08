@@ -5,22 +5,20 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 import { API_BASE_URL } from "../config/api";
 
-// Replace with your actual Admin role ID if needed
-const ADMIN_ROLE_ID = 1;
-
 export default function Register() {
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [churchId, setChurchId] = useState("");
+  const [churchName, setChurchName] = useState(""); // User can type new or select existing
+  const [churches, setChurches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [churches, setChurches] = useState([]);
 
   const navigate = useNavigate();
 
-  // Fetch existing churches for dropdown
+  // Fetch existing churches
   useEffect(() => {
     const fetchChurches = async () => {
       try {
@@ -41,11 +39,11 @@ export default function Register() {
     setError("");
     setSuccess("");
 
-    // Validation
-    if (!email || !password || !confirmPassword || !churchId) {
+    if (!fullName || !email || !password || !confirmPassword || !churchName) {
       setError("All fields are required");
       return;
     }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -57,20 +55,25 @@ export default function Register() {
       const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, church_id: churchId }),
+        body: JSON.stringify({
+          full_name: fullName,
+          email,
+          password,
+          church_name: churchName.trim(),
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
         setError(data.error || "Registration failed");
+        setLoading(false);
         return;
       }
 
-      setSuccess("Registration successful!");
+      setSuccess("Registration successful! Please verify your email.");
 
-      // Navigate based on role returned from backend
-      if (data.user.role_id === ADMIN_ROLE_ID) {
+      if (data.user.role === "Admin") {
         navigate("/admin-dashboard", { replace: true });
       } else {
         navigate("/member-dashboard", { replace: true });
@@ -91,6 +94,13 @@ export default function Register() {
       {success && <p className="text-green-600 mb-2">{success}</p>}
 
       <form onSubmit={handleRegister} className="space-y-4">
+        <Input
+          label="Full Name"
+          type="text"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          required
+        />
         <Input
           label="Email"
           type="email"
@@ -113,22 +123,22 @@ export default function Register() {
           required
         />
 
-        {/* Church Selection */}
+        {/* Church selection OR typing */}
         <div>
           <label className="block mb-1">Church</label>
-          <select
-            value={churchId}
-            onChange={(e) => setChurchId(e.target.value)}
-            required
+          <input
+            list="churches"
+            placeholder="Select or type a new church"
+            value={churchName}
+            onChange={(e) => setChurchName(e.target.value)}
             className="w-full border px-3 py-2 rounded"
-          >
-            <option value="">Select Church</option>
+            required
+          />
+          <datalist id="churches">
             {churches.map((church) => (
-              <option key={church.id} value={church.id}>
-                {church.name}
-              </option>
+              <option key={church.id} value={church.name} />
             ))}
-          </select>
+          </datalist>
         </div>
 
         <Button type="submit" disabled={loading}>
