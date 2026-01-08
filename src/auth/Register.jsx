@@ -10,7 +10,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [churchName, setChurchName] = useState(""); // User can type new or select existing
+  const [churchName, setChurchName] = useState("");
   const [churches, setChurches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -18,18 +18,19 @@ export default function Register() {
 
   const navigate = useNavigate();
 
-  // Fetch existing churches
   useEffect(() => {
+    let isMounted = true; // prevent state update if unmounted
     const fetchChurches = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/churches`);
         const data = await res.json();
-        setChurches(data || []);
+        if (isMounted && Array.isArray(data)) setChurches(data);
       } catch (err) {
         console.error("Failed to fetch churches:", err);
       }
     };
     fetchChurches();
+    return () => { isMounted = false; };
   }, []);
 
   const handleRegister = async (e) => {
@@ -66,14 +67,15 @@ export default function Register() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Registration failed");
+        setError(data?.error || "Registration failed");
         setLoading(false);
         return;
       }
 
       setSuccess("Registration successful! Please verify your email.");
 
-      if (data.user.role === "Admin") {
+      // safe navigation
+      if (data?.user?.role === "Admin") {
         navigate("/admin-dashboard", { replace: true });
       } else {
         navigate("/member-dashboard", { replace: true });
@@ -90,52 +92,52 @@ export default function Register() {
   return (
     <div className="auth-container max-w-md mx-auto p-6 relative">
       <h2 className="text-2xl font-bold mb-4">Register</h2>
-      {error && <p className="text-red-600 mb-2">{error}</p>}
-      {success && <p className="text-green-600 mb-2">{success}</p>}
+      {error ? <p className="text-red-600 mb-2">{error}</p> : null}
+      {success ? <p className="text-green-600 mb-2">{success}</p> : null}
 
       <form onSubmit={handleRegister} className="space-y-4">
         <Input
           label="Full Name"
           type="text"
-          value={fullName}
+          value={fullName || ""}
           onChange={(e) => setFullName(e.target.value)}
           required
         />
         <Input
           label="Email"
           type="email"
-          value={email}
+          value={email || ""}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
         <Input
           label="Password"
           type="password"
-          value={password}
+          value={password || ""}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
         <Input
           label="Confirm Password"
           type="password"
-          value={confirmPassword}
+          value={confirmPassword || ""}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
         />
 
-        {/* Church selection OR typing */}
+        {/* Church typing or selecting */}
         <div>
           <label className="block mb-1">Church</label>
           <input
             list="churches"
             placeholder="Select or type a new church"
-            value={churchName}
+            value={churchName || ""}
             onChange={(e) => setChurchName(e.target.value)}
             className="w-full border px-3 py-2 rounded"
             required
           />
           <datalist id="churches">
-            {churches.map((church) => (
+            {(churches || []).map((church) => (
               <option key={church.id} value={church.name} />
             ))}
           </datalist>
