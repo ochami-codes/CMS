@@ -8,21 +8,19 @@ import SummaryChart from "./SummaryChart";
 const ProfilePage = () => {
   const { user } = useAuth();
 
-  const [profile, setProfile] = useState({
-    fullName: "",
-    phone: "",
-    email: "",
-  });
-
+  const [profile, setProfile] = useState({ fullName: "", phone: "", email: "" });
   const [contributions, setContributions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  // Load profile and contributions on mount
   useEffect(() => {
     if (!user) return;
 
     const loadProfile = async () => {
       setLoading(true);
+      setMessage("");
+
       try {
         const res = await fetch(`${API_BASE_URL}/profile`, {
           credentials: "include",
@@ -31,10 +29,10 @@ const ProfilePage = () => {
         if (!res.ok) throw new Error("Failed to load profile");
 
         const data = await res.json();
-        setProfile(data.profile);
-        setContributions(data.contributions);
+        setProfile(data.profile || {});
+        setContributions(data.contributions || []);
       } catch (err) {
-        setMessage(err.message);
+        setMessage(err.message || "Error loading profile");
       } finally {
         setLoading(false);
       }
@@ -43,6 +41,7 @@ const ProfilePage = () => {
     loadProfile();
   }, [user]);
 
+  // Update profile handler
   const handleUpdate = async (updatedProfile) => {
     setLoading(true);
     setMessage("");
@@ -55,13 +54,11 @@ const ProfilePage = () => {
         body: JSON.stringify({
           fullName: updatedProfile.fullName,
           phone: updatedProfile.phone,
-          email: updatedProfile.email, // 👈 backend handles auth update
+          email: updatedProfile.email,
         }),
       });
 
-      if (!res.ok) {
-
-        throw new Error("Profile update failed");
+      if (!res.ok) throw new Error("Profile update failed");
 
       setProfile(updatedProfile);
       setMessage("Profile updated successfully.");
