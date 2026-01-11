@@ -16,12 +16,8 @@ export default function Register() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const [resendLoading, setResendLoading] = useState(false);
-  const [resendMessage, setResendMessage] = useState("");
-
   const navigate = useNavigate();
 
-  // Fetch existing churches
   useEffect(() => {
     let isMounted = true;
     const fetchChurches = async () => {
@@ -37,19 +33,18 @@ export default function Register() {
     return () => { isMounted = false; };
   }, []);
 
-  // Handle registration
   const handleRegister = async (e) => {
     e.preventDefault();
     if (loading) return;
 
     setError("");
     setSuccess("");
-    setResendMessage("");
 
     if (!fullName || !email || !password || !confirmPassword || !churchName) {
       setError("All fields are required");
       return;
     }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -62,8 +57,8 @@ export default function Register() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          full_name: fullName.trim(),
-          email: email.trim(),
+          full_name: fullName,
+          email,
           password,
           church_name: churchName.trim(),
         }),
@@ -77,12 +72,13 @@ export default function Register() {
         return;
       }
 
-      // Display success / verification message
-      setSuccess(data?.message || "Registration successful! Please verify your email.");
-localStorage.setItem(
-  "pending_verification_email",
-  email.trim()
-);
+      // ✅ Store email locally for resend verification
+      localStorage.setItem("unverifiedEmail", email);
+
+      setSuccess("Registration successful! Check your email to verify your account.");
+
+      // Optionally redirect to a "verify email" page
+      navigate("/verify-email-info");
 
     } catch (err) {
       console.error(err);
@@ -92,51 +88,11 @@ localStorage.setItem(
     }
   };
 
-  // Handle resend verification email
-  const handleResend = async () => {
-    if (resendLoading || !email) return;
-
-    setResendLoading(true);
-    setResendMessage("");
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-      const data = await res.json();
-      setResendMessage(data?.message || "Verification email resent!");
-    } catch (err) {
-      console.error(err);
-      setResendMessage("Failed to resend verification email. Try again later.");
-    } finally {
-      setResendLoading(false);
-    }
-  };
-
   return (
     <div className="auth-container max-w-md mx-auto p-6 relative">
       <h2 className="text-2xl font-bold mb-4">Register</h2>
-
       {error && <p className="text-red-600 mb-2">{error}</p>}
-      {success && (
-        <div className="mb-2">
-          <p className="text-green-600">{success}</p>
-
-          {/* Resend button */}
-          <button
-            type="button"
-            onClick={handleResend}
-            disabled={resendLoading}
-            className="text-blue-600 underline mt-1"
-          >
-            {resendLoading ? "Resending…" : "Resend verification email"}
-          </button>
-
-          {resendMessage && <p className="text-green-600 mt-1">{resendMessage}</p>}
-        </div>
-      )}
+      {success && <p className="text-green-600 mb-2">{success}</p>}
 
       <form onSubmit={handleRegister} className="space-y-4">
         <Input
@@ -168,7 +124,7 @@ localStorage.setItem(
           required
         />
 
-        {/* Church input */}
+        {/* Church typing / selection */}
         <div>
           <label className="block mb-1">Church</label>
           <input
@@ -180,8 +136,8 @@ localStorage.setItem(
             required
           />
           <datalist id="churches">
-            {churches.map((c) => (
-              <option key={c.id} value={c.name} />
+            {churches.map((church) => (
+              <option key={church.id} value={church.name} />
             ))}
           </datalist>
         </div>
