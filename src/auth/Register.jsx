@@ -79,6 +79,10 @@ export default function Register() {
 
       // Display success / verification message
       setSuccess(data?.message || "Registration successful! Please verify your email.");
+localStorage.setItem(
+  "pending_verification_email",
+  email.trim()
+);
 
     } catch (err) {
       console.error(err);

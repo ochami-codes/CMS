@@ -12,6 +12,7 @@ import Register from "./auth/Register";
 import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
 import VerifyEmailInfo from "./auth/VerifyEmailInfo";
+import EmailVerified from "./auth/EmailVerified";
 
 // Pages
 import Home from "./pages/Home";
@@ -46,7 +47,8 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/reset-password-confirm" element={<ResetPasswordConfirm />} />
-              <Route path="/verify-email-info" element={<VerifyEmailInfo />} />
+             <Route path="/verify-email-info" element={<VerifyEmailInfo />} />
+             <Route path="/email-verified" element={<EmailVerified />} />
             </Route>
 
             {/* Protected routes */}
