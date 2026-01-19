@@ -1,4 +1,3 @@
-// src/auth/Register.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
@@ -15,33 +14,34 @@ export default function Register() {
   const [churches, setChurches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [isExistingChurch, setIsExistingChurch] = useState(false); // 🔑
+  const [isExistingChurch, setIsExistingChurch] = useState(false);
 
   const navigate = useNavigate();
 
-  // Fetch existing churches for datalist
+  // Fetch existing churches
   useEffect(() => {
     const fetchChurches = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/churches`);
-        if (!res.ok) return;
+        if (!res.ok) throw new Error("Failed to fetch churches");
         const data = await res.json();
         if (Array.isArray(data)) setChurches(data);
-      } catch {
-        // silent fail
+      } catch (err) {
+        console.error("Fetch churches error:", err);
+        // silently continue; user can type a new church
       }
     };
     fetchChurches();
   }, []);
 
-  // Auto-fill address when selecting existing church
+  // Auto-fill address for existing church
   useEffect(() => {
     const selectedChurch = churches.find((c) => c.name === churchName);
-    if (selectedChurch && selectedChurch.address) {
-      setChurchAddress(selectedChurch.address);
+    if (selectedChurch) {
+      setChurchAddress(selectedChurch.address || "");
       setIsExistingChurch(true);
     } else {
-      setChurchAddress(""); // clear for new church
+      setChurchAddress("");
       setIsExistingChurch(false);
     }
   }, [churchName, churches]);
@@ -77,18 +77,25 @@ export default function Register() {
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({})); // fallback empty object
 
       if (!res.ok) {
-        setError(data.details || data.error || "Registration failed");
+        // Try to display meaningful error
+        const message =
+          data?.details ||
+          data?.error ||
+          data?.message ||
+          "Registration failed. Please check your input.";
+        setError(message);
         return;
       }
 
+      // Success
       localStorage.setItem("pending_verification_email", email);
       navigate("/verify-email-info");
     } catch (err) {
-      console.error(err);
-      setError("Server unreachable. Please try again.");
+      console.error("Registration network error:", err);
+      setError("Server unreachable. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -101,28 +108,11 @@ export default function Register() {
       {error && <p className="text-red-600 mb-3">{error}</p>}
 
       <form onSubmit={handleRegister} className="space-y-4">
-        <Input
-          label="Full Name"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          required
-        />
+        <Input label="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
 
-        <Input
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
 
-        <Input
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
 
         <Input
           label="Confirm Password"
@@ -132,7 +122,6 @@ export default function Register() {
           required
         />
 
-        {/* Church Name */}
         <div>
           <label className="block mb-1">Church</label>
           <input
@@ -150,14 +139,13 @@ export default function Register() {
           </datalist>
         </div>
 
-        {/* Church Address */}
         <Input
           label="Church Address"
           value={churchAddress}
           onChange={(e) => setChurchAddress(e.target.value)}
           placeholder="123 Church Street, City"
           required
-          readOnly={isExistingChurch} // 🔒 make read-only for existing church
+          readOnly={isExistingChurch}
         />
 
         <Button type="submit" disabled={loading}>
