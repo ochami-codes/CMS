@@ -1,10 +1,10 @@
 // src/auth/InviteUser.jsx
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import Input from "../../components/Input";
-import PasswordInput from "../../components/PasswordInput"; // ✅ aligned
-import Button from "../../components/Button";
-import { API_BASE_URL } from "../../config/api";
+import Input from "../components/Input";
+import PasswordInput from "../components/PasswordInput"; // ✅ aligned
+import Button from "../components/Button";
+import { API_BASE_URL } from "../config/api";
 
 export default function InviteUser() {
   const { token } = useAuth(); // JWT from login

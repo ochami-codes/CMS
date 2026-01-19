@@ -131,3 +131,11 @@ export const DashboardAPI = {
   todaysBirthdays: () =>
     request("/dashboard/todays-birthdays"),
 };
+/* ======================
+   LEGACY DASHBOARD EXPORTS (for old components)
+====================== */
+
+export const getDailyVerse = () => DashboardAPI.dailyVerse();
+export const getAnnouncements = () => DashboardAPI.announcements();
+export const getMyBirthday = () => DashboardAPI.myBirthday();
+export const getTodaysBirthdays = () => DashboardAPI.todaysBirthdays();
