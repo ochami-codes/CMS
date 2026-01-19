@@ -1,6 +1,6 @@
 // src/auth/InviteUser.jsx
 import { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import Input from "../../components/Input";
 import PasswordInput from "../../components/PasswordInput"; // ✅ aligned
 import Button from "../../components/Button";

@@ -94,3 +94,40 @@ export const AuthAPI = {
   logout: () =>
     request("/auth/logout", { method: "POST" }),
 };
+/* ======================
+   ATTENDANCE API
+====================== */
+
+export const AttendanceAPI = {
+  fetchAll: (params = "") =>
+    request(`/attendance${params}`),
+
+  mark: (payload) =>
+    request("/attendance", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  update: (id, payload) =>
+    request(`/attendance/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+};
+/* ======================
+   DASHBOARD API
+====================== */
+
+export const DashboardAPI = {
+  dailyVerse: () =>
+    request("/dashboard/daily-verse"),
+
+  announcements: () =>
+    request("/dashboard/announcements"),
+
+  myBirthday: () =>
+    request("/dashboard/my-birthday"),
+
+  todaysBirthdays: () =>
+    request("/dashboard/todays-birthdays"),
+};
