@@ -1,6 +1,7 @@
+// src/components/members/Attendance.jsx
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { API_BASE_URL } from "../../config/api";
+import { MembersAPI, AttendanceAPI } from "../../utils/api"; // centralized APIs
 import "../../styles/global.css";
 
 export default function Attendance({ department }) {
@@ -10,7 +11,6 @@ export default function Attendance({ department }) {
   const [saving, setSaving] = useState(false);
 
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
-  const apiUrl = API_BASE_URL;
 
   // ------------------ FETCH DATA ------------------
   useEffect(() => {
@@ -19,29 +19,18 @@ export default function Attendance({ department }) {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // 1️⃣ Fetch members for the department
-        const membersRes = await fetch(
-          `${apiUrl}/members?department=${department}`,
-          { credentials: "include" }
-        );
-        const membersData = await membersRes.json();
-        if (!membersRes.ok) throw new Error(membersData.message || "Failed to fetch members");
-        setMembers(membersData.members ?? []);
+        // Fetch members
+        const membersData = await MembersAPI.fetchAll(department);
+        setMembers(membersData?.members ?? []);
 
-        // 2️⃣ Fetch today's attendance
-        const attendanceRes = await fetch(
-          `${apiUrl}/attendance?department=${department}&date=${today}`,
-          { credentials: "include" }
-        );
-        const attendanceData = await attendanceRes.json();
-        if (!attendanceRes.ok) throw new Error(attendanceData.message || "Failed to fetch attendance");
-
+        // Fetch today's attendance
+        const attendanceRecords = await AttendanceAPI.fetch(department, today);
         const map = {};
-        attendanceData.records?.forEach(r => (map[r.member_id] = r.present));
+        attendanceRecords?.forEach(r => (map[r.member_id] = r.present));
         setAttendance(map);
       } catch (err) {
-        console.error(err.message);
-        toast.error(err.message);
+        console.error("Attendance fetch error:", err);
+        toast.error(err.message || "Error fetching attendance");
       } finally {
         setLoading(false);
       }
@@ -51,7 +40,9 @@ export default function Attendance({ department }) {
   }, [department, today]);
 
   // ------------------ TOGGLE ATTENDANCE ------------------
-  const toggleAttendance = (id) => setAttendance(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleAttendance = (id) => {
+    setAttendance(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   // ------------------ SAVE ATTENDANCE ------------------
   const saveAttendance = async () => {
@@ -68,20 +59,11 @@ export default function Attendance({ department }) {
     }));
 
     try {
-      const res = await fetch(`${apiUrl}/attendance`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ records }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to save attendance");
-
+      await AttendanceAPI.save(records);
       toast.success("Attendance saved successfully!", { id: toastId });
     } catch (err) {
+      console.error("SaveAttendance error:", err);
       toast.error("Error saving attendance: " + err.message, { id: toastId });
-      console.error("SaveAttendance error:", err.message);
     } finally {
       setSaving(false);
     }
@@ -106,7 +88,7 @@ export default function Attendance({ department }) {
           {members.length ? (
             members.map(m => (
               <tr key={m.id}>
-                <td>{m.name}</td>
+                <td>{m.full_name}</td>
                 <td>
                   <input
                     type="checkbox"

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
@@ -17,6 +17,20 @@ export default function ChangePassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState("");
+
+  // Show password strength as user types
+  useEffect(() => {
+    if (!newPassword) {
+      setPasswordStrength("");
+    } else if (isStrongPassword(newPassword)) {
+      setPasswordStrength("Strong password ✅");
+    } else if (newPassword.length >= 6) {
+      setPasswordStrength("Weak: include letters and numbers ⚠️");
+    } else {
+      setPasswordStrength("Too short ⚠️");
+    }
+  }, [newPassword]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,7 +71,6 @@ export default function ChangePassword() {
       } else {
         setSuccess(data.message || "Password updated successfully.");
 
-        // If backend signals logout, automatically log out
         if (data.logout) {
           await logout();
           navigate("/login", { replace: true });
@@ -77,7 +90,7 @@ export default function ChangePassword() {
         Change your account password. You will be signed out after a successful change.
       </p>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           label="Current password (optional)"
           type="password"
@@ -94,6 +107,11 @@ export default function ChangePassword() {
           placeholder="At least 6 characters, include a number"
           required
         />
+        {passwordStrength && (
+          <p style={{ color: passwordStrength.includes("Strong") ? "green" : "orange", marginTop: 4 }}>
+            {passwordStrength}
+          </p>
+        )}
 
         <Input
           label="Confirm new password"

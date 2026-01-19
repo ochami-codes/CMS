@@ -1,37 +1,43 @@
+// src/pages/pastor/PastorDashboard.jsx
 import { useEffect, useState } from "react";
-import { API_BASE_URL } from "../../config/api";
 import "../../styles/global.css";
+import { OverviewAPI } from "../../utils/api";
+import toast from "react-hot-toast";
 
 export default function PastorDashboard() {
-  const [youthCount, setYouthCount] = useState(0);
-  const [childrenCount, setChildrenCount] = useState(0);
+  const [overview, setOverview] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCounts = async () => {
+    const loadOverview = async () => {
+      setLoading(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/pastor/overview`, {
-          credentials: "include",
-        });
-
-        if (!res.ok) throw new Error("Failed to load dashboard data");
-
-        const data = await res.json();
-        setYouthCount(data.youth ?? 0);
-        setChildrenCount(data.children ?? 0);
+        const data = await OverviewAPI.fetchPastorOverview();
+        setOverview(data ?? {});
       } catch (err) {
-        console.error(err.message);
-        setYouthCount(0);
-        setChildrenCount(0);
+        console.error(err);
+        toast.error(err.message || "Failed to load dashboard");
+        setOverview({});
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCounts();
+    loadOverview();
   }, []);
 
-  if (loading) return <p>Loading dashboard...</p>;
+  if (loading) return <p>Loading dashboard…</p>;
+
+  const cards = [
+    {
+      title: "Youth Department",
+      value: overview.youth ?? 0,
+    },
+    {
+      title: "Children Department",
+      value: overview.children ?? 0,
+    },
+  ];
 
   return (
     <div className="dashboard-layout">
@@ -41,19 +47,18 @@ export default function PastorDashboard() {
       </p>
 
       <div className="stats-grid">
-        <div className="stat-card">
-          <h3>Youth Department</h3>
-          <p>Total members: {youthCount}</p>
-        </div>
-
-        <div className="stat-card">
-          <h3>Children Department</h3>
-          <p>Total members: {childrenCount}</p>
-        </div>
+        {cards.map(card => (
+          <div key={card.title} className="stat-card">
+            <h3>{card.title}</h3>
+            <p>Total members: {card.value}</p>
+          </div>
+        ))}
 
         <div className="stat-card">
           <h3>Reports</h3>
-          <p>Generate overall church reports and attendance summaries.</p>
+          <p>
+            Generate overall church reports and attendance summaries.
+          </p>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+// src/auth/ResetPassword.jsx
 import { useState } from "react";
 import Input from "../components/Input";
 import Button from "../components/Button";
@@ -7,6 +8,7 @@ export default function ResetPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const handleReset = async (e) => {
     e.preventDefault();
@@ -14,17 +16,20 @@ export default function ResetPassword() {
 
     setLoading(true);
     setMessage("");
+    setError("");
 
     try {
-      await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: email.trim() }),
       });
 
-      // ALWAYS show success message (even if email doesn't exist)
+      const data = await res.json();
+
       setMessage(
-        "If an account exists for this email, a password reset link has been sent."
+        data.message ||
+          "If an account exists for this email, a password reset link has been sent."
       );
     } catch {
       setMessage(
@@ -36,24 +41,43 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="auth-container">
-      <h2>Reset Password</h2>
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-3 text-center">
+          Reset Password
+        </h2>
 
-      <form onSubmit={handleReset}>
-        <Input
-          type="email"
-          label="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <p className="text-gray-600 mb-6 text-center">
+          Enter your email address and we’ll send you a link to reset your password.
+        </p>
 
-        {message && <p className="success">{message}</p>}
+        <form onSubmit={handleReset} className="space-y-4">
+          <Input
+            type="email"
+            label="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+          />
 
-        <Button type="submit" disabled={loading || !email}>
-          {loading ? "Sending..." : "Send Reset Link"}
-        </Button>
-      </form>
+          {message && (
+            <p className="text-green-600 text-sm text-center">
+              {message}
+            </p>
+          )}
+
+          {error && (
+            <p className="text-red-600 text-sm text-center">
+              {error}
+            </p>
+          )}
+
+          <Button type="submit" disabled={loading || !email} className="w-full">
+            {loading ? "Sending…" : "Send Reset Link"}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

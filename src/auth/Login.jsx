@@ -1,10 +1,10 @@
+// src/auth/Login.jsx
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import PasswordInput from "../components/PasswordInput"; // ✅ reuse
 import { API_BASE_URL } from "../config/api";
-
-const API_URL = API_BASE_URL;
 
 export default function Login() {
   const navigate = useNavigate();
@@ -27,7 +27,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -36,54 +36,62 @@ export default function Login() {
       const data = await res.json();
 
       if (!res.ok) {
-        // 403 → email not verified
-        if (res.status === 403 && data.message?.includes("verify your email")) {
-          setError(data.message);
+        // Email not verified
+        if (res.status === 403) {
+          setError(data.details || data.error || "Please verify your email.");
           return;
         }
-        setError(data.message || "Login failed");
+
+        setError(data.details || data.error || "Login failed");
         return;
       }
 
-      // 1️⃣ Store JWT
+      // ✅ Store auth data
       localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-      // 2️⃣ Optional role-based redirect
+      // ✅ Role-based redirect
       if (data.user.role_name === "Admin") {
         navigate("/dashboard/admin", { replace: true });
       } else {
         navigate(redirectTo, { replace: true });
       }
     } catch (err) {
+      console.error(err);
       setError("Server unreachable. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Optional: resend verification email
+  // Resend verification email
   const handleResendVerification = async () => {
     setResendMessage("");
+
     try {
-      const res = await fetch(`${API_URL}/auth/resend-verification`, {
+      const res = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
+
       const data = await res.json();
+
       if (!res.ok) {
-        setResendMessage(data.error || "Failed to resend email");
+        setResendMessage(
+          data.details || data.error || "Failed to resend email"
+        );
       } else {
         setResendMessage("Verification email sent. Check your inbox.");
       }
-    } catch (err) {
+    } catch {
       setResendMessage("Server error. Try again later.");
     }
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "0 auto", paddingTop: "4rem" }}>
-      <h2>Login</h2>
+    <div className="max-w-md mx-auto pt-16">
+      <h2 className="text-2xl font-bold mb-4">Login</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
@@ -95,42 +103,39 @@ export default function Login() {
           required
         />
 
-        <Input
+        {/* Password with eye toggle */}
+        <PasswordInput
           label="Password"
-          type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="********"
           required
         />
 
-        {error && (
-          <p style={{ color: "red", marginTop: 4 }}>{error}</p>
-        )}
+        {error && <p className="text-red-600">{error}</p>}
 
-        {error?.includes("verify your email") && (
+        {error && error.toLowerCase().includes("verify") && (
           <button
             type="button"
             onClick={handleResendVerification}
-            className="text-sm text-blue-600 mt-2"
+            className="text-sm text-blue-600"
           >
             Resend verification email
           </button>
         )}
 
         {resendMessage && (
-          <p style={{ color: "green", marginTop: 4 }}>{resendMessage}</p>
+          <p className="text-green-600">{resendMessage}</p>
         )}
 
         <Button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Logging in…" : "Login"}
         </Button>
 
-        <div style={{ marginTop: 12, textAlign: "right" }}>
+        <div className="text-right mt-3">
           <button
             type="button"
             onClick={() => navigate("/reset-password")}
-            className="link-button"
+            className="text-sm text-blue-600"
           >
             Forgot password?
           </button>

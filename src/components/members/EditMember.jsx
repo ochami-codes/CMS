@@ -1,115 +1,113 @@
+// src/components/members/EditMember.jsx
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { API_BASE_URL } from "../../config/api";
+import toast from "react-hot-toast";
+import { memberFields } from "../../config/api";
+import { MembersAPI } from "../../utils/api"; // centralized API
+import "../../styles/global.css";
 
-export default function EditMember({ department }) {
+export default function EditMember({ department, onUpdated }) {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [member, setMember] = useState(null);
+  const config = memberFields[department];
+  const fields = config?.fields ?? [];
+
+  const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
 
   // ------------------ FETCH MEMBER ------------------
   useEffect(() => {
+    if (!department || !id) return;
+
     const fetchMember = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/members/${id}`, {
-          credentials: "include",
-        });
+        const data = await MembersAPI.fetchAll(department);
+        const member = data?.members?.find(m => m.id === id);
+        if (!member) throw new Error("Member not found");
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to fetch member");
-
-        // backend returns { member: {...} }
-        setMember(data.member);
+        const initialData = {};
+        fields.forEach(f => (initialData[f.name] = member[f.name] ?? ""));
+        setFormData(initialData);
       } catch (err) {
-        console.error(err);
-        setError(err.message);
+        console.error("Fetch member error:", err);
+        toast.error(err.message || "Failed to fetch member");
       } finally {
         setLoading(false);
       }
     };
 
     fetchMember();
-  }, [id]);
+  }, [department, id, fields]);
 
-  // ------------------ UPDATE ------------------
+  // ------------------ HANDLE CHANGE ------------------
+  const handleChange = (e, name) => {
+    setFormData(prev => ({ ...prev, [name]: e.target.value }));
+  };
+
+  // ------------------ SAVE UPDATE ------------------
   const handleUpdate = async (e) => {
     e.preventDefault();
-    if (!member) return;
-
     setSaving(true);
-    setError("");
 
     try {
-      const res = await fetch(`${API_BASE_URL}/members/${id}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          updates: {
-            name: member.name,
-            phone: member.phone,
-          },
-        }),
-      });
+      // Validate required fields
+      for (const field of fields) {
+        if (field.required && !formData[field.name]) {
+          throw new Error(`${field.label} is required`);
+        }
+      }
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to update member");
-
+      await MembersAPI.update(id, formData);
+      toast.success("Member updated successfully!");
+      onUpdated?.();
       navigate(`/dashboard/${department}`);
     } catch (err) {
-      console.error(err);
-      setError(err.message);
+      console.error("Update member error:", err);
+      toast.error(err.message || "Failed to update member");
     } finally {
       setSaving(false);
     }
   };
 
-  // ------------------ UI ------------------
+  // ------------------ RENDER ------------------
   if (loading) return <p>Loading member…</p>;
-  if (!member) return <p>No member found</p>;
+  if (!formData || !Object.keys(formData).length) return <p>No member data</p>;
 
   return (
-    <form onSubmit={handleUpdate} style={{ maxWidth: 400 }}>
-      <h2>Edit Member</h2>
+    <form onSubmit={handleUpdate} className="edit-member-form">
+      <h2>Edit {department.replace("_", " ")}</h2>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {fields.map(f => (
+        <div key={f.name} className="form-group">
+          <label>{f.label}</label>
+          {f.type === "select" ? (
+            <select
+              name={f.name}
+              value={formData[f.name]}
+              onChange={e => handleChange(e, f.name)}
+              required={f.required}
+            >
+              <option value="">Select {f.label}</option>
+              {f.options?.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type={f.type || "text"}
+              name={f.name}
+              value={formData[f.name]}
+              onChange={e => handleChange(e, f.name)}
+              required={f.required}
+            />
+          )}
+        </div>
+      ))}
 
-      <label>Name</label>
-      <input
-        type="text"
-        value={member.name ?? ""}
-        onChange={(e) =>
-          setMember(prev => ({ ...prev, name: e.target.value }))
-        }
-        style={{ width: "100%", padding: 8, marginBottom: "1rem" }}
-      />
-
-      <label>Phone</label>
-      <input
-        type="tel"
-        value={member.phone ?? ""}
-        onChange={(e) =>
-          setMember(prev => ({ ...prev, phone: e.target.value }))
-        }
-        style={{ width: "100%", padding: 8, marginBottom: "1rem" }}
-      />
-
-      <button
-        type="submit"
-        disabled={saving}
-        style={{
-          padding: "8px 16px",
-          background: "#0077b6",
-          color: "#fff",
-          borderRadius: 6,
-          border: "none",
-        }}
-      >
+      <button type="submit" disabled={saving} className="btn btn-primary">
         {saving ? "Saving…" : "Update Member"}
       </button>
     </form>

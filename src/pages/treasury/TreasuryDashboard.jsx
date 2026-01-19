@@ -1,138 +1,148 @@
-// src/pages/treasury/TreasuryDashboard.jsx
-import { useEffect, useState } from "react";
-import { API_BASE_URL } from "../../config/api";
-import {
-  PieChart, Pie, Cell, Tooltip,
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Legend
-} from "recharts";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
-import "../../styles/global.css";
-
-const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#d0ed57"];
-
-export default function TreasuryDashboard() {
-  const [data, setData] = useState(null);
-  const [filter, setFilter] = useState("quarter");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadSummary = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${API_BASE_URL}/treasury/summary?period=${filter}`,
-          { credentials: "include" }
-        );
-        const json = await res.json();
-        setData(json);
-      } catch (err) {
-        console.error("Treasury summary error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadSummary();
-  }, [filter]);
-
-  if (loading || !data) return <p>Loading treasury data…</p>;
-
-  /* ------------------ CHART DATA ------------------ */
-
-  const pieData = [
-    ...data.conference.map(i => ({
-      name: `${i.account} (Conference)`,
-      value: i.amount
-    })),
-    ...data.church.map(i => ({
-      name: `${i.account} (Church)`,
-      value: i.amount
-    }))
-  ];
-
-  const departmentBarData = data.departments;
-
-  /* ------------------ PDF ------------------ */
-
-  const downloadReport = () => {
-    const doc = new jsPDF();
-    doc.text(`Treasury Report – ${data.period}`, 14, 20);
-
-    const rows = [
-      ...data.conference.map(i => [i.account, i.amount, "Sent to Conference"]),
-      ...data.church.map(i => [i.account, i.amount, "Kept by Church"]),
-      ...data.departments.map(d => [`Dept: ${d.name}`, d.amount, "Department"])
-    ];
-
-    doc.autoTable({
-      startY: 30,
-      head: [["Account", "Amount", "Status"]],
-      body: rows
-    });
-
-    doc.save(`treasury-${filter}-${new Date().toISOString().slice(0, 10)}.pdf`);
-  };
-
-  /* ------------------ UI ------------------ */
-
-  return (
-    <div className="dashboard-layout">
-      <h1 className="page-title">Treasury Department</h1>
-      <p className="page-subtext">
-        Ledger-based financial summary for the selected period.
-      </p>
-
-      <div style={{ marginBottom: 16 }}>
-        <select value={filter} onChange={e => setFilter(e.target.value)}>
-          <option value="quarter">Quarterly</option>
-          <option value="year">Yearly</option>
-        </select>
-
-        <button style={{ marginLeft: 16 }} onClick={downloadReport}>
-          Download PDF
-        </button>
-      </div>
-
-      <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
-        <div style={{ flex: 1, minWidth: 320 }}>
-          <h3>Church vs Conference</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie data={pieData} dataKey="value" outerRadius={100} label>
-                {pieData.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div style={{ flex: 1, minWidth: 320 }}>
-          <h3>Departmental Contributions</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={departmentBarData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="amount" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="stats-grid" style={{ marginTop: 32 }}>
-        <div className="stat-card">
-          <h3>Total Expenses</h3>
-          <p>{data.expenses}</p>
-        </div>
-        <div className="stat-card">
-          <h3>Church Budget</h3>
-          <p>{data.budget}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
+‎import { useEffect, useState } from "react";
+‎import { TreasuryAPI } from "../../utils/API";
+‎import { useAuth } from "../../context/AuthContext";
+‎
+‎import FundGroupChart from "../../components/treasury/FundGroupChart";
+‎import FundBreakdownChart from "../../components/treasury/FundBreakdownChart";
+‎import AddTransactionForm from "../../components/treasury/AddTransactionForm";
+‎import DateFilter from "../../components/treasury/DateFilter";
+‎import { generateTablePDF } from "../../utils/pdf";
+‎
+‎export default function TreasuryDashboard() {
+‎  const { user } = useAuth();
+‎
+‎  const [overview, setOverview] = useState(null);
+‎  const [groups, setGroups] = useState([]);
+‎  const [funds, setFunds] = useState([]);
+‎  const [members, setMembers] = useState([]);
+‎  const [selectedGroup, setSelectedGroup] = useState("");
+‎  const [filter, setFilter] = useState({ start: "", end: "" });
+‎
+‎  const params =
+‎    filter.start || filter.end
+‎      ? `?start=${filter.start}&end=${filter.end}`
+‎      : "";
+‎
+‎  const loadData = async () => {
+‎    setOverview(await TreasuryAPI.overview(params));
+‎    setGroups(await TreasuryAPI.fundGroups(params));
+‎    setMembers(await TreasuryAPI.memberGivingSummary(params));
+‎  };
+‎
+‎  useEffect(() => {
+‎    loadData();
+‎  }, [params]);
+‎
+‎  useEffect(() => {
+‎    if (selectedGroup) {
+‎      TreasuryAPI.fundsByGroup(selectedGroup, params).then(setFunds);
+‎    }
+‎  }, [selectedGroup, params]);
+‎
+‎  const downloadMembersPDF = () => {
+‎    generateTablePDF(
+‎      "Member Giving Summary",
+‎      ["Member", "Total Given", "Last Given"],
+‎      members.map((m) => [
+‎        m.full_name,
+‎        m.total_given,
+‎        m.last_given,
+‎      ])
+‎    );
+‎  };
+‎
+‎  return (
+‎    <div className="dashboard-layout">
+‎      <h1 className="page-title">Treasury Dashboard</h1>
+‎      <p className="page-subtext">
+‎        Financial overview based on church funds and transactions
+‎      </p>
+‎
+‎      {/* DATE FILTER */}
+‎      <DateFilter onChange={setFilter} />
+‎
+‎      {/* SNAPSHOT */}
+‎      {overview && (
+‎        <div className="stats-grid">
+‎          <div className="stat-card">
+‎            <h3>Total Income</h3>
+‎            <p>KES {overview.total_income}</p>
+‎          </div>
+‎          <div className="stat-card">
+‎            <h3>Total Expenses</h3>
+‎            <p>KES {overview.total_expenses}</p>
+‎          </div>
+‎          <div className="stat-card">
+‎            <h3>Balance</h3>
+‎            <p>KES {overview.balance}</p>
+‎          </div>
+‎          <div className="stat-card">
+‎            <h3>Active Funds</h3>
+‎            <p>{overview.active_funds}</p>
+‎          </div>
+‎        </div>
+‎      )}
+‎
+‎      {/* FUND GROUP OVERVIEW */}
+‎      <div className="card">
+‎        <h3>Fund Group Overview</h3>
+‎        <FundGroupChart data={groups} />
+‎      </div>
+‎
+‎      {/* FUND BREAKDOWN */}
+‎      <div className="card">
+‎        <h3>Fund Breakdown</h3>
+‎
+‎        <select
+‎          value={selectedGroup}
+‎          onChange={(e) => setSelectedGroup(e.target.value)}
+‎        >
+‎          <option value="">Select Fund Group</option>
+‎          {groups.map((g) => (
+‎            <option key={g.group_id} value={g.group_id}>
+‎              {g.group_name}
+‎            </option>
+‎          ))}
+‎        </select>
+‎
+‎        {funds.length > 0 && (
+‎          <FundBreakdownChart data={funds} />
+‎        )}
+‎      </div>
+‎
+‎      {/* ADD TRANSACTION */}
+‎      {["Admin", "Treasurer"].includes(user.role) && (
+‎        <AddTransactionForm onSuccess={loadData} />
+‎      )}
+‎
+‎      {/* MEMBER GIVING */}
+‎      <div className="card">
+‎        <h3>Member Giving Summary</h3>
+‎
+‎        <table className="member-list-table">
+‎          <thead>
+‎            <tr>
+‎              <th>Member</th>
+‎              <th>Total Given</th>
+‎              <th>Last Given</th>
+‎            </tr>
+‎          </thead>
+‎          <tbody>
+‎            {members.map((m) => (
+‎              <tr key={m.member_id}>
+‎                <td>{m.full_name}</td>
+‎                <td>KES {m.total_given}</td>
+‎                <td>{m.last_given}</td>
+‎              </tr>
+‎            ))}
+‎          </tbody>
+‎        </table>
+‎
+‎        <button onClick={downloadMembersPDF}>
+‎          Download PDF
+‎        </button>
+‎      </div>
+‎    </div>
+‎  );
+‎}
+‎

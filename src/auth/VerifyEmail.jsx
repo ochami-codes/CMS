@@ -1,68 +1,70 @@
-// src/auth/VerifyEmailInfo.jsx
-import { useState } from "react";
+// src/auth/VerifyEmail.jsx
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
-import Button from "../components/Button";
 
-export default function VerifyEmailInfo() {
-  // 🔑 Get stored email (recommended)
-  const storedEmail = localStorage.getItem("pending_verification_email");
+export default function VerifyEmail() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const token = searchParams.get("token");
 
-  const [email] = useState(storedEmail || "");
-  const [message, setMessage] = useState(
-    "Your email is not verified. Please check your inbox for the verification link."
-  );
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const handleResend = async () => {
-    if (!email) {
-      setError("Missing email address. Please register again.");
-      return;
-    }
+  useEffect(() => {
+    const verifyEmail = async () => {
+      if (!token) {
+        setError("Invalid or missing verification token.");
+        setLoading(false);
+        return;
+      }
 
-    setLoading(true);
-    setError("");
-    setMessage("");
-
-    try {
-      const res = await fetch(
-        `${API_BASE_URL}/auth/resend-verification`,
-        {
+      try {
+        const res = await fetch(`${API_BASE_URL}/auth/verify-email`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ token }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.message || "Verification failed.");
+        } else {
+          setMessage("Your email has been verified successfully.");
+          localStorage.removeItem("pending_verification_email");
+
+          // Redirect after short delay
+          setTimeout(() => navigate("/login"), 2500);
         }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Failed to resend verification email.");
-      } else {
-        setMessage(data.message || "Verification email sent!");
+      } catch {
+        setError("Server error. Please try again.");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    verifyEmail();
+  }, [token, navigate]);
 
   return (
-    <div className="auth-container max-w-md mx-auto p-6">
-      <h2 className="text-xl font-bold mb-3">
-        Email Verification Required
-      </h2>
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md text-center">
+        <h2 className="text-2xl font-bold mb-4">Email Verification</h2>
 
-      <p className="mb-4 text-gray-600">{message}</p>
+        {loading && (
+          <p className="text-gray-600">Verifying your email…</p>
+        )}
 
-      {error && (
-        <p className="text-red-600 mb-3">{error}</p>
-      )}
+        {message && (
+          <p className="text-green-600 text-center">{message}</p>
+        )}
 
-      <Button onClick={handleResend} disabled={loading}>
-        {loading ? "Resending…" : "Resend Verification Email"}
-      </Button>
+        {error && (
+          <p className="text-red-600 text-center">{error}</p>
+        )}
+      </div>
     </div>
   );
 }

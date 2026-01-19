@@ -13,6 +13,7 @@ import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
 import VerifyEmailInfo from "./auth/VerifyEmailInfo";
 import EmailVerified from "./auth/EmailVerified";
+import CallbackSuccess from "./auth/CallbackSuccess";
 
 // Pages
 import Home from "./pages/Home";
@@ -29,7 +30,7 @@ import ChangePassword from "./pages/settings/ChangePassword";
 
 // Admin
 import AdminDashboard from "./components/admin/AdminDashboard";
-
+import InviteUser from "./auth/InviteUser";
 // Toaster
 import { Toaster } from "react-hot-toast";
 
@@ -48,7 +49,8 @@ function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/reset-password-confirm" element={<ResetPasswordConfirm />} />
              <Route path="/verify-email-info" element={<VerifyEmailInfo />} />
-             <Route path="/email-verified" element={<EmailVerified />} />
+             <Route path="/callback-success" element={<CallbackSuccess />} />          
+   <Route path="/email-verified" element={<EmailVerified />} />
             </Route>
 
             {/* Protected routes */}
@@ -68,6 +70,7 @@ function App() {
                 {/* Admin only */}
                 <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
                   <Route path="/dashboard/admin" element={<AdminDashboard />} />
+                  <Route path="/invite-user" element={<InviteUser />} />               
                 </Route>
               </Route>
             </Route>

@@ -1,3 +1,4 @@
+// src/auth/ResetPasswordConfirm.jsx
 import { useState } from "react";
 import Input from "../components/Input";
 import Button from "../components/Button";
@@ -16,17 +17,23 @@ export default function ResetPasswordConfirm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // 1️⃣ Invalid token guard
+  // 🔒 Invalid / missing token guard
   if (!token) {
     return (
-      <div className="auth-container">
-        <p className="error">Invalid or expired reset link.</p>
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="w-full max-w-md text-center">
+          <p className="text-red-600">
+            Invalid or expired password reset link.
+          </p>
+        </div>
       </div>
     );
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
+
     setError("");
     setSuccess("");
 
@@ -36,27 +43,37 @@ export default function ResetPasswordConfirm() {
     }
 
     if (!isStrongPassword(newPassword)) {
-      setError("Password must be at least 6 characters and include a number and a letter.");
+      setError(
+        "Password must be at least 6 characters and include both letters and numbers."
+      );
       return;
     }
 
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/reset-password-confirm`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password: newPassword }),
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/auth/reset-password-confirm`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token,
+            password: newPassword,
+          }),
+        }
+      );
 
       const data = await res.json();
 
       if (!res.ok) {
         setError(data.message || "Failed to reset password.");
-      } else {
-        setSuccess("Password reset successful. You can now sign in.");
-        setTimeout(() => navigate("/login"), 2000);
+        return;
       }
+
+      setSuccess("Password reset successful. Redirecting to login…");
+
+      setTimeout(() => navigate("/login"), 2000);
     } catch {
       setError("Unable to reset password. Please try again.");
     } finally {
@@ -65,33 +82,50 @@ export default function ResetPasswordConfirm() {
   };
 
   return (
-    <div className="auth-container">
-      <h2>Set New Password</h2>
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-3 text-center">
+          Set New Password
+        </h2>
 
-      <form onSubmit={handleSubmit}>
-        <Input
-          type="password"
-          label="New password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          required
-        />
+        <p className="text-gray-600 mb-6 text-center">
+          Choose a strong password for your account.
+        </p>
 
-        <Input
-          type="password"
-          label="Confirm new password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            type="password"
+            label="New password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            required
+          />
 
-        {error && <p className="error">{error}</p>}
-        {success && <p className="success">{success}</p>}
+          <Input
+            type="password"
+            label="Confirm new password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
 
-        <Button type="submit" disabled={loading}>
-          {loading ? "Updating..." : "Update Password"}
-        </Button>
-      </form>
+          {error && (
+            <p className="text-red-600 text-sm text-center">
+              {error}
+            </p>
+          )}
+
+          {success && (
+            <p className="text-green-600 text-sm text-center">
+              {success}
+            </p>
+          )}
+
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading ? "Updating…" : "Update Password"}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }

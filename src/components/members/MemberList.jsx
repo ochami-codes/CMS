@@ -1,32 +1,29 @@
+// src/components/members/MemberList.jsx
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import "../../styles/global.css";
-import { API_BASE_URL } from "../../config/api";
+import { MembersAPI } from "../../utils/api";
+import { memberFields } from "../../utils/memberFields";
 
-export default function MemberList({ department, refresh }) {
+export default function MemberList({ department, refreshKey }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
 
-  const apiUrl = API_BASE_URL;
+  const config = memberFields[department];
+  const fields = config?.fields ?? [];
 
-  const fetchMembers = async () => {
-    if (!apiUrl || !department) return;
+  // ------------------ FETCH MEMBERS ------------------
+  const loadMembers = async () => {
+    if (!department) return;
+
     setLoading(true);
-
     try {
-      const res = await fetch(
-        `${apiUrl}/members?table=${department}`,
-        { credentials: "include" }
-      );
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to fetch members");
-
-      setMembers(data.members || []);
+      const data = await MembersAPI.fetchAll(department);
+      setMembers(data || []);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to fetch members: " + err.message);
+      toast.error(err.message || "Failed to fetch members");
       setMembers([]);
     } finally {
       setLoading(false);
@@ -34,9 +31,10 @@ export default function MemberList({ department, refresh }) {
   };
 
   useEffect(() => {
-    fetchMembers();
-  }, [department, refresh]);
+    loadMembers();
+  }, [department, refreshKey]);
 
+  // ------------------ DELETE ------------------
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this member?")) return;
 
@@ -44,53 +42,51 @@ export default function MemberList({ department, refresh }) {
     const toastId = toast.loading("Deleting member...");
 
     try {
-      const res = await fetch(
-        `${apiUrl}/members/${id}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
-      );
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to delete member");
-
+      await MembersAPI.delete(id);
       setMembers(prev => prev.filter(m => m.id !== id));
-      toast.success("Member deleted successfully!", { id: toastId });
+      toast.success("Member deleted successfully", { id: toastId });
     } catch (err) {
-      toast.error("Failed to delete member: " + err.message, { id: toastId });
+      console.error(err);
+      toast.error(err.message || "Failed to delete member", { id: toastId });
     } finally {
       setDeletingId(null);
     }
   };
 
+  // ------------------ UI STATES ------------------
   if (!department) return <p>No department specified</p>;
-  if (loading) return <p>Loading members...</p>;
+  if (!fields.length) return <p>No configuration for "{department}"</p>;
+  if (loading) return <p>Loading members…</p>;
   if (!members.length) return <p>No members found</p>;
 
+  // ------------------ TABLE ------------------
   return (
     <table className="member-list-table">
       <thead>
         <tr>
-          {Object.keys(members[0]).map(key => (
-            <th key={key}>{key}</th>
+          {fields.map(f => (
+            <th key={f.name}>{f.label}</th>
           ))}
           <th>Actions</th>
         </tr>
       </thead>
+
       <tbody>
-        {members.map(m => (
-          <tr key={m.id}>
-            {Object.keys(m).map(key => (
-              <td key={key}>{m[key] ?? "-"}</td>
+        {members.map(member => (
+          <tr key={member.id}>
+            {fields.map(f => (
+              <td key={f.name}>
+                {member[f.name] ?? "-"}
+              </td>
             ))}
+
             <td>
               <button
-                onClick={() => handleDelete(m.id)}
-                disabled={deletingId === m.id}
+                onClick={() => handleDelete(member.id)}
+                disabled={deletingId === member.id}
                 className="delete-btn"
               >
-                {deletingId === m.id ? "Deleting..." : "Delete"}
+                {deletingId === member.id ? "Deleting…" : "Delete"}
               </button>
             </td>
           </tr>

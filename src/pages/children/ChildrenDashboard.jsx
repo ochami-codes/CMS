@@ -1,41 +1,51 @@
-import MemberList from "../../components/members/MemberList";
-import Attendance from "../../components/members/Attendance";
+// src/pages/departments/ChildrenDashboard.jsx
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import ChildrenList from "../../components/children/ChildrenList";
+import { ChildrenAPI } from "../../utils/api"; // central API
 import "../../styles/global.css";
+
 export default function ChildrenDashboard() {
+  const [children, setChildren] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshToggle, setRefreshToggle] = useState(false); // trigger refresh
+
+  // Fetch children from API
+  const loadChildren = async () => {
+    setLoading(true);
+    try {
+      const data = await ChildrenAPI.fetch();
+      setChildren(data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load children: " + err.message);
+      setChildren([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadChildren();
+  }, [refreshToggle]);
+
+  // Trigger a refresh after add/edit/delete
+  const refreshChildren = () => setRefreshToggle((prev) => !prev);
+
   return (
     <div className="dashboard-layout">
+      {/* Page header */}
       <h1 className="page-title">Children Department</h1>
       <p className="page-subtext">
-        Manage children members, activities, attendance, and events.
+        Manage children records, parents’ contacts, and attendance.
       </p>
 
-      {/* Quick stats */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <h3>Children Members</h3>
-          <p>View and manage all children in the church.</p>
-        </div>
-
-        <div className="stat-card">
-          <h3>Programs & Activities</h3>
-          <p>Plan Bible study, Sabbath school, and other programs.</p>
-        </div>
-
-        <div className="stat-card">
-          <h3>Reports</h3>
-          <p>Generate attendance and activity reports.</p>
-        </div>
-      </div>
-
-      {/* Member list CRUD */}
-      <div style={{ marginTop: "2rem" }}>
-        <MemberList department="children" />
-      </div>
-
-      {/* Attendance */}
-      <div style={{ marginTop: "2rem" }}>
-        <Attendance department="children" />
-      </div>
+      {/* Children CRUD */}
+      <ChildrenList
+        children={children}
+        loading={loading}
+        onRefresh={refreshChildren}
+      />
     </div>
   );
 }

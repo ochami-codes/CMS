@@ -10,8 +10,8 @@
 body {
   font-family: 'Inter', sans-serif;
   background-color: #f8f9fa;
-  color: #333;
-  line-height: 1.5;
+  color: #1f2937;
+  line-height: 1.6;
 }
 
 a {
@@ -27,6 +27,7 @@ button {
   cursor: pointer;
   border: none;
   outline: none;
+  font-family: inherit;
 }
 
 /* Container */
@@ -40,7 +41,7 @@ button {
    Buttons
 ========================== */
 button, .btn {
-  padding: 0.5rem 1rem;
+  padding: 0.55rem 1rem;
   border-radius: 6px;
   font-weight: 500;
   transition: 0.2s;
@@ -64,33 +65,47 @@ button, .btn {
   background-color: #5a6268;
 }
 
+.btn-danger {
+  background-color: #e63946;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background-color: #9b1c27;
+}
+
 /* ==========================
    Inputs / Forms
 ========================== */
-.input-group {
+.input-group, .form-group {
   display: flex;
   flex-direction: column;
   margin-bottom: 1rem;
 }
 
-.input-group label {
-  margin-bottom: 0.3rem;
+.input-group label, .form-group label {
+  margin-bottom: 0.4rem;
   font-weight: 500;
 }
 
 .input-group input,
-textarea {
+.input-group textarea,
+.form-group input,
+.form-group textarea {
   width: 100%;
-  padding: 0.5rem 0.7rem;
-  border: 1px solid #ccc;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e0;
   border-radius: 6px;
   font-size: 1rem;
+  transition: 0.2s;
 }
 
 .input-group input:focus,
-textarea:focus {
+textarea:focus,
+.form-group input:focus,
+.form-group textarea:focus {
   border-color: #4f46e5;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 0 0 2px rgba(79,70,229,0.1);
 }
 
 /* ==========================
@@ -108,15 +123,15 @@ textarea:focus {
 .sidebar {
   background: #fff;
   padding: 1rem;
-  border-right: 1px solid #ddd;
+  border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
 }
 
 .sidebar-title {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: bold;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .sidebar-links {
@@ -127,14 +142,17 @@ textarea:focus {
 
 .sidebar-links a,
 .sidebar-profile-link {
-  padding: 0.4rem 0.6rem;
+  padding: 0.45rem 0.6rem;
   border-radius: 6px;
   transition: 0.2s;
+  color: #1f2937;
 }
 
+.sidebar-links a.active,
 .sidebar-links a:hover,
 .sidebar-profile-link:hover {
   background-color: #e5e7eb;
+  font-weight: 500;
 }
 
 /* Main Content */
@@ -152,8 +170,13 @@ textarea:focus {
   align-items: center;
   padding: 0.8rem 1.5rem;
   background: #fff;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #e5e7eb;
   border-radius: 8px;
+}
+
+.user-email {
+  font-size: 0.95rem;
+  color: #4b5563;
 }
 
 .logout-btn {
@@ -161,6 +184,31 @@ textarea:focus {
   background: #e63946;
   color: #fff;
   border-radius: 6px;
+  transition: 0.2s;
+}
+
+.logout-btn:hover {
+  background: #9b1c27;
+}
+
+/* Greeting / Announcements */
+.greeting-card, .announcement-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  margin-bottom: 1rem;
+}
+
+.greeting-card h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.greeting-card p {
+  font-size: 1rem;
+  color: #4b5563;
 }
 
 /* Cards Grid */
@@ -175,28 +223,33 @@ textarea:focus {
   border-radius: 8px;
   padding: 1rem;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  transition: 0.2s;
+}
+
+.card:hover, .stat-card:hover {
+  transform: translateY(-2px);
 }
 
 /* Tables */
-.table {
+.table, .member-list-table, .attendance-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.table th, .table td {
+.table th, .table td,
+.member-list-table th, .member-list-table td,
+.attendance-table th, .attendance-table td {
   padding: 0.6rem;
   border-bottom: 1px solid #e5e7eb;
   text-align: left;
 }
 
-.table th {
+.table th, .member-list-table th, .attendance-table th {
   background-color: #f9fafb;
   font-weight: 600;
 }
 
-/* ==========================
-   Charts & Bars
-========================== */
+/* Charts / Bars */
 .chart-section {
   background: #fff;
   padding: 1rem;
@@ -263,181 +316,25 @@ textarea:focus {
   100% { transform: rotate(360deg); }
 }
 
-/* Events */
+/* Events / Announcements */
 .event-list {
   display: grid;
   gap: 0.8rem;
 }
 
-.event-card {
+.event-card, .announcement-card {
   background: #fff;
   border: 1px solid #e6e6e6;
   padding: 0.8rem;
   border-radius: 8px;
 }
 
-.event-title { font-weight: 600; margin-bottom: 0.3rem; }
-.event-message { margin-bottom: 0.5rem; color: #444; }
-.event-date { color: #666; font-size: 0.85rem; }
+.event-title, .announcement-title { font-weight: 600; margin-bottom: 0.3rem; }
+.event-message, .announcement-message { margin-bottom: 0.5rem; color: #4b5563; }
+.event-date, .announcement-date { color: #6b7280; font-size: 0.85rem; }
 
 /* ==========================
-   Custom Components
-========================== */
-
-/* AddMember Form */
-.add-member-form {
-  max-width: 400px;
-  margin: 0 auto 1.5rem;
-  padding: 1rem;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-}
-
-.add-member-form .form-title {
-  text-align: center;
-  margin-bottom: 1rem;
-  font-size: 1.3rem;
-}
-
-.add-member-form .form-group {
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.add-member-form .form-group label {
-  margin-bottom: 0.3rem;
-  font-weight: 500;
-}
-
-.add-member-form .form-group input {
-  width: 100%;
-  padding: 0.5rem 0.7rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-}
-
-.add-member-form .form-group input:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 2px rgba(79,70,229,0.1);
-}
-
-.add-member-form .form-submit {
-  width: 100%;
-  padding: 10px;
-  background-color: #4f46e5;
-  color: #fff;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.add-member-form .form-submit:disabled {
-  background-color: #94a3b8;
-  cursor: not-allowed;
-}
-
-.add-member-form .form-submit:hover:not(:disabled) {
-  background-color: #3730a3;
-}
-
-/* Attendance Table */
-.attendance-container {
-  max-width: 600px;
-  margin: 0 auto 1.5rem;
-  padding: 1rem;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-}
-
-.attendance-title {
-  text-align: center;
-  margin-bottom: 1rem;
-  font-size: 1.3rem;
-}
-
-.attendance-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 12px;
-}
-
-.attendance-table th,
-.attendance-table td {
-  padding: 8px;
-  border-bottom: 1px solid #eee;
-  text-align: left;
-}
-
-.attendance-table th {
-  background-color: #f1f1f1;
-  font-weight: 600;
-}
-
-.attendance-save-btn {
-  width: 100%;
-  padding: 10px;
-  background-color: #0077b6;
-  color: #fff;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.attendance-save-btn:disabled {
-  background-color: #94a3b8;
-  cursor: not-allowed;
-}
-
-.attendance-save-btn:hover:not(:disabled) {
-  background-color: #005f86;
-}
-
-/* Member List Table */
-.member-list-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
-}
-
-.member-list-table th,
-.member-list-table td {
-  padding: 8px;
-  border-bottom: 1px solid #eee;
-  text-align: left;
-}
-
-.member-list-table th {
-  background-color: #f1f1f1;
-  font-weight: 600;
-}
-
-.member-list-table .delete-btn {
-  padding: 4px 10px;
-  background-color: #e63946;
-  color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.member-list-table .delete-btn:disabled {
-  cursor: not-allowed;
-  background-color: #f69aa5;
-}
-
-.member-list-table .no-members {
-  text-align: center;
-  padding: 8px;
-}
-
-/* ==========================
-   Fully Fluid Responsive
+   Responsive
 ========================== */
 @media (max-width: 1024px) {
   .dashboard-layout {
@@ -445,7 +342,6 @@ textarea:focus {
   }
 
   .sidebar {
-    width: 100%;
     flex-direction: row;
     overflow-x: auto;
     border-right: none;
@@ -456,10 +352,6 @@ textarea:focus {
   .sidebar-links {
     flex-direction: row;
     gap: 0.5rem;
-  }
-
-  .dashboard-content {
-    padding: 1rem;
   }
 }
 
@@ -472,7 +364,6 @@ textarea:focus {
 
   .stats-grid {
     grid-template-columns: 1fr;
-    gap: 0.8rem;
   }
 }
 
@@ -483,5 +374,120 @@ textarea:focus {
   .sidebar-links a, .sidebar-profile-link {
     padding: 0.3rem 0.5rem;
     font-size: 0.9rem;
+  }
+}
+/* =========================
+   GLOBAL BUTTONS
+   ========================= */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+
+.btn-primary {
+  background: #4f46e5;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #4338ca;
+}
+
+.btn-secondary {
+  background: #e5e7eb;
+  color: #111;
+}
+
+.btn-secondary:hover {
+  background: #d1d5db;
+}
+
+/* =========================
+   HOME / LANDING PAGE
+   ========================= */
+.home-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f9fafb, #eef2ff);
+  padding: 2rem;
+}
+
+.home-hero {
+  text-align: center;
+  max-width: 800px;
+  margin: 5rem auto 3rem;
+}
+
+.home-hero h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.home-hero p {
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  color: #4b5563;
+}
+
+.home-buttons {
+  margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* =========================
+   FEATURES
+   ========================= */
+.home-features {
+  max-width: 1000px;
+  margin: 4rem auto;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.feature-card {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
+}
+
+.feature-card h3 {
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.feature-card p {
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+/* =========================
+   RESPONSIVE TWEAKS
+   ========================= */
+@media (max-width: 640px) {
+  .home-hero h1 {
+    font-size: 2rem;
+  }
+
+  .home-hero p {
+    font-size: 1rem;
   }
 }

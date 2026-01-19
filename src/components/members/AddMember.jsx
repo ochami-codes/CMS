@@ -1,14 +1,16 @@
 // src/components/members/AddMember.jsx
 import { useState, useMemo } from "react";
 import { memberFields } from "../../utils/memberFields";
-import toast from "react-hot-toast";
+import { MembersAPI } from "../../utils/api"; // centralized API
+import Button from "../Button";
+import Input from "../Input";
 import "../../styles/global.css";
-import { API_BASE_URL } from "../../config/api";
 
 export default function AddMember({ department, onMemberAdded }) {
   const config = memberFields[department];
   const fields = config?.fields ?? [];
 
+  // Initialize form state
   const initialState = useMemo(
     () => Object.fromEntries(fields.map(f => [f.name, ""])),
     [fields]
@@ -16,72 +18,79 @@ export default function AddMember({ department, onMemberAdded }) {
 
   const [formData, setFormData] = useState(initialState);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  if (!fields.length) {
-    return <p>No form configuration for "{department}"</p>;
-  }
+  if (!fields.length) return <p>No form configuration for "{department}"</p>;
 
   const handleChange = (e, name) => {
     setFormData(prev => ({ ...prev, [name]: e.target.value }));
   };
 
-  const handleAdd = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setError("");
 
-    const toastId = toast.loading("Adding member...");
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/members`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          department,
-          data: formData
-        }),
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.message || "Failed to add member");
+    // Validate required fields
+    for (const field of fields) {
+      if (field.required && !formData[field.name]) {
+        setError(`${field.label} is required`);
+        return;
       }
+    }
 
-      setFormData(initialState);
-      onMemberAdded?.();
+    setLoading(true);
+    try {
+      const result = await MembersAPI.add(department, formData);
+      if (!result) throw new Error("Failed to add member");
 
-      toast.success("Member added successfully", { id: toastId });
+      setFormData(initialState);  // Reset form
+      onMemberAdded?.();          // Notify parent
     } catch (err) {
       console.error("AddMember error:", err);
-      toast.error(err.message, { id: toastId });
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleAdd} className="add-member-form">
-      <h2 className="form-title">
-        Add Member – {department.replace("_", " ")}
-      </h2>
+    <form className="add-member-form" onSubmit={handleSubmit}>
+      <h2>Add Member – {department}</h2>
+
+      {error && <p className="error-text">{error}</p>}
 
       {fields.map(f => (
         <div key={f.name} className="form-group">
           <label className="form-label">{f.label}</label>
-          <input
-            type={f.type || "text"}
-            value={formData[f.name] || ""}
-            onChange={e => handleChange(e, f.name)}
-            required={f.required}
-            className="form-input"
-          />
+          {f.type === "select" ? (
+            <select
+              name={f.name}
+              value={formData[f.name] || ""}
+              onChange={e => handleChange(e, f.name)}
+              required={f.required}
+            >
+              <option value="">Select {f.label}</option>
+              {f.options?.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          ) : (
+            <Input
+              type={f.type || "text"}
+              name={f.name}
+              value={formData[f.name] || ""}
+              onChange={e => handleChange(e, f.name)}
+              required={f.required}
+            />
+          )}
         </div>
       ))}
 
-      <button type="submit" disabled={loading} className="form-submit">
-        {loading ? "Saving..." : "Add Member"}
-      </button>
+      <div className="form-actions">
+        <Button type="submit" disabled={loading}>
+          {loading ? "Saving..." : "Add Member"}
+        </Button>
+      </div>
     </form>
   );
 }

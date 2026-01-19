@@ -1,5 +1,6 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
+import { AuthAPI } from "../utils/api";
 
 const AuthContext = createContext(null);
 
@@ -7,48 +8,46 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL;
+  const fetchMe = async () => {
+    setLoading(true);
+    try {
+      const data = await AuthAPI.me();
+      setUser(data?.user ?? null);
+      return data?.user ?? null;
+    } catch (err) {
+      setUser(null);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchMe = async () => {
-      try {
-        const res = await fetch(`${API_URL}/auth/me`, {
-          credentials: "include",
-        });
-
-        if (!res.ok) {
-          setUser(null);
-          return;
-        }
-
-        const data = await res.json();
-        setUser(data.user ?? null);
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchMe();
-  }, [API_URL]);
+  }, []);
 
   const logout = async () => {
     try {
-      await fetch(`${API_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch (err) {
-      console.error("Logout failed:", err);
+      await AuthAPI.logout();
     } finally {
       setUser(null);
     }
   };
 
+  const refreshUser = async () => {
+    await fetchMe();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, setUser, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        logout,
+        refreshUser,
+        setUser, // still useful after login/register
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
