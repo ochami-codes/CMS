@@ -1,3 +1,4 @@
+// src/auth/Register.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
@@ -14,21 +15,21 @@ export default function Register() {
   const [churches, setChurches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [isExistingChurch, setIsExistingChurch] = useState(false);
 
   const navigate = useNavigate();
 
-  // Fetch existing churches
+  // Fetch existing churches for datalist
   useEffect(() => {
     const fetchChurches = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/churches`);
-        if (!res.ok) throw new Error("Failed to fetch churches");
+        if (!res.ok) return;
         const data = await res.json();
         if (Array.isArray(data)) setChurches(data);
-      } catch (err) {
-        console.error("Fetch churches error:", err);
-        // silently continue; user can type a new church
+      } catch {
+        // silent fail
       }
     };
     fetchChurches();
@@ -37,8 +38,8 @@ export default function Register() {
   // Auto-fill address for existing church
   useEffect(() => {
     const selectedChurch = churches.find((c) => c.name === churchName);
-    if (selectedChurch) {
-      setChurchAddress(selectedChurch.address || "");
+    if (selectedChurch && selectedChurch.address) {
+      setChurchAddress(selectedChurch.address);
       setIsExistingChurch(true);
     } else {
       setChurchAddress("");
@@ -51,14 +52,15 @@ export default function Register() {
     if (loading) return;
 
     setError("");
+    setMessage("");
 
     if (!fullName || !email || !password || !confirmPassword || !churchName || !churchAddress) {
-      setError("All fields are required");
+      setError("All fields are required.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("Passwords do not match.");
       return;
     }
 
@@ -77,25 +79,23 @@ export default function Register() {
         }),
       });
 
-      const data = await res.json().catch(() => ({})); // fallback empty object
+      const data = await res.json();
 
       if (!res.ok) {
-        // Try to display meaningful error
-        const message =
-          data?.details ||
-          data?.error ||
-          data?.message ||
-          "Registration failed. Please check your input.";
-        setError(message);
+        // Show backend message if exists
+        setError(data.error || data.details || "Registration failed. Please try again.");
         return;
       }
 
       // Success
+      setMessage(data.message || "Registration successful!");
       localStorage.setItem("pending_verification_email", email);
-      navigate("/verify-email-info");
+
+      // Redirect after short delay
+      setTimeout(() => navigate("/verify-email-info"), 2000);
     } catch (err) {
-      console.error("Registration network error:", err);
-      setError("Server unreachable. Please try again later.");
+      console.error("Register fetch error:", err);
+      setError("Server unreachable. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -106,13 +106,31 @@ export default function Register() {
       <h2 className="text-2xl font-bold mb-4">Register</h2>
 
       {error && <p className="text-red-600 mb-3">{error}</p>}
+      {message && <p className="text-green-600 mb-3">{message}</p>}
 
       <form onSubmit={handleRegister} className="space-y-4">
-        <Input label="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+        <Input
+          label="Full Name"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          required
+        />
 
-        <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <Input
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
-        <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <Input
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
 
         <Input
           label="Confirm Password"
@@ -122,6 +140,7 @@ export default function Register() {
           required
         />
 
+        {/* Church Name */}
         <div>
           <label className="block mb-1">Church</label>
           <input
@@ -139,6 +158,7 @@ export default function Register() {
           </datalist>
         </div>
 
+        {/* Church Address */}
         <Input
           label="Church Address"
           value={churchAddress}
