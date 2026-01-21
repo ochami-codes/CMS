@@ -42,29 +42,29 @@ export const TreasuryAPI = {
    AUTH API
 ====================== */
 export const AuthAPI = {
-  me: () => request("/auth/me"),
-  logout: () => request("/auth/logout", { method: "POST" }),
+  me: () => request("/me"),
+  logout: () => request("/logout", { method: "POST" }),
 
   // ---------------------
-  register: (payload) => request("/auth/register", { method: "POST", body: JSON.stringify(payload) }),
-  login: (payload) => request("/auth/login", { method: "POST", body: JSON.stringify(payload) }),
+  register: (payload) => request("/register", { method: "POST", body: JSON.stringify(payload) }),
+  login: (payload) => request("/login", { method: "POST", body: JSON.stringify(payload) }),
 
   // Callback after Supabase email verification
   callback: ({ access_token, refresh_token, type }) => {
-    const url = `/auth/callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`;
+    const url = `/callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`;
     return request(url);
   },
 
   // Resend verification email
   resendVerification: (email) =>
-    request("/auth/resend-verification", { method: "POST", body: JSON.stringify({ email }) }),
+    request("/resend-verification", { method: "POST", body: JSON.stringify({ email }) }),
 
   // Password reset
   resetPassword: (email) =>
-    request("/auth/reset-password", { method: "POST", body: JSON.stringify({ email }) }),
+    request("/reset-password", { method: "POST", body: JSON.stringify({ email }) }),
 
   resetPasswordConfirm: ({ token, newPassword }) =>
-    request("/auth/reset-password-confirm", { method: "POST", body: JSON.stringify({ token, newPassword }) }),
+    request("/reset-password-confirm", { method: "POST", body: JSON.stringify({ token, newPassword }) }),
 };
 
 /* ======================
