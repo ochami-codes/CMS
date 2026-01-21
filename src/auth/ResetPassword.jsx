@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Input from "../components/Input";
 import Button from "../components/Button";
-import { API_BASE_URL } from "../config/api";
+import { AuthAPI } from "../utils/api";
 
 export default function ResetPassword() {
   const [email, setEmail] = useState("");
@@ -19,19 +19,12 @@ export default function ResetPassword() {
     setError("");
 
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-
-      const data = await res.json();
-
+      await AuthAPI.resetPassword(email.trim());
       setMessage(
-        data.message ||
-          "If an account exists for this email, a password reset link has been sent."
+        "If an account exists for this email, a password reset link has been sent."
       );
-    } catch {
+    } catch (err) {
+      console.error(err);
       setMessage(
         "If an account exists for this email, a password reset link has been sent."
       );

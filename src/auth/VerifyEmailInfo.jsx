@@ -1,74 +1,47 @@
 // src/auth/VerifyEmailInfo.jsx
-import { useState } from "react";
-import { API_BASE_URL } from "../config/api";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthAPI } from "../utils/api";
 import Button from "../components/Button";
-import Input from "../components/Input";
 
-export default function VerifyEmailInfo() {
-  // 🔑 Get stored email (recommended)
-  const storedEmail = localStorage.getItem("pending_verification_email");
-
-  const [email, setEmail] = useState(storedEmail || "");
-  const [message, setMessage] = useState(
-    "Your email is not verified. Please check your inbox for the verification link."
-  );
+export default function VerifyEmail() {
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const email = localStorage.getItem("pending_verification_email") || "";
 
   const handleResend = async () => {
-    if (!email.trim()) {
-      setError("Please enter a valid email.");
-      return;
-    }
-
     setLoading(true);
     setError("");
-    setMessage("");
-
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Failed to resend verification email.");
-      } else {
-        setMessage(data.message || "Verification email sent!");
-        // 🔑 Save updated email to localStorage
-        localStorage.setItem("pending_verification_email", email.trim());
-      }
+      const res = await AuthAPI.resendVerification({ email });
+      if (res.message) setMessage(res.message);
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      console.error(err);
+      setError("Failed to resend verification email. Try again later.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container max-w-md mx-auto p-6">
-      <h2 className="text-xl font-bold mb-3">
-        Email Verification Required
-      </h2>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4">
+      <h2 className="text-2xl font-bold mb-4 text-center">Verify Your Email</h2>
 
-      <p className="text-gray-600 mb-4">{message}</p>
+      {message && <p className="text-green-600 text-center mb-3">{message}</p>}
+      {error && <p className="text-red-600 text-center mb-3">{error}</p>}
 
-      <Input
-        label="Email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Enter your email"
-        required
-      />
+      <p className="text-gray-700 text-center mb-4">
+        We sent a verification email to <strong>{email}</strong>. Please check your inbox.
+      </p>
 
-      {error && <p className="text-red-600 mb-3">{error}</p>}
+      <Button onClick={handleResend} disabled={loading}>
+        {loading ? "Sending…" : "Resend Verification Email"}
+      </Button>
 
-      <Button onClick={handleResend} disabled={loading || !email}>
-        {loading ? "Resending…" : "Resend Verification Email"}
+      <Button onClick={() => navigate("/login")} className="mt-2" variant="secondary">
+        Back to Login
       </Button>
     </div>
   );

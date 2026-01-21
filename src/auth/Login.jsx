@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
-import PasswordInput from "../components/PasswordInput"; // ✅ reuse
-import { API_BASE_URL } from "../config/api";
+import PasswordInput from "../components/PasswordInput";
+import { AuthAPI } from "../utils/api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -27,21 +27,14 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const data = await AuthAPI.login({ email, password });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        // Email not verified
-        if (res.status === 403) {
+      // If backend returns error structure
+      if (data?.error) {
+        if (data.status === 403 || data.error.toLowerCase().includes("verify")) {
           setError(data.details || data.error || "Please verify your email.");
           return;
         }
-
         setError(data.details || data.error || "Login failed");
         return;
       }
@@ -64,28 +57,19 @@ export default function Login() {
     }
   };
 
-  // Resend verification email
   const handleResendVerification = async () => {
     setResendMessage("");
+    if (!email) {
+      setResendMessage("Please enter your email first.");
+      return;
+    }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setResendMessage(
-          data.details || data.error || "Failed to resend email"
-        );
-      } else {
-        setResendMessage("Verification email sent. Check your inbox.");
-      }
-    } catch {
-      setResendMessage("Server error. Try again later.");
+      await AuthAPI.resendVerification(email);
+      setResendMessage("Verification email sent. Check your inbox.");
+    } catch (err) {
+      console.error(err);
+      setResendMessage("Failed to resend verification email. Try again later.");
     }
   };
 
@@ -103,7 +87,6 @@ export default function Login() {
           required
         />
 
-        {/* Password with eye toggle */}
         <PasswordInput
           label="Password"
           value={password}

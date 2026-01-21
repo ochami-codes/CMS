@@ -9,36 +9,30 @@ export default function CallbackSuccess() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
-    const user = params.get("user"); // optional (JSON string or id)
+    const user = params.get("user");
 
-    // No token → force login
     if (!token) {
       navigate("/login", { replace: true });
       return;
     }
 
-    // ✅ Store auth token
     localStorage.setItem("token", token);
-
-    // ✅ Optional user payload
     if (user) {
       try {
-        localStorage.setItem("user", user);
+        localStorage.setItem("user", JSON.stringify(JSON.parse(user)));
       } catch {
-        // ignore malformed user payload
+        localStorage.setItem("user", user);
       }
     }
 
-    // ✅ Clean URL (remove sensitive params)
+    // Clean URL
     window.history.replaceState({}, document.title, "/dashboard");
-
-    // ✅ Redirect to dashboard
     navigate("/dashboard", { replace: true });
   }, [location, navigate]);
 
   return (
     <div className="flex items-center justify-center h-screen">
-      <p className="text-gray-600">Signing you in…</p>
+      <p className="text-gray-600">Redirecting…</p>
     </div>
   );
 }

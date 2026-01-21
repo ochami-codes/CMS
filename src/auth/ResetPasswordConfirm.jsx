@@ -4,7 +4,7 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 import { isStrongPassword } from "../utils/validators";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { API_BASE_URL } from "../config/api";
+import { AuthAPI } from "../api/API";
 
 export default function ResetPasswordConfirm() {
   const navigate = useNavigate();
@@ -52,29 +52,13 @@ export default function ResetPasswordConfirm() {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/auth/reset-password-confirm`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            token,
-            password: newPassword,
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || "Failed to reset password.");
-        return;
-      }
+      // ✅ Use centralized API
+      await AuthAPI.resetPasswordConfirm({ token, newPassword });
 
       setSuccess("Password reset successful. Redirecting to login…");
-
       setTimeout(() => navigate("/login"), 2000);
-    } catch {
+    } catch (err) {
+      console.error(err);
       setError("Unable to reset password. Please try again.");
     } finally {
       setLoading(false);
