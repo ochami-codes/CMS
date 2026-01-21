@@ -14,6 +14,7 @@ export default function Register() {
   const [churches, setChurches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isExistingChurch, setIsExistingChurch] = useState(false);
 
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ export default function Register() {
     e.preventDefault();
     if (loading) return;
     setError("");
+    setSuccess("");
 
     if (!fullName || !email || !password || !confirmPassword || !churchName) {
       setError("All fields are required");
@@ -60,7 +62,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      await AuthAPI.register({
+      const res = await AuthAPI.register({
         full_name: fullName,
         email,
         password,
@@ -68,15 +70,22 @@ export default function Register() {
         church_address: churchAddress.trim(),
       });
 
-      // ✅ Success → redirect to verify email
+      // Store pending verification email
       localStorage.setItem("pending_verification_email", email);
-      navigate("/verify-email-info");
+
+      // Show backend success message
+      setSuccess(res.message || "Registration successful. Please check your email to verify.");
+
+      // Optional: short delay before redirect
+      setTimeout(() => {
+        navigate("/verify-email-info");
+      }, 1500);
 
     } catch (err) {
       console.error("Registration error:", err);
 
-      // Use standardized message from request()
-      setError(err.message || "Server unreachable. Please try again.");
+      // Show backend details if available
+      setError(err.data?.details || err.message || "Server unreachable. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -87,6 +96,7 @@ export default function Register() {
       <h2 className="text-2xl font-bold mb-4">Register</h2>
 
       {error && <p className="text-red-600 mb-3">{error}</p>}
+      {success && <p className="text-green-600 mb-3">{success}</p>}
 
       <form onSubmit={handleRegister} className="space-y-4">
         <Input label="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} required />
