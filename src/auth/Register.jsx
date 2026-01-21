@@ -1,4 +1,3 @@
-// src/auth/Register.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
@@ -61,7 +60,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const res = await AuthAPI.register({
+      await AuthAPI.register({
         full_name: fullName,
         email,
         password,
@@ -69,15 +68,15 @@ export default function Register() {
         church_address: churchAddress.trim(),
       });
 
-      if (res.error) {
-        setError(res.error);
-      } else {
-        localStorage.setItem("pending_verification_email", email);
-        navigate("/verify-email-info");
-      }
+      // ✅ Success → redirect to verify email
+      localStorage.setItem("pending_verification_email", email);
+      navigate("/verify-email-info");
+
     } catch (err) {
       console.error("Registration error:", err);
-      setError("Server unreachable. Please try again.");
+
+      // Use standardized message from request()
+      setError(err.message || "Server unreachable. Please try again.");
     } finally {
       setLoading(false);
     }

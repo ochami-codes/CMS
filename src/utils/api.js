@@ -100,7 +100,6 @@ export const AuthAPI = {
       body: JSON.stringify(payload),
     }),
 
-  // Supabase email callback → backend
   callback: ({ access_token, refresh_token, type }) =>
     request(
       `/auth/callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`
@@ -124,7 +123,6 @@ export const AuthAPI = {
       body: JSON.stringify({ token, newPassword }),
     }),
 };
-
 /* ======================
    ATTENDANCE API
 ====================== */

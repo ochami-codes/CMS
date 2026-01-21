@@ -1,4 +1,3 @@
-// src/utils/request.js
 const API_URL = import.meta.env.VITE_API_URL;
 
 export async function request(endpoint, options = {}) {
@@ -10,31 +9,47 @@ export async function request(endpoint, options = {}) {
     ...(options.headers || {}),
   };
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers,
-    credentials: "include",
-  });
-
+  let res;
   let data = null;
+
   try {
-    data = await res.json();
-  } catch {
-    // non-JSON response (fine)
-  }
+    res = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers,
+      credentials: "include",
+    });
 
-  if (!res.ok) {
-    const message =
-      data?.message ||
-      data?.error ||
-      `Request failed with status ${res.status}`;
+    try {
+      data = await res.json();
+    } catch {
+      // Non-JSON response, ignore
+    }
 
+    if (!res.ok) {
+      // Standardize error object
+      const message =
+        data?.message || data?.error || `Request failed with status ${res.status}`;
+
+      const code = data?.code || null;
+
+      throw {
+        status: res.status,
+        message,
+        code,
+        data,
+      };
+    }
+
+    return data;
+  } catch (err) {
+    // If it's already a structured error, pass it along
+    if (err.status) throw err;
+
+    // Network or unexpected error
     throw {
-      status: res.status,
-      message,
-      data,
+      status: 0,
+      message: err.message || "Network error",
+      data: null,
     };
   }
-
-  return data;
 }

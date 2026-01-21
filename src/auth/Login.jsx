@@ -1,4 +1,3 @@
-// src/auth/Login.jsx
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Input from "../components/Input";
@@ -29,16 +28,6 @@ export default function Login() {
     try {
       const data = await AuthAPI.login({ email, password });
 
-      // If backend returns error structure
-      if (data?.error) {
-        if (data.status === 403 || data.error.toLowerCase().includes("verify")) {
-          setError(data.details || data.error || "Please verify your email.");
-          return;
-        }
-        setError(data.details || data.error || "Login failed");
-        return;
-      }
-
       // ✅ Store auth data
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
@@ -49,9 +38,21 @@ export default function Login() {
       } else {
         navigate(redirectTo, { replace: true });
       }
+
     } catch (err) {
       console.error(err);
-      setError("Server unreachable. Please try again.");
+
+      // Email verification required
+      if (
+        err.status === 403 &&
+        err.message?.toLowerCase().includes("verify")
+      ) {
+        setError(err.message || "Please verify your email.");
+        return;
+      }
+
+      // Generic API/server error
+      setError(err.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -69,7 +70,9 @@ export default function Login() {
       setResendMessage("Verification email sent. Check your inbox.");
     } catch (err) {
       console.error(err);
-      setResendMessage("Failed to resend verification email. Try again later.");
+      setResendMessage(
+        err.message || "Failed to resend verification email. Try again later."
+      );
     }
   };
 
