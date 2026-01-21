@@ -16,7 +16,7 @@ export async function request(endpoint, options = {}) {
     res = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers,
-      credentials: "include",
+      // ❌ REMOVED credentials: "include"
     });
 
     try {
@@ -26,9 +26,10 @@ export async function request(endpoint, options = {}) {
     }
 
     if (!res.ok) {
-      // Standardize error object
       const message =
-        data?.message || data?.error || `Request failed with status ${res.status}`;
+        data?.message ||
+        data?.error ||
+        `Request failed with status ${res.status}`;
 
       const code = data?.code || null;
 
@@ -43,12 +44,12 @@ export async function request(endpoint, options = {}) {
     return data;
   } catch (err) {
     // If it's already a structured error, pass it along
-    if (err.status) throw err;
+    if (err?.status) throw err;
 
-    // Network or unexpected error
+    // Network or unexpected error (CORS, DNS, HTTPS mismatch, etc.)
     throw {
       status: 0,
-      message: err.message || "Network error",
+      message: err?.message || "Network error",
       data: null,
     };
   }
