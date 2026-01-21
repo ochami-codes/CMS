@@ -48,7 +48,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/reset-password-confirm" element={<ResetPasswordConfirm />} />
-              <Route path="/callback" element={<Callback />} />
+              <Route path="/auth/callback" element={<Callback />} />
               <Route path="/verify-email-info" element={<VerifyEmailInfo />} />
              <Route path="/callback-success" element={<CallbackSuccess />} />          
    <Route path="/email-verified" element={<EmailVerified />} />
