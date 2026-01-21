@@ -4,7 +4,7 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 import { isStrongPassword } from "../utils/validators";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { AuthAPI } from "../api/API";
+import { AuthAPI } from "../utils/api";
 
 export default function ResetPasswordConfirm() {
   const navigate = useNavigate();
