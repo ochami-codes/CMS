@@ -31,6 +31,7 @@ import ChangePassword from "./pages/settings/ChangePassword";
 // Admin
 import AdminDashboard from "./components/admin/AdminDashboard";
 import InviteUser from "./auth/InviteUser";
+
 // Toaster
 import { Toaster } from "react-hot-toast";
 
@@ -41,22 +42,28 @@ function App() {
       <AuthProvider>
         <Router>
           <Routes>
-            {/* Public routes */}
+
+            {/* ================= PUBLIC ================= */}
             <Route element={<PublicLayout />}>
               <Route index element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/reset-password-confirm" element={<ResetPasswordConfirm />} />
+              <Route
+                path="/reset-password-confirm"
+                element={<ResetPasswordConfirm />}
+              />
               <Route path="/auth/callback" element={<Callback />} />
+              <Route path="/callback-success" element={<CallbackSuccess />} />
               <Route path="/verify-email-info" element={<VerifyEmailInfo />} />
-             <Route path="/callback-success" element={<CallbackSuccess />} />          
-   <Route path="/email-verified" element={<EmailVerified />} />
+              <Route path="/email-verified" element={<EmailVerified />} />
             </Route>
 
-            {/* Protected routes */}
+            {/* ================= PROTECTED ================= */}
             <Route element={<ProtectedRoute />}>
               <Route element={<DashboardLayout />}>
+
+                {/* Main dashboards */}
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/dashboard/youth" element={<YouthDashboard />} />
                 <Route path="/dashboard/children" element={<ChildrenDashboard />} />
@@ -64,16 +71,34 @@ function App() {
                 <Route path="/dashboard/pastor" element={<PastorDashboard />} />
 
                 {/* Settings */}
-                <Route path="/dashboard/settings/profiles" element={<ProfilePage />} />
-                <Route path="/dashboard/settings/change-password" element={<ChangePassword />} />
+                <Route
+                  path="/dashboard/settings/profiles"
+                  element={<ProfilePage />}
+                />
+                <Route
+                  path="/dashboard/settings/change-password"
+                  element={<ChangePassword />}
+                />
 
-                {/* Admin only */}
-                <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-                  <Route path="/dashboard/admin" element={<AdminDashboard />} />
-                  <Route path="/invite-user" element={<InviteUser />} />               
+                {/* ================= ADMIN ONLY ================= */}
+                <Route
+                  element={
+                    <ProtectedRoute allowedRoles={["Admin"]} />
+                  }
+                >
+                  <Route
+                    path="/dashboard/admin"
+                    element={<AdminDashboard />}
+                  />
+                  <Route
+                    path="/invite-user"
+                    element={<InviteUser />}
+                  />
                 </Route>
+
               </Route>
             </Route>
+
           </Routes>
         </Router>
       </AuthProvider>

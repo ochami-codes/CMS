@@ -1,6 +1,7 @@
 // src/config/roles.js
+
 export const ROLE_PERMISSIONS = {
-  admin: [
+  Admin: [
     "manage_users",
     "view_finances",
     "edit_finances",
@@ -8,38 +9,33 @@ export const ROLE_PERMISSIONS = {
     "manage_departments",
   ],
 
-  pastor: [
+  Pastor: [
     "manage_content",
     "view_members",
     "manage_departments",
   ],
 
-  elder: [
-    "view_members",
-    "manage_departments",
-  ],
-
-  treasurer: [
+  Treasurer: [
     "view_finances",
     "edit_finances",
   ],
 
-  children_leader: [
+  Children_leader: [
     "manage_children",
     "view_members",
   ],
 
-  youth_leader: [
+  Youth_leader: [
     "manage_youth",
     "view_members",
   ],
 
-  communication_leader: [
+  Communication_leader: [
     "manage_announcements",
     "manage_media",
   ],
 
-  member: [
+  Member: [
     "view_content",
   ],
 };

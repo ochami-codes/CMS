@@ -1,59 +1,50 @@
 // src/components/admin/ManageRoles.jsx
 import { useEffect, useState } from "react";
-import { API_BASE_URL } from "../../config/api";
+import { AdminAPI } from "../../utils/api";
+
+const roles = [
+  "Admin",
+  "Pastor",
+  "Treasurer",
+  "Children_leader",
+  "Youth_leader",
+  "Communication_leader",
+  "Member",
+];
+
 export default function ManageRoles() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [department, setDepartment] = useState("");
   const [page, setPage] = useState(1);
   const [processingId, setProcessingId] = useState(null);
-  const apiUrl = API_BASE_URL;
 
   const pageSize = 10;
 
-  const roles = [
-    "admin",
-    "pastor",
-    "elder",
-    "treasurer",
-    "children_leader",
-    "youth_leader",
-    "communication_leader",
-    "member",
-  ];
-
-  /* ---------------- FETCH USERS ---------------- */
+  /* ======================
+     FETCH USERS
+  ====================== */
   const fetchUsers = async () => {
     setLoading(true);
-
     try {
       const params = new URLSearchParams({
         search,
-        department: departmentFilter,
+        department,
         page,
         pageSize,
-      });
+      }).toString();
 
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/admin/users?${params}`,
-        { credentials: "include" }
-      );
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch users");
-      }
-
-      const data = await res.json();
+      const data = await AdminAPI.fetchUsers(params);
 
       setUsers(
         data.users.map((u) => ({
           ...u,
-          selectedRole: u.role,
+          selectedRole: u.role, // keep DB role exactly
         }))
       );
     } catch (err) {
-      alert(err.message || "Error loading users");
+      alert(err.message || "Failed to load users");
     } finally {
       setLoading(false);
     }
@@ -61,64 +52,41 @@ export default function ManageRoles() {
 
   useEffect(() => {
     fetchUsers();
-  }, [search, departmentFilter, page]);
+  }, [search, department, page]);
 
-  /* ---------------- ROLE REQUEST ---------------- */
+  /* ======================
+     REQUEST ROLE CHANGE
+  ====================== */
   const requestRoleChange = async (user) => {
     if (user.selectedRole === user.role) return;
 
     setProcessingId(user.id);
-
     try {
-      const res = await fetch(
-        `${apiUrl}/admin/role-requests`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            targetUserId: user.id,
-            requestedRole: user.selectedRole,
-          }),
-        }
-      );
+      await AdminAPI.requestRoleChange({
+        targetUserId: user.id,
+        requestedRole: user.selectedRole,
+      });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Not allowed");
-      }
-
-      alert("Role change request submitted for approval.");
+      alert("Role change request submitted.");
     } catch (err) {
-      alert(err.message);
+      alert(err.message || "Not allowed");
     } finally {
       setProcessingId(null);
     }
   };
 
-  /* ---------------- SOFT DELETE ---------------- */
+  /* ======================
+     DEACTIVATE USER
+  ====================== */
   const deactivateUser = async (id) => {
     if (!confirm("Deactivate this member?")) return;
 
     setProcessingId(id);
-
     try {
-      const res = await fetch(
-        `${apiUrl}/admin/users/${id}/deactivate`,
-        {
-          method: "PATCH",
-          credentials: "include",
-        }
-      );
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Failed to deactivate user");
-      }
-
+      await AdminAPI.deactivateUser(id);
       setUsers((prev) => prev.filter((u) => u.id !== id));
     } catch (err) {
-      alert(err.message);
+      alert(err.message || "Failed to deactivate user");
     } finally {
       setProcessingId(null);
     }
@@ -144,9 +112,9 @@ export default function ManageRoles() {
         <input
           className="border px-2 py-1 rounded flex-1"
           placeholder="Filter by department"
-          value={departmentFilter}
+          value={department}
           onChange={(e) => {
-            setDepartmentFilter(e.target.value);
+            setDepartment(e.target.value);
             setPage(1);
           }}
         />
@@ -206,8 +174,8 @@ export default function ManageRoles() {
                 </button>
 
                 <button
-                  onClick={() => deactivateUser(user.id)}
                   disabled={processingId === user.id}
+                  onClick={() => deactivateUser(user.id)}
                   className="px-3 py-1 bg-red-600 text-white rounded disabled:opacity-50"
                 >
                   Deactivate

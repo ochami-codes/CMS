@@ -1,21 +1,18 @@
+// src/components/admin/RoleRequests.jsx
 import { useEffect, useState } from "react";
-import  { API_BASE_URL } from "../../config/api";
+import { AdminAPI } from "../../utils/api";
+
 export default function RoleRequests() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
 
-  const API = API_BASE_URL;
-
+  /* ======================
+     FETCH REQUESTS
+  ====================== */
   const fetchRequests = async () => {
     try {
-      const res = await fetch(`${API}/admin/role-requests`, {
-        credentials: "include",
-      });
-
-      if (!res.ok) return;
-
-      const data = await res.json();
+      const data = await AdminAPI.fetchRoleRequests();
       setRequests(data);
     } catch (err) {
       console.error("Failed to fetch role requests", err);
@@ -30,45 +27,28 @@ export default function RoleRequests() {
     return () => clearInterval(interval);
   }, []);
 
-  const approveRequest = async (req) => {
-    setProcessingId(req.id);
-
+  /* ======================
+     APPROVE / REJECT
+  ====================== */
+  const approve = async (id) => {
+    setProcessingId(id);
     try {
-      const res = await fetch(
-        `${API}/admin/role-requests/${req.id}/approve`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
-
-      if (res.ok) {
-        setRequests((prev) => prev.filter((r) => r.id !== req.id));
-      }
-    } catch (err) {
-      alert("Failed to approve request.");
+      await AdminAPI.approveRoleRequest(id);
+      setRequests((prev) => prev.filter((r) => r.id !== id));
+    } catch {
+      alert("Failed to approve request");
     } finally {
       setProcessingId(null);
     }
   };
 
-  const rejectRequest = async (id) => {
+  const reject = async (id) => {
     setProcessingId(id);
-
     try {
-      const res = await fetch(
-        `${API}/admin/role-requests/${id}/reject`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
-
-      if (res.ok) {
-        setRequests((prev) => prev.filter((r) => r.id !== id));
-      }
-    } catch (err) {
-      alert("Failed to reject request.");
+      await AdminAPI.rejectRoleRequest(id);
+      setRequests((prev) => prev.filter((r) => r.id !== id));
+    } catch {
+      alert("Failed to reject request");
     } finally {
       setProcessingId(null);
     }
@@ -103,15 +83,15 @@ export default function RoleRequests() {
                 <td className="p-2">{req.requester.full_name}</td>
                 <td className="p-2 flex gap-2">
                   <button
-                    onClick={() => approveRequest(req)}
                     disabled={processingId === req.id}
+                    onClick={() => approve(req.id)}
                     className="px-3 py-1 bg-green-600 text-white rounded disabled:opacity-50"
                   >
                     Approve
                   </button>
                   <button
-                    onClick={() => rejectRequest(req.id)}
                     disabled={processingId === req.id}
+                    onClick={() => reject(req.id)}
                     className="px-3 py-1 bg-red-600 text-white rounded disabled:opacity-50"
                   >
                     Reject

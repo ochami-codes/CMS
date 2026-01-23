@@ -159,6 +159,41 @@ export const DashboardAPI = {
   todaysBirthdays: () =>
     request("/dashboard/todays-birthdays"),
 };
+/* ======================
+   ADMIN DASHBOARD API
+====================== */
+export const AdminAPI = {
+  // Pending role requests count (badge)
+  pendingRoleRequestsCount: () =>
+    request("/admin/role-requests/pending-count"),
+
+  // Fetch all role requests
+  fetchRoleRequests: () =>
+    request("/admin/role-requests"),
+
+  // Approve a role request
+  approveRoleRequest: (requestId) =>
+    request(`/admin/role-requests/${requestId}/approve`, {
+      method: "POST",
+    }),
+
+  // Reject a role request
+  rejectRoleRequest: (requestId) =>
+    request(`/admin/role-requests/${requestId}/reject`, {
+      method: "POST",
+    }),
+
+  // Fetch all members for ManageRoles tab
+  fetchMembers: () =>
+    request("/admin/members"),
+
+  // Update a member's role
+  updateMemberRole: (memberId, roleId) =>
+    request(`/admin/members/${memberId}/role`, {
+      method: "PUT",
+      body: JSON.stringify({ role_id: roleId }),
+    }),
+};
 
 /* ======================
    LEGACY EXPORTS

@@ -1,23 +1,16 @@
 import { useState, useEffect } from "react";
 import ManageRoles from "./ManageRoles";
 import RoleRequests from "./RoleRequests";
-import { API_BASE_URL } from "../../config/api";
+import { AdminAPI } from "../../utils/api";
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("manage");
   const [pendingCount, setPendingCount] = useState(0);
 
+  // Fetch pending role requests count
   const fetchPendingCount = async () => {
     try {
-      const res = await fetch(
-        `${VITE_API_URL}/admin/role-requests/pending-count`,
-        {
-          credentials: "include",
-        }
-      );
-
-      if (!res.ok) return;
-
-      const data = await res.json();
+      const data = await AdminAPI.pendingRoleRequestsCount();
       setPendingCount(data.count || 0);
     } catch (err) {
       console.error("Failed to fetch pending count:", err);
@@ -26,7 +19,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchPendingCount();
-    const interval = setInterval(fetchPendingCount, 10000);
+    const interval = setInterval(fetchPendingCount, 10000); // refresh every 10s
     return () => clearInterval(interval);
   }, []);
 
@@ -66,8 +59,8 @@ export default function AdminDashboard() {
 
       {/* Tab Content */}
       <div className="border rounded p-2">
-        {activeTab === "manage" && <ManageRoles />}
-        {activeTab === "requests" && <RoleRequests />}
+        {activeTab === "manage" && <ManageRoles api={AdminAPI} />}
+        {activeTab === "requests" && <RoleRequests api={AdminAPI} />}
       </div>
     </div>
   );
