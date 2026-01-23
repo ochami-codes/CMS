@@ -1,4 +1,3 @@
-// frontend/pages/Login.jsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Input from "../components/Input";
@@ -10,16 +9,14 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const verified = location.state?.verified;
-  const redirectTo = location.state?.from || "/dashboard";
-
+  const verified = location.state?.verified; // from AuthCallback
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [resendMessage, setResendMessage] = useState("");
 
-  // ✅ Auto redirect if token exists
+  // ✅ Auto-redirect if token exists
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
@@ -27,10 +24,10 @@ export default function Login() {
       if (user.role_name === "Admin") {
         navigate("/dashboard/admin", { replace: true });
       } else {
-        navigate(redirectTo, { replace: true });
+        navigate("/dashboard", { replace: true });
       }
     }
-  }, [navigate, redirectTo]);
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,20 +40,19 @@ export default function Login() {
     try {
       const data = await AuthAPI.login({ email, password });
 
-      // ✅ Store auth data
+      // Store auth data
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // ✅ Role-based redirect
+      // Redirect based on role
       if (data.user.role_name === "Admin") {
         navigate("/dashboard/admin", { replace: true });
       } else {
-        navigate(redirectTo, { replace: true });
+        navigate("/dashboard", { replace: true });
       }
     } catch (err) {
       console.error(err);
 
-      // Email verification required
       if (err.status === 403 && err.message?.toLowerCase().includes("verify")) {
         setError(err.message || "Please verify your email.");
       } else {
@@ -80,7 +76,9 @@ export default function Login() {
       setResendMessage("Verification email sent. Check your inbox.");
     } catch (err) {
       console.error(err);
-      setResendMessage(err.message || "Failed to resend verification email. Try again later.");
+      setResendMessage(
+        err.message || "Failed to resend verification email. Try again later."
+      );
     }
   };
 
@@ -88,6 +86,7 @@ export default function Login() {
     <div className="max-w-md mx-auto pt-16">
       <h2 className="text-2xl font-bold mb-4">Login</h2>
 
+      {/* Email verification success message */}
       {verified && (
         <p className="text-green-600 mb-3">
           Email verified successfully. You can now log in.
@@ -123,7 +122,9 @@ export default function Login() {
           </button>
         )}
 
-        {resendMessage && <p className="text-green-600">{resendMessage}</p>}
+        {resendMessage && (
+          <p className="text-green-600">{resendMessage}</p>
+        )}
 
         <Button type="submit" disabled={loading}>
           {loading ? "Logging in…" : "Login"}

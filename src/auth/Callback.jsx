@@ -8,18 +8,15 @@ export default function AuthCallback() {
   useEffect(() => {
     const type = params.get("type");
 
-    // Email verification flow (signup)
     if (type === "signup") {
-      navigate("/login", {
-        replace: true,
-        state: { verified: true },
-      });
+      // Navigate to login and pass state verified
+      navigate("/login", { replace: true, state: { verified: true } });
       return;
     }
 
-    // Fallback for unknown cases
+    // Fallback: just go to login
     navigate("/login", { replace: true });
-  }, []);
+  }, [params, navigate]);
 
   return (
     <div className="h-screen flex items-center justify-center">
