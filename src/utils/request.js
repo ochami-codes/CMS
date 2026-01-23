@@ -9,44 +9,33 @@ export async function request(endpoint, options = {}) {
     ...(options.headers || {}),
   };
 
-  let res;
-  let data = null;
-
   try {
-    res = await fetch(`${API_URL}${endpoint}`, {
+    const res = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers,
-      // ❌ REMOVED credentials: "include"
     });
 
+    let data;
     try {
       data = await res.json();
     } catch {
-      // Non-JSON response, ignore
+      data = null; // Non-JSON response
     }
 
     if (!res.ok) {
-      const message =
-        data?.message ||
-        data?.error ||
-        `Request failed with status ${res.status}`;
-
-      const code = data?.code || null;
-
+      // Throw structured error for frontend to catch
       throw {
         status: res.status,
-        message,
-        code,
+        message: data?.message || data?.error || `Request failed with status ${res.status}`,
+        code: data?.code || null,
         data,
       };
     }
 
     return data;
   } catch (err) {
-    // If it's already a structured error, pass it along
-    if (err?.status) throw err;
-
-    // Network or unexpected error (CORS, DNS, HTTPS mismatch, etc.)
+    // Network or unexpected error
+    if (err?.status) throw err; // Already structured
     throw {
       status: 0,
       message: err?.message || "Network error",
