@@ -6,7 +6,7 @@ import Loader from "../components/Loader";
 export default function ProtectedRoute({ allowedRoles }) {
   const { user, loading } = useAuth();
 
-  // ⏳ Wait for Supabase to resolve session
+  // ⏳ Wait while Supabase resolves the session
   if (loading) {
     return <Loader message="Checking session…" />;
   }
@@ -17,7 +17,8 @@ export default function ProtectedRoute({ allowedRoles }) {
   }
 
   // 🛡️ Role-based access control
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  // Use `role_name` since `user` object has role_id & roles.name
+  if (allowedRoles && !allowedRoles.includes(user.role_name)) {
     return <Navigate to="/dashboard" replace />;
   }
 

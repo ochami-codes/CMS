@@ -4,11 +4,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import PasswordInput from "../components/PasswordInput";
-import { AuthAPI } from "../utils/api";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, login, loading: authLoading } = useAuth();
 
   const verified = location.state?.verified; // from registration redirect
   const [email, setEmail] = useState("");
@@ -17,19 +18,13 @@ export default function Login() {
   const [error, setError] = useState("");
   const [resendMessage, setResendMessage] = useState("");
 
-  // ✅ Auto-redirect if user info exists in localStorage
+  // ✅ Auto-redirect if already logged in
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    const token = localStorage.getItem("token");
-
-    if (token && storedUser) {
-      const target =
-        storedUser.role_name === "Admin"
-          ? "/dashboard/admin"
-          : "/dashboard";
+    if (user) {
+      const target = user.role_name === "Admin" ? "/dashboard/admin" : "/dashboard";
       navigate(target, { replace: true });
     }
-  }, [navigate]);
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,21 +35,13 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const data = await AuthAPI.login({ email, password });
+      const loggedInUser = await login({ email, password });
 
-      // Save auth data
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // Redirect based on role
-      const target =
-        data.user.role_name === "Admin"
-          ? "/dashboard/admin"
-          : "/dashboard";
+      const target = loggedInUser.role_name === "Admin" ? "/dashboard/admin" : "/dashboard";
       navigate(target, { replace: true });
     } catch (err) {
       console.error(err);
-      if (err.status === 403 && err.message?.toLowerCase().includes("verify")) {
+      if (err.message?.toLowerCase().includes("verify")) {
         setError(err.message || "Please verify your email.");
       } else {
         setError(err.message || "Login failed. Please try again.");
@@ -76,17 +63,19 @@ export default function Login() {
       setResendMessage("Verification email sent. Check your inbox.");
     } catch (err) {
       console.error(err);
-      setResendMessage(
-        err.message || "Failed to resend verification email. Try again later."
-      );
+      setResendMessage(err.message || "Failed to resend verification email. Try again later.");
     }
   };
+
+  if (authLoading) {
+    return <p className="text-center mt-16">Checking session…</p>;
+  }
 
   return (
     <div className="max-w-md mx-auto pt-16">
       <h2 className="text-2xl font-bold mb-4">Login</h2>
 
-      {/* Email verified message */}
+      {/* Registration success message */}
       {verified && (
         <p className="text-green-600 mb-3">
           Registration successful! Please log in to continue.

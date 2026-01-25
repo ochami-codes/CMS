@@ -20,23 +20,23 @@ export default function Register() {
 
   const navigate = useNavigate();
 
-  // Fetch existing churches
+  // Fetch existing churches from backend
   useEffect(() => {
     const fetchChurches = async () => {
       try {
         const data = await AuthAPI.fetchChurches();
         if (Array.isArray(data)) setChurches(data);
-      } catch {
-        // silent fail
+      } catch (err) {
+        console.error("Failed to fetch churches:", err);
       }
     };
     fetchChurches();
   }, []);
 
-  // Autofill address for existing church
+  // Autofill address if church exists
   useEffect(() => {
     const selected = churches.find((c) => c.name === churchName);
-    if (selected && selected.address) {
+    if (selected?.address) {
       setChurchAddress(selected.address);
       setIsExistingChurch(true);
     } else {
@@ -48,15 +48,16 @@ export default function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     if (loading) return;
+
     setError("");
     setSuccess("");
 
     if (!fullName || !email || !password || !confirmPassword || !churchName) {
-      setError("All fields are required");
+      setError("All fields are required.");
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("Passwords do not match.");
       return;
     }
 
@@ -74,14 +75,12 @@ export default function Register() {
       // Optionally store pending verification email
       localStorage.setItem("pending_verification_email", email);
 
-      // Show backend success message
       setSuccess(res.message || "Registration successful. Please verify your email.");
 
-      // Redirect to login after short delay
+      // Redirect to login page after short delay
       setTimeout(() => {
         navigate("/login", { state: { verified: true } });
       }, 1500);
-
     } catch (err) {
       console.error("Registration error:", err);
       setError(err.data?.details || err.message || "Server unreachable. Please try again.");
@@ -98,10 +97,33 @@ export default function Register() {
       {success && <p className="text-green-600 mb-3">{success}</p>}
 
       <form onSubmit={handleRegister} className="space-y-4">
-        <Input label="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} required />
-        <Input label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
-        <Input label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
-        <Input label="Confirm Password" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
+        <Input
+          label="Full Name"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          required
+        />
+        <Input
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <Input
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <Input
+          label="Confirm Password"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
 
         {/* Church Name */}
         <div>
@@ -109,13 +131,15 @@ export default function Register() {
           <input
             list="churches"
             value={churchName}
-            onChange={e => setChurchName(e.target.value)}
+            onChange={(e) => setChurchName(e.target.value)}
             placeholder="Type or select a church"
             className="w-full border px-3 py-2 rounded"
             required
           />
           <datalist id="churches">
-            {churches.map(c => <option key={c.id} value={c.name} />)}
+            {churches.map((c) => (
+              <option key={c.id} value={c.name} />
+            ))}
           </datalist>
         </div>
 
@@ -123,7 +147,7 @@ export default function Register() {
         <Input
           label="Church Address"
           value={churchAddress}
-          onChange={e => setChurchAddress(e.target.value)}
+          onChange={(e) => setChurchAddress(e.target.value)}
           placeholder="123 Church Street, City"
           required
           readOnly={isExistingChurch}
