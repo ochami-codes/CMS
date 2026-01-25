@@ -13,19 +13,17 @@ const roles = [
 ];
 
 export default function ManageRoles() {
-  const [users, setUsers] = useState([]);
+  const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
   const [processingId, setProcessingId] = useState(null);
 
-  const pageSize = 10;
-
-  /* ======================
-     FETCH USERS
-  ====================== */
-  const fetchUsers = async () => {
+  // Fetch members from backend
+  const fetchMembers = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -35,39 +33,34 @@ export default function ManageRoles() {
         pageSize,
       }).toString();
 
-      const data = await AdminAPI.fetchUsers(params);
-
-      setUsers(
-        data.users.map((u) => ({
-          ...u,
-          selectedRole: u.role, // keep DB role exactly
+      const data = await AdminAPI.fetchMembers(params); // now aligned with backend
+      setMembers(
+        (data.members || []).map((m) => ({
+          ...m,
+          selectedRole: m.role_name || "Member",
         }))
       );
+      setTotal(data.total || 0);
     } catch (err) {
-      alert(err.message || "Failed to load users");
+      alert(err.message || "Failed to load members");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchMembers();
   }, [search, department, page]);
 
-  /* ======================
-     REQUEST ROLE CHANGE
-  ====================== */
-  const requestRoleChange = async (user) => {
-    if (user.selectedRole === user.role) return;
+  // Request role change
+  const requestRoleChange = async (member) => {
+    if (member.selectedRole === member.role_name) return;
 
-    setProcessingId(user.id);
+    setProcessingId(member.id);
     try {
-      await AdminAPI.requestRoleChange({
-        targetUserId: user.id,
-        requestedRole: user.selectedRole,
-      });
-
+      await AdminAPI.updateMemberRole(member.id, member.selectedRole);
       alert("Role change request submitted.");
+      fetchMembers(); // refresh after change
     } catch (err) {
       alert(err.message || "Not allowed");
     } finally {
@@ -75,30 +68,29 @@ export default function ManageRoles() {
     }
   };
 
-  /* ======================
-     DEACTIVATE USER
-  ====================== */
-  const deactivateUser = async (id) => {
+  // Deactivate member
+  const deactivateMember = async (id) => {
     if (!confirm("Deactivate this member?")) return;
 
     setProcessingId(id);
     try {
-      await AdminAPI.deactivateUser(id);
-      setUsers((prev) => prev.filter((u) => u.id !== id));
+      await AdminAPI.deactivateMember(id);
+      setMembers((prev) => prev.filter((m) => m.id !== id));
+      alert("Member deactivated successfully");
     } catch (err) {
-      alert(err.message || "Failed to deactivate user");
+      alert(err.message || "Failed to deactivate member");
     } finally {
       setProcessingId(null);
     }
   };
 
-  if (loading) return <div className="p-4">Loading members...</div>;
+  if (loading) return <div className="p-4">Loading members…</div>;
 
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Manage Roles</h2>
 
-      {/* Search & Filter */}
+      {/* Filters */}
       <div className="flex gap-2 mb-4">
         <input
           className="border px-2 py-1 rounded flex-1"
@@ -120,7 +112,7 @@ export default function ManageRoles() {
         />
       </div>
 
-      {/* Users Table */}
+      {/* Members Table */}
       <table className="w-full border">
         <thead>
           <tr className="border-b bg-gray-50">
@@ -131,23 +123,22 @@ export default function ManageRoles() {
             <th className="p-2 text-left">Actions</th>
           </tr>
         </thead>
-
         <tbody>
-          {users.map((user) => (
-            <tr key={user.id} className="border-b">
-              <td className="p-2">{user.full_name || "(No name)"}</td>
-              <td className="p-2">{user.department || "-"}</td>
-              <td className="p-2 font-semibold">{user.role}</td>
+          {members.map((member) => (
+            <tr key={member.id} className="border-b">
+              <td className="p-2">{member.full_name || "(No name)"}</td>
+              <td className="p-2">{member.department || "-"}</td>
+              <td className="p-2 font-semibold">{member.role_name}</td>
 
               <td className="p-2">
                 <select
-                  value={user.selectedRole}
+                  value={member.selectedRole}
                   onChange={(e) =>
-                    setUsers((prev) =>
-                      prev.map((u) =>
-                        u.id === user.id
-                          ? { ...u, selectedRole: e.target.value }
-                          : u
+                    setMembers((prev) =>
+                      prev.map((m) =>
+                        m.id === member.id
+                          ? { ...m, selectedRole: e.target.value }
+                          : m
                       )
                     )
                   }
@@ -164,18 +155,18 @@ export default function ManageRoles() {
               <td className="p-2 flex gap-2">
                 <button
                   disabled={
-                    user.selectedRole === user.role ||
-                    processingId === user.id
+                    member.selectedRole === member.role_name ||
+                    processingId === member.id
                   }
-                  onClick={() => requestRoleChange(user)}
+                  onClick={() => requestRoleChange(member)}
                   className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-50"
                 >
                   Request
                 </button>
 
                 <button
-                  disabled={processingId === user.id}
-                  onClick={() => deactivateUser(user.id)}
+                  disabled={processingId === member.id}
+                  onClick={() => deactivateMember(member.id)}
                   className="px-3 py-1 bg-red-600 text-white rounded disabled:opacity-50"
                 >
                   Deactivate
@@ -196,10 +187,12 @@ export default function ManageRoles() {
           Previous
         </button>
 
-        <span>Page {page}</span>
+        <span>
+          Page {page} of {Math.ceil(total / pageSize) || 1}
+        </span>
 
         <button
-          disabled={users.length < pageSize}
+          disabled={members.length < pageSize}
           onClick={() => setPage(page + 1)}
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
         >

@@ -28,21 +28,29 @@ export const ChildrenAPI = {
    MEMBERS API
 ====================== */
 export const MembersAPI = {
-  fetchAll: (department) =>
-    request(`/members?department=${department}`),
+  // GET /members?department=Youth
+  fetchAll: (department = "") =>
+    request(
+      department
+        ? `/members?department=${encodeURIComponent(department)}`
+        : "/members"
+    ),
 
-  add: (department, formData) =>
+  // POST /members
+  add: (formData) =>
     request("/members", {
       method: "POST",
-      body: JSON.stringify({ department, data: formData }),
-    }),
-
-  update: (id, formData) =>
-    request(`/members/${id}`, {
-      method: "PUT",
       body: JSON.stringify(formData),
     }),
 
+  // PUT /members/:id
+  update: (id, updates) =>
+    request(`/members/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ updates }),
+    }),
+
+  // DELETE /members/:id
   delete: (id) =>
     request(`/members/${id}`, {
       method: "DELETE",
@@ -80,7 +88,7 @@ export const TreasuryAPI = {
 };
 
 /* ======================
-   AUTH API (CRITICAL FIXES)
+   AUTH API
 ====================== */
 export const AuthAPI = {
   me: () => request("/auth/me"),
@@ -123,6 +131,7 @@ export const AuthAPI = {
       body: JSON.stringify({ token, newPassword }),
     }),
 };
+
 /* ======================
    ATTENDANCE API
 ====================== */
@@ -159,39 +168,42 @@ export const DashboardAPI = {
   todaysBirthdays: () =>
     request("/dashboard/todays-birthdays"),
 };
+
 /* ======================
-   ADMIN DASHBOARD API
+   ADMIN API
 ====================== */
 export const AdminAPI = {
-  // Pending role requests count (badge)
   pendingRoleRequestsCount: () =>
     request("/admin/role-requests/pending-count"),
 
-  // Fetch all role requests
   fetchRoleRequests: () =>
     request("/admin/role-requests"),
 
-  // Approve a role request
   approveRoleRequest: (requestId) =>
     request(`/admin/role-requests/${requestId}/approve`, {
       method: "POST",
     }),
 
-  // Reject a role request
   rejectRoleRequest: (requestId) =>
     request(`/admin/role-requests/${requestId}/reject`, {
       method: "POST",
     }),
 
-  // Fetch all members for ManageRoles tab
-  fetchMembers: () =>
-    request("/admin/members"),
+  // GET /admin/members
+  fetchMembers: (params = "") =>
+    request(`/admin/members?${params}`),
 
-  // Update a member's role
+  // PUT /admin/members/:id/role
   updateMemberRole: (memberId, roleId) =>
     request(`/admin/members/${memberId}/role`, {
       method: "PUT",
       body: JSON.stringify({ role_id: roleId }),
+    }),
+
+  // POST /admin/users/:id/deactivate
+  deactivateMember: (memberId) =>
+    request(`/admin/users/${memberId}/deactivate`, {
+      method: "POST",
     }),
 };
 

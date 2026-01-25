@@ -1,83 +1,54 @@
 // src/auth/Register.jsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { AuthAPI } from "../utils/api";
+import { kenyaConferences } from "../data/kenyaConferences";
 
 export default function Register() {
+  const navigate = useNavigate();
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [gender, setGender] = useState("");
+  const [conference, setConference] = useState("");
   const [churchName, setChurchName] = useState("");
-  const [churchAddress, setChurchAddress] = useState("");
-  const [churches, setChurches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [isExistingChurch, setIsExistingChurch] = useState(false);
-
-  const navigate = useNavigate();
-
-  // Fetch existing churches from backend
-  useEffect(() => {
-    const fetchChurches = async () => {
-      try {
-        const data = await AuthAPI.fetchChurches();
-        if (Array.isArray(data)) setChurches(data);
-      } catch (err) {
-        console.error("Failed to fetch churches:", err);
-      }
-    };
-    fetchChurches();
-  }, []);
-
-  // Autofill address if church exists
-  useEffect(() => {
-    const selected = churches.find((c) => c.name === churchName);
-    if (selected?.address) {
-      setChurchAddress(selected.address);
-      setIsExistingChurch(true);
-    } else {
-      setChurchAddress("");
-      setIsExistingChurch(false);
-    }
-  }, [churchName, churches]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (loading) return;
-
     setError("");
     setSuccess("");
 
-    if (!fullName || !email || !password || !confirmPassword || !churchName) {
-      setError("All fields are required.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+    if (!fullName || !email || !phone || !dateOfBirth || !gender || !conference || !churchName) {
+      setError("All fields are required");
       return;
     }
 
     setLoading(true);
-
     try {
-      const res = await AuthAPI.register({
+      const payload = {
         full_name: fullName,
         email,
-        password,
+        phone,
+        date_of_birth: dateOfBirth,
+        gender,
+        conference,
         church_name: churchName.trim(),
-        church_address: churchAddress.trim(),
-      });
+      };
 
-      // Optionally store pending verification email
+      const res = await AuthAPI.register(payload);
+
+      setSuccess(res.message || "Registration successful! Please verify your email.");
+
+      // Optionally store pending email
       localStorage.setItem("pending_verification_email", email);
 
-      setSuccess(res.message || "Registration successful. Please verify your email.");
-
-      // Redirect to login page after short delay
       setTimeout(() => {
         navigate("/login", { state: { verified: true } });
       }, 1500);
@@ -97,60 +68,48 @@ export default function Register() {
       {success && <p className="text-green-600 mb-3">{success}</p>}
 
       <form onSubmit={handleRegister} className="space-y-4">
-        <Input
-          label="Full Name"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          required
-        />
-        <Input
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <Input
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <Input
-          label="Confirm Password"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
+        <Input label="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} required />
+        <Input label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+        <Input label="Phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} required />
+        <Input label="Date of Birth" type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} required />
 
-        {/* Church Name */}
         <div>
-          <label className="block mb-1">Church</label>
-          <input
-            list="churches"
-            value={churchName}
-            onChange={(e) => setChurchName(e.target.value)}
-            placeholder="Type or select a church"
-            className="w-full border px-3 py-2 rounded"
+          <label className="block mb-1">Gender</label>
+          <select
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
             required
-          />
-          <datalist id="churches">
-            {churches.map((c) => (
-              <option key={c.id} value={c.name} />
-            ))}
-          </datalist>
+            className="w-full border px-3 py-2 rounded"
+          >
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
         </div>
 
-        {/* Church Address */}
+        <div>
+          <label className="block mb-1">Conference</label>
+          <select
+            value={conference}
+            onChange={(e) => setConference(e.target.value)}
+            required
+            className="w-full border px-3 py-2 rounded"
+          >
+            <option value="">Select your conference</option>
+            {kenyaConferences.map((conf) => (
+              <option key={conf} value={conf}>
+                {conf}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <Input
-          label="Church Address"
-          value={churchAddress}
-          onChange={(e) => setChurchAddress(e.target.value)}
-          placeholder="123 Church Street, City"
+          label="Church Name"
+          value={churchName}
+          onChange={e => setChurchName(e.target.value)}
+          placeholder="Type your church"
           required
-          readOnly={isExistingChurch}
         />
 
         <Button type="submit" disabled={loading}>
