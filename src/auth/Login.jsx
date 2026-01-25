@@ -1,3 +1,4 @@
+// src/auth/Login.jsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Input from "../components/Input";
@@ -9,23 +10,24 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const verified = location.state?.verified; // from AuthCallback
+  const verified = location.state?.verified; // from registration redirect
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [resendMessage, setResendMessage] = useState("");
 
-  // ✅ Auto-redirect if token exists
+  // ✅ Auto-redirect if user info exists in localStorage
   useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (token && user) {
-      if (user.role_name === "Admin") {
-        navigate("/dashboard/admin", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
-      }
+
+    if (token && storedUser) {
+      const target =
+        storedUser.role_name === "Admin"
+          ? "/dashboard/admin"
+          : "/dashboard";
+      navigate(target, { replace: true });
     }
   }, [navigate]);
 
@@ -40,19 +42,18 @@ export default function Login() {
     try {
       const data = await AuthAPI.login({ email, password });
 
-      // Store auth data
+      // Save auth data
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       // Redirect based on role
-      if (data.user.role_name === "Admin") {
-        navigate("/dashboard/admin", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
-      }
+      const target =
+        data.user.role_name === "Admin"
+          ? "/dashboard/admin"
+          : "/dashboard";
+      navigate(target, { replace: true });
     } catch (err) {
       console.error(err);
-
       if (err.status === 403 && err.message?.toLowerCase().includes("verify")) {
         setError(err.message || "Please verify your email.");
       } else {
@@ -65,7 +66,6 @@ export default function Login() {
 
   const handleResendVerification = async () => {
     setResendMessage("");
-
     if (!email) {
       setResendMessage("Please enter your email first.");
       return;
@@ -86,12 +86,15 @@ export default function Login() {
     <div className="max-w-md mx-auto pt-16">
       <h2 className="text-2xl font-bold mb-4">Login</h2>
 
-      {/* Email verification success message */}
+      {/* Email verified message */}
       {verified && (
         <p className="text-green-600 mb-3">
-          Email verified successfully. You can now log in.
+          Registration successful! Please log in to continue.
         </p>
       )}
+
+      {error && <p className="text-red-600 mb-3">{error}</p>}
+      {resendMessage && <p className="text-green-600 mb-3">{resendMessage}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
@@ -110,8 +113,6 @@ export default function Login() {
           required
         />
 
-        {error && <p className="text-red-600">{error}</p>}
-
         {error && error.toLowerCase().includes("verify") && (
           <button
             type="button"
@@ -120,10 +121,6 @@ export default function Login() {
           >
             Resend verification email
           </button>
-        )}
-
-        {resendMessage && (
-          <p className="text-green-600">{resendMessage}</p>
         )}
 
         <Button type="submit" disabled={loading}>

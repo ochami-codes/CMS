@@ -1,3 +1,4 @@
+// src/auth/Register.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
@@ -70,21 +71,19 @@ export default function Register() {
         church_address: churchAddress.trim(),
       });
 
-      // Store pending verification email
+      // Optionally store pending verification email
       localStorage.setItem("pending_verification_email", email);
 
       // Show backend success message
-      setSuccess(res.message || "Registration successful. Please check your email to verify.");
+      setSuccess(res.message || "Registration successful. Please verify your email.");
 
-      // Optional: short delay before redirect
+      // Redirect to login after short delay
       setTimeout(() => {
-        navigate("/verify-email-info");
+        navigate("/login", { state: { verified: true } });
       }, 1500);
 
     } catch (err) {
       console.error("Registration error:", err);
-
-      // Show backend details if available
       setError(err.data?.details || err.message || "Server unreachable. Please try again.");
     } finally {
       setLoading(false);
