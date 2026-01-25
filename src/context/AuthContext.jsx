@@ -9,21 +9,29 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchMe = async () => {
-    setLoading(true);
     try {
       const data = await AuthAPI.me();
       setUser(data?.user ?? null);
-      return data?.user ?? null;
-    } catch (err) {
+    } catch {
       setUser(null);
-      return null;
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchMe();
+    let mounted = true;
+
+    const init = async () => {
+      if (!mounted) return;
+      await fetchMe();
+    };
+
+    init();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const logout = async () => {
@@ -35,6 +43,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const refreshUser = async () => {
+    setLoading(true);
     await fetchMe();
   };
 
@@ -45,7 +54,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         logout,
         refreshUser,
-        setUser, // still useful after login/register
+        setUser,
       }}
     >
       {children}

@@ -1,18 +1,19 @@
 // src/routes/ProtectedRoute.jsx
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
 
 export default function ProtectedRoute({ allowedRoles }) {
-  const { token, user, loading } = useAuth();
-  const location = useLocation();
+  const { user, loading } = useAuth();
 
+  // ⏳ Wait for Supabase to resolve session
   if (loading) {
     return <Loader message="Checking session…" />;
   }
 
-  if (!token || !user) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+  // 🔐 Not authenticated
+  if (!user) {
+    return <Navigate to="/login" replace />;
   }
 
   // 🛡️ Role-based access control
@@ -20,5 +21,6 @@ export default function ProtectedRoute({ allowedRoles }) {
     return <Navigate to="/dashboard" replace />;
   }
 
+  // ✅ Authorized
   return <Outlet />;
 }

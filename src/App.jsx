@@ -11,10 +11,7 @@ import Login from "./auth/Login";
 import Register from "./auth/Register";
 import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
-import VerifyEmailInfo from "./auth/VerifyEmailInfo";
-import EmailVerified from "./auth/EmailVerified";
 import Callback from "./auth/Callback";
-import CallbackSuccess from "./auth/CallbackSuccess";
 
 // Pages
 import Home from "./pages/Home";
@@ -54,9 +51,6 @@ function App() {
                 element={<ResetPasswordConfirm />}
               />
               <Route path="/auth/callback" element={<Callback />} />
-              <Route path="/callback-success" element={<CallbackSuccess />} />
-              <Route path="/verify-email-info" element={<VerifyEmailInfo />} />
-              <Route path="/email-verified" element={<EmailVerified />} />
             </Route>
 
             {/* ================= PROTECTED ================= */}
