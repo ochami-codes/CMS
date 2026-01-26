@@ -10,6 +10,8 @@ export default function Register() {
   const navigate = useNavigate();
 
   const [fullName, setFullName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -25,23 +27,42 @@ export default function Register() {
     setError("");
     setSuccess("");
 
-    if (!fullName || !email || !phone || !dateOfBirth || !gender || !conference || !churchName) {
-      setError("All fields are required");
-      return;
-    }
+  if (
+  !fullName ||
+  !email ||
+  !phone ||
+  !dateOfBirth ||
+  !gender ||
+  !conference ||
+  !churchName ||
+  !password ||
+  !confirmPassword
+) {
+  setError("All fields are required");
+  return;
+}
 
+if (password.length < 8) {
+  setError("Password must be at least 8 characters long");
+  return;
+}
+
+if (password !== confirmPassword) {
+  setError("Passwords do not match");
+  return;
+}
     setLoading(true);
     try {
-      const payload = {
-        full_name: fullName,
-        email,
-        phone,
-        date_of_birth: dateOfBirth,
-        gender,
-        conference,
-        church_name: churchName.trim(),
-      };
-
+ const payload = {
+  full_name: fullName,
+  email,
+  password, // ✅ only this goes to backend
+  phone,
+  date_of_birth: dateOfBirth,
+  gender,
+  conference,
+  church_name: churchName.trim(),
+};
       const res = await AuthAPI.register(payload);
 
       setSuccess(res.message || "Registration successful! Please verify your email.");
@@ -111,7 +132,21 @@ export default function Register() {
           placeholder="Type your church"
           required
         />
+         <Input
+  label="Password"
+  type="password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  required
+/>
 
+<Input
+  label="Confirm Password"
+  type="password"
+  value={confirmPassword}
+  onChange={(e) => setConfirmPassword(e.target.value)}
+  required
+/>
         <Button type="submit" disabled={loading}>
           {loading ? "Creating account…" : "Register"}
         </Button>
