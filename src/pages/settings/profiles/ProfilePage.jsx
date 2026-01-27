@@ -1,95 +1,78 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
-import { API_BASE_URL } from "../../../config/api";
+import { ProfileAPI } from "../../../utils/api";
 import ProfileForm from "./ProfileForm";
 import Contributions from "./Contributions";
 import SummaryChart from "./SummaryChart";
 
-const ProfilePage = () => {
-  const { user } = useAuth();
+export default function ProfilePage() {
+  const { profile } = useAuth();
 
-  const [profile, setProfile] = useState({ fullName: "", phone: "", email: "" });
+  const [localProfile, setLocalProfile] = useState(null);
   const [contributions, setContributions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Load profile and contributions on mount
   useEffect(() => {
-    if (!user) return;
+    if (!profile) return;
 
     const loadProfile = async () => {
       setLoading(true);
       setMessage("");
 
       try {
-        const res = await fetch(`${API_BASE_URL}/profile`, {
-          credentials: "include",
-        });
-
-        if (!res.ok) throw new Error("Failed to load profile");
-
-        const data = await res.json();
-        setProfile(data.profile || {});
-        setContributions(data.contributions || []);
+        const res = await ProfileAPI.get();
+        setLocalProfile(res.profile);
+        setContributions(res.contributions || []);
       } catch (err) {
-        setMessage(err.message || "Error loading profile");
+        setMessage(err.message || "Failed to load profile");
       } finally {
         setLoading(false);
       }
     };
 
     loadProfile();
-  }, [user]);
+  }, [profile]);
 
-  // Update profile handler
-  const handleUpdate = async (updatedProfile) => {
+  const handleUpdate = async (updates) => {
     setLoading(true);
     setMessage("");
 
     try {
-      const res = await fetch(`${API_BASE_URL}/profile`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          fullName: updatedProfile.fullName,
-          phone: updatedProfile.phone,
-          email: updatedProfile.email,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Profile update failed");
-
-      setProfile(updatedProfile);
-      setMessage("Profile updated successfully.");
+      await ProfileAPI.update(updates);
+      setLocalProfile((prev) => ({ ...prev, ...updates }));
+      setMessage("Profile updated successfully");
     } catch (err) {
-      setMessage(err.message || "Failed to update profile.");
+      setMessage(err.message || "Profile update failed");
     } finally {
       setLoading(false);
     }
   };
 
+  if (!localProfile) return null;
+
   return (
-    <div style={{ maxWidth: 520, margin: "0 auto" }}>
-      <h2>Your Profile</h2>
-      <p style={{ color: "#666" }}>Manage your account information.</p>
+    <div className="max-w-xl mx-auto">
+      <h2 className="text-xl font-bold">My Profile</h2>
+      <p className="text-gray-500 mb-4">
+        Manage your personal and church information.
+      </p>
 
       <ProfileForm
-        profile={profile}
+        profile={localProfile}
         onUpdate={handleUpdate}
         loading={loading}
         message={message}
       />
 
-      <hr style={{ margin: "2rem 0" }} />
-
-      <h3>Contributions</h3>
-      <Contributions contributions={contributions} />
-
-      <h3>Summary</h3>
-      <SummaryChart contributions={contributions} />
+      {contributions.length > 0 && (
+        <>
+          <hr className="my-6" />
+          <h3 className="font-semibold">Contributions</h3>
+          <Contributions contributions={contributions} />
+          <SummaryChart contributions={contributions} />
+        </>
+      )}
     </div>
   );
-};
-
-export default ProfilePage;
+}

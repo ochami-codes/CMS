@@ -5,18 +5,34 @@ import { AuthAPI } from "../utils/api";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // true while fetching auth state
+  const [user, setUser] = useState(null);        // auth user
+  const [profile, setProfile] = useState(null); // church profile
+  const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
-  /* ------------------ Fetch current user ------------------ */
+  /* ------------------ Fetch current session ------------------ */
   const fetchMe = async () => {
     try {
       const data = await AuthAPI.me();
-      setUser(data?.user ?? null);
-      return data?.user ?? null;
+
+      if (!data) {
+        setUser(null);
+        setProfile(null);
+        return null;
+      }
+
+      setUser(data.user);
+
+      // 🔑 Normalize role_name ONCE
+      setProfile({
+        ...data.profile,
+        role_name: data.profile?.roles?.name,
+      });
+
+      return data;
     } catch (err) {
       setUser(null);
+      setProfile(null);
       return null;
     } finally {
       setLoading(false);
@@ -31,13 +47,13 @@ export const AuthProvider = ({ children }) => {
     try {
       const data = await AuthAPI.login({ email, password });
 
-      // Save token in localStorage for session persistence
-      if (data.token) localStorage.setItem("token", data.token);
-      if (data.user) setUser(data.user);
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
+      }
 
-      return data.user;
+      await fetchMe();
+      return data;
     } catch (err) {
-      console.error("Login failed:", err);
       setAuthError(err.message || "Login failed");
       throw err;
     } finally {
@@ -51,47 +67,37 @@ export const AuthProvider = ({ children }) => {
       await AuthAPI.logout();
     } finally {
       setUser(null);
+      setProfile(null);
       localStorage.removeItem("token");
     }
   };
 
-  /* ------------------ Refresh user (re-fetch) ------------------ */
+  /* ------------------ Refresh user ------------------ */
   const refreshUser = async () => {
     setLoading(true);
     await fetchMe();
   };
 
-  /* ------------------ Initialize on mount ------------------ */
+  /* ------------------ Init on mount ------------------ */
   useEffect(() => {
-    let mounted = true;
+    const token = localStorage.getItem("token");
 
-    const init = async () => {
-      if (!mounted) return;
-
-      const token = localStorage.getItem("token");
-      if (token) {
-        await fetchMe();
-      } else {
-        setLoading(false);
-      }
-    };
-
-    init();
-
-    return () => {
-      mounted = false;
-    };
+    if (token) {
+      fetchMe();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        profile,
         loading,
         login,
         logout,
         refreshUser,
-        setUser,
         authError,
       }}
     >

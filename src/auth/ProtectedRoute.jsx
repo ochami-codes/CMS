@@ -18,7 +18,7 @@ export default function ProtectedRoute({ allowedRoles }) {
 
   // 🛡️ Role-based access control
   // Use `role_name` since `user` object has role_id & roles.name
-  if (allowedRoles && !allowedRoles.includes(user.role_name)) {
+  if (allowedRoles && !allowedRoles.includes(profile.role_name)) {
     return <Navigate to="/dashboard" replace />;
   }
 

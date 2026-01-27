@@ -4,7 +4,8 @@ import { request } from "./request";
    CHILDREN API
 ====================== */
 export const ChildrenAPI = {
-  fetchAll: () => request("/children"),
+  fetchAll: (churchId) =>
+    request(`/children?churchId=${encodeURIComponent(churchId)}`),
 
   add: (childData) =>
     request("/children", {
@@ -23,12 +24,23 @@ export const ChildrenAPI = {
       method: "DELETE",
     }),
 };
+/* ======================
+   PROFILE API
+====================== */
+export const ProfileAPI = {
+  get: () => request("/profile"),
+
+  update: (updates) =>
+    request("/profile", {
+      method: "PUT",
+      body: JSON.stringify(updates),
+    }),
+};
 
 /* ======================
    MEMBERS API
 ====================== */
 export const MembersAPI = {
-  // GET /members?department=Youth
   fetchAll: (department = "") =>
     request(
       department
@@ -36,22 +48,19 @@ export const MembersAPI = {
         : "/members"
     ),
 
-  // POST /members
-  add: (formData) =>
+  create: (payload) =>
     request("/members", {
       method: "POST",
-      body: JSON.stringify(formData),
+      body: JSON.stringify(payload),
     }),
 
-  // PUT /members/:id
   update: (id, updates) =>
     request(`/members/${id}`, {
       method: "PUT",
-      body: JSON.stringify({ updates }),
+      body: JSON.stringify(updates),
     }),
 
-  // DELETE /members/:id
-  delete: (id) =>
+  remove: (id) =>
     request(`/members/${id}`, {
       method: "DELETE",
     }),
@@ -61,18 +70,17 @@ export const MembersAPI = {
    OVERVIEW / ADMIN API
 ====================== */
 export const OverviewAPI = {
-  fetch: () => request("/admin/overview"),
+  admin: () => request("/admin/overview"),
+  pastor: () => request("/pastor/overview"),
 };
 
 /* ======================
    TREASURY API
 ====================== */
 export const TreasuryAPI = {
-  overview: (params = "") =>
-    request(`/treasury/overview${params}`),
+  overview: (params = "") => request(`/treasury/overview${params}`),
 
-  fundGroups: (params = "") =>
-    request(`/treasury/fund-groups${params}`),
+  fundGroups: (params = "") => request(`/treasury/fund-groups${params}`),
 
   fundsByGroup: (groupId, params = "") =>
     request(`/treasury/fund-groups/${groupId}/funds${params}`),
@@ -93,8 +101,11 @@ export const TreasuryAPI = {
 export const AuthAPI = {
   me: () => request("/auth/me"),
 
-  logout: () =>
-    request("/auth/logout", { method: "POST" }),
+  login: (payload) =>
+    request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 
   register: (payload) =>
     request("/auth/register", {
@@ -102,10 +113,9 @@ export const AuthAPI = {
       body: JSON.stringify(payload),
     }),
 
-  login: (payload) =>
-    request("/auth/login", {
+  logout: () =>
+    request("/auth/logout", {
       method: "POST",
-      body: JSON.stringify(payload),
     }),
 
   callback: ({ access_token, refresh_token, type }) =>
@@ -136,19 +146,33 @@ export const AuthAPI = {
    ATTENDANCE API
 ====================== */
 export const AttendanceAPI = {
-  fetchAll: (params = "") =>
-    request(`/attendance${params}`),
+  fetchAll: (params = "") => request(`/attendance${params}`),
 
   mark: (payload) =>
     request("/attendance", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+};
 
-  update: (id, payload) =>
-    request(`/attendance/${id}`, {
-      method: "PUT",
+/* ======================
+   ANNOUNCEMENTS API (SOURCE OF TRUTH)
+====================== */
+export const AnnouncementsAPI = {
+  fetch: (churchId, limit = 5) =>
+    request(
+      `/announcements?churchId=${churchId}&limit=${limit}`
+    ),
+
+  create: (payload) =>
+    request("/announcements", {
+      method: "POST",
       body: JSON.stringify(payload),
+    }),
+
+  remove: (id) =>
+    request(`/announcements/${id}`, {
+      method: "DELETE",
     }),
 };
 
@@ -156,17 +180,16 @@ export const AttendanceAPI = {
    DASHBOARD API
 ====================== */
 export const DashboardAPI = {
-  dailyVerse: () =>
-    request("/dashboard/daily-verse"),
+  dailyVerse: () => request("/dashboard/daily-verse"),
 
-  announcements: () =>
-    request("/dashboard/announcements"),
+  myBirthday: () => request("/dashboard/my-birthday"),
 
-  myBirthday: () =>
-    request("/dashboard/my-birthday"),
-
-  todaysBirthdays: () =>
-    request("/dashboard/todays-birthdays"),
+  todaysBirthdays: (churchId) =>
+    request(
+      churchId
+        ? `/dashboard/todays-birthdays?church_id=${churchId}`
+        : "/dashboard/todays-birthdays"
+    ),
 };
 
 /* ======================
@@ -189,18 +212,15 @@ export const AdminAPI = {
       method: "POST",
     }),
 
-  // GET /admin/members
   fetchMembers: (params = "") =>
     request(`/admin/members?${params}`),
 
-  // PUT /admin/members/:id/role
   updateMemberRole: (memberId, roleId) =>
     request(`/admin/members/${memberId}/role`, {
       method: "PUT",
       body: JSON.stringify({ role_id: roleId }),
     }),
 
-  // POST /admin/users/:id/deactivate
   deactivateMember: (memberId) =>
     request(`/admin/users/${memberId}/deactivate`, {
       method: "POST",
@@ -208,9 +228,25 @@ export const AdminAPI = {
 };
 
 /* ======================
-   LEGACY EXPORTS
+   COMMUNICATION API
+====================== */
+export const CommunicationAPI = {
+  fetchAnnouncements: (churchId) =>
+    AnnouncementsAPI.fetch(churchId),
+
+  addAnnouncement: (payload) =>
+    AnnouncementsAPI.create(payload),
+
+  deleteAnnouncement: (id) =>
+    AnnouncementsAPI.remove(id),
+};
+
+/* ======================
+   LEGACY EXPORTS (SAFE)
 ====================== */
 export const getDailyVerse = () => DashboardAPI.dailyVerse();
-export const getAnnouncements = () => DashboardAPI.announcements();
+export const getAnnouncements = (churchId) =>
+  AnnouncementsAPI.fetch(churchId);
 export const getMyBirthday = () => DashboardAPI.myBirthday();
-export const getTodaysBirthdays = () => DashboardAPI.todaysBirthdays();
+export const getTodaysBirthdays = (churchId) =>
+  DashboardAPI.todaysBirthdays(churchId);

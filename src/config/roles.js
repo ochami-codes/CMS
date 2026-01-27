@@ -2,40 +2,51 @@
 
 export const ROLE_PERMISSIONS = {
   Admin: [
+    "access_admin_dashboard",
     "manage_users",
+    "view_members",
+    "edit_members",
     "view_finances",
     "edit_finances",
-    "manage_content",
     "manage_departments",
+    "manage_announcements",
+    "manage_media",
   ],
 
   Pastor: [
-    "manage_content",
+    "access_admin_dashboard",
     "view_members",
+    "edit_members",
     "manage_departments",
+    "manage_announcements",
   ],
 
   Treasurer: [
+    "access_treasury_dashboard",
     "view_finances",
     "edit_finances",
   ],
 
-  Children_leader: [
-    "manage_children",
+  Youth_leader: [
+    "access_youth_dashboard",
     "view_members",
+    "manage_youth",
   ],
 
-  Youth_leader: [
-    "manage_youth",
+  Children_leader: [
+    "access_children_dashboard",
     "view_members",
+    "manage_children",
   ],
 
   Communication_leader: [
+    "access_media_dashboard",
     "manage_announcements",
     "manage_media",
   ],
 
   Member: [
+    "access_dashboard",
     "view_content",
   ],
 };
