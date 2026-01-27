@@ -40,27 +40,36 @@ export const AuthProvider = ({ children }) => {
   };
 
   /* ------------------ Login ------------------ */
-  const login = async ({ email, password }) => {
-    setLoading(true);
-    setAuthError(null);
+const login = async ({ email, password }) => {
+  setLoading(true);
+  setAuthError(null);
 
-    try {
-      const data = await AuthAPI.login({ email, password });
+  try {
+    const data = await AuthAPI.login({ email, password });
 
-      if (data?.token) {
-        localStorage.setItem("token", data.token);
-      }
+    if (!data?.user) throw new Error("No user returned from login");
 
-      await fetchMe();
-      return data;
-    } catch (err) {
-      setAuthError(err.message || "Login failed");
-      throw err;
-    } finally {
-      setLoading(false);
+    if (data?.token) {
+      localStorage.setItem("token", data.token);
     }
-  };
 
+    // Set user and profile immediately
+    const normalizedUser = {
+      ...data.user,
+      role_name: data.user.role_name || data.user.roles?.name,
+    };
+
+    setUser(normalizedUser);
+    setProfile(normalizedUser);
+
+    return normalizedUser; // ✅ return user only
+  } catch (err) {
+    setAuthError(err.message || "Login failed");
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+};
   /* ------------------ Logout ------------------ */
   const logout = async () => {
     try {
