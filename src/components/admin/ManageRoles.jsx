@@ -1,8 +1,9 @@
 // src/components/admin/ManageRoles.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { AdminAPI } from "../../utils/api";
+import { useAuth } from "../../context/AuthContext";
 
-const roles = [
+const ROLES = [
   "Admin",
   "Pastor",
   "Treasurer",
@@ -13,8 +14,11 @@ const roles = [
 ];
 
 export default function ManageRoles() {
+  const { profile, loading: authLoading } = useAuth();
+
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("");
   const [page, setPage] = useState(1);
@@ -22,9 +26,13 @@ export default function ManageRoles() {
   const [total, setTotal] = useState(0);
   const [processingId, setProcessingId] = useState(null);
 
-  // Fetch members from backend
-  const fetchMembers = async () => {
+  /* ------------------ Fetch Members ------------------ */
+  const fetchMembers = useCallback(async () => {
+    if (!profile?.church_id) return;
+
     setLoading(true);
+    setError("");
+
     try {
       const params = new URLSearchParams({
         search,
@@ -33,26 +41,39 @@ export default function ManageRoles() {
         pageSize,
       }).toString();
 
-      const data = await AdminAPI.fetchMembers(params); // now aligned with backend
+      const data = await AdminAPI.fetchMembers(params);
+
+      if (!data || !Array.isArray(data.members)) {
+        setMembers([]);
+        setTotal(0);
+        return;
+      }
+
       setMembers(
-        (data.members || []).map((m) => ({
+        data.members.map((m) => ({
           ...m,
           selectedRole: m.role_name || "Member",
         }))
       );
+
       setTotal(data.total || 0);
     } catch (err) {
-      alert(err.message || "Failed to load members");
+      console.error("Fetch members error:", err);
+      setMembers([]);
+      setTotal(0);
+      setError(err.message || "Failed to load members");
     } finally {
       setLoading(false);
     }
-  };
+  }, [profile, search, department, page, pageSize]);
 
+  /* ------------------ Effects ------------------ */
   useEffect(() => {
+    if (authLoading || !profile?.church_id) return;
     fetchMembers();
-  }, [search, department, page]);
+  }, [authLoading, profile, fetchMembers]);
 
-  // Request role change
+  /* ------------------ Actions ------------------ */
   const requestRoleChange = async (member) => {
     if (member.selectedRole === member.role_name) return;
 
@@ -60,7 +81,7 @@ export default function ManageRoles() {
     try {
       await AdminAPI.updateMemberRole(member.id, member.selectedRole);
       alert("Role change request submitted.");
-      fetchMembers(); // refresh after change
+      fetchMembers();
     } catch (err) {
       alert(err.message || "Not allowed");
     } finally {
@@ -68,7 +89,6 @@ export default function ManageRoles() {
     }
   };
 
-  // Deactivate member
   const deactivateMember = async (id) => {
     if (!confirm("Deactivate this member?")) return;
 
@@ -84,11 +104,25 @@ export default function ManageRoles() {
     }
   };
 
-  if (loading) return <div className="p-4">Loading members…</div>;
+  /* ------------------ Render Guards ------------------ */
+  if (authLoading) {
+    return <div className="p-4">Checking admin permissions…</div>;
+  }
 
+  if (!profile) {
+    return <div className="p-4">Loading admin profile…</div>;
+  }
+
+  if (loading) {
+    return <div className="p-4">Loading members…</div>;
+  }
+
+  /* ------------------ UI ------------------ */
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Manage Roles</h2>
+
+      {error && <p className="text-red-600 mb-3">{error}</p>}
 
       {/* Filters */}
       <div className="flex gap-2 mb-4">
@@ -124,6 +158,14 @@ export default function ManageRoles() {
           </tr>
         </thead>
         <tbody>
+          {members.length === 0 && (
+            <tr>
+              <td colSpan="5" className="p-4 text-center text-gray-500">
+                No members found
+              </td>
+            </tr>
+          )}
+
           {members.map((member) => (
             <tr key={member.id} className="border-b">
               <td className="p-2">{member.full_name || "(No name)"}</td>
@@ -144,7 +186,7 @@ export default function ManageRoles() {
                   }
                   className="border px-2 py-1 rounded"
                 >
-                  {roles.map((role) => (
+                  {ROLES.map((role) => (
                     <option key={role} value={role}>
                       {role}
                     </option>
@@ -181,19 +223,19 @@ export default function ManageRoles() {
       <div className="flex justify-between mt-4">
         <button
           disabled={page === 1}
-          onClick={() => setPage(page - 1)}
+          onClick={() => setPage((p) => p - 1)}
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
         >
           Previous
         </button>
 
         <span>
-          Page {page} of {Math.ceil(total / pageSize) || 1}
+          Page {page} of {Math.max(1, Math.ceil(total / pageSize))}
         </span>
 
         <button
           disabled={members.length < pageSize}
-          onClick={() => setPage(page + 1)}
+          onClick={() => setPage((p) => p + 1)}
           className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
         >
           Next
