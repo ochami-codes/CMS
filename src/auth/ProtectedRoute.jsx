@@ -4,24 +4,24 @@ import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
 
 export default function ProtectedRoute({ allowedRoles }) {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
 
-  // ⏳ Wait while Supabase resolves the session
   if (loading) {
     return <Loader message="Checking session…" />;
   }
 
-  // 🔐 Not authenticated
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // 🛡️ Role-based access control
-  // Use `role_name` since `user` object has role_id & roles.name
+  // 🚨 profile might briefly be null
+  if (!profile) {
+    return <Loader message="Loading profile…" />;
+  }
+
   if (allowedRoles && !allowedRoles.includes(profile.role_name)) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // ✅ Authorized
   return <Outlet />;
 }
