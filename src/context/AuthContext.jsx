@@ -38,44 +38,44 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /* ------------------ Login ------------------ */
-  const login = async ({ email, password }) => {
-    setLoading(true);
-    setAuthError(null);
+/* ------------------ Login ------------------ */
+const login = async ({ email, password }) => {
+  setLoading(true);
+  setAuthError(null);
 
-    try {
-      const data = await AuthAPI.login({ email, password });
+  try {
+    const data = await AuthAPI.login({ email, password });
 
-      if (!data?.user || !data?.token) {
-        throw new Error("Login failed: no token or user returned");
-      }
-
-      // store token first
-      localStorage.setItem("token", data.token);
-
-      // Normalize user
-      const normalizedUser = {
-        ...data.user,
-        role_name: data.user.role_name || data.user.roles?.name,
-      };
-
-      setUser(normalizedUser);
-
-      // Set profile from backend if exists, fallback to user
-      setProfile({
-        ...data.user,
-        role_name: normalizedUser.role_name,
-      });
-
-      return normalizedUser;
-    } catch (err) {
-      setAuthError(err.message || "Login failed");
-      throw err;
-    } finally {
-      setLoading(false);
+    if (!data?.user || !data?.access_token) {
+      throw new Error("Login failed: no access token or user returned");
     }
-  };
 
+    // ✅ store SUPABASE access token
+    localStorage.setItem("access_token", data.access_token);
+
+    // remove legacy token if present
+    localStorage.removeItem("token");
+
+    // Normalize user
+    const normalizedUser = {
+      ...data.user,
+      role_name: data.user.role_name || data.user.roles?.name,
+    };
+
+    setUser(normalizedUser);
+
+    setProfile({
+      ...normalizedUser,
+    });
+
+    return normalizedUser;
+  } catch (err) {
+    setAuthError(err.message || "Login failed");
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+};
   /* ------------------ Logout ------------------ */
   const logout = async () => {
     try {
