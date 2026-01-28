@@ -1,7 +1,9 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
 export async function request(endpoint, options = {}) {
-  const token = localStorage.getItem("token");
+  const token =
+    localStorage.getItem("access_token") ||
+    localStorage.getItem("token");
 
   const headers = {
     "Content-Type": "application/json",
@@ -23,10 +25,12 @@ export async function request(endpoint, options = {}) {
     }
 
     if (!res.ok) {
-      // Throw structured error for frontend to catch
       throw {
         status: res.status,
-        message: data?.message || data?.error || `Request failed with status ${res.status}`,
+        message:
+          data?.message ||
+          data?.error ||
+          `Request failed with status ${res.status}`,
         code: data?.code || null,
         data,
       };
@@ -34,8 +38,7 @@ export async function request(endpoint, options = {}) {
 
     return data;
   } catch (err) {
-    // Network or unexpected error
-    if (err?.status) throw err; // Already structured
+    if (err?.status) throw err;
     throw {
       status: 0,
       message: err?.message || "Network error",
