@@ -10,7 +10,7 @@ export default function ProfilePage() {
 
   const [localProfile, setLocalProfile] = useState(null);
   const [contributions, setContributions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -22,10 +22,11 @@ export default function ProfilePage() {
 
       try {
         const res = await ProfileAPI.get();
-        setLocalProfile(res.profile);
+        setLocalProfile(res.profile || null);
         setContributions(res.contributions || []);
       } catch (err) {
-        setMessage(err.message || "Failed to load profile");
+        console.error("Profile fetch error:", err);
+        setMessage(err?.message || "Failed to load profile");
       } finally {
         setLoading(false);
       }
@@ -43,13 +44,28 @@ export default function ProfilePage() {
       setLocalProfile((prev) => ({ ...prev, ...updates }));
       setMessage("Profile updated successfully");
     } catch (err) {
-      setMessage(err.message || "Profile update failed");
+      console.error("Profile update error:", err);
+      setMessage(err?.message || "Profile update failed");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!localProfile) return null;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p>Loading profile…</p>
+      </div>
+    );
+  }
+
+  if (!localProfile) {
+    return (
+      <div className="max-w-xl mx-auto text-center">
+        <p className="text-red-500">Profile not found or failed to load.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-xl mx-auto">
