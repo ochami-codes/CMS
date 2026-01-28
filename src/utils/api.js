@@ -71,7 +71,7 @@ export const MembersAPI = {
 ====================== */
 export const OverviewAPI = {
   admin: () => request("/admin/overview"),
-  pastor: () => request("/pastor/overview"),
+  fetchPastorOverview: () => request("/pastor/overview"),
 };
 
 /* ======================
@@ -226,7 +226,6 @@ export const AdminAPI = {
       method: "POST",
     }),
 };
-
 /* ======================
    COMMUNICATION API
 ====================== */
