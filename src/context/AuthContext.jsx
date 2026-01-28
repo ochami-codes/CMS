@@ -83,7 +83,7 @@ const login = async ({ email, password }) => {
     } finally {
       setUser(null);
       setProfile(null);
-      localStorage.removeItem("token");
+      localStorage.removeItem("access_token");
     }
   };
 
@@ -95,7 +95,7 @@ const login = async ({ email, password }) => {
 
   /* ------------------ Init on mount ------------------ */
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (token) {
       fetchMe();
     } else {

@@ -2,8 +2,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export async function request(endpoint, options = {}) {
   const token =
-    localStorage.getItem("access_token") ||
-    localStorage.getItem("token");
+    localStorage.getItem("access_token");
 
   const headers = {
     "Content-Type": "application/json",
