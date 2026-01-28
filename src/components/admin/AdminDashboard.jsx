@@ -2,32 +2,42 @@ import { useState, useEffect } from "react";
 import ManageRoles from "./ManageRoles";
 import RoleRequests from "./RoleRequests";
 import { AdminAPI } from "../../utils/api";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdminDashboard() {
+  const { profile, loading } = useAuth();
   const [activeTab, setActiveTab] = useState("manage");
   const [pendingCount, setPendingCount] = useState(0);
 
-  // Fetch pending role requests count
-  const fetchPendingCount = async () => {
-    try {
-      const data = await AdminAPI.pendingRoleRequestsCount();
-      setPendingCount(data.count || 0);
-    } catch (err) {
-      console.error("Failed to fetch pending count:", err);
-    }
-  };
-
   useEffect(() => {
+    if (!profile) return;
+
+    const fetchPendingCount = async () => {
+      try {
+        const data = await AdminAPI.pendingRoleRequestsCount();
+        setPendingCount(data.count || 0);
+      } catch (err) {
+        console.error("Failed to fetch pending count:", err);
+      }
+    };
+
     fetchPendingCount();
-    const interval = setInterval(fetchPendingCount, 10000); // refresh every 10s
+    const interval = setInterval(fetchPendingCount, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [profile]);
+
+  if (loading) {
+    return <div className="p-4">Checking admin permissions…</div>;
+  }
+
+  if (!profile) {
+    return <div className="p-4">Loading admin profile…</div>;
+  }
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
 
-      {/* Tabs */}
       <div className="flex gap-2 mb-4 border-b">
         <button
           onClick={() => setActiveTab("manage")}
@@ -57,10 +67,9 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      {/* Tab Content */}
       <div className="border rounded p-2">
-        {activeTab === "manage" && <ManageRoles api={AdminAPI} />}
-        {activeTab === "requests" && <RoleRequests api={AdminAPI} />}
+        {activeTab === "manage" && <ManageRoles />}
+        {activeTab === "requests" && <RoleRequests />}
       </div>
     </div>
   );
