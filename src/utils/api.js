@@ -161,17 +161,17 @@ export const AttendanceAPI = {
 export const AnnouncementsAPI = {
   fetch: (churchId, limit = 5) =>
     request(
-      `/announcements?churchId=${churchId}&limit=${limit}`
+      `/dashboard/announcements?churchId=${churchId}&limit=${limit}`
     ),
 
   create: (payload) =>
-    request("/announcements", {
+    request("/dashboard/announcements", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
 
   remove: (id) =>
-    request(`/announcements/${id}`, {
+    request(`/dashboard/announcements/${id}`, {
       method: "DELETE",
     }),
 };
@@ -180,18 +180,38 @@ export const AnnouncementsAPI = {
    DASHBOARD API
 ====================== */
 export const DashboardAPI = {
-  dailyVerse: () => request("/dashboard/daily-verse"),
+  dailyVerse: async () => {
+    try {
+      return await request("/dashboard/daily-verse");
+    } catch (err) {
+      console.error("Daily verse fetch failed:", err);
+      return {
+        reference: "Psalm 118:24",
+        text: "This is the day the Lord has made; let us rejoice and be glad in it.",
+      };
+    }
+  },
 
-  myBirthday: () => request("/dashboard/my-birthday"),
+  myBirthday: async () => {
+    try {
+      return await request("/dashboard/my-birthday");
+    } catch (err) {
+      console.error("My birthday fetch failed:", err);
+      return { fullName: "Child of God", isBirthday: false };
+    }
+  },
 
-  todaysBirthdays: (churchId) =>
-    request(
-      churchId
-        ? `/dashboard/todays-birthdays?church_id=${churchId}`
-        : "/dashboard/todays-birthdays"
-    ),
+  todaysBirthdays: async (churchId) => {
+    try {
+      return churchId
+        ? await request(`/dashboard/todays-birthdays?church_id=${churchId}`)
+        : await request("/dashboard/todays-birthdays");
+    } catch (err) {
+      console.error("Todays birthdays fetch failed:", err);
+      return [];
+    }
+  },
 };
-
 /* ======================
    ADMIN API
 ====================== */

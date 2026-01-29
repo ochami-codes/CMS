@@ -12,53 +12,54 @@ import { hasRole, isAdmin } from "../utils/permissions";
 export default function Dashboard() {
   const { profile } = useAuth();
 
-  const [greeting, setGreeting] = useState("");
+  const [greeting, setGreeting] = useState(
+    "Good evening, child of God — the King loves you! ❤️"
+  );
   const [verse, setVerse] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
   const [myBirthday, setMyBirthday] = useState(false);
   const [todaysBirthdays, setTodaysBirthdays] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  /* ------------------ Greeting ------------------ */
-  useEffect(() => {
-    if (!profile) return;
+/* ------------------ Greeting ------------------ */
+useEffect(() => {
+  let name = profile?.fullName || "child of God, the King loves you";
+  const now = new Date();
+  let greet = "Hello";
 
-    const now = new Date();
-    let greet = "Hello";
+  if (now.getHours() < 12) greet = "Good morning";
+  else if (now.getHours() < 18) greet = "Good afternoon";
+  else greet = "Good evening";
 
-    if (now.getHours() < 12) greet = "Good morning";
-    else if (now.getHours() < 18) greet = "Good afternoon";
-    else greet = "Good evening";
+  if (now.getDay() === 6) greet = "Happy Sabbath";
 
-    if (now.getDay() === 6) greet = "Happy Sabbath";
-
-    setGreeting(`${greet}, ${profile.full_name}!`);
-  }, [profile]);
-
+  setGreeting(`${greet}, ${name}!`);
+}, [profile]);
   /* ------------------ Fetch Dashboard Data ------------------ */
   useEffect(() => {
-    if (!profile?.church_id) return;
+    // Dashboard should still work without profile
+    const churchId = profile?.church_id;
 
     setLoading(true);
 
     const fetchDashboardData = async () => {
       try {
-        const [
-          verseData,
-          announcementsData,
-          myBirthdayData,
-          birthdaysData,
-        ] = await Promise.all([
-          getDailyVerse(),
-          AnnouncementsAPI.fetch(profile.church_id, 5),
-          getMyBirthday(),
-          getTodaysBirthdays(profile.church_id),
-        ]);
+        const [verseData, annData, myBday, todaysBdays] =
+          await Promise.all([
+            getDailyVerse(),
+            churchId
+              ? AnnouncementsAPI.fetch(churchId, 5)
+              : Promise.resolve([]),
+            getMyBirthday(),
+            churchId
+              ? getTodaysBirthdays(churchId)
+              : Promise.resolve([]),
+          ]);
 
         setVerse(verseData);
-        setAnnouncements(announcementsData ?? []);
-        setMyBirthday(myBirthdayData?.isBirthday ?? false);
-        setTodaysBirthdays(birthdaysData ?? []);
+        setAnnouncements(annData || []);
+        setMyBirthday(myBday?.isBirthday ?? false);
+        setTodaysBirthdays(todaysBdays || []);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
       } finally {
@@ -83,29 +84,31 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid md:grid-cols-3 gap-4">
-        {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
-          <Link to="/dashboard/treasury" className="dashboard-card">
-            <h3>💰 Treasury</h3>
-            <p>View funds, offerings, and reports</p>
-          </Link>
-        )}
+      {/* Quick Actions (ROLE SAFE) */}
+      {profile && (
+        <div className="grid md:grid-cols-3 gap-4">
+          {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
+            <Link to="/dashboard/treasury" className="dashboard-card">
+              <h3>💰 Treasury</h3>
+              <p>View funds, offerings, and reports</p>
+            </Link>
+          )}
 
-        {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
-          <Link to="/dashboard/youth" className="dashboard-card">
-            <h3>🧑‍🤝‍🧑 Youth Ministry</h3>
-            <p>Manage youth attendance & programs</p>
-          </Link>
-        )}
+          {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
+            <Link to="/dashboard/youth" className="dashboard-card">
+              <h3>🧑‍🤝‍🧑 Youth Ministry</h3>
+              <p>Manage youth attendance & programs</p>
+            </Link>
+          )}
 
-        {isAdmin(profile.role_name) && (
-          <Link to="/dashboard/admin" className="dashboard-card">
-            <h3>🛠 Admin Panel</h3>
-            <p>Manage members, roles, and settings</p>
-          </Link>
-        )}
-      </div>
+          {isAdmin(profile.role_name) && (
+            <Link to="/dashboard/admin" className="dashboard-card">
+              <h3>🛠 Admin Panel</h3>
+              <p>Manage members, roles, and settings</p>
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Birthdays */}
       {myBirthday && (
