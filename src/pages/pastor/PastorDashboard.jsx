@@ -1,28 +1,29 @@
 // src/pages/pastor/PastorDashboard.jsx
 import { useEffect, useState } from "react";
-import "../../styles/global.css";
 import { OverviewAPI } from "../../utils/api";
 import toast from "react-hot-toast";
+import "../../styles/global.css";
 
 export default function PastorDashboard() {
   const [overview, setOverview] = useState({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadOverview = async () => {
-      setLoading(true);
-      try {
-        const data = await OverviewAPI.fetchPastorOverview();
-        setOverview(data ?? {});
-      } catch (err) {
-        console.error(err);
-        toast.error(err.message || "Failed to load dashboard");
-        setOverview({});
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Load overview using OverviewAPI
+  const loadOverview = async () => {
+    setLoading(true);
+    try {
+      const data = await OverviewAPI.fetchPastorOverview();
+      setOverview(data ?? {});
+    } catch (err) {
+      console.error("Pastor dashboard load error:", err);
+      toast.error(err.message || "Failed to load dashboard");
+      setOverview({});
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadOverview();
   }, []);
 
@@ -42,12 +43,10 @@ export default function PastorDashboard() {
   return (
     <div className="dashboard-layout">
       <h1 className="page-title">Pastor Dashboard</h1>
-      <p className="page-subtext">
-        Overview of church departments and members.
-      </p>
+      <p className="page-subtext">Overview of church departments and members.</p>
 
       <div className="stats-grid">
-        {cards.map(card => (
+        {cards.map((card) => (
           <div key={card.title} className="stat-card">
             <h3>{card.title}</h3>
             <p>Total members: {card.value}</p>
@@ -56,9 +55,7 @@ export default function PastorDashboard() {
 
         <div className="stat-card">
           <h3>Reports</h3>
-          <p>
-            Generate overall church reports and attendance summaries.
-          </p>
+          <p>Generate overall church reports and attendance summaries.</p>
         </div>
       </div>
     </div>

@@ -26,10 +26,12 @@ import CommunicationDashboard from "./pages/communication/CommunicationDashboard
 // Settings
 import ProfilePage from "./pages/settings/profiles/ProfilePage";
 import ChangePassword from "./pages/settings/ChangePassword";
+import MyRoleRequests from "./components/members/MyRoleRequests";
 
 // Admin
 import AdminDashboard from "./components/admin/AdminDashboard";
 import InviteUser from "./auth/InviteUser";
+import ManageRoles from "./components/admin/ManageRoles";
 
 // Toaster
 import { Toaster } from "react-hot-toast";
@@ -56,8 +58,9 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route element={<DashboardLayout />}>
 
-                {/* Main dashboards accessible by roles */}
+                {/* Main dashboards */}
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/myrolerequest" element={<MyRoleRequests />} />
 
                 {/* Youth Leader */}
                 <Route
@@ -117,6 +120,7 @@ function App() {
                 <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
                   <Route path="/dashboard/admin" element={<AdminDashboard />} />
                   <Route path="/invite-user" element={<InviteUser />} />
+                  <Route path="/manage-roles" element={<ManageRoles />} />
                 </Route>
 
               </Route>

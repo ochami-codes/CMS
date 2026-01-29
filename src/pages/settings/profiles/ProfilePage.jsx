@@ -4,6 +4,7 @@ import { ProfileAPI } from "../../../utils/api";
 import ProfileForm from "./ProfileForm";
 import Contributions from "./Contributions";
 import SummaryChart from "./SummaryChart";
+import { Link } from "react-router-dom"; // <-- for the link
 
 export default function ProfilePage() {
   const { profile } = useAuth();
@@ -80,6 +81,16 @@ export default function ProfilePage() {
         loading={loading}
         message={message}
       />
+
+      {/* Link to Role Requests */}
+      <div className="mt-4">
+        <Link
+          to="/myrolerequest"
+          className="text-blue-600 underline font-medium"
+        >
+          Submit/View Role Requests
+        </Link>
+      </div>
 
       {contributions.length > 0 && (
         <>
