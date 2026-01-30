@@ -5,8 +5,8 @@ import {
   getDailyVerse,
   getMyBirthday,
   getTodaysBirthdays,
+  getUpcomingBirthdays,
   AnnouncementsAPI,
-  getUpcomingBirthdays, // new API call
 } from "../utils/api";
 import { hasRole, isAdmin } from "../utils/permissions";
 
@@ -17,13 +17,8 @@ function daysUntilBirthday(birthday) {
   const today = new Date();
   const bday = new Date(birthday);
 
-  // Set next birthday to this year
   let nextBirthday = new Date(today.getFullYear(), bday.getMonth(), bday.getDate());
-
-  // If birthday already passed this year, use next year
-  if (nextBirthday < today) {
-    nextBirthday.setFullYear(today.getFullYear() + 1);
-  }
+  if (nextBirthday < today) nextBirthday.setFullYear(today.getFullYear() + 1);
 
   const diffTime = nextBirthday - today;
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -108,21 +103,21 @@ export default function Dashboard() {
 
       {/* Quick Actions (Role-Based) */}
       {profile && (
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="stats-grid">
           {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
-            <Link to="/dashboard/treasury" className="dashboard-card">
+            <Link to="/dashboard/treasury" className="stat-card">
               <h3>💰 Treasury</h3>
               <p>View funds, offerings, and reports</p>
             </Link>
           )}
           {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
-            <Link to="/dashboard/youth" className="dashboard-card">
+            <Link to="/dashboard/youth" className="stat-card">
               <h3>🧑‍🤝‍🧑 Youth Ministry</h3>
               <p>Manage youth attendance & programs</p>
             </Link>
           )}
           {isAdmin(profile.role_name) && (
-            <Link to="/dashboard/admin" className="dashboard-card">
+            <Link to="/dashboard/admin" className="stat-card">
               <h3>🛠 Admin Panel</h3>
               <p>Manage members, roles, and settings</p>
             </Link>
@@ -132,7 +127,7 @@ export default function Dashboard() {
 
       {/* Personal Birthday / Countdown */}
       {birthdayInfo?.date_of_birth && (
-        <div className={`birthday-card ${birthdayInfo.isBirthday ? "personal" : ""}`}>
+        <div className={`card birthday-card ${birthdayInfo.isBirthday ? "personal" : ""}`}>
           {birthdayInfo.isBirthday ? (
             <>
               <h3>🎉 Happy Birthday!</h3>
@@ -141,28 +136,39 @@ export default function Dashboard() {
           ) : (
             <>
               <h3>🎈 Your Birthday Countdown</h3>
-              <p>Your birthday is in <strong>{myBirthdayCountdown}</strong> day{myBirthdayCountdown > 1 ? "s" : ""}</p>
+              <p>
+                Your birthday is in <strong>{myBirthdayCountdown}</strong> day
+                {myBirthdayCountdown > 1 ? "s" : ""}
+              </p>
             </>
           )}
         </div>
       )}
 
-      {/* Today's / Upcoming Birthdays */}
+      {/* Today's & Upcoming Birthdays */}
       {(todaysBirthdays.length > 0 || upcomingBirthdays.length > 0) && (
-        <div className="birthday-list">
+        <div className="card">
           <h3 className="section-title">🎂 Upcoming Birthdays</h3>
-          <ul>
+          <div className="stats-grid">
             {todaysBirthdays.map((b) => (
-              <li key={b.id}>
-                {b.full_name} — Today!
-              </li>
+              <div key={b.id} className="stat-card">
+                <h4>{b.full_name}</h4>
+                <p>Today! 🎉</p>
+              </div>
             ))}
             {upcomingBirthdays.map((b) => (
-              <li key={b.id}>
-                {b.full_name} — in {daysUntilBirthday(b.date_of_birth)} day{daysUntilBirthday(b.date_of_birth) > 1 ? "s" : ""}
-              </li>
+              <div key={b.id} className="stat-card">
+                <h4>{b.full_name}</h4>
+                <p>
+                  In {daysUntilBirthday(b.date_of_birth)} day
+                  {daysUntilBirthday(b.date_of_birth) > 1 ? "s" : ""}
+                </p>
+              </div>
             ))}
-          </ul>
+            {todaysBirthdays.length === 0 && upcomingBirthdays.length === 0 && (
+              <p>No upcoming birthdays</p>
+            )}
+          </div>
         </div>
       )}
 
@@ -175,9 +181,11 @@ export default function Dashboard() {
           <div className="event-list">
             {announcements.map((a) => (
               <div key={a.id} className="announcement-card">
-                <h4>{a.title}</h4>
-                <p>{a.message}</p>
-                <span>{new Date(a.created_at).toLocaleDateString()}</span>
+                <h4 className="announcement-title">{a.title}</h4>
+                <p className="announcement-message">{a.message}</p>
+                <span className="announcement-date">
+                  {new Date(a.created_at).toLocaleDateString()}
+                </span>
               </div>
             ))}
           </div>
