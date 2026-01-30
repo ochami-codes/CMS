@@ -70,14 +70,13 @@ useEffect(() => {
         ]);
 
         // Normalize birthday data
-        const normalizedBirthday = myBday
-          ? {
-              full_name: myBday.full_name || myBday.fullName || "Child of God",
-              date_of_birth: myBday.date_of_birth || myBday.birthday || null,
-              isBirthday: myBday.isBirthday ?? false,
-            }
-          : { full_name: "Child of God", date_of_birth: null, isBirthday: false };
-
+const normalizedBirthday = myBday
+  ? {
+      full_name: myBday.full_name || myBday.fullName || "Child of God",
+      date_of_birth: myBday.date_of_birth || myBday.birthday || null,
+      isBirthday: myBday.isBirthday ?? false,
+    }
+  : { full_name: "Child of God", date_of_birth: null, isBirthday: false };
         setVerse(verseData);
         setAnnouncements(annData || []);
         setBirthdayInfo(normalizedBirthday);
