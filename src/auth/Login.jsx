@@ -1,9 +1,5 @@
-// src/auth/Login.jsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Input from "../components/Input";
-import Button from "../components/Button";
-import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
@@ -11,21 +7,22 @@ export default function Login() {
   const location = useLocation();
   const { user, login, loading: authLoading } = useAuth();
 
-  const verified = location.state?.verified; // from registration redirect
+  const verified = location.state?.verified;
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [resendMessage, setResendMessage] = useState("");
 
-  // ✅ Auto-redirect if already logged in
+  /* ---------------- Auto redirect if already logged in ---------------- */
   useEffect(() => {
     if (user) {
-      const target = user.role_name === "Admin" ? "/dashboard/admin" : "/dashboard";
-      navigate(target, { replace: true });
+      navigate("/dashboard", { replace: true });
     }
   }, [user, navigate]);
 
+  /* ---------------- Submit ---------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
@@ -35,24 +32,18 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const loggedInUser = await login({ email, password });
-
-      const target = loggedInUser.role_name === "Admin" ? "/dashboard/admin" : "/dashboard";
-      navigate(target, { replace: true });
+      await login({ email, password });
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       console.error(err);
-      if (err.message?.toLowerCase().includes("verify")) {
-        setError(err.message || "Please verify your email.");
-      } else {
-        setError(err.message || "Login failed. Please try again.");
-      }
+      setError(err.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  /* ---------------- Resend verification ---------------- */
   const handleResendVerification = async () => {
-    setResendMessage("");
     if (!email) {
       setResendMessage("Please enter your email first.");
       return;
@@ -62,70 +53,90 @@ export default function Login() {
       await AuthAPI.resendVerification(email);
       setResendMessage("Verification email sent. Check your inbox.");
     } catch (err) {
-      console.error(err);
-      setResendMessage(err.message || "Failed to resend verification email. Try again later.");
+      setResendMessage("Failed to resend verification email.");
     }
   };
 
   if (authLoading) {
-    return <p className="text-center mt-16">Checking session…</p>;
+    return <div className="loader" />;
   }
 
   return (
-    <div className="max-w-md mx-auto pt-16">
-      <h2 className="text-2xl font-bold mb-4">Login</h2>
+    <div className="container" style={{ maxWidth: "420px", marginTop: "4rem" }}>
+      <div className="card">
+        <h2 style={{ marginBottom: "1rem" }}>Login</h2>
 
-      {/* Registration success message */}
-      {verified && (
-        <p className="text-green-600 mb-3">
-          Registration successful! Please log in to continue.
-        </p>
-      )}
-
-      {error && <p className="text-red-600 mb-3">{error}</p>}
-      {resendMessage && <p className="text-green-600 mb-3">{resendMessage}</p>}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          required
-        />
-
-        <PasswordInput
-          label="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-
-        {error && error.toLowerCase().includes("verify") && (
-          <button
-            type="button"
-            onClick={handleResendVerification}
-            className="text-sm text-blue-600"
-          >
-            Resend verification email
-          </button>
+        {verified && (
+          <p style={{ color: "#16a34a", marginBottom: "0.75rem" }}>
+            Registration successful! Please log in.
+          </p>
         )}
 
-        <Button type="submit" disabled={loading}>
-          {loading ? "Logging in…" : "Login"}
-        </Button>
+        {error && (
+          <p style={{ color: "#dc2626", marginBottom: "0.75rem" }}>
+            {error}
+          </p>
+        )}
 
-        <div className="text-right mt-3">
+        {resendMessage && (
+          <p style={{ color: "#2563eb", marginBottom: "0.75rem" }}>
+            {resendMessage}
+          </p>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          {error.toLowerCase().includes("verify") && (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ marginBottom: "0.75rem" }}
+              onClick={handleResendVerification}
+            >
+              Resend verification email
+            </button>
+          )}
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{ width: "100%" }}
+            disabled={loading}
+          >
+            {loading ? "Logging in…" : "Login"}
+          </button>
+        </form>
+
+        <div style={{ marginTop: "1rem", textAlign: "right" }}>
           <button
             type="button"
+            className="btn btn-secondary"
             onClick={() => navigate("/reset-password")}
-            className="text-sm text-blue-600"
           >
             Forgot password?
           </button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
