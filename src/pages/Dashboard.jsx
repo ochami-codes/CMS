@@ -33,20 +33,19 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   /* ---------------- Greeting ---------------- */
-  useEffect(() => {
-    const name = profile?.full_name || "child of God";
-    const now = new Date();
-    let greet = "Hello";
+useEffect(() => {
+  const name = profile?.full_name || profile?.fullName || "child of God";
+  const now = new Date();
+  let greet = "Hello";
 
-    if (now.getHours() < 12) greet = "Good morning";
-    else if (now.getHours() < 18) greet = "Good afternoon";
-    else greet = "Good evening";
+  if (now.getHours() < 12) greet = "Good morning";
+  else if (now.getHours() < 18) greet = "Good afternoon";
+  else greet = "Good evening";
 
-    if (now.getDay() === 6) greet = "Happy Sabbath";
+  if (now.getDay() === 6) greet = "Happy Sabbath";
 
-    setGreeting(`${greet}, ${name}!`);
-  }, [profile]);
-
+  setGreeting(`${greet}, ${name}!`);
+}, [profile]);
   /* ---------------- Fetch Dashboard Data ---------------- */
   useEffect(() => {
     const churchId = profile?.church_id;
