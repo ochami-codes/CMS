@@ -13,13 +13,10 @@ import { hasRole, isAdmin } from "../utils/permissions";
 /* ---------------- Helper: calculate days until next birthday ---------------- */
 function daysUntilBirthday(birthday) {
   if (!birthday) return null;
-
   const today = new Date();
   const bday = new Date(birthday);
-
   let nextBirthday = new Date(today.getFullYear(), bday.getMonth(), bday.getDate());
   if (nextBirthday < today) nextBirthday.setFullYear(today.getFullYear() + 1);
-
   const diffTime = nextBirthday - today;
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
@@ -37,7 +34,7 @@ export default function Dashboard() {
 
   /* ---------------- Greeting ---------------- */
   useEffect(() => {
-    const name = profile?.fullName || "child of God";
+    const name = profile?.full_name || "child of God";
     const now = new Date();
     let greet = "Hello";
 
@@ -59,18 +56,32 @@ export default function Dashboard() {
 
     const fetchData = async () => {
       try {
-        const [verseData, annData, myBday, todaysBdays, upcomingBdays] =
-          await Promise.all([
-            getDailyVerse(),
-            churchId ? AnnouncementsAPI.fetch(churchId, 5) : Promise.resolve([]),
-            getMyBirthday(),
-            churchId ? getTodaysBirthdays(churchId) : Promise.resolve([]),
-            churchId ? getUpcomingBirthdays(churchId, 30) : Promise.resolve([]),
-          ]);
+        const [
+          verseData,
+          annData,
+          myBday,
+          todaysBdays,
+          upcomingBdays
+        ] = await Promise.all([
+          getDailyVerse(),
+          churchId ? AnnouncementsAPI.fetch(churchId, 5) : Promise.resolve([]),
+          getMyBirthday(),
+          churchId ? getTodaysBirthdays(churchId) : Promise.resolve([]),
+          churchId ? getUpcomingBirthdays(churchId, 30) : Promise.resolve([]),
+        ]);
+
+        // Normalize birthday data
+        const normalizedBirthday = myBday
+          ? {
+              full_name: myBday.full_name || myBday.fullName || "Child of God",
+              date_of_birth: myBday.date_of_birth || myBday.birthday || null,
+              isBirthday: myBday.isBirthday ?? false,
+            }
+          : { full_name: "Child of God", date_of_birth: null, isBirthday: false };
 
         setVerse(verseData);
         setAnnouncements(annData || []);
-        setBirthdayInfo(myBday || null);
+        setBirthdayInfo(normalizedBirthday);
         setTodaysBirthdays(todaysBdays || []);
         setUpcomingBirthdays(upcomingBdays || []);
       } catch (err) {
@@ -101,7 +112,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Quick Actions (Role-Based) */}
+      {/* Quick Actions */}
       {profile && (
         <div className="stats-grid">
           {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
@@ -130,7 +141,7 @@ export default function Dashboard() {
         <div className={`card birthday-card ${birthdayInfo.isBirthday ? "personal" : ""}`}>
           {birthdayInfo.isBirthday ? (
             <>
-              <h3>🎉 Happy Birthday!</h3>
+              <h3>🎉 Happy Birthday, {birthdayInfo.full_name}!</h3>
               <p>“The Lord bless you and keep you” — Numbers 6:24</p>
             </>
           ) : (
