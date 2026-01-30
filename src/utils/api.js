@@ -19,7 +19,8 @@ export const ChildrenAPI = {
 ====================== */
 export const ProfileAPI = {
   get: () => request("/profile"),
-  update: (updates) => request("/profile", { method: "PUT", body: JSON.stringify(updates) }),
+  update: (updates) =>
+    request("/profile", { method: "PUT", body: JSON.stringify(updates) }),
 };
 
 /* ======================
@@ -107,18 +108,31 @@ export const DashboardAPI = {
       };
     }
   },
+
   myBirthday: async () => {
     try {
       return await request("/dashboard/my-birthday");
     } catch {
-      return { fullName: "Child of God", isBirthday: false };
+      return { fullName: "Child of God", date_of_birth: null, isBirthday: false };
     }
   },
+
   todaysBirthdays: async (churchId) => {
     try {
       return churchId
         ? await request(`/dashboard/todays-birthdays?church_id=${churchId}`)
         : await request("/dashboard/todays-birthdays");
+    } catch {
+      return [];
+    }
+  },
+
+  upcomingBirthdays: async (churchId, daysAhead = 30) => {
+    try {
+      if (!churchId) return [];
+      return await request(
+        `/dashboard/upcoming-birthdays?church_id=${churchId}&days=${daysAhead}`
+      );
     } catch {
       return [];
     }
@@ -139,8 +153,10 @@ export const OverviewAPI = {
 export const AdminAPI = {
   pendingRoleRequestsCount: () => request("/admin/role-requests/pending-count"),
   fetchRoleRequests: () => request("/admin/role-requests"),
-  approveRoleRequest: (requestId) => request(`/admin/role-requests/${requestId}/approve`, { method: "POST" }),
-  rejectRoleRequest: (requestId) => request(`/admin/role-requests/${requestId}/reject`, { method: "POST" }),
+  approveRoleRequest: (requestId) =>
+    request(`/admin/role-requests/${requestId}/approve`, { method: "POST" }),
+  rejectRoleRequest: (requestId) =>
+    request(`/admin/role-requests/${requestId}/reject`, { method: "POST" }),
   fetchMembers: (params = "") => request(`/admin/members?${params}`),
   updateMemberRole: (memberId, roleId) =>
     request(`/admin/members/${memberId}/role`, { method: "PUT", body: JSON.stringify({ role_id: roleId }) }),
@@ -158,7 +174,7 @@ export const RoleRequestsAPI = {
   approve: (requestId) => request(`/admin/role-requests/${requestId}/approve`, { method: "POST" }),
   reject: (requestId) => request(`/admin/role-requests/${requestId}/reject`, { method: "POST" }),
   pendingCount: () => request("/admin/role-requests/pending-count"),
-  fetchMyRequests: () => request("/role-requests/my"), // for member view
+  fetchMyRequests: () => request("/role-requests/my"),
 };
 
 /* ======================
@@ -168,3 +184,5 @@ export const getDailyVerse = () => DashboardAPI.dailyVerse();
 export const getAnnouncements = (churchId) => AnnouncementsAPI.fetch(churchId);
 export const getMyBirthday = () => DashboardAPI.myBirthday();
 export const getTodaysBirthdays = (churchId) => DashboardAPI.todaysBirthdays(churchId);
+export const getUpcomingBirthdays = (churchId, daysAhead = 30) =>
+  DashboardAPI.upcomingBirthdays(churchId, daysAhead);
