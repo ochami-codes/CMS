@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
-  /* ------------------ Fetch current session ------------------ */
+  /* ---------------- Fetch current session ---------------- */
   const fetchMe = async () => {
     try {
       const data = await AuthAPI.me();
@@ -20,16 +20,28 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
 
-      setUser(data.user);
+      // Always ensure role_name exists
+      const roleName =
+        data.user?.role_name ||
+        data.user?.roles?.name ||
+        data.profile?.roles?.name ||
+        "Member"; // default
 
-      // Normalize profile if exists
+      const normalizedUser = {
+        ...data.user,
+        role_name: roleName,
+      };
+
+      setUser(normalizedUser);
+
       setProfile({
-        ...data.profile,
-        role_name: data.profile?.roles?.name || data.user.role_name,
+        ...normalizedUser,
+        full_name: data.user.full_name || data.profile?.full_name || "Child of God",
       });
 
-      return data;
+      return normalizedUser;
     } catch (err) {
+      console.error("Auth fetchMe error:", err);
       setUser(null);
       setProfile(null);
       return null;
@@ -38,45 +50,46 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-/* ------------------ Login ------------------ */
-const login = async ({ email, password }) => {
-  setLoading(true);
-  setAuthError(null);
+  /* ---------------- Login ---------------- */
+  const login = async ({ email, password }) => {
+    setLoading(true);
+    setAuthError(null);
 
-  try {
-    const data = await AuthAPI.login({ email, password });
+    try {
+      const data = await AuthAPI.login({ email, password });
 
-    if (!data?.user || !data?.access_token) {
-      throw new Error("Login failed: no access token or user returned");
+      if (!data?.user || !data?.access_token) {
+        throw new Error("Login failed: no access token or user returned");
+      }
+
+      // store token
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.removeItem("token");
+
+      const roleName =
+        data.user?.role_name || data.user?.roles?.name || "Member";
+
+      const normalizedUser = {
+        ...data.user,
+        role_name: roleName,
+      };
+
+      setUser(normalizedUser);
+      setProfile({
+        ...normalizedUser,
+        full_name: data.user.full_name || "Child of God",
+      });
+
+      return normalizedUser;
+    } catch (err) {
+      setAuthError(err.message || "Login failed");
+      throw err;
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // ✅ store SUPABASE access token
-    localStorage.setItem("access_token", data.access_token);
-
-    // remove legacy token if present
-    localStorage.removeItem("token");
-
-    // Normalize user
-    const normalizedUser = {
-      ...data.user,
-      role_name: data.user.role_name || data.user.roles?.name,
-    };
-
-    setUser(normalizedUser);
-
-    setProfile({
-      ...normalizedUser,
-    });
-
-    return normalizedUser;
-  } catch (err) {
-    setAuthError(err.message || "Login failed");
-    throw err;
-  } finally {
-    setLoading(false);
-  }
-};
-  /* ------------------ Logout ------------------ */
+  /* ---------------- Logout ---------------- */
   const logout = async () => {
     try {
       await AuthAPI.logout();
@@ -87,13 +100,13 @@ const login = async ({ email, password }) => {
     }
   };
 
-  /* ------------------ Refresh user ------------------ */
+  /* ---------------- Refresh user ---------------- */
   const refreshUser = async () => {
     setLoading(true);
     await fetchMe();
   };
 
-  /* ------------------ Init on mount ------------------ */
+  /* ---------------- Init on mount ---------------- */
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (token) {
