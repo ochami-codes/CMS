@@ -80,18 +80,21 @@ export default function TreasuryDashboard() {
     );
   };
 
-  if (loading) return <p>Loading treasury dashboard…</p>;
+  if (loading) return <div className="loader" />;
 
   return (
     <RequirePermission permission="view_finances">
-      <div className="dashboard-layout">
-        <h1 className="page-title">Treasury Dashboard</h1>
-        <p className="page-subtext">
-          Financial overview based on church funds and transactions
-        </p>
+      <div className="dashboard-content space-y-6">
+        {/* Header */}
+        <div className="greeting-card">
+          <h2>Treasury Dashboard</h2>
+          <p>Financial overview based on church funds and transactions</p>
+        </div>
 
         {/* DATE FILTER */}
-        <DateFilter onChange={setFilter} />
+        <div className="card">
+          <DateFilter onChange={setFilter} />
+        </div>
 
         {/* SNAPSHOT */}
         {overview && (
@@ -122,9 +125,10 @@ export default function TreasuryDashboard() {
         </div>
 
         {/* FUND BREAKDOWN */}
-        <div className="card">
+        <div className="card space-y-3">
           <h3>Fund Breakdown</h3>
           <select
+            className="input-group input-select"
             value={selectedGroup}
             onChange={(e) => setSelectedGroup(e.target.value)}
           >
@@ -139,9 +143,11 @@ export default function TreasuryDashboard() {
           {funds.length > 0 && <FundBreakdownChart data={funds} />}
         </div>
 
-        {/* ADD TRANSACTION FORM - requires edit permission */}
+        {/* ADD TRANSACTION FORM */}
         <RequirePermission permission="edit_finances">
-          <AddTransactionForm onSuccess={loadData} />
+          <div className="card">
+            <AddTransactionForm onSuccess={loadData} />
+          </div>
         </RequirePermission>
 
         {/* MEMBER GIVING */}
@@ -169,7 +175,9 @@ export default function TreasuryDashboard() {
                   ))}
                 </tbody>
               </table>
-              <button onClick={downloadMembersPDF}>Download PDF</button>
+              <button className="btn btn-primary mt-3" onClick={downloadMembersPDF}>
+                Download PDF
+              </button>
             </>
           )}
         </div>
