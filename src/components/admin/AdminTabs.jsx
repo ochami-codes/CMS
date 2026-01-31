@@ -1,14 +1,23 @@
 import { useEffect, useState } from "react";
 import { AdminAPI } from "../../utils/api";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdminTabs({ activeTab, setActiveTab }) {
+  const { profile } = useAuth();
   const [pendingCount, setPendingCount] = useState(0);
 
+  const isAdmin = profile?.role_name === "Admin";
+
   useEffect(() => {
+    if (!isAdmin) {
+      setPendingCount(0);
+      return;
+    }
+
     const fetchPendingCount = async () => {
       try {
         const data = await AdminAPI.pendingRoleRequestsCount();
-        setPendingCount(data.count || 0);
+        setPendingCount(data?.count || 0);
       } catch (err) {
         console.error("Failed to fetch pending count:", err);
       }
@@ -17,7 +26,7 @@ export default function AdminTabs({ activeTab, setActiveTab }) {
     fetchPendingCount();
     const interval = setInterval(fetchPendingCount, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isAdmin]);
 
   return (
     <div className="stats-grid">
@@ -37,7 +46,7 @@ export default function AdminTabs({ activeTab, setActiveTab }) {
         onClick={() => setActiveTab("requests")}
       >
         Role Requests
-        {pendingCount > 0 && (
+        {isAdmin && pendingCount > 0 && (
           <span style={{ marginLeft: "6px", fontWeight: 700 }}>
             ({pendingCount})
           </span>
