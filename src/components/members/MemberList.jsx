@@ -1,7 +1,6 @@
 // src/components/members/MemberList.jsx
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import "../../styles/global.css";
 import { MembersAPI } from "../../utils/api";
 import { memberFields } from "../../utils/memberFields";
 

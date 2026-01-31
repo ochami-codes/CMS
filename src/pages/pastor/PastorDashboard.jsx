@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { OverviewAPI } from "../../utils/api";
 import toast from "react-hot-toast";
-import "../../styles/global.css";
 
 export default function PastorDashboard() {
   const [overview, setOverview] = useState({});

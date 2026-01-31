@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { memberFields } from "../../config/api";
 import { MembersAPI } from "../../utils/api"; // centralized API
-import "../../styles/global.css";
 
 export default function EditMember({ department, onUpdated }) {
   const { id } = useParams();

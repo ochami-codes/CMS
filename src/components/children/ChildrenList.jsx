@@ -6,7 +6,6 @@ import AddChild from "./AddChild";
 import EditChild from "./EditChild";
 import { ChildrenAPI } from "../../utils/api"; // centralized API
 import toast from "react-hot-toast";
-import "../../styles/global.css";
 
 export default function ChildrenList() {
   const [children, setChildren] = useState([]);

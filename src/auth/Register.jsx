@@ -4,7 +4,6 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 import { AuthAPI } from "../utils/api";
 import { kenyaConferences } from "../data/kenyaConferences";
-import "../styles/global.css";
 
 export default function Register() {
   const navigate = useNavigate();

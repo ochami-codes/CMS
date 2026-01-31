@@ -2,7 +2,6 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { MembersAPI, AttendanceAPI } from "../../utils/api"; // centralized APIs
-import "../../styles/global.css";
 
 export default function Attendance({ department }) {
   const [members, setMembers] = useState([]);

@@ -4,7 +4,6 @@ import toast from "react-hot-toast";
 import ChildrenList from "../../components/children/ChildrenList";
 import { ChildrenAPI } from "../../utils/api";
 import RequirePermission from "../../components/RequirePermission";
-import "../../styles/global.css";
 
 export default function ChildrenDashboard() {
   const [children, setChildren] = useState([]);

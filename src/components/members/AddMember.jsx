@@ -4,7 +4,6 @@ import { memberFields } from "../../utils/memberFields";
 import { MembersAPI } from "../../utils/api"; // centralized API
 import Button from "../Button";
 import Input from "../Input";
-import "../../styles/global.css";
 
 export default function AddMember({ department, onMemberAdded }) {
   const config = memberFields[department];

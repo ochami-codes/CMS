@@ -4,7 +4,6 @@ import toast from "react-hot-toast";
 import { formatDate } from "../../utils/formatDate";
 import { OverviewAPI } from "../../utils/api";
 import RequirePermission from "../../components/RequirePermission";
-import "../../styles/global.css";
 
 export default function ChurchOverview() {
   const [counts, setCounts] = useState({

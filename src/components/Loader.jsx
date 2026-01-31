@@ -1,5 +1,4 @@
 // src/components/Loader.jsx
-import "../styles/global.css";
 
 export default function Loader({ message = "Loading..." }) {
   return (
