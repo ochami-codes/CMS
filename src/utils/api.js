@@ -151,7 +151,7 @@ export const OverviewAPI = {
    ADMIN API
 ====================== */
 export const AdminAPI = {
-  pendingRoleRequestsCount: () => request("/admin/role-requests/pending-count"),
+  pendingRoleRequestsCount: () => request("/admin/request-role/pending-count"),
   fetchRoleRequests: () => request("/admin/role-requests"),
   approveRoleRequest: (requestId) =>
     request(`/admin/role-requests/${requestId}/approve`, { method: "POST" }),
