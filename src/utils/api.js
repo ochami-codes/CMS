@@ -152,18 +152,30 @@ export const OverviewAPI = {
 ====================== */
 export const AdminAPI = {
   pendingRoleRequestsCount: () => request("/admin/request-role/pending-count"),
+
   fetchRoleRequests: () => request("/admin/role-requests"),
+
   approveRoleRequest: (requestId) =>
     request(`/admin/role-requests/${requestId}/approve`, { method: "POST" }),
+
   rejectRoleRequest: (requestId) =>
     request(`/admin/role-requests/${requestId}/reject`, { method: "POST" }),
-  fetchMembers: (params = "") => request(`/admin/members?${params}`),
-  updateMemberRole: (memberId, roleId) =>
-    request(`/admin/members/${memberId}/role`, { method: "PUT", body: JSON.stringify({ role_id: roleId }) }),
-  deactivateMember: (memberId) =>
-    request(`/admin/users/${memberId}/deactivate`, { method: "POST" }),
-};
 
+  fetchMembers: (params = "") =>
+    request(`/admin/members?${params}`),
+
+  updateMemberRole: (memberId, roleId) =>
+    request(`/admin/members/${memberId}/role`, {
+      method: "PUT",
+      body: JSON.stringify({ role_id: roleId }),
+    }),
+
+  deactivateMember: (memberId) =>
+    request(`/admin/members/${memberId}`, {
+      method: "PUT",
+      body: JSON.stringify({ active: false }),
+    }),
+};
 /* ======================
    ROLE REQUESTS API
 ====================== */
