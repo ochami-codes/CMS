@@ -24,39 +24,40 @@ const SummaryChart = ({ contributions }) => {
     { name: "Church Development", value: contributions.churchDevelopment },
   ];
 
-  // ✅ Zero-value protection
   const hasData = pieChartData.some((item) => item.value > 0);
 
-  if (!hasData) {
-    return (
-      <p style={{ color: "#666", textAlign: "center", marginTop: "1rem" }}>
-        No contributions recorded yet.
-      </p>
-    );
-  }
-
   return (
-    <div style={{ width: "100%", height: 300 }}>
-      <ResponsiveContainer>
-        <PieChart>
-          <Pie
-            data={pieChartData}
-            dataKey="value"
-            nameKey="name"
-            outerRadius={90}
-            isAnimationActive
-            animationDuration={800}
-            label={({ name, value }) => `${name}: ${formatCurrency(value)}`}
-          >
-            {pieChartData.map((_, index) => (
-              <Cell key={index} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
+    <div className="card">
+      <h4 className="font-semibold mb-3">Contributions Breakdown</h4>
 
-          <Tooltip formatter={(value) => formatCurrency(value)} />
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
+      {!hasData ? (
+        <p className="text-gray-500 text-center mt-4">
+          No contributions recorded yet.
+        </p>
+      ) : (
+        <div className="w-full h-72">
+          <ResponsiveContainer>
+            <PieChart>
+              <Pie
+                data={pieChartData}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={90}
+                isAnimationActive
+                animationDuration={800}
+                label={({ name, value }) => `${name}: ${formatCurrency(value)}`}
+              >
+                {pieChartData.map((_, index) => (
+                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+
+              <Tooltip formatter={(value) => formatCurrency(value)} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 };

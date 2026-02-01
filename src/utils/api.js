@@ -179,16 +179,32 @@ export const AdminAPI = {
 /* ======================
    ROLE REQUESTS API
 ====================== */
-export const RoleRequestsAPI = {
-  submit: ({ target_user_id, requested_role }) =>
-    request("/role-requests", { method: "POST", body: JSON.stringify({ target_user_id, requested_role }) }),
-  fetchPending: () => request("/admin/role-requests"),
-  approve: (requestId) => request(`/admin/role-requests/${requestId}/approve`, { method: "POST" }),
-  reject: (requestId) => request(`/admin/role-requests/${requestId}/reject`, { method: "POST" }),
-  pendingCount: () => request("/admin/role-requests/pending-count"),
-  fetchMyRequests: () => request("/role-requests/my"),
-};
 
+export const RoleRequestsAPI = {
+  // Member submits a role request
+  submit: (requested_role) =>
+    request("/role-requests", {
+      method: "POST",
+      body: JSON.stringify({ requested_role }),
+    }),
+
+  // Fetch all pending requests (Admin)
+  fetchPending: () => request("/admin/role-requests"),
+
+  // Approve a specific request (Admin)
+  approve: (requestId) =>
+    request(`/admin/role-requests/${requestId}/approve`, { method: "POST" }),
+
+  // Reject a specific request (Admin)
+  reject: (requestId) =>
+    request(`/admin/role-requests/${requestId}/reject`, { method: "POST" }),
+
+  // Fetch pending count (Admin)
+  pendingCount: () => request("/admin/role-requests/pending-count"),
+
+  // Fetch logged-in member's requests
+  fetchMyRequests: () => request("/role-requests/my-requests"),
+};
 /* ======================
    LEGACY / HELPER EXPORTS
 ====================== */

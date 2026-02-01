@@ -29,9 +29,9 @@ const ProfileForm = ({ profile, onUpdate, loading, message }) => {
 
   const validate = () => {
     const newErrors = {};
-    if (!localProfile.fullName.trim()) newErrors.fullName = "Full name is required.";
-    if (!localProfile.phone.trim()) newErrors.phone = "Phone number is required.";
-    if (!localProfile.email.trim()) newErrors.email = "Email is required.";
+    if (!localProfile.fullName?.trim()) newErrors.fullName = "Full name is required.";
+    if (!localProfile.phone?.trim()) newErrors.phone = "Phone number is required.";
+    if (!localProfile.email?.trim()) newErrors.email = "Email is required.";
     else if (!/^\S+@\S+\.\S+$/.test(localProfile.email))
       newErrors.email = "Invalid email format.";
     setErrors(newErrors);
@@ -54,35 +54,50 @@ const ProfileForm = ({ profile, onUpdate, loading, message }) => {
         />
       )}
 
-      <form onSubmit={handleSubmit}>
-        <Input
-          label="Full Name"
-          name="fullName"
-          value={localProfile.fullName}
-          onChange={handleChange}
-          error={errors.fullName}
-        />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="form-group">
+          <label htmlFor="fullName">Full Name</label>
+          <input
+            id="fullName"
+            name="fullName"
+            type="text"
+            value={localProfile.fullName}
+            onChange={handleChange}
+          />
+          {errors.fullName && <p className="text-red-600 text-sm">{errors.fullName}</p>}
+        </div>
 
-        <Input
-          label="Phone Number"
-          name="phone"
-          value={localProfile.phone}
-          onChange={handleChange}
-          error={errors.phone}
-        />
+        <div className="form-group">
+          <label htmlFor="phone">Phone Number</label>
+          <input
+            id="phone"
+            name="phone"
+            type="text"
+            value={localProfile.phone}
+            onChange={handleChange}
+          />
+          {errors.phone && <p className="text-red-600 text-sm">{errors.phone}</p>}
+        </div>
 
-        <Input
-          label="Email Address"
-          name="email"
-          type="email"
-          value={localProfile.email}
-          onChange={handleChange}
-          error={errors.email}
-        />
+        <div className="form-group">
+          <label htmlFor="email">Email Address</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            value={localProfile.email}
+            onChange={handleChange}
+          />
+          {errors.email && <p className="text-red-600 text-sm">{errors.email}</p>}
+        </div>
 
-        <Button type="submit" disabled={loading}>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={loading}
+        >
           {loading ? "Saving..." : "Save changes"}
-        </Button>
+        </button>
       </form>
     </>
   );
