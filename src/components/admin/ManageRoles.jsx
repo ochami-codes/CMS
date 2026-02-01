@@ -242,14 +242,14 @@ export default function ManageRoles() {
                       <button
                         disabled={processingId === m.id}
                         onClick={() => requestRoleChange(m)}
-                        className="btn btn-primary"
+                        className="btn-table btn-table-primary"
                       >
                         Update
                       </button>
                       <button
                         disabled={processingId === m.id}
                         onClick={() => deactivateMember(m.id)}
-                        className="btn btn-danger"
+                        className="btn-table btn-table-danger"
                       >
                         Deactivate
                       </button>
@@ -284,14 +284,14 @@ export default function ManageRoles() {
                   <button
                     onClick={() => approveRequest(r.id)}
                     disabled={requestProcessingId === r.id}
-                    className="btn btn-success"
+                    className="btn-table btn-table-success"
                   >
                     Approve
                   </button>
                   <button
                     onClick={() => rejectRequest(r.id)}
                     disabled={requestProcessingId === r.id}
-                    className="btn btn-danger"
+                    className="btn-table btn-table-danger"
                   >
                     Reject
                   </button>
