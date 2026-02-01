@@ -164,10 +164,10 @@ export const AdminAPI = {
   fetchMembers: (params = "") =>
     request(`/admin/members?${params}`),
 
-  updateMemberRole: (memberId, roleId) =>
+  updateMemberRole: (memberId, roleName) =>
     request(`/admin/members/${memberId}/role`, {
       method: "PUT",
-      body: JSON.stringify({ role_id: roleId }),
+      body: JSON.stringify({ role_name: roleName }),
     }),
 
   deactivateMember: (memberId) =>
