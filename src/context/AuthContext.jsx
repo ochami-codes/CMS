@@ -4,15 +4,15 @@ import { AuthAPI } from "../utils/api";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [user, setUser] = useState(null);      // user object from backend
+  const [profile, setProfile] = useState(null); // copy of user for convenience
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
   /* ---------------- Fetch current session ---------------- */
   const fetchMe = async () => {
     try {
-      const data = await AuthAPI.me();
+      const data = await AuthAPI.me(); // should return { user: {...} }
 
       if (!data?.user) {
         setUser(null);
@@ -20,18 +20,19 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
 
-      const roleName =
-        data.user?.role_name ||
-        data.user?.roles?.name ||
-        data.profile?.roles?.name ||
-        "Member";
-
-      const normalizedUser = { ...data.user, role_name: roleName };
+      // Normalize user
+      const normalizedUser = {
+        ...data.user,
+        role_name: data.user.role_name || "Member",
+        active: data.user.active ?? true, // fallback to active if missing
+      };
 
       setUser(normalizedUser);
+
+      // profile can be used in frontend components
       setProfile({
         ...normalizedUser,
-        full_name: data.user.full_name || data.profile?.full_name || "Child of God",
+        full_name: normalizedUser.full_name || "Child of God",
       });
 
       return normalizedUser;
@@ -57,17 +58,17 @@ export const AuthProvider = ({ children }) => {
         throw new Error("Login failed: no access token or user returned");
 
       localStorage.setItem("access_token", data.access_token);
-      localStorage.removeItem("token");
 
-      const roleName =
-        data.user?.role_name || data.user?.roles?.name || "Member";
-
-      const normalizedUser = { ...data.user, role_name: roleName };
+      const normalizedUser = {
+        ...data.user,
+        role_name: data.user.role_name || "Member",
+        active: data.user.active ?? true,
+      };
 
       setUser(normalizedUser);
       setProfile({
         ...normalizedUser,
-        full_name: data.user.full_name || "Child of God",
+        full_name: normalizedUser.full_name || "Child of God",
       });
 
       return normalizedUser;
@@ -93,7 +94,7 @@ export const AuthProvider = ({ children }) => {
   /* ---------------- Refresh user ---------------- */
   const refreshUser = async () => {
     setLoading(true);
-    await fetchMe();
+    return await fetchMe();
   };
 
   /* ---------------- Init on mount ---------------- */
@@ -107,9 +108,9 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        setUser,       // <-- exposed for role updates
+        setUser,       // allows updating role dynamically
         profile,
-        setProfile,    // <-- exposed for role updates
+        setProfile,    // convenience for UI
         loading,
         login,
         logout,
