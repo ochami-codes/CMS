@@ -205,6 +205,10 @@ export const RoleRequestsAPI = {
   // Fetch logged-in member's requests
   fetchMyRequests: () => request("/role-requests/my-requests"),
 };
+// CHURCH API
+export const ChurchAPI = {
+  getById: (id) => request(`/churches/${id}`),
+};
 /* ======================
    LEGACY / HELPER EXPORTS
 ====================== */
