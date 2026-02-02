@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AdminAPI } from "../../utils/api";
+import { RoleRequestsAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 
 export default function AdminTabs({ activeTab, setActiveTab }) {
@@ -11,7 +11,7 @@ export default function AdminTabs({ activeTab, setActiveTab }) {
 
     const fetchPendingCount = async () => {
       try {
-        const data = await AdminAPI.pendingRoleRequestsCount();
+        const data = await RoleRequestsAPI.pendingCount();
         setPendingCount(data.count || 0);
       } catch (err) {
         console.error("Failed to fetch pending count:", err);
