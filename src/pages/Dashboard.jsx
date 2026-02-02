@@ -157,7 +157,7 @@ export default function Dashboard() {
 
   if (loading) return <div className="loader" />;
 
-  const bday = birthdayCountdown(birthday?.date_of_birth);
+  const bday = birthdayCountdown(birthday?.birthday);
 
   return (
     <div className="dashboard-content">
@@ -216,7 +216,7 @@ export default function Dashboard() {
       </div>
 
       {/* Birthday */}
-      {birthday?.date_of_birth && (
+      {birthday?.birthday && (
         <div className="card">
           {birthday.isBirthday ? (
             <>

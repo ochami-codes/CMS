@@ -113,7 +113,7 @@ export const DashboardAPI = {
     try {
       return await request("/dashboard/my-birthday");
     } catch {
-      return { full_name: "Child of God", date_of_birth: null, isBirthday: false };
+      return { full_name: "Child of God", birthday: null, isBirthday: false };
     }
   },
 
