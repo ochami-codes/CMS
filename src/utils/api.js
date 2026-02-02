@@ -147,34 +147,26 @@ export const OverviewAPI = {
   fetchPastorOverview: () => request("/pastor/overview"),
 };
 
-/* ======================
-   ADMIN API
-====================== */
 export const AdminAPI = {
-  pendingRoleRequestsCount: () => request("/admin/request-role/pending-count"),
+  fetchMembers: (params = "") => request(`/admin/members?${params}`),
 
-  fetchRoleRequests: () => request("/admin/role-requests"),
-
-  approveRoleRequest: (requestId) =>
-    request(`/admin/role-requests/${requestId}/approve`, { method: "POST" }),
-
-  rejectRoleRequest: (requestId) =>
-    request(`/admin/role-requests/${requestId}/reject`, { method: "POST" }),
-
-  fetchMembers: (params = "") =>
-    request(`/admin/members?${params}`),
-
-  updateMemberRole: (memberId, roleName) =>
-    request(`/admin/members/${memberId}/role`, {
+  updateMemberRole: async (memberId, roleName) => {
+    // Backend PUT /members/:id now accepts { role_name }
+    return request(`/admin/members/${memberId}`, {
       method: "PUT",
-      body: JSON.stringify({ role_name: roleName }),
-    }),
+      body: JSON.stringify({ updates: { role_name: roleName } }),
+    });
+  },
 
   deactivateMember: (memberId) =>
     request(`/admin/members/${memberId}`, {
       method: "PUT",
-      body: JSON.stringify({ active: false }),
+      body: JSON.stringify({ updates: { active: false } }),
     }),
+
+  fetchRoleRequests: () => request("/admin/role-requests"),
+  approveRoleRequest: (id) => request(`/admin/role-requests/${id}/approve`, { method: "POST" }),
+  rejectRoleRequest: (id) => request(`/admin/role-requests/${id}/reject`, { method: "POST" }),
 };
 /* ======================
    ROLE REQUESTS API
@@ -186,6 +178,7 @@ export const RoleRequestsAPI = {
     request("/role-requests", {
       method: "POST",
       body: JSON.stringify({ requested_role }),
+      headers: { "Content-Type": "application/json" },
     }),
 
   // Fetch all pending requests (Admin)
@@ -205,7 +198,10 @@ export const RoleRequestsAPI = {
   // Fetch logged-in member's requests
   fetchMyRequests: () => request("/role-requests/my-requests"),
 };
-// CHURCH API
+
+/* ======================
+   CHURCH API
+====================== */
 export const ChurchAPI = {
   getById: (id) => request(`/churches/${id}`),
 };

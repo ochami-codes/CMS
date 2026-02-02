@@ -20,20 +20,15 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
 
-      // Always ensure role_name exists
       const roleName =
         data.user?.role_name ||
         data.user?.roles?.name ||
         data.profile?.roles?.name ||
-        "Member"; // default
+        "Member";
 
-      const normalizedUser = {
-        ...data.user,
-        role_name: roleName,
-      };
+      const normalizedUser = { ...data.user, role_name: roleName };
 
       setUser(normalizedUser);
-
       setProfile({
         ...normalizedUser,
         full_name: data.user.full_name || data.profile?.full_name || "Child of God",
@@ -58,21 +53,16 @@ export const AuthProvider = ({ children }) => {
     try {
       const data = await AuthAPI.login({ email, password });
 
-      if (!data?.user || !data?.access_token) {
+      if (!data?.user || !data?.access_token)
         throw new Error("Login failed: no access token or user returned");
-      }
 
-      // store token
       localStorage.setItem("access_token", data.access_token);
       localStorage.removeItem("token");
 
       const roleName =
         data.user?.role_name || data.user?.roles?.name || "Member";
 
-      const normalizedUser = {
-        ...data.user,
-        role_name: roleName,
-      };
+      const normalizedUser = { ...data.user, role_name: roleName };
 
       setUser(normalizedUser);
       setProfile({
@@ -109,18 +99,17 @@ export const AuthProvider = ({ children }) => {
   /* ---------------- Init on mount ---------------- */
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-    if (token) {
-      fetchMe();
-    } else {
-      setLoading(false);
-    }
+    if (token) fetchMe();
+    else setLoading(false);
   }, []);
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        setUser,       // <-- exposed for role updates
         profile,
+        setProfile,    // <-- exposed for role updates
         loading,
         login,
         logout,

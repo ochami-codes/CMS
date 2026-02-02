@@ -49,43 +49,54 @@ export default function MyRoleRequests() {
     if (profile?.id) loadRequests();
   }, [profile]);
 
-  if (!profile) return <p>Loading profile…</p>;
-  if (loading) return <p>Loading requests…</p>;
+  if (!profile) return <div className="p-4 card">Loading profile…</div>;
+  if (loading) return <div className="p-4 card">Loading requests…</div>;
 
   return (
-    <div className="p-4 space-y-4">
-      <h2 className="text-xl font-bold">Request a Role</h2>
+    <div className="p-4 space-y-6">
+      <div className="card p-4 space-y-4">
+        <h2 className="text-xl font-bold">Request a Role</h2>
 
-      <div className="flex gap-2">
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          className="border px-2 py-1 rounded"
-        >
-          {ROLES.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={submitRequest}
-          disabled={submitting}
-          className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-50"
-        >
-          {submitting ? "Submitting…" : "Submit Request"}
-        </button>
+        <div className="flex gap-2">
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="border rounded px-3 py-2 flex-1"
+          >
+            {ROLES.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={submitRequest}
+            disabled={submitting}
+            className="btn-table btn-table-primary"
+          >
+            {submitting ? "Submitting…" : "Submit Request"}
+          </button>
+        </div>
       </div>
 
-      <h3 className="text-lg font-semibold mt-4">My Requests</h3>
-      {requests.length === 0 && <p>No role requests yet.</p>}
-      <ul className="list-disc pl-5">
-        {requests.map((r) => (
-          <li key={r.id}>
-            {r.requested_role} – <strong>{r.status}</strong> ({new Date(r.created_at).toLocaleString()})
-          </li>
-        ))}
-      </ul>
+      <div className="card p-4">
+        <h3 className="text-lg font-semibold mb-3">My Requests</h3>
+
+        {requests.length === 0 ? (
+          <p className="text-gray-500">No role requests yet.</p>
+        ) : (
+          <ul className="list-disc pl-5 space-y-1">
+            {requests.map((r) => (
+              <li key={r.id}>
+                {r.requested_role} – <strong>{r.status}</strong>{" "}
+                <span className="text-gray-500 text-sm">
+                  ({new Date(r.created_at).toLocaleString()})
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
