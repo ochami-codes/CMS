@@ -20,12 +20,18 @@ export default function MyRoleRequests() {
   const [submitting, setSubmitting] = useState(false);
 
   const loadRequests = async () => {
+    if (!profile?.id) return;
+
     try {
       setLoading(true);
       const data = await RoleRequestsAPI.fetchMyRequests();
-      setRequests(data ?? []);
+
+      // Ensure we always have an array
+      const arr = Array.isArray(data) ? data : data.requests ?? [];
+      setRequests(arr);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load role requests:", err);
+      setRequests([]);
     } finally {
       setLoading(false);
     }
@@ -33,10 +39,12 @@ export default function MyRoleRequests() {
 
   const submitRequest = async () => {
     if (!role) return;
+
     try {
       setSubmitting(true);
       await RoleRequestsAPI.submit(role);
       alert("Role request submitted!");
+      setRole("Member"); // reset selection
       loadRequests();
     } catch (err) {
       alert(err.message || "Failed to submit request");
@@ -46,14 +54,20 @@ export default function MyRoleRequests() {
   };
 
   useEffect(() => {
-    if (profile?.id) loadRequests();
+    loadRequests();
   }, [profile]);
 
-  if (!profile) return <div className="p-4 card">Loading profile…</div>;
-  if (loading) return <div className="p-4 card">Loading requests…</div>;
+  if (!profile) {
+    return <div className="p-4 card">Loading profile…</div>;
+  }
+
+  if (loading) {
+    return <div className="p-4 card">Loading requests…</div>;
+  }
 
   return (
     <div className="p-4 space-y-6">
+      {/* Request Form */}
       <div className="card p-4 space-y-4">
         <h2 className="text-xl font-bold">Request a Role</h2>
 
@@ -79,6 +93,7 @@ export default function MyRoleRequests() {
         </div>
       </div>
 
+      {/* My Requests */}
       <div className="card p-4">
         <h3 className="text-lg font-semibold mb-3">My Requests</h3>
 
@@ -87,10 +102,14 @@ export default function MyRoleRequests() {
         ) : (
           <ul className="list-disc pl-5 space-y-1">
             {requests.map((r) => (
-              <li key={r.id}>
-                {r.requested_role} – <strong>{r.status}</strong>{" "}
+              <li key={r.id} className="flex flex-col sm:flex-row sm:justify-between">
+                <span>
+                  {r.requested_role} – <strong>{r.status}</strong>
+                </span>
                 <span className="text-gray-500 text-sm">
-                  ({new Date(r.created_at).toLocaleString()})
+                  {r.created_at
+                    ? new Date(r.created_at).toLocaleString()
+                    : "-"}
                 </span>
               </li>
             ))}
