@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function VerifyPending() {
+export default function WaitingPage() {
   const navigate = useNavigate();
 
   // Optional: auto-redirect to login after 30–60 seconds
