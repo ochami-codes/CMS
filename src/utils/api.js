@@ -149,30 +149,24 @@ export const OverviewAPI = {
 export const AdminAPI = {
   fetchMembers: (params = "") => request(`/admin/members?${params}`),
 
-  updateMemberRole: async (memberId, roleName) => {
-    return request(`/admin/members/${memberId}`, {
+  updateMemberRole: async (memberId, roleName) =>
+    request(`/admin/members/${memberId}`, {
       method: "PUT",
       body: JSON.stringify({ updates: { role_name: roleName } }),
-    });
-  },
+    }),
 
   deactivateMember: (memberId) =>
-    request(`/admin/members/${memberId}`, {
-      method: "PUT",
-      body: JSON.stringify({ updates: { active: false } }),
-    }),
+    request(`/admin/users/${memberId}/deactivate`, { method: "POST" }),
 
   activateMember: (memberId) =>
-    request(`/admin/members/${memberId}`, {
-      method: "PUT",
-      body: JSON.stringify({ updates: { active: true } }),
-    }),
+    request(`/admin/users/${memberId}/activate`, { method: "POST" }),
 
   fetchRoleRequests: () => request("/admin/role-requests"),
-  approveRoleRequest: (id) => request(`/admin/role-requests/${id}/approve`, { method: "POST" }),
-  rejectRoleRequest: (id) => request(`/admin/role-requests/${id}/reject`, { method: "POST" }),
+  approveRoleRequest: (id) =>
+    request(`/admin/role-requests/${id}/approve`, { method: "POST" }),
+  rejectRoleRequest: (id) =>
+    request(`/admin/role-requests/${id}/reject`, { method: "POST" }),
 };
-
 /* ======================
    ROLE REQUESTS API
 ====================== */
