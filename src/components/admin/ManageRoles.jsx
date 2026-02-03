@@ -17,75 +17,61 @@ export default function ManageRoles() {
 
   const [members, setMembers] = useState([]);
   const [roleRequests, setRoleRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [requestsLoading, setRequestsLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [department, setDepartment] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [debouncedDepartment, setDebouncedDepartment] = useState("");
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(10);
+
+  const [loadingMembers, setLoadingMembers] = useState(true);
+  const [loadingRequests, setLoadingRequests] = useState(true);
+
   const [processingId, setProcessingId] = useState(null);
   const [requestProcessingId, setRequestProcessingId] = useState(null);
 
-  /* ------------------ Debounce Filters ------------------ */
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setDebouncedDepartment(department);
-      setPage(1);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [search, department]);
+  const [search, setSearch] = useState("");
 
-  /* ------------------ Fetch Members ------------------ */
+  /* --------------------------------------------------
+     Fetch members
+  -------------------------------------------------- */
   const fetchMembers = useCallback(async () => {
     if (!profile?.church_id) return;
-    setLoading(true);
 
+    setLoadingMembers(true);
     try {
-      const params = new URLSearchParams({
-        search: debouncedSearch,
-        department: debouncedDepartment,
-        page,
-        pageSize,
-      }).toString();
-
+      const params = new URLSearchParams({ search }).toString();
       const data = await AdminAPI.fetchMembers(params);
 
-      if (!data?.members) {
-        setMembers([]);
-        return;
-      }
-
       setMembers(
-        data.members.map((m) => ({
+        (data.members ?? []).map((m) => ({
           ...m,
-          selectedRole: m.role_name || "Member",
+          selectedRole: m.role_name,
         }))
       );
     } catch (err) {
-      console.error(err);
+      console.error("Fetch members error:", err);
       setMembers([]);
     } finally {
-      setLoading(false);
+      setLoadingMembers(false);
     }
-  }, [profile, debouncedSearch, debouncedDepartment, page, pageSize]);
+  }, [profile, search]);
 
-  /* ------------------ Fetch Role Requests ------------------ */
+  /* --------------------------------------------------
+     Fetch role requests
+  -------------------------------------------------- */
   const fetchRoleRequests = useCallback(async () => {
     if (!profile?.church_id) return;
-    setRequestsLoading(true);
+
+    setLoadingRequests(true);
     try {
       const data = await AdminAPI.fetchRoleRequests();
       setRoleRequests(data.requests ?? []);
-    } catch {
+    } catch (err) {
+      console.error("Fetch role requests error:", err);
       setRoleRequests([]);
     } finally {
-      setRequestsLoading(false);
+      setLoadingRequests(false);
     }
   }, [profile]);
 
+  /* --------------------------------------------------
+     Init
+  -------------------------------------------------- */
   useEffect(() => {
     if (!authLoading && profile?.church_id) {
       fetchMembers();
@@ -93,41 +79,52 @@ export default function ManageRoles() {
     }
   }, [authLoading, profile, fetchMembers, fetchRoleRequests]);
 
-  /* ------------------ Actions ------------------ */
-  const requestRoleChange = async (member) => {
+  /* --------------------------------------------------
+     Role update
+  -------------------------------------------------- */
+  const updateRole = async (member) => {
     if (member.selectedRole === member.role_name) return;
+
     setProcessingId(member.id);
     try {
-      const updatedMember = await AdminAPI.updateMemberRole(member.id, member.selectedRole);
+      await AdminAPI.updateMemberRole(member.id, member.selectedRole);
 
-      // Update local members list
       setMembers((prev) =>
         prev.map((m) =>
-          m.id === member.id ? { ...m, role_name: member.selectedRole } : m
+          m.id === member.id
+            ? { ...m, role_name: member.selectedRole }
+            : m
         )
       );
 
-      // If the updated member is the logged-in user, update profile
+      // If admin updated themselves
       if (member.id === profile.id) {
-        setProfile((prev) => ({ ...prev, role_name: member.selectedRole }));
-        setUser((prev) => ({ ...prev, role_name: member.selectedRole }));
+        setProfile((p) => ({ ...p, role_name: member.selectedRole }));
+        setUser((u) => ({ ...u, role_name: member.selectedRole }));
       }
 
-      alert("Role updated successfully!");
+      alert("Role updated successfully");
     } catch (err) {
-      alert(err.message || "Not allowed");
+      alert(err.message || "Failed to update role");
     } finally {
       setProcessingId(null);
     }
   };
 
+  /* --------------------------------------------------
+     Deactivate / Activate
+  -------------------------------------------------- */
   const deactivateMember = async (id) => {
     if (!confirm("Deactivate this member?")) return;
+
     setProcessingId(id);
     try {
       await AdminAPI.deactivateMember(id);
-      setMembers((prev) => prev.filter((m) => m.id !== id));
-      alert("Member deactivated successfully");
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.id === id ? { ...m, active: false } : m
+        )
+      );
     } catch (err) {
       alert(err.message || "Failed to deactivate member");
     } finally {
@@ -135,12 +132,33 @@ export default function ManageRoles() {
     }
   };
 
+  const activateMember = async (id) => {
+    if (!confirm("Activate this member?")) return;
+
+    setProcessingId(id);
+    try {
+      await AdminAPI.activateMember(id);
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.id === id ? { ...m, active: true } : m
+        )
+      );
+    } catch (err) {
+      alert(err.message || "Failed to activate member");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  /* --------------------------------------------------
+     Role request actions
+  -------------------------------------------------- */
   const approveRequest = async (id) => {
     setRequestProcessingId(id);
     try {
       await AdminAPI.approveRoleRequest(id);
-      fetchMembers();
-      fetchRoleRequests();
+      await fetchMembers();
+      await fetchRoleRequests();
     } finally {
       setRequestProcessingId(null);
     }
@@ -150,7 +168,7 @@ export default function ManageRoles() {
     setRequestProcessingId(id);
     try {
       await AdminAPI.rejectRoleRequest(id);
-      fetchRoleRequests();
+      await fetchRoleRequests();
     } finally {
       setRequestProcessingId(null);
     }
@@ -161,34 +179,27 @@ export default function ManageRoles() {
 
   return (
     <div className="p-4 space-y-6">
-      <h2 className="text-2xl font-bold">Manage Roles & Requests</h2>
+      <h2 className="text-2xl font-bold">Manage Members & Roles</h2>
 
-      {/* Filters */}
-      <div className="flex gap-3 mb-3">
-        <input
-          placeholder="Search by name"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border rounded px-3 py-2 flex-1"
-        />
-        <input
-          placeholder="Filter by department"
-          value={department}
-          onChange={(e) => setDepartment(e.target.value)}
-          className="border rounded px-3 py-2 flex-1"
-        />
-      </div>
+      {/* Search */}
+      <input
+        placeholder="Search members…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="border rounded px-3 py-2 w-full"
+      />
 
-      {/* Members Table */}
+      {/* Members table */}
       <div className="card overflow-x-auto">
-        {loading ? (
+        {loadingMembers ? (
           <div className="p-4">Loading members…</div>
         ) : (
-          <table className="table-auto w-full border-collapse">
-            <thead className="bg-gray-50">
+          <table className="table-auto w-full">
+            <thead>
               <tr>
                 <th>Name</th>
                 <th>Department</th>
+                <th>Status</th>
                 <th>Current Role</th>
                 <th>New Role</th>
                 <th>Actions</th>
@@ -197,19 +208,24 @@ export default function ManageRoles() {
             <tbody>
               {members.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="text-center p-4">
+                  <td colSpan="6" className="p-4 text-center">
                     No members found
                   </td>
                 </tr>
               ) : (
                 members.map((m) => (
-                  <tr key={m.id}>
+                  <tr
+                    key={m.id}
+                    className={!m.active ? "opacity-60 italic" : ""}
+                  >
                     <td>{m.full_name}</td>
                     <td>{m.department || "-"}</td>
+                    <td>{m.active ? "Active" : "Inactive"}</td>
                     <td className="font-semibold">{m.role_name}</td>
                     <td>
                       <select
                         value={m.selectedRole}
+                        disabled={!m.active}
                         onChange={(e) =>
                           setMembers((prev) =>
                             prev.map((x) =>
@@ -229,19 +245,32 @@ export default function ManageRoles() {
                     </td>
                     <td className="flex gap-2">
                       <button
-                        disabled={processingId === m.id}
-                        onClick={() => requestRoleChange(m)}
+                        disabled={
+                          processingId === m.id || !m.active
+                        }
+                        onClick={() => updateRole(m)}
                         className="btn-table btn-table-primary"
                       >
                         Update
                       </button>
-                      <button
-                        disabled={processingId === m.id}
-                        onClick={() => deactivateMember(m.id)}
-                        className="btn-table btn-table-danger"
-                      >
-                        Deactivate
-                      </button>
+
+                      {m.active ? (
+                        <button
+                          disabled={processingId === m.id}
+                          onClick={() => deactivateMember(m.id)}
+                          className="btn-table btn-table-danger"
+                        >
+                          Deactivate
+                        </button>
+                      ) : (
+                        <button
+                          disabled={processingId === m.id}
+                          onClick={() => activateMember(m.id)}
+                          className="btn-table btn-table-success"
+                        >
+                          Activate
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -251,31 +280,36 @@ export default function ManageRoles() {
         )}
       </div>
 
-      {/* Pending Requests */}
+      {/* Role Requests */}
       <div className="card p-4">
         <h3 className="font-bold mb-3">Pending Role Requests</h3>
-        {requestsLoading ? (
+
+        {loadingRequests ? (
           <div>Loading requests…</div>
         ) : roleRequests.length === 0 ? (
           <div>No pending requests</div>
         ) : (
           <ul className="space-y-2">
             {roleRequests.map((r) => (
-              <li key={r.id} className="flex justify-between border-b p-2 rounded">
+              <li
+                key={r.id}
+                className="flex justify-between items-center border-b p-2"
+              >
                 <span>
-                  {r.requester?.full_name} → <b>{r.requested_role}</b>
+                  {r.requester?.full_name} →{" "}
+                  <b>{r.requested_role}</b>
                 </span>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => approveRequest(r.id)}
                     disabled={requestProcessingId === r.id}
+                    onClick={() => approveRequest(r.id)}
                     className="btn-table btn-table-success"
                   >
                     Approve
                   </button>
                   <button
-                    onClick={() => rejectRequest(r.id)}
                     disabled={requestProcessingId === r.id}
+                    onClick={() => rejectRequest(r.id)}
                     className="btn-table btn-table-danger"
                   >
                     Reject

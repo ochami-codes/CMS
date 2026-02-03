@@ -146,12 +146,10 @@ export const OverviewAPI = {
   admin: () => request("/admin/overview"),
   fetchPastorOverview: () => request("/pastor/overview"),
 };
-
 export const AdminAPI = {
   fetchMembers: (params = "") => request(`/admin/members?${params}`),
 
   updateMemberRole: async (memberId, roleName) => {
-    // Backend PUT /members/:id now accepts { role_name }
     return request(`/admin/members/${memberId}`, {
       method: "PUT",
       body: JSON.stringify({ updates: { role_name: roleName } }),
@@ -164,10 +162,17 @@ export const AdminAPI = {
       body: JSON.stringify({ updates: { active: false } }),
     }),
 
+  activateMember: (memberId) =>
+    request(`/admin/members/${memberId}`, {
+      method: "PUT",
+      body: JSON.stringify({ updates: { active: true } }),
+    }),
+
   fetchRoleRequests: () => request("/admin/role-requests"),
   approveRoleRequest: (id) => request(`/admin/role-requests/${id}/approve`, { method: "POST" }),
   rejectRoleRequest: (id) => request(`/admin/role-requests/${id}/reject`, { method: "POST" }),
 };
+
 /* ======================
    ROLE REQUESTS API
 ====================== */
