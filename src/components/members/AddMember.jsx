@@ -1,7 +1,7 @@
 // src/components/members/AddMember.jsx
 import { useState, useMemo } from "react";
 import { memberFields } from "../../utils/memberFields";
-import { MembersAPI } from "../../utils/api"; // centralized API
+import { MembersAPI } from "../../utils/api";
 import Button from "../Button";
 import Input from "../Input";
 
@@ -9,7 +9,7 @@ export default function AddMember({ department, onMemberAdded }) {
   const config = memberFields[department];
   const fields = config?.fields ?? [];
 
-  // Initialize form state
+  // Initialize form state dynamically
   const initialState = useMemo(
     () => Object.fromEntries(fields.map(f => [f.name, ""])),
     [fields]
@@ -39,14 +39,18 @@ export default function AddMember({ department, onMemberAdded }) {
 
     setLoading(true);
     try {
-      const result = await MembersAPI.add(department, formData);
-      if (!result) throw new Error("Failed to add member");
+      // Send to backend: include profile ID
+      const payload = { ...formData, department, id: formData.id };
+      const result = await MembersAPI.add(payload);
 
-      setFormData(initialState);  // Reset form
-      onMemberAdded?.();          // Notify parent
+      if (!result || !result.member) throw new Error("Failed to add member");
+
+      // Reset form and notify parent
+      setFormData(initialState);
+      onMemberAdded?.(result.member);
     } catch (err) {
       console.error("AddMember error:", err);
-      setError(err.message);
+      setError(err.message || "Failed to add member");
     } finally {
       setLoading(false);
     }

@@ -29,14 +29,16 @@ export const ProfileAPI = {
 export const MembersAPI = {
   fetchAll: (department = "") =>
     request(department ? `/members?department=${encodeURIComponent(department)}` : "/members"),
-  create: (payload) =>
+
+  add: (payload) =>
     request("/members", { method: "POST", body: JSON.stringify(payload) }),
+
   update: (id, updates) =>
     request(`/members/${id}`, { method: "PUT", body: JSON.stringify(updates) }),
+
   remove: (id) =>
     request(`/members/${id}`, { method: "DELETE" }),
 };
-
 /* ======================
    TREASURY API
 ====================== */
@@ -73,10 +75,17 @@ export const AuthAPI = {
    ATTENDANCE API
 ====================== */
 export const AttendanceAPI = {
-  fetchAll: (params = "") => request(`/attendance${params}`),
-  mark: (payload) => request("/attendance", { method: "POST", body: JSON.stringify(payload) }),
-};
+  fetch: (department, date) =>
+    request(
+      `/attendance?department=${encodeURIComponent(department)}&date=${date}`
+    ),
 
+  save: (records) =>
+    request("/attendance", {
+      method: "POST",
+      body: JSON.stringify({ records }),
+    }),
+};
 /* ======================
    ANNOUNCEMENTS / COMMUNICATION API
 ====================== */
