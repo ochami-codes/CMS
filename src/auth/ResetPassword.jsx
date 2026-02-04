@@ -1,14 +1,14 @@
-// src/auth/ResetPassword.jsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import Loader from "../components/Loader";
 import { AuthAPI } from "../utils/api";
 
 export default function ResetPassword() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   const handleReset = async (e) => {
@@ -16,17 +16,19 @@ export default function ResetPassword() {
     if (loading) return;
 
     setLoading(true);
-    setMessage("");
     setError("");
 
     try {
       await AuthAPI.resetPassword(email.trim());
-      setMessage(
-        "If an account exists for this email, a password reset link has been sent."
-      );
+
+      // Save the email in localStorage for the waiting page
+      localStorage.setItem("pending_verification_email", email.trim());
+
+      // Redirect to waiting page
+      navigate("/verify-pending");
     } catch (err) {
       console.error(err);
-      setMessage(
+      setError(
         "If an account exists for this email, a password reset link has been sent."
       );
     } finally {
@@ -34,7 +36,7 @@ export default function ResetPassword() {
     }
   };
 
-  if (loading) return <Loader message="God loves you..." />;
+  if (loading) return <Loader message="Sending reset link… God loves you..." />;
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
@@ -56,12 +58,6 @@ export default function ResetPassword() {
             placeholder="you@example.com"
             required
           />
-
-          {message && (
-            <p className="text-green-600 text-sm text-center">
-              {message}
-            </p>
-          )}
 
           {error && (
             <p className="text-red-600 text-sm text-center">
