@@ -1,9 +1,11 @@
+// src/pages/settings/ChangePassword.jsx
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
+import Loader from "../../components/Loader";
 import { isStrongPassword } from "../../utils/validators";
-import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../../config/api";
 
 export default function ChangePassword() {
@@ -21,15 +23,10 @@ export default function ChangePassword() {
 
   // Show password strength as user types
   useEffect(() => {
-    if (!newPassword) {
-      setPasswordStrength("");
-    } else if (isStrongPassword(newPassword)) {
-      setPasswordStrength("Strong password ✅");
-    } else if (newPassword.length >= 6) {
-      setPasswordStrength("Weak: include letters and numbers ⚠️");
-    } else {
-      setPasswordStrength("Too short ⚠️");
-    }
+    if (!newPassword) setPasswordStrength("");
+    else if (isStrongPassword(newPassword)) setPasswordStrength("Strong password ✅");
+    else if (newPassword.length >= 6) setPasswordStrength("Weak: include letters and numbers ⚠️");
+    else setPasswordStrength("Too short ⚠️");
   }, [newPassword]);
 
   const handleSubmit = async (e) => {
@@ -48,9 +45,7 @@ export default function ChangePassword() {
     }
 
     if (!isStrongPassword(newPassword)) {
-      setError(
-        "Password must be at least 6 characters and include a number and a letter."
-      );
+      setError("Password must be at least 6 characters and include a number and a letter.");
       return;
     }
 
@@ -66,11 +61,9 @@ export default function ChangePassword() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.message || "Failed to update password.");
-      } else {
+      if (!res.ok) setError(data.message || "Failed to update password.");
+      else {
         setSuccess(data.message || "Password updated successfully.");
-
         if (data.logout) {
           await logout();
           navigate("/login", { replace: true });
@@ -83,58 +76,71 @@ export default function ChangePassword() {
     }
   };
 
+  if (loading) return <Loader message="God loves you..." />;
+
   return (
-    <div style={{ maxWidth: 520, margin: "0 auto" }}>
-      <h2>Change Password</h2>
-      <p style={{ color: "#555", marginBottom: "1rem" }}>
-        Change your account password. You will be signed out after a successful change.
-      </p>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
+      <div className="w-full max-w-md card p-6 shadow-md">
+        <h2 className="text-2xl font-bold mb-4 text-center">Change Password</h2>
+        <p className="text-gray-600 mb-6 text-center">
+          Change your account password. You will be signed out after a successful change.
+        </p>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label="Current password (optional)"
-          type="password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          placeholder="Current password"
-        />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            label="Current password (optional)"
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            placeholder="Current password"
+          />
 
-        <Input
-          label="New password"
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          placeholder="At least 6 characters, include a number"
-          required
-        />
-        {passwordStrength && (
-          <p style={{ color: passwordStrength.includes("Strong") ? "green" : "orange", marginTop: 4 }}>
-            {passwordStrength}
-          </p>
-        )}
+          <Input
+            label="New password"
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="At least 6 characters, include a number"
+            required
+          />
+          {passwordStrength && (
+            <p
+              className={`text-sm mt-1 ${
+                passwordStrength.includes("Strong") ? "text-green-600" : "text-orange-500"
+              }`}
+            >
+              {passwordStrength}
+            </p>
+          )}
 
-        <Input
-          label="Confirm new password"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Repeat new password"
-          required
-        />
+          <Input
+            label="Confirm new password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Repeat new password"
+            required
+          />
 
-        {error && <p className="error" style={{ marginBottom: 12 }}>{error}</p>}
-        {success && <p className="success" style={{ marginBottom: 12 }}>{success}</p>}
+          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+          {success && <p className="text-green-600 text-sm text-center">{success}</p>}
 
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <Button type="submit" disabled={loading}>
-            {loading ? "Updating..." : "Update password"}
-          </Button>
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-3 mt-2">
+            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+              Update Password
+            </Button>
 
-          <Button type="button" onClick={() => navigate("/dashboard/profile")}>
-            Cancel
-          </Button>
-        </div>
-      </form>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => navigate("/dashboard/profile")}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

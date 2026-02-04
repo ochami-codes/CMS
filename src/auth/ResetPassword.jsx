@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import Loader from "../components/Loader";
 import { AuthAPI } from "../utils/api";
 
 export default function ResetPassword() {
@@ -33,10 +34,12 @@ export default function ResetPassword() {
     }
   };
 
+  if (loading) return <Loader message="God loves you..." />;
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-3 text-center">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
+      <div className="w-full max-w-md card p-6 shadow-md">
+        <h2 className="text-2xl font-bold mb-4 text-center">
           Reset Password
         </h2>
 
@@ -66,7 +69,11 @@ export default function ResetPassword() {
             </p>
           )}
 
-          <Button type="submit" disabled={loading || !email} className="w-full">
+          <Button
+            type="submit"
+            disabled={loading || !email}
+            className="w-full"
+          >
             {loading ? "Sending…" : "Send Reset Link"}
           </Button>
         </form>

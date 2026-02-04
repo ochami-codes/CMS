@@ -69,8 +69,9 @@ export const AuthAPI = {
     request("/auth/reset-password", { method: "POST", body: JSON.stringify({ email }) }),
   resetPasswordConfirm: ({ token, newPassword }) =>
     request("/auth/reset-password-confirm", { method: "POST", body: JSON.stringify({ token, newPassword }) }),
+  changePassword: (newPassword) =>
+    request("/auth/change-password", { method: "POST", body: JSON.stringify({ newPassword }), credentials: "include" }),
 };
-
 /* ======================
    ATTENDANCE API
 ====================== */

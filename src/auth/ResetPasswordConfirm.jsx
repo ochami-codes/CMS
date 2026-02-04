@@ -1,9 +1,10 @@
 // src/auth/ResetPasswordConfirm.jsx
 import { useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import Loader from "../components/Loader";
 import { isStrongPassword } from "../utils/validators";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import { AuthAPI } from "../utils/api";
 
 export default function ResetPasswordConfirm() {
@@ -25,6 +26,12 @@ export default function ResetPasswordConfirm() {
           <p className="text-red-600">
             Invalid or expired password reset link.
           </p>
+          <Link
+            to="/login"
+            className="mt-4 inline-block text-blue-600 hover:underline"
+          >
+            Back to Login
+          </Link>
         </div>
       </div>
     );
@@ -52,9 +59,7 @@ export default function ResetPasswordConfirm() {
     setLoading(true);
 
     try {
-      // ✅ Use centralized API
       await AuthAPI.resetPasswordConfirm({ token, newPassword });
-
       setSuccess("Password reset successful. Redirecting to login…");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
@@ -65,10 +70,12 @@ export default function ResetPasswordConfirm() {
     }
   };
 
+  if (loading) return <Loader message="God loves you..." />;
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-3 text-center">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
+      <div className="w-full max-w-md card p-6 shadow-md">
+        <h2 className="text-2xl font-bold mb-4 text-center">
           Set New Password
         </h2>
 
@@ -94,21 +101,27 @@ export default function ResetPasswordConfirm() {
           />
 
           {error && (
-            <p className="text-red-600 text-sm text-center">
-              {error}
-            </p>
+            <p className="text-red-600 text-sm text-center">{error}</p>
           )}
 
           {success && (
-            <p className="text-green-600 text-sm text-center">
-              {success}
-            </p>
+            <p className="text-green-600 text-sm text-center">{success}</p>
           )}
 
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? "Updating…" : "Update Password"}
           </Button>
         </form>
+
+        {/* Back to Login */}
+        <div className="mt-4 text-center">
+          <Link
+            to="/login"
+            className="text-blue-600 hover:underline text-sm"
+          >
+            Back to Login
+          </Link>
+        </div>
       </div>
     </div>
   );
