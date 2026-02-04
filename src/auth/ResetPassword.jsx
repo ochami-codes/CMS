@@ -1,3 +1,4 @@
+// src/auth/ResetPassword.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
@@ -21,13 +22,13 @@ export default function ResetPassword() {
     try {
       await AuthAPI.resetPassword(email.trim());
 
-      // Save the email in localStorage for the waiting page
+      // Save the email locally for verification page
       localStorage.setItem("pending_verification_email", email.trim());
 
-      // Redirect to waiting page
       navigate("/verify-pending");
     } catch (err) {
-      console.error(err);
+      console.error("Reset password error:", err);
+      // Anti-enumeration: always show same message
       setError(
         "If an account exists for this email, a password reset link has been sent."
       );
@@ -41,9 +42,7 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
       <div className="w-full max-w-md card p-6 shadow-md">
-        <h2 className="text-2xl font-bold mb-4 text-center">
-          Reset Password
-        </h2>
+        <h2 className="text-2xl font-bold mb-4 text-center">Reset Password</h2>
 
         <p className="text-gray-600 mb-6 text-center">
           Enter your email address and we’ll send you a link to reset your password.
@@ -60,9 +59,7 @@ export default function ResetPassword() {
           />
 
           {error && (
-            <p className="text-red-600 text-sm text-center">
-              {error}
-            </p>
+            <p className="text-red-600 text-sm text-center">{error}</p>
           )}
 
           <Button

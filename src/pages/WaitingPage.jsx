@@ -23,7 +23,7 @@ export default function WaitingPage() {
       >
         <div className="card" style={{ textAlign: "center" }}>
           <h2 style={{ fontSize: "1.6rem", fontWeight: 600, marginBottom: "0.75rem" }}>
-            Registration Successful
+            Request Successful
           </h2>
 
           <p style={{ color: "#065f46", fontStyle: "italic", marginBottom: "1.5rem" }}>
