@@ -1,12 +1,11 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
-export async function request(endpoint, options = {}) {
-  const token =
-    localStorage.getItem("access_token");
+export async function request(endpoint, options = {}, skipAuth = false) {
+  const token = !skipAuth ? localStorage.getItem("access_token") : null;
 
   const headers = {
     "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
 
@@ -38,6 +37,7 @@ export async function request(endpoint, options = {}) {
     return data;
   } catch (err) {
     if (err?.status) throw err;
+
     throw {
       status: 0,
       message: err?.message || "Network error",

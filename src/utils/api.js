@@ -57,20 +57,70 @@ export const TreasuryAPI = {
    AUTH API
 ====================== */
 export const AuthAPI = {
+  /* -------- Session -------- */
   me: () => request("/auth/me"),
-  login: (payload) => request("/auth/login", { method: "POST", body: JSON.stringify(payload) }),
-  register: (payload) => request("/auth/register", { method: "POST", body: JSON.stringify(payload) }),
-  logout: () => request("/auth/logout", { method: "POST" }),
+
+  /* -------- Auth -------- */
+  login: (payload) =>
+    request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  register: (payload) =>
+    request("/auth/register", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  logout: () =>
+    request("/auth/logout", {
+      method: "POST",
+    }),
+
   callback: ({ access_token, refresh_token, type }) =>
-    request(`/auth/callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`),
+    request(
+      `/auth/callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`,
+      {},
+      true // 🚫 never attach Authorization header
+    ),
+
+  /* -------- Email & Password -------- */
   resendVerification: (email) =>
-    request("/auth/resend-verification", { method: "POST", body: JSON.stringify({ email }) }),
+    request(
+      "/auth/resend-verification",
+      {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      },
+      true
+    ),
+
   resetPassword: (email) =>
-    request("/auth/reset-password", { method: "POST", body: JSON.stringify({ email }) }),
+    request(
+      "/auth/reset-password",
+      {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      },
+      true
+    ),
+
   resetPasswordConfirm: ({ token, newPassword }) =>
-    request("/auth/reset-password-confirm", { method: "POST", body: JSON.stringify({ token, newPassword }) }),
+    request(
+      "/auth/reset-password-confirm",
+      {
+        method: "POST",
+        body: JSON.stringify({ token, newPassword }),
+      },
+      true // 🔑 CRITICAL: recovery token must stand alone
+    ),
+
   changePassword: (newPassword) =>
-    request("/auth/change-password", { method: "POST", body: JSON.stringify({ newPassword }), credentials: "include" }),
+    request("/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({ newPassword }),
+    }),
 };
 /* ======================
    ATTENDANCE API
