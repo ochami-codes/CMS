@@ -356,3 +356,12 @@ textarea:focus {
     padding: 0.3rem 0.5rem;
   }
 }
+/* Profile Highlight Card */
+.card p {
+  font-size: 0.95rem;
+}
+
+/* Role Request CTA emphasis */
+.card .btn {
+  margin-top: 0.5rem;
+}

@@ -1,6 +1,9 @@
+// src/pages/Login.jsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Loader from "../components/Loader";
+import { AuthAPI } from "../utils/api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -57,14 +60,16 @@ export default function Login() {
     }
   };
 
+  /* ---------------- Global auth loader ---------------- */
   if (authLoading) {
-    return <div className="loader" />;
+    return <Loader message="Checking session…" />;
   }
 
+  /* ---------------- LOGIN FORM ---------------- */
   return (
-    <div className="container" style={{ maxWidth: "420px", marginTop: "4rem" }}>
-      <div className="card">
-        <h2 style={{ marginBottom: "1rem" }}>Login</h2>
+    <div className="dashboard-content" style={{ display: "flex", justifyContent: "center", marginTop: "4rem" }}>
+      <div className="card" style={{ maxWidth: "420px", width: "100%" }}>
+        <h2 style={{ marginBottom: "1rem", fontWeight: 600 }}>Login</h2>
 
         {verified && (
           <p style={{ color: "#16a34a", marginBottom: "0.75rem" }}>
@@ -73,15 +78,11 @@ export default function Login() {
         )}
 
         {error && (
-          <p style={{ color: "#dc2626", marginBottom: "0.75rem" }}>
-            {error}
-          </p>
+          <p style={{ color: "#dc2626", marginBottom: "0.75rem" }}>{error}</p>
         )}
 
         {resendMessage && (
-          <p style={{ color: "#2563eb", marginBottom: "0.75rem" }}>
-            {resendMessage}
-          </p>
+          <p style={{ color: "#2563eb", marginBottom: "0.75rem" }}>{resendMessage}</p>
         )}
 
         <form onSubmit={handleSubmit}>

@@ -4,7 +4,7 @@ import { ProfileAPI } from "../../../utils/api";
 import ProfileForm from "./ProfileForm";
 import Contributions from "./Contributions";
 import SummaryChart from "./SummaryChart";
-import { Link } from "react-router-dom"; // <-- for the link
+import { Link } from "react-router-dom";
 
 export default function ProfilePage() {
   const { profile } = useAuth();
@@ -15,6 +15,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!profile) return;
+
     const loadProfile = async () => {
       setLoading(true);
       setMessage("");
@@ -29,6 +30,7 @@ export default function ProfilePage() {
         setLoading(false);
       }
     };
+
     loadProfile();
   }, [profile]);
 
@@ -47,51 +49,90 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) return <div className="dashboard-content"><p>Loading profile…</p></div>;
-  if (!localProfile) return <div className="dashboard-content"><p className="text-red-500">Profile not found.</p></div>;
+  if (loading) {
+    return (
+      <div className="dashboard-content">
+        <div className="card">Loading profile…</div>
+      </div>
+    );
+  }
+
+  if (!localProfile) {
+    return (
+      <div className="dashboard-content">
+        <div className="card">Profile not found.</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="dashboard-content space-y-6">
-      {/* Profile Card */}
+    <div className="dashboard-content">
+      {/* ======================
+          ROLE REQUEST CARD
+      ====================== */}
       <div className="card">
-        <h2 className="text-xl font-bold mb-2">My Profile</h2>
-        <p className="text-gray-500 mb-4">Manage your personal and church information.</p>
+        <h2 style={{ fontSize: "1.25rem", fontWeight: 600 }}>
+          Role Requests
+        </h2>
+
+        <p style={{ color: "#6b7280", margin: "0.4rem 0 1rem" }}>
+          Apply for leadership or ministry roles and track approval status.
+        </p>
+
+        <Link to="/myrolerequest" className="btn btn-primary">
+          View / Submit Role Request
+        </Link>
+      </div>
+
+      {/* ======================
+          PROFILE CARD
+      ====================== */}
+      <div className="card">
+        <h2 style={{ fontSize: "1.25rem", fontWeight: 600 }}>
+          My Profile
+        </h2>
+
+        <p style={{ color: "#6b7280", marginBottom: "1rem" }}>
+          Update your personal and church details below.
+        </p>
+
         <ProfileForm
           profile={localProfile}
           onUpdate={handleUpdate}
           loading={loading}
           message={message}
         />
-        <div className="mt-4">
-          <Link to="/myrolerequest" className="text-blue-600 underline font-medium">
-            Submit/View Role Requests
-          </Link>
+      </div>
+
+      {/* ======================
+          CONTRIBUTIONS
+      ====================== */}
+      {contributions && (
+        <div className="stats-grid">
+          <div className="card">
+            <h3 style={{ fontWeight: 600, marginBottom: "0.75rem" }}>
+              Contributions
+            </h3>
+
+            <ul style={{ lineHeight: "1.9" }}>
+              <li>Tithes: KES {contributions.tithes}</li>
+              <li>Offerings: KES {contributions.offerings}</li>
+              <li>Camp Offerings: KES {contributions.campOfferings}</li>
+              <li>Church Development: KES {contributions.churchDevelopment}</li>
+            </ul>
+          </div>
+
+          <div className="card">
+            <h3 style={{ fontWeight: 600, marginBottom: "0.75rem" }}>
+              Contributions Breakdown
+            </h3>
+
+            <div style={{ height: "280px" }}>
+              <SummaryChart contributions={contributions} />
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* Contributions */}
-{contributions.length > 0 && (
-  <div className="grid gap-6 md:grid-cols-2 mt-6">
-    {/* Contributions List */}
-    <div className="card">
-      <h3 className="font-semibold mb-3">Contributions</h3>
-      <ul className="space-y-1">
-        <li>Tithes: KES {contributions.tithes}</li>
-        <li>Offerings: KES {contributions.offerings}</li>
-        <li>Camp Offerings: KES {contributions.campOfferings}</li>
-        <li>Church Development: KES {contributions.churchDevelopment}</li>
-      </ul>
+      )}
     </div>
-
-    {/* Summary Chart */}
-    <div className="card">
-      <h3 className="font-semibold mb-3">Contributions Breakdown</h3>
-      <div className="w-full h-72">
-        <SummaryChart contributions={contributions} />
-      </div>
-    </div>
-  </div>
-)}
- </div>
   );
 }

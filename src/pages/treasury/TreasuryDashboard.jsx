@@ -9,6 +9,7 @@ import AddTransactionForm from "../../components/treasury/AddTransactionForm";
 import DateFilter from "../../components/treasury/DateFilter";
 import { generateTablePDF } from "../../utils/pdf";
 import toast from "react-hot-toast";
+import Loader from "../../components/Loader";
 
 export default function TreasuryDashboard() {
   const { profile } = useAuth();
@@ -26,7 +27,7 @@ export default function TreasuryDashboard() {
       ? `?start=${filter.start}&end=${filter.end}`
       : "";
 
-  // ----------------- Load all dashboard data -----------------
+  /* ---------------- Load dashboard data ---------------- */
   const loadData = async () => {
     setLoading(true);
     try {
@@ -35,7 +36,6 @@ export default function TreasuryDashboard() {
         TreasuryAPI.fundGroups(params),
         TreasuryAPI.memberGivingSummary(params),
       ]);
-
       setOverview(overviewData || null);
       setGroups(groupsData || []);
       setMembers(membersData || []);
@@ -47,7 +47,7 @@ export default function TreasuryDashboard() {
     }
   };
 
-  // ----------------- Load funds for selected group -----------------
+  /* ---------------- Load funds for selected group ---------------- */
   useEffect(() => {
     if (!selectedGroup) return;
 
@@ -69,7 +69,7 @@ export default function TreasuryDashboard() {
     loadData();
   }, [params]);
 
-  // ----------------- Download PDF -----------------
+  /* ---------------- Download PDF ---------------- */
   const downloadMembersPDF = () => {
     if (!members.length) return toast.error("No member data to export.");
 
@@ -80,7 +80,8 @@ export default function TreasuryDashboard() {
     );
   };
 
-  if (loading) return <div className="loader" />;
+  /* ---------------- Loader ---------------- */
+  if (loading) return <Loader message="God loves you..." />;
 
   return (
     <RequirePermission permission="view_finances">
@@ -91,12 +92,12 @@ export default function TreasuryDashboard() {
           <p>Financial overview based on church funds and transactions</p>
         </div>
 
-        {/* DATE FILTER */}
+        {/* Date Filter */}
         <div className="card">
           <DateFilter onChange={setFilter} />
         </div>
 
-        {/* SNAPSHOT */}
+        {/* Overview Snapshot */}
         {overview && (
           <div className="stats-grid">
             <div className="stat-card">
@@ -118,13 +119,13 @@ export default function TreasuryDashboard() {
           </div>
         )}
 
-        {/* FUND GROUP OVERVIEW */}
+        {/* Fund Group Overview */}
         <div className="card">
           <h3>Fund Group Overview</h3>
           <FundGroupChart data={groups} />
         </div>
 
-        {/* FUND BREAKDOWN */}
+        {/* Fund Breakdown */}
         <div className="card space-y-3">
           <h3>Fund Breakdown</h3>
           <select
@@ -143,14 +144,14 @@ export default function TreasuryDashboard() {
           {funds.length > 0 && <FundBreakdownChart data={funds} />}
         </div>
 
-        {/* ADD TRANSACTION FORM */}
+        {/* Add Transaction Form */}
         <RequirePermission permission="edit_finances">
           <div className="card">
             <AddTransactionForm onSuccess={loadData} />
           </div>
         </RequirePermission>
 
-        {/* MEMBER GIVING */}
+        {/* Member Giving Summary */}
         <div className="card">
           <h3>Member Giving Summary</h3>
           {members.length === 0 ? (
@@ -175,7 +176,10 @@ export default function TreasuryDashboard() {
                   ))}
                 </tbody>
               </table>
-              <button className="btn btn-primary mt-3" onClick={downloadMembersPDF}>
+              <button
+                className="btn btn-primary mt-3"
+                onClick={downloadMembersPDF}
+              >
                 Download PDF
               </button>
             </>

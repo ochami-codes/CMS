@@ -9,7 +9,7 @@ import { kenyaConferences } from "../data/kenyaConferences";
 export default function Register() {
   const navigate = useNavigate();
 
-  // ------------------ Form state ------------------
+  /* ------------------ Form state ------------------ */
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -17,7 +17,7 @@ export default function Register() {
     dateOfBirth: "",
     gender: "",
     conference: "",
-    churchName: "",
+    churchBaseName: "", // 👈 only base name
     password: "",
     confirmPassword: "",
   });
@@ -26,17 +26,11 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
 
-  // ------------------ Validation helpers ------------------
-  const isValidSdaChurchName = (name) => {
-    if (!name) return false;
-    return name.trim().toLowerCase().endsWith("sda church");
-  };
-
+  /* ------------------ Helpers ------------------ */
   const isValidKenyanPhone = (phone) => {
     if (!phone) return false;
     const cleaned = phone.replace(/\s+/g, "");
-    const kenyaPhoneRegex = /^(?:\+254|254|0)(7\d{8}|1\d{8})$/;
-    return kenyaPhoneRegex.test(cleaned);
+    return /^(?:\+254|254|0)(7\d{8}|1\d{8})$/.test(cleaned);
   };
 
   const normalizeKenyanPhone = (phone) => {
@@ -46,14 +40,21 @@ export default function Register() {
     return p;
   };
 
-  // ------------------ Handle input change ------------------
+  // 🚫 Strip forbidden words defensively
+  const sanitizeChurchBaseName = (value) => {
+    return value
+      .replace(/\b(sda|church|seventh day adventist)\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
+
+  /* ------------------ Handlers ------------------ */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // ------------------ Handle submit ------------------
   const handleRegister = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -66,36 +67,28 @@ export default function Register() {
       if (!value.trim()) newErrors[key] = "This field is required";
     });
 
-    // Password length
-    if (form.password && form.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters long";
+    // Password rules
+    if (form.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
     }
 
-    // Password match
-    if (form.password && form.confirmPassword && form.password !== form.confirmPassword) {
+    if (form.password !== form.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
-    // Church name check
-    if (form.churchName && !isValidSdaChurchName(form.churchName)) {
-      // We'll auto-append later, so just warn
-      newErrors.churchName = "Church name will be auto-corrected to end with 'SDA Church'";
+    // Phone
+    if (!isValidKenyanPhone(form.phone)) {
+      newErrors.phone = "Enter a valid Kenyan phone number";
     }
 
-    // Phone check
-    if (form.phone && !isValidKenyanPhone(form.phone)) {
-      newErrors.phone = "Enter a valid Kenyan phone number";
+    // Church base name
+    if (!form.churchBaseName) {
+      newErrors.churchBaseName = "Church name is required";
     }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
-    }
-
-    // Auto-append SDA Church if missing
-    let churchNameFinal = form.churchName.trim();
-    if (!churchNameFinal.toLowerCase().endsWith("sda church")) {
-      churchNameFinal += " SDA Church";
     }
 
     setLoading(true);
@@ -109,34 +102,44 @@ export default function Register() {
         date_of_birth: form.dateOfBirth,
         gender: form.gender,
         conference: form.conference,
-        church_name: churchNameFinal,
+        church_name: form.churchBaseName.trim(), // backend appends SDA Church
       };
 
       const res = await AuthAPI.register(payload);
 
-      // Success message (optional, can skip since redirecting)
-      setSuccess(res.message || "Registration successful! Please verify your email.");
+      setSuccess(res.message || "Registration successful. Check your email.");
 
-      // Save email for reference if needed
       localStorage.setItem("pending_verification_email", form.email);
-
-      // ✅ Redirect to waiting page
       navigate("/verify-pending");
     } catch (err) {
       console.error("Registration error:", err);
-      setErrors({ global: err.data?.details || err.message || "Server unreachable. Please try again." });
+      setErrors({
+        global:
+          err.data?.details ||
+          err.message ||
+          "Server unreachable. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // ------------------ JSX ------------------
+  /* ------------------ JSX ------------------ */
   return (
     <div className="container" style={{ maxWidth: "480px", marginTop: "3rem" }}>
       <h2 style={{ marginBottom: "1rem" }}>Create an Account</h2>
 
-      {errors.global && <p style={{ color: "#e63946", marginBottom: "0.75rem" }}>{errors.global}</p>}
-      {success && <p style={{ color: "#16a34a", marginBottom: "0.75rem" }}>{success}</p>}
+      {errors.global && (
+        <p style={{ color: "#e63946", marginBottom: "0.75rem" }}>
+          {errors.global}
+        </p>
+      )}
+
+      {success && (
+        <p style={{ color: "#16a34a", marginBottom: "0.75rem" }}>
+          {success}
+        </p>
+      )}
 
       <form onSubmit={handleRegister} className="space-y-4">
         <Input label="Full Name" name="fullName" value={form.fullName} onChange={handleChange} />
@@ -155,7 +158,13 @@ export default function Register() {
         />
         {errors.phone && <p className="error">{errors.phone}</p>}
 
-        <Input label="Date of Birth" name="dateOfBirth" type="date" value={form.dateOfBirth} onChange={handleChange} />
+        <Input
+          label="Date of Birth"
+          name="dateOfBirth"
+          type="date"
+          value={form.dateOfBirth}
+          onChange={handleChange}
+        />
         {errors.dateOfBirth && <p className="error">{errors.dateOfBirth}</p>}
 
         {/* Gender */}
@@ -175,37 +184,52 @@ export default function Register() {
           <select name="conference" value={form.conference} onChange={handleChange}>
             <option value="">Select your conference</option>
             {kenyaConferences.map((conf) => (
-              <option key={conf} value={conf}>{conf}</option>
+              <option key={conf} value={conf}>
+                {conf}
+              </option>
             ))}
           </select>
           {errors.conference && <p className="error">{errors.conference}</p>}
         </div>
 
-        {/* Church Name */}
+        {/* Church Name (Split Input) */}
         <div className="form-group">
           <label>Church Name</label>
-          <input
-            type="text"
-            name="churchName"
-            value={form.churchName}
-            onChange={handleChange}
-            onBlur={() => {
-              if (form.churchName && !form.churchName.toLowerCase().endsWith("sda church")) {
-                setForm((prev) => ({ ...prev, churchName: prev.churchName.trim() + " SDA Church" }));
-              }
-            }}
-            placeholder="Maai Mahiu SDA Church"
-            list="sda-churches"
-          />
-          <datalist id="sda-churches">
-            <option value="Maai Mahiu SDA Church" />
-            <option value="Nairobi Central SDA Church" />
-            <option value="Kasarani SDA Church" />
-            <option value="South C SDA Church" />
-            <option value="Kawangware SDA Church" />
-            <option value="Nyeri Central SDA Church" />
-          </datalist>
-          {errors.churchName && <p className="error">{errors.churchName}</p>}
+
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+            <input
+              type="text"
+              name="churchBaseName"
+              value={form.churchBaseName}
+              onChange={(e) => {
+                const clean = sanitizeChurchBaseName(e.target.value);
+                setForm((prev) => ({ ...prev, churchBaseName: clean }));
+                setErrors((prev) => ({ ...prev, churchBaseName: "" }));
+              }}
+              placeholder="e.g. Maai Mahiu"
+              style={{ flex: 1 }}
+            />
+
+            <span
+              style={{
+                padding: "0.6rem 0.75rem",
+                background: "#f3f4f6",
+                borderRadius: "6px",
+                fontSize: "0.9rem",
+                whiteSpace: "nowrap",
+              }}
+            >
+              SDA Church
+            </span>
+          </div>
+
+          <small style={{ color: "#6b7280" }}>
+            Type only the church name. <strong>SDA Church</strong> is added automatically.
+          </small>
+
+          {errors.churchBaseName && (
+            <p className="error">{errors.churchBaseName}</p>
+          )}
         </div>
 
         <Input label="Password" name="password" type="password" value={form.password} onChange={handleChange} />
@@ -218,7 +242,9 @@ export default function Register() {
           value={form.confirmPassword}
           onChange={handleChange}
         />
-        {errors.confirmPassword && <p className="error">{errors.confirmPassword}</p>}
+        {errors.confirmPassword && (
+          <p className="error">{errors.confirmPassword}</p>
+        )}
 
         <Button type="submit" disabled={loading}>
           {loading ? "Creating account…" : "Register"}

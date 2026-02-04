@@ -1,6 +1,8 @@
+// src/pages/Dashboard.jsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Loader from "../components/Loader";
 import {
   getDailyVerse,
   getMyBirthday,
@@ -12,28 +14,21 @@ import {
 import { hasRole, isAdmin } from "../utils/permissions";
 
 /* ======================================================
-   🇰🇪 KENYA SABBATH HELPERS (6PM – 6PM)
+   🇰🇪 KENYA SABBATH HELPERS
 ====================================================== */
 const isSabbathNow = () => {
   const now = new Date();
-  const day = now.getDay(); // Fri = 5, Sat = 6
+  const day = now.getDay();
   const hour = now.getHours();
-
   return (day === 5 && hour >= 18) || (day === 6 && hour < 18);
 };
 
 const nextSabbathStart = () => {
   const now = new Date();
   const start = new Date(now);
-
-  if (now.getDay() < 5) {
-    start.setDate(now.getDate() + (5 - now.getDay()));
-  } else if (now.getDay() === 5 && now.getHours() < 18) {
-    // today
-  } else {
-    start.setDate(now.getDate() + (12 - now.getDay()));
-  }
-
+  if (now.getDay() < 5) start.setDate(now.getDate() + (5 - now.getDay()));
+  else if (now.getDay() === 5 && now.getHours() < 18) {}
+  else start.setDate(now.getDate() + (12 - now.getDay()));
   start.setHours(18, 0, 0, 0);
   return start;
 };
@@ -41,30 +36,21 @@ const nextSabbathStart = () => {
 const timeDiff = (target) => {
   const diff = target - new Date();
   if (diff <= 0) return null;
-
   const s = Math.floor(diff / 1000) % 60;
   const m = Math.floor(diff / (1000 * 60)) % 60;
   const h = Math.floor(diff / (1000 * 60 * 60)) % 24;
   const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-
   return { d, h, m, s };
 };
 
-/* ======================================================
-   🎂 BIRTHDAY COUNTDOWN
-====================================================== */
 const birthdayCountdown = (dob) => {
   if (!dob) return null;
-
   const now = new Date();
   const b = new Date(dob);
   let next = new Date(now.getFullYear(), b.getMonth(), b.getDate());
-
   if (next < now) next.setFullYear(now.getFullYear() + 1);
-
   const diff = timeDiff(next);
   if (!diff) return null;
-
   return {
     months: Math.floor(diff.d / 30),
     days: diff.d % 30,
@@ -83,39 +69,31 @@ export default function Dashboard() {
   const [greeting, setGreeting] = useState("");
   const [verse, setVerse] = useState(null);
   const [church, setChurch] = useState(null);
-
   const [birthday, setBirthday] = useState(null);
   const [todayBirthdays, setTodayBirthdays] = useState([]);
   const [upcomingBirthdays, setUpcomingBirthdays] = useState([]);
-
   const [announcements, setAnnouncements] = useState([]);
   const [sabbathTimer, setSabbathTimer] = useState(null);
   const [loading, setLoading] = useState(true);
 
   /* ---------------- Greeting ---------------- */
   useEffect(() => {
-    const name = profile?.full_name || "child of God";
+    const name = profile?.full_name || "Child of God";
     const hour = new Date().getHours();
-
     let greet;
     if (isSabbathNow()) greet = "Happy Sabbath";
     else if (hour < 12) greet = "Good morning";
     else if (hour < 18) greet = "Good afternoon";
     else greet = "Good evening";
-
     setGreeting(`${greet}, ${name}!`);
   }, [profile]);
 
   /* ---------------- Sabbath Countdown ---------------- */
   useEffect(() => {
     const timer = setInterval(() => {
-      if (!isSabbathNow()) {
-        setSabbathTimer(timeDiff(nextSabbathStart()));
-      } else {
-        setSabbathTimer(null);
-      }
+      if (!isSabbathNow()) setSabbathTimer(timeDiff(nextSabbathStart()));
+      else setSabbathTimer(null);
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
@@ -155,7 +133,8 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, [profile]);
 
-  if (loading) return <div className="loader" />;
+  /* ---------------- Loader ---------------- */
+  if (loading) return <Loader message="God loves you..." />;
 
   const bday = birthdayCountdown(birthday?.birthday);
 
@@ -230,8 +209,8 @@ export default function Dashboard() {
                 <p>
                   In{" "}
                   <strong>
-                    {bday.months}m {bday.days}d {bday.hours}h{" "}
-                    {bday.minutes}m {bday.seconds}s
+                    {bday.months}m {bday.days}d {bday.hours}h {bday.minutes}m{" "}
+                    {bday.seconds}s
                   </strong>
                 </p>
               )}

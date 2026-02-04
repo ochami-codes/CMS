@@ -1,7 +1,7 @@
 // src/components/members/Attendance.jsx
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { MembersAPI, AttendanceAPI } from "../../utils/api"; // centralized APIs
+import { MembersAPI, AttendanceAPI } from "../../utils/api";
 
 export default function Attendance({ department }) {
   const [members, setMembers] = useState([]);
@@ -11,18 +11,16 @@ export default function Attendance({ department }) {
 
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
 
-  // ------------------ FETCH DATA ------------------
+  // ---------------- FETCH DATA ----------------
   useEffect(() => {
     if (!department) return;
 
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch members
         const membersData = await MembersAPI.fetchAll(department);
         setMembers(membersData?.members ?? []);
 
-        // Fetch today's attendance
         const attendanceRecords = await AttendanceAPI.fetch(department, today);
         const map = {};
         attendanceRecords?.forEach(r => (map[r.member_id] = r.present));
@@ -38,12 +36,12 @@ export default function Attendance({ department }) {
     fetchData();
   }, [department, today]);
 
-  // ------------------ TOGGLE ATTENDANCE ------------------
+  // ---------------- TOGGLE ----------------
   const toggleAttendance = (id) => {
     setAttendance(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // ------------------ SAVE ATTENDANCE ------------------
+  // ---------------- SAVE ----------------
   const saveAttendance = async () => {
     if (!members.length) return;
 
@@ -61,57 +59,76 @@ export default function Attendance({ department }) {
       await AttendanceAPI.save(records);
       toast.success("Attendance saved successfully!", { id: toastId });
     } catch (err) {
-      console.error("SaveAttendance error:", err);
-      toast.error("Error saving attendance: " + err.message, { id: toastId });
+      console.error("Save attendance error:", err);
+      toast.error(err.message || "Error saving attendance", { id: toastId });
     } finally {
       setSaving(false);
     }
   };
 
-  // ------------------ RENDER ------------------
-  if (!department) return <p>No configuration for "{department}"</p>;
-  if (loading) return <p>Loading attendance...</p>;
+  // ---------------- RENDER ----------------
+  if (!department) {
+    return (
+      <div className="dashboard-content">
+        <div className="card">No department selected.</div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="dashboard-content">
+        <div className="card">Loading attendance…</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="attendance-container">
-      <h2 className="attendance-title">{department.toUpperCase()} Attendance</h2>
+    <div className="dashboard-content">
+      <div className="card">
+        <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "0.75rem" }}>
+          {department.toUpperCase()} Attendance
+        </h2>
 
-      <table className="attendance-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Present</th>
-          </tr>
-        </thead>
-        <tbody>
-          {members.length ? (
-            members.map(m => (
-              <tr key={m.id}>
-                <td>{m.full_name}</td>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={attendance[m.id] ?? false}
-                    onChange={() => toggleAttendance(m.id)}
-                  />
-                </td>
-              </tr>
-            ))
-          ) : (
+        <table className="attendance-table">
+          <thead>
             <tr>
-              <td colSpan={2}>No members found</td>
+              <th>Name</th>
+              <th>Present</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {members.length ? (
+              members.map((m) => (
+                <tr key={m.id}>
+                  <td>{m.full_name}</td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={attendance[m.id] ?? false}
+                      onChange={() => toggleAttendance(m.id)}
+                    />
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={2}>No members found</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
 
-      <button
-        onClick={saveAttendance}
-        disabled={saving}
-        className="attendance-save-btn"
-      >
-        {saving ? "Saving..." : "Save Attendance"}
-      </button>
+        <div style={{ marginTop: "1rem" }}>
+          <button
+            onClick={saveAttendance}
+            disabled={saving}
+            className="btn btn-primary"
+          >
+            {saving ? "Saving..." : "Save Attendance"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
