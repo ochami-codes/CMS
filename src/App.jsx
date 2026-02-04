@@ -51,7 +51,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/verify-pending" element={<WaitingPage />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/reset-password-confirm" element={<ResetPasswordConfirm />} />
+              <Route path="/auth/reset-password-confirm" element={<ResetPasswordConfirm />} />
               <Route path="/auth/callback" element={<Callback />} />
             </Route>
 
