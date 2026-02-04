@@ -1,18 +1,33 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { AuthAPI } from "../utils/api";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);      // user object from backend
-  const [profile, setProfile] = useState(null); // copy of user for convenience
+  const location = useLocation();
+
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
-  /* ---------------- Fetch current session ---------------- */
+  /* --------------------------------------------------
+     Public routes that must NEVER auto-authenticate
+  -------------------------------------------------- */
+  const isPublicAuthRoute =
+    location.pathname.startsWith("/auth/reset-password") ||
+    location.pathname.startsWith("/auth/reset-password-confirm") ||
+    location.pathname.startsWith("/verify-pending") ||
+    location.pathname.startsWith("/login") ||
+    location.pathname.startsWith("/register");
+
+  /* --------------------------------------------------
+     Fetch current authenticated user
+  -------------------------------------------------- */
   const fetchMe = async () => {
     try {
-      const data = await AuthAPI.me(); // should return { user: {...} }
+      const data = await AuthAPI.me();
 
       if (!data?.user) {
         setUser(null);
@@ -20,16 +35,13 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
 
-      // Normalize user
       const normalizedUser = {
         ...data.user,
         role_name: data.user.role_name || "Member",
-        active: data.user.active ?? true, // fallback to active if missing
+        active: data.user.active ?? true,
       };
 
       setUser(normalizedUser);
-
-      // profile can be used in frontend components
       setProfile({
         ...normalizedUser,
         full_name: normalizedUser.full_name || "Child of God",
@@ -40,13 +52,16 @@ export const AuthProvider = ({ children }) => {
       console.error("Auth fetchMe error:", err);
       setUser(null);
       setProfile(null);
+      localStorage.removeItem("access_token");
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  /* ---------------- Login ---------------- */
+  /* --------------------------------------------------
+     Login
+  -------------------------------------------------- */
   const login = async ({ email, password }) => {
     setLoading(true);
     setAuthError(null);
@@ -54,8 +69,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const data = await AuthAPI.login({ email, password });
 
-      if (!data?.user || !data?.access_token)
-        throw new Error("Login failed: no access token or user returned");
+      if (!data?.access_token || !data?.user) {
+        throw new Error("Login failed");
+      }
 
       localStorage.setItem("access_token", data.access_token);
 
@@ -80,42 +96,61 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /* ---------------- Logout ---------------- */
+  /* --------------------------------------------------
+     Logout
+  -------------------------------------------------- */
   const logout = async () => {
     try {
       await AuthAPI.logout();
+    } catch {
+      // ignore
     } finally {
+      localStorage.removeItem("access_token");
       setUser(null);
       setProfile(null);
-      localStorage.removeItem("access_token");
     }
   };
 
-  /* ---------------- Refresh user ---------------- */
+  /* --------------------------------------------------
+     Refresh user manually
+  -------------------------------------------------- */
   const refreshUser = async () => {
     setLoading(true);
     return await fetchMe();
   };
 
-  /* ---------------- Init on mount ---------------- */
+  /* --------------------------------------------------
+     Bootstrap auth ONCE per route change
+  -------------------------------------------------- */
   useEffect(() => {
+    // ⛔ Never auto-authenticate on public auth routes
+    if (isPublicAuthRoute) {
+      setLoading(false);
+      return;
+    }
+
     const token = localStorage.getItem("access_token");
-    if (token) fetchMe();
-    else setLoading(false);
-  }, []);
+
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    fetchMe();
+  }, [location.pathname]);
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        setUser,       // allows updating role dynamically
         profile,
-        setProfile,    // convenience for UI
         loading,
+        authError,
         login,
         logout,
         refreshUser,
-        authError,
+        setUser,
+        setProfile,
       }}
     >
       {children}
