@@ -12,19 +12,24 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
-  /* --------------------------------------------------
-     Public routes that must NEVER auto-authenticate
-  -------------------------------------------------- */
-  const isPublicAuthRoute =
-    location.pathname.startsWith("/auth/reset-password") ||
-    location.pathname.startsWith("/auth/reset-password-confirm") ||
-    location.pathname.startsWith("/verify-pending") ||
-    location.pathname.startsWith("/login") ||
-    location.pathname.startsWith("/register");
+  // -------------------------------
+  // Public routes that don't require auto-login
+  // -------------------------------
+  const publicAuthRoutes = [
+    "/auth/reset-password",
+    "/auth/reset-password-confirm",
+    "/verify-pending",
+    "/login",
+    "/register",
+  ];
 
-  /* --------------------------------------------------
-     Fetch current authenticated user
-  -------------------------------------------------- */
+  const isPublicAuthRoute = publicAuthRoutes.some((route) =>
+    location.pathname.startsWith(route)
+  );
+
+  // -------------------------------
+  // Fetch current authenticated user
+  // -------------------------------
   const fetchMe = async () => {
     try {
       const data = await AuthAPI.me();
@@ -59,9 +64,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /* --------------------------------------------------
-     Login
-  -------------------------------------------------- */
+  // -------------------------------
+  // Login
+  // -------------------------------
   const login = async ({ email, password }) => {
     setLoading(true);
     setAuthError(null);
@@ -96,9 +101,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /* --------------------------------------------------
-     Logout
-  -------------------------------------------------- */
+  // -------------------------------
+  // Logout
+  // -------------------------------
   const logout = async () => {
     try {
       await AuthAPI.logout();
@@ -111,32 +116,46 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /* --------------------------------------------------
-     Refresh user manually
-  -------------------------------------------------- */
+  // -------------------------------
+  // Refresh user manually
+  // -------------------------------
   const refreshUser = async () => {
     setLoading(true);
     return await fetchMe();
   };
 
-  /* --------------------------------------------------
-     Bootstrap auth ONCE per route change
-  -------------------------------------------------- */
+  // -------------------------------
+  // Init auth safely on mount / route change
+  // -------------------------------
   useEffect(() => {
-    // ⛔ Never auto-authenticate on public auth routes
-    if (isPublicAuthRoute) {
-      setLoading(false);
-      return;
-    }
+    let mounted = true;
 
-    const token = localStorage.getItem("access_token");
+    const initAuth = async () => {
+      if (isPublicAuthRoute) {
+        if (mounted) setLoading(false);
+        return;
+      }
 
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        if (mounted) setLoading(false);
+        return;
+      }
 
-    fetchMe();
+      try {
+        await fetchMe();
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    initAuth();
+
+    return () => {
+      mounted = false; // prevent state update on unmounted component
+    };
   }, [location.pathname]);
 
   return (
