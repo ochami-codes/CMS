@@ -12,9 +12,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
-  // -------------------------------
-  // Public routes that don't require auto-login
-  // -------------------------------
+  /* -------------------------------
+     Public routes (NO auto-auth)
+  ------------------------------- */
   const publicAuthRoutes = [
     "/auth/reset-password",
     "/auth/reset-password-confirm",
@@ -27,9 +27,9 @@ export const AuthProvider = ({ children }) => {
     location.pathname.startsWith(route)
   );
 
-  // -------------------------------
-  // Fetch current authenticated user
-  // -------------------------------
+  /* -------------------------------
+     Fetch authenticated user
+  ------------------------------- */
   const fetchMe = async () => {
     try {
       const data = await AuthAPI.me();
@@ -55,18 +55,16 @@ export const AuthProvider = ({ children }) => {
       return normalizedUser;
     } catch (err) {
       console.error("Auth fetchMe error:", err);
+      localStorage.removeItem("access_token");
       setUser(null);
       setProfile(null);
-      localStorage.removeItem("access_token");
       return null;
-    } finally {
-      setLoading(false);
     }
   };
 
-  // -------------------------------
-  // Login
-  // -------------------------------
+  /* -------------------------------
+     Login
+  ------------------------------- */
   const login = async ({ email, password }) => {
     setLoading(true);
     setAuthError(null);
@@ -80,19 +78,7 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem("access_token", data.access_token);
 
-      const normalizedUser = {
-        ...data.user,
-        role_name: data.user.role_name || "Member",
-        active: data.user.active ?? true,
-      };
-
-      setUser(normalizedUser);
-      setProfile({
-        ...normalizedUser,
-        full_name: normalizedUser.full_name || "Child of God",
-      });
-
-      return normalizedUser;
+      await fetchMe();
     } catch (err) {
       setAuthError(err.message || "Login failed");
       throw err;
@@ -101,9 +87,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // -------------------------------
-  // Logout
-  // -------------------------------
+  /* -------------------------------
+     Logout
+  ------------------------------- */
   const logout = async () => {
     try {
       await AuthAPI.logout();
@@ -116,17 +102,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // -------------------------------
-  // Refresh user manually
-  // -------------------------------
+  /* -------------------------------
+     Manual refresh
+  ------------------------------- */
   const refreshUser = async () => {
     setLoading(true);
-    return await fetchMe();
+    await fetchMe();
+    setLoading(false);
   };
 
-  // -------------------------------
-  // Init auth safely on mount / route change
-  // -------------------------------
+  /* -------------------------------
+     Init auth on route change
+  ------------------------------- */
   useEffect(() => {
     let mounted = true;
 
@@ -142,19 +129,14 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      try {
-        await fetchMe();
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-      } finally {
-        if (mounted) setLoading(false);
-      }
+      await fetchMe();
+      if (mounted) setLoading(false);
     };
 
     initAuth();
 
     return () => {
-      mounted = false; // prevent state update on unmounted component
+      mounted = false;
     };
   }, [location.pathname]);
 

@@ -54,7 +54,7 @@ export const TreasuryAPI = {
 };
 
 /* ======================
-   AUTH API
+   AUTH API (FINAL)
 ====================== */
 export const AuthAPI = {
   /* -------- Session -------- */
@@ -80,42 +80,23 @@ export const AuthAPI = {
 
   callback: ({ access_token, refresh_token, type }) =>
     request(
-      `/auth/callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`,
-      {},
-      true // 🚫 never attach Authorization header
+      `/auth/callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`
     ),
 
   /* -------- Email & Password -------- */
   resendVerification: (email) =>
-    request(
-      "/auth/resend-verification",
-      {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      },
-      true
-    ),
+    request("/auth/resend-verification", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
 
   resetPassword: (email) =>
-    request(
-      "/auth/reset-password",
-      {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      },
-      true
-    ),
+    request("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
 
-  resetPasswordConfirm: ({ token, newPassword }) =>
-    request(
-      "/auth/reset-password-confirm",
-      {
-        method: "POST",
-        body: JSON.stringify({ token, newPassword }),
-      },
-      true // 🔑 CRITICAL: recovery token must stand alone
-    ),
-
+  /* -------- Authenticated actions -------- */
   changePassword: (newPassword) =>
     request("/auth/change-password", {
       method: "POST",
