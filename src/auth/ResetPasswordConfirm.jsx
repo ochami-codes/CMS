@@ -1,6 +1,5 @@
-// src/auth/ResetPasswordConfirm.jsx
-import { useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import Loader from "../components/Loader";
@@ -10,7 +9,7 @@ import { AuthAPI } from "../utils/api";
 export default function ResetPasswordConfirm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get("access_token"); // Supabase sends access_token
+  const token = searchParams.get("token"); // ✅ use `token`, not `access_token`
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -18,16 +17,25 @@ export default function ResetPasswordConfirm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // 🔒 Guard: token must exist
-  useEffect(() => {
-    if (!token) {
-      setError("Invalid or expired password reset link.");
-    }
-  }, [token]);
+  if (!token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="w-full max-w-md text-center">
+          <p className="text-red-600">Invalid or expired password reset link.</p>
+          <Link
+            to="/login"
+            className="mt-4 inline-block text-blue-600 hover:underline"
+          >
+            Back to Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loading || !token) return;
+    if (loading) return;
 
     setError("");
     setSuccess("");
@@ -48,7 +56,7 @@ export default function ResetPasswordConfirm() {
 
     try {
       const res = await AuthAPI.resetPasswordConfirm({ token, newPassword });
-      setSuccess(res.message || "Password reset successful. Redirecting to login…");
+      setSuccess(res.message || "Password reset successful. Redirecting…");
 
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
@@ -58,22 +66,6 @@ export default function ResetPasswordConfirm() {
       setLoading(false);
     }
   };
-
-  if (!token) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="w-full max-w-md text-center">
-          <p className="text-red-600">{error}</p>
-          <Link
-            to="/login"
-            className="mt-4 inline-block text-blue-600 hover:underline"
-          >
-            Back to Login
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   if (loading) return <Loader message="Updating your password… God loves you!" />;
 
@@ -94,7 +86,6 @@ export default function ResetPasswordConfirm() {
             onChange={(e) => setNewPassword(e.target.value)}
             required
           />
-
           <Input
             type="password"
             label="Confirm new password"
