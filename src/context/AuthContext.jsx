@@ -5,30 +5,31 @@ import { AuthAPI } from "../utils/api";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  let location;
-  try {
-    location = useLocation();
-  } catch {
-    location = { pathname: "" };
-  }
+  const location = useLocation(); // ✅ ALWAYS called
 
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
+  /* -------------------------------
+     Public routes (NO auto-auth)
+  ------------------------------- */
   const publicAuthRoutes = [
-    "/auth/reset-password",
-    "/auth/reset-password-confirm",
-    "/verify-pending",
     "/login",
     "/register",
+    "/verify-pending",
+    "/auth/reset-password",
+    "/auth/reset-password-confirm",
   ];
 
   const isPublicAuthRoute = publicAuthRoutes.some((route) =>
     location.pathname.startsWith(route)
   );
 
+  /* -------------------------------
+     Fetch authenticated user
+  ------------------------------- */
   const fetchMe = async () => {
     try {
       const data = await AuthAPI.me();
@@ -39,19 +40,19 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
 
-      const normalizedUser = {
+      const normalized = {
         ...data.user,
         role_name: data.user.role_name || "Member",
         active: data.user.active ?? true,
       };
 
-      setUser(normalizedUser);
+      setUser(normalized);
       setProfile({
-        ...normalizedUser,
-        full_name: normalizedUser.full_name || "Child of God",
+        ...normalized,
+        full_name: normalized.full_name || "Child of God",
       });
 
-      return normalizedUser;
+      return normalized;
     } catch (err) {
       console.error("fetchMe error:", err);
       localStorage.removeItem("access_token");
@@ -61,6 +62,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /* -------------------------------
+     Login
+  ------------------------------- */
   const login = async ({ email, password }) => {
     setLoading(true);
     setAuthError(null);
@@ -73,7 +77,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       localStorage.setItem("access_token", data.access_token);
-      await fetchMe();
+
+      await fetchMe(); // ✅ THIS triggers re-render
     } catch (err) {
       setAuthError(err.message || "Login failed");
       throw err;
@@ -82,46 +87,39 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /* -------------------------------
+     Logout
+  ------------------------------- */
   const logout = async () => {
     try {
       await AuthAPI.logout();
-    } finally {
-      localStorage.removeItem("access_token");
-      setUser(null);
-      setProfile(null);
-    }
+    } catch {}
+    localStorage.removeItem("access_token");
+    setUser(null);
+    setProfile(null);
   };
 
-  const refreshUser = async () => {
-    setLoading(true);
-    await fetchMe();
-    setLoading(false);
-  };
-
+  /* -------------------------------
+     Init auth ONCE per route change
+  ------------------------------- */
   useEffect(() => {
-    let active = true;
-
     const init = async () => {
       if (isPublicAuthRoute) {
-        if (active) setLoading(false);
+        setLoading(false);
         return;
       }
 
       const token = localStorage.getItem("access_token");
       if (!token) {
-        if (active) setLoading(false);
+        setLoading(false);
         return;
       }
 
       await fetchMe();
-      if (active) setLoading(false);
+      setLoading(false);
     };
 
     init();
-
-    return () => {
-      active = false;
-    };
   }, [location.pathname]);
 
   return (
@@ -133,7 +131,6 @@ export const AuthProvider = ({ children }) => {
         authError,
         login,
         logout,
-        refreshUser,
       }}
     >
       {children}
