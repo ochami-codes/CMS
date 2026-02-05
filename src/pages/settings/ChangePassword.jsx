@@ -1,4 +1,3 @@
-// src/pages/settings/ChangePassword.jsx
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -56,7 +55,7 @@ export default function ChangePassword() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ currentPassword, newPassword }),
+        body: JSON.stringify({ newPassword }),
       });
 
       const data = await res.json();
@@ -64,6 +63,7 @@ export default function ChangePassword() {
       if (!res.ok) setError(data.message || "Failed to update password.");
       else {
         setSuccess(data.message || "Password updated successfully.");
+
         if (data.logout) {
           await logout();
           navigate("/login", { replace: true });
@@ -76,7 +76,10 @@ export default function ChangePassword() {
     }
   };
 
-  if (loading) return <Loader message="God loves you..." />;
+  if (loading && !success) {
+    // Optional: show full-page loader while the request is processing
+    return <Loader message="God loves you..." />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
@@ -127,7 +130,33 @@ export default function ChangePassword() {
 
           <div className="flex flex-col sm:flex-row sm:justify-between gap-3 mt-2">
             <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-              Update Password
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    ></path>
+                  </svg>
+                  Updating...
+                </span>
+              ) : (
+                "Update Password"
+              )}
             </Button>
 
             <Button
