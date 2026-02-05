@@ -57,10 +57,7 @@ export const TreasuryAPI = {
    AUTH API (FINAL)
 ====================== */
 export const AuthAPI = {
-  me: () => request("/auth/me").then(res => {
-    console.log("me() response:", res);
-    return res;
-  }),
+  me: () => request("/auth/me"),
   /* -------- Auth -------- */
   login: (payload) =>
     request("/auth/login", {
