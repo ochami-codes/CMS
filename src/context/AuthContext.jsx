@@ -5,16 +5,18 @@ import { AuthAPI } from "../utils/api";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const location = useLocation();
+  let location;
+  try {
+    location = useLocation();
+  } catch {
+    location = { pathname: "" };
+  }
 
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
-  /* -------------------------------
-     Public routes (NO auto-auth)
-  ------------------------------- */
   const publicAuthRoutes = [
     "/auth/reset-password",
     "/auth/reset-password-confirm",
@@ -27,9 +29,6 @@ export const AuthProvider = ({ children }) => {
     location.pathname.startsWith(route)
   );
 
-  /* -------------------------------
-     Fetch authenticated user
-  ------------------------------- */
   const fetchMe = async () => {
     try {
       const data = await AuthAPI.me();
@@ -54,7 +53,7 @@ export const AuthProvider = ({ children }) => {
 
       return normalizedUser;
     } catch (err) {
-      console.error("Auth fetchMe error:", err);
+      console.error("fetchMe error:", err);
       localStorage.removeItem("access_token");
       setUser(null);
       setProfile(null);
@@ -62,9 +61,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /* -------------------------------
-     Login
-  ------------------------------- */
   const login = async ({ email, password }) => {
     setLoading(true);
     setAuthError(null);
@@ -72,12 +68,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const data = await AuthAPI.login({ email, password });
 
-      if (!data?.access_token || !data?.user) {
+      if (!data?.access_token) {
         throw new Error("Login failed");
       }
 
       localStorage.setItem("access_token", data.access_token);
-
       await fetchMe();
     } catch (err) {
       setAuthError(err.message || "Login failed");
@@ -87,14 +82,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /* -------------------------------
-     Logout
-  ------------------------------- */
   const logout = async () => {
     try {
       await AuthAPI.logout();
-    } catch {
-      // ignore
     } finally {
       localStorage.removeItem("access_token");
       setUser(null);
@@ -102,41 +92,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /* -------------------------------
-     Manual refresh
-  ------------------------------- */
   const refreshUser = async () => {
     setLoading(true);
     await fetchMe();
     setLoading(false);
   };
 
-  /* -------------------------------
-     Init auth on route change
-  ------------------------------- */
   useEffect(() => {
-    let mounted = true;
+    let active = true;
 
-    const initAuth = async () => {
+    const init = async () => {
       if (isPublicAuthRoute) {
-        if (mounted) setLoading(false);
+        if (active) setLoading(false);
         return;
       }
 
       const token = localStorage.getItem("access_token");
       if (!token) {
-        if (mounted) setLoading(false);
+        if (active) setLoading(false);
         return;
       }
 
       await fetchMe();
-      if (mounted) setLoading(false);
+      if (active) setLoading(false);
     };
 
-    initAuth();
+    init();
 
     return () => {
-      mounted = false;
+      active = false;
     };
   }, [location.pathname]);
 
@@ -150,8 +134,6 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         refreshUser,
-        setUser,
-        setProfile,
       }}
     >
       {children}
