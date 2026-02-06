@@ -8,15 +8,17 @@ export default function ChangePasswordSuccess() {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // 🔐 Logout immediately (no timer)
+    logout();
+  }, [logout]);
+
   return (
     <EncouragementRedirect
       title="Password updated 🔐"
-      message="Your password has been changed successfully. You’ll be redirected to sign in again."
+      message="Your password has been changed successfully. Please sign in again."
       redirectTo="/login"
-      delay={10000}
-      onComplete={async () => {
-        await logout(); // logout AFTER encouragement
-      }}
+      delay={8000} // redirect only
     />
   );
 }

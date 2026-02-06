@@ -88,44 +88,31 @@ export default function ProfilePage() {
     }
   };
 
-  // -------------------- Styled Message --------------------
-  const Message = ({ type = "success", children }) => {
-    const styles =
-      type === "success"
-        ? {
-            bg: "bg-green-50",
-            border: "border-green-400",
-            text: "text-green-800",
-            icon: "M5 13l4 4L19 7",
-          }
-        : {
-            bg: "bg-red-50",
-            border: "border-red-400",
-            text: "text-red-800",
-            icon: "M6 18L18 6M6 6l12 12",
-          };
+// -------------------- Styled Message (no icon) --------------------
+const Message = ({ type = "success", children }) => {
+  const styles =
+    type === "success"
+      ? {
+          bg: "bg-green-50",
+          border: "border-green-400",
+          text: "text-green-800",
+        }
+      : {
+          bg: "bg-red-50",
+          border: "border-red-400",
+          text: "text-red-800",
+        };
 
-    return (
-      <div
-        className={`my-3 p-3 rounded-md border-l-4 ${styles.bg} ${styles.border} flex items-center gap-2`}
-      >
-        <svg
-          className={`w-4 h-4 ${styles.text} flex-shrink-0`}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d={styles.icon} />
-        </svg>
-
-        <span className={`text-sm font-medium ${styles.text}`}>
-          {children}
-        </span>
-      </div>
-    );
-  };
-
+  return (
+    <div
+      className={`my-3 px-4 py-3 rounded-md border-l-4 ${styles.bg} ${styles.border}`}
+    >
+      <p className={`text-sm font-medium leading-relaxed ${styles.text}`}>
+        {children}
+      </p>
+    </div>
+  );
+};
   // -------------------- Loading / missing --------------------
   if (loading) {
     return (
