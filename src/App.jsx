@@ -54,7 +54,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/auth/reset-password-confirm" element={<ResetPasswordConfirm />} />
             <Route path="/auth/callback" element={<Callback />} />
-            <Route path="/change-password-success" element={<ChangePasswordConfirm />} />
+            <Route path="/change-password-success" element={<ChangePasswordSuccess />} />
           </Route>
 
           {/* ================= PROTECTED DASHBOARD ================= */}
