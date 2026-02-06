@@ -21,6 +21,7 @@ export default function ProfilePage() {
   const [pwError, setPwError] = useState("");
   const [pwSuccess, setPwSuccess] = useState("");
 
+  // -------------------- Load profile & contributions --------------------
   useEffect(() => {
     if (!profile) return;
 
@@ -95,6 +96,7 @@ export default function ProfilePage() {
     }
   };
 
+  // -------------------- Loading / Missing profile --------------------
   if (loading) {
     return (
       <div className="dashboard-content">
@@ -111,12 +113,36 @@ export default function ProfilePage() {
     );
   }
 
+  // -------------------- Helper: Styled messages --------------------
+  const Message = ({ type = "success", children }) => {
+    const colors =
+      type === "success"
+        ? { bg: "bg-green-50", border: "border-green-400", text: "text-green-800", icon: "M5 13l4 4L19 7" }
+        : { bg: "bg-red-50", border: "border-red-400", text: "text-red-800", icon: "M6 18L18 6M6 6l12 12" };
+
+    return (
+      <div className={`my-2 p-3 rounded-md border-l-4 ${colors.bg} ${colors.border} flex items-center space-x-2`}>
+        <svg
+          className="w-5 h-5 flex-shrink-0"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d={colors.icon} />
+        </svg>
+        <span className="text-sm font-medium">{children}</span>
+      </div>
+    );
+  };
+
+  // -------------------- Render --------------------
   return (
     <div className="dashboard-content">
       {/* ====================== ROLE REQUEST CARD ====================== */}
       <div className="card">
-        <h2 style={{ fontSize: "1.25rem", fontWeight: 600 }}>Role Requests</h2>
-        <p style={{ color: "#6b7280", margin: "0.4rem 0 1rem" }}>
+        <h2 className="text-lg font-semibold">Role Requests</h2>
+        <p className="text-gray-500 mb-3">
           Apply for leadership or ministry roles and track approval status.
         </p>
         <Link to="/myrolerequest" className="btn btn-primary">
@@ -126,10 +152,13 @@ export default function ProfilePage() {
 
       {/* ====================== PROFILE CARD ====================== */}
       <div className="card">
-        <h2 style={{ fontSize: "1.25rem", fontWeight: 600 }}>My Profile</h2>
-        <p style={{ color: "#6b7280", marginBottom: "1rem" }}>
+        <h2 className="text-lg font-semibold">My Profile</h2>
+        <p className="text-gray-500 mb-3">
           Update your personal and church details below.
         </p>
+
+        {/* Profile success/error message */}
+        {message && <Message type={message.toLowerCase().includes("success") ? "success" : "error"}>{message}</Message>}
 
         <ProfileForm
           profile={localProfile}
@@ -145,10 +174,10 @@ export default function ProfilePage() {
           style={{ cursor: "pointer" }}
           onClick={() => setShowChangePw((prev) => !prev)}
         >
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 600 }}>
+          <h2 className="text-lg font-semibold">
             Change Password {showChangePw ? "▲" : "▼"}
           </h2>
-          <p style={{ color: "#6b7280", marginBottom: "1rem" }}>
+          <p className="text-gray-500 mb-3">
             Click to {showChangePw ? "hide" : "update"} your account password.
           </p>
         </div>
@@ -169,8 +198,8 @@ export default function ProfilePage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="input-field"
             />
-            {pwError && <p className="text-red-600">{pwError}</p>}
-            {pwSuccess && <p className="text-green-600">{pwSuccess}</p>}
+            {pwError && <Message type="error">{pwError}</Message>}
+            {pwSuccess && <Message type="success">{pwSuccess}</Message>}
             <button type="submit" className="btn btn-primary" disabled={pwLoading}>
               {pwLoading ? "Updating…" : "Update Password"}
             </button>
@@ -182,8 +211,8 @@ export default function ProfilePage() {
       {contributions && (
         <div className="stats-grid">
           <div className="card">
-            <h3 style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Contributions</h3>
-            <ul style={{ lineHeight: "1.9" }}>
+            <h3 className="font-semibold mb-2">Contributions</h3>
+            <ul className="leading-relaxed">
               <li>Tithes: KES {contributions.tithes}</li>
               <li>Offerings: KES {contributions.offerings}</li>
               <li>Camp Offerings: KES {contributions.campOfferings}</li>
@@ -191,7 +220,7 @@ export default function ProfilePage() {
             </ul>
           </div>
           <div className="card">
-            <h3 style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Contributions Breakdown</h3>
+            <h3 className="font-semibold mb-2">Contributions Breakdown</h3>
             <div style={{ height: "280px" }}>
               <SummaryChart contributions={contributions} />
             </div>
