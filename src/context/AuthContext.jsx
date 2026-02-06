@@ -19,6 +19,7 @@ export const AuthProvider = ({ children }) => {
     "/login",
     "/register",
     "/reset-password",
+    "/change-password-success",
     "/auth/reset-password-confirm",
   ];
 
