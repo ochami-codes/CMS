@@ -23,7 +23,6 @@ import ChildrenDashboard from "./pages/children/ChildrenDashboard";
 import TreasuryDashboard from "./pages/treasury/TreasuryDashboard";
 import PastorDashboard from "./pages/pastor/PastorDashboard";
 import CommunicationDashboard from "./pages/communication/CommunicationDashboard";
-import WaitingPage from "./pages/WaitingPage.jsx";
 
 // Settings
 import ProfilePage from "./pages/settings/profiles/ProfilePage";
@@ -51,7 +50,6 @@ function App() {
             <Route index element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/verify-pending" element={<WaitingPage />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/auth/reset-password-confirm" element={<ResetPasswordConfirm />} />
             <Route path="/auth/callback" element={<Callback />} />

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import EncouragementRedirect from "../components/EncouragementRedirect";
 import { AuthAPI } from "../utils/api";
 import { kenyaConferences } from "../data/kenyaConferences";
 
@@ -17,14 +18,14 @@ export default function Register() {
     dateOfBirth: "",
     gender: "",
     conference: "",
-    churchBaseName: "", // 👈 only base name
+    churchBaseName: "",
     password: "",
     confirmPassword: "",
   });
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
+  const [registered, setRegistered] = useState(false);
 
   /* ------------------ Helpers ------------------ */
   const isValidKenyanPhone = (phone) => {
@@ -40,13 +41,11 @@ export default function Register() {
     return p;
   };
 
-  // 🚫 Strip forbidden words defensively
-  const sanitizeChurchBaseName = (value) => {
-    return value
+  const sanitizeChurchBaseName = (value) =>
+    value
       .replace(/\b(sda|church|seventh day adventist)\b/gi, "")
       .replace(/\s+/g, " ")
       .trim();
-  };
 
   /* ------------------ Handlers ------------------ */
   const handleChange = (e) => {
@@ -58,16 +57,13 @@ export default function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     setErrors({});
-    setSuccess("");
 
     const newErrors = {};
 
-    // Required fields
     Object.entries(form).forEach(([key, value]) => {
       if (!value.trim()) newErrors[key] = "This field is required";
     });
 
-    // Password rules
     if (form.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters";
     }
@@ -76,12 +72,10 @@ export default function Register() {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
-    // Phone
     if (!isValidKenyanPhone(form.phone)) {
       newErrors.phone = "Enter a valid Kenyan phone number";
     }
 
-    // Church base name
     if (!form.churchBaseName) {
       newErrors.churchBaseName = "Church name is required";
     }
@@ -102,15 +96,12 @@ export default function Register() {
         date_of_birth: form.dateOfBirth,
         gender: form.gender,
         conference: form.conference,
-        church_name: form.churchBaseName.trim(), // backend appends SDA Church
+        church_name: form.churchBaseName.trim(),
       };
 
-      const res = await AuthAPI.register(payload);
+      await AuthAPI.register(payload);
 
-      setSuccess(res.message || "Registration successful. Check your email.");
-
-      localStorage.setItem("pending_verification_email", form.email);
-      navigate("/verify-pending");
+      setRegistered(true);
     } catch (err) {
       console.error("Registration error:", err);
       setErrors({
@@ -124,6 +115,18 @@ export default function Register() {
     }
   };
 
+  /* ------------------ Success Screen ------------------ */
+  if (registered) {
+    return (
+      <EncouragementRedirect
+        title="Registration successful 🎉"
+        message="Your account has been created successfully."
+        redirectTo="/login"
+        delay={6000}
+      />
+    );
+  }
+
   /* ------------------ JSX ------------------ */
   return (
     <div className="container" style={{ maxWidth: "480px", marginTop: "3rem" }}>
@@ -132,12 +135,6 @@ export default function Register() {
       {errors.global && (
         <p style={{ color: "#e63946", marginBottom: "0.75rem" }}>
           {errors.global}
-        </p>
-      )}
-
-      {success && (
-        <p style={{ color: "#16a34a", marginBottom: "0.75rem" }}>
-          {success}
         </p>
       )}
 
@@ -165,9 +162,7 @@ export default function Register() {
           value={form.dateOfBirth}
           onChange={handleChange}
         />
-        {errors.dateOfBirth && <p className="error">{errors.dateOfBirth}</p>}
 
-        {/* Gender */}
         <div className="form-group">
           <label>Gender</label>
           <select name="gender" value={form.gender} onChange={handleChange}>
@@ -178,21 +173,16 @@ export default function Register() {
           {errors.gender && <p className="error">{errors.gender}</p>}
         </div>
 
-        {/* Conference */}
         <div className="form-group">
           <label>Conference</label>
           <select name="conference" value={form.conference} onChange={handleChange}>
             <option value="">Select your conference</option>
             {kenyaConferences.map((conf) => (
-              <option key={conf} value={conf}>
-                {conf}
-              </option>
+              <option key={conf} value={conf}>{conf}</option>
             ))}
           </select>
-          {errors.conference && <p className="error">{errors.conference}</p>}
         </div>
 
-        {/* Church Name (Split Input) */}
         <div className="form-group">
           <label>Church Name</label>
 
@@ -204,7 +194,6 @@ export default function Register() {
               onChange={(e) => {
                 const clean = sanitizeChurchBaseName(e.target.value);
                 setForm((prev) => ({ ...prev, churchBaseName: clean }));
-                setErrors((prev) => ({ ...prev, churchBaseName: "" }));
               }}
               placeholder="e.g. Maai Mahiu"
               style={{ flex: 1 }}
@@ -226,15 +215,9 @@ export default function Register() {
           <small style={{ color: "#6b7280" }}>
             Type only the church name. <strong>SDA Church</strong> is added automatically.
           </small>
-
-          {errors.churchBaseName && (
-            <p className="error">{errors.churchBaseName}</p>
-          )}
         </div>
 
         <Input label="Password" name="password" type="password" value={form.password} onChange={handleChange} />
-        {errors.password && <p className="error">{errors.password}</p>}
-
         <Input
           label="Confirm Password"
           name="confirmPassword"
@@ -242,9 +225,6 @@ export default function Register() {
           value={form.confirmPassword}
           onChange={handleChange}
         />
-        {errors.confirmPassword && (
-          <p className="error">{errors.confirmPassword}</p>
-        )}
 
         <Button type="submit" disabled={loading}>
           {loading ? "Creating account…" : "Register"}

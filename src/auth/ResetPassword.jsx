@@ -1,15 +1,15 @@
 // src/auth/ResetPassword.jsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import Loader from "../components/Loader";
+import EncouragementRedirect from "../components/EncouragementRedirect";
 import { AuthAPI } from "../utils/api";
 
 export default function ResetPassword() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
   const handleReset = async (e) => {
@@ -21,24 +21,34 @@ export default function ResetPassword() {
 
     try {
       await AuthAPI.resetPassword(email.trim());
-
-      // Save the email locally for verification page
-      localStorage.setItem("pending_verification_email", email.trim());
-
-      navigate("/verify-pending");
+      setSubmitted(true); // ✅ always show success screen
     } catch (err) {
       console.error("Reset password error:", err);
-      // Anti-enumeration: always show same message
-      setError(
-        "If an account exists for this email, a password reset link has been sent."
-      );
+
+      // 🔐 Anti-enumeration: same UX either way
+      setSubmitted(true);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return <Loader message="Sending reset link… God loves you..." />;
+  /* ------------------ Success Screen ------------------ */
+  if (submitted) {
+    return (
+      <EncouragementRedirect
+        title="Check your email 📩"
+        message="If an account exists for this email, a password reset link has been sent. Please open the link in your email to continue."
+        redirectTo="/login"
+        delay={7000}
+      />
+    );
+  }
 
+  if (loading) {
+    return <Loader message="Sending reset link… God loves you..." />;
+  }
+
+  /* ------------------ Form ------------------ */
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
       <div className="w-full max-w-md card p-6 shadow-md">
@@ -62,11 +72,7 @@ export default function ResetPassword() {
             <p className="text-red-600 text-sm text-center">{error}</p>
           )}
 
-          <Button
-            type="submit"
-            disabled={loading || !email}
-            className="w-full"
-          >
+          <Button type="submit" disabled={!email || loading} className="w-full">
             {loading ? "Sending…" : "Send Reset Link"}
           </Button>
         </form>
