@@ -14,6 +14,7 @@ import Register from "./auth/Register";
 import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
 import Callback from "./auth/Callback";
+import ChangePasswordSuccess from "./auth/ChangePasswordSuccess.jsx";
 
 // Pages
 import Home from "./pages/Home";
@@ -53,6 +54,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/auth/reset-password-confirm" element={<ResetPasswordConfirm />} />
             <Route path="/auth/callback" element={<Callback />} />
+            <Route path="/change-password-success" element={<ChangePasswordConfirm />} />
           </Route>
 
           {/* ================= PROTECTED DASHBOARD ================= */}

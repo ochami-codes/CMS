@@ -1,16 +1,13 @@
 // src/auth/ChangePassword.jsx
 import { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import Loader from "../../components/Loader";
-import EncouragementRedirect from "../../components/EncouragementRedirect";
 import { isStrongPassword } from "../../utils/validators";
 import { AuthAPI } from "../../utils/api";
 
 export default function ChangePassword() {
-  const { logout } = useAuth();
   const navigate = useNavigate();
 
   const [newPassword, setNewPassword] = useState("");
@@ -18,7 +15,6 @@ export default function ChangePassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [passwordStrength, setPasswordStrength] = useState("");
-  const [completed, setCompleted] = useState(false);
 
   /* ---------------- Password strength ---------------- */
   useEffect(() => {
@@ -51,9 +47,8 @@ export default function ChangePassword() {
 
     try {
       await AuthAPI.changePassword(newPassword);
-
-      // ✅ Show encouragement first
-      setCompleted(true);
+      // ✅ Navigate to dedicated success page
+      navigate("/change-password-success");
     } catch (err) {
       setError(err.data?.message || err.message || "Failed to update password.");
     } finally {
@@ -61,27 +56,10 @@ export default function ChangePassword() {
     }
   };
 
-  /* ---------------- Success screen ---------------- */
-  if (completed) {
-    return (
-      <EncouragementRedirect
-        title="Password updated 🔐"
-        message="Your password has been changed successfully. You’ll be redirected to sign in again."
-        redirectTo="/login"
-        delay={10000}
-        onComplete={async () => {
-          // ✅ Logout AFTER encouragement
-          await logout();
-        }}
-      />
-    );
-  }
-
   if (loading) {
     return <Loader message="Updating password… God is faithful." />;
   }
 
-  /* ---------------- Form ---------------- */
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
       <div className="w-full max-w-md card p-6 shadow-md">
