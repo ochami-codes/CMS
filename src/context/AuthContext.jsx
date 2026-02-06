@@ -18,8 +18,7 @@ export const AuthProvider = ({ children }) => {
   const publicAuthRoutes = [
     "/login",
     "/register",
-    "/verify-pending",
-    "/auth/reset-password",
+    "/reset-password",
     "/auth/reset-password-confirm",
   ];
 
