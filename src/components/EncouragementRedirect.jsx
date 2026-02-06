@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import encouragementVerses from "../utils/encouragementVerses";
 
@@ -6,10 +6,11 @@ export default function EncouragementRedirect({
   title = "All set ✨",
   message = "You’ll be redirected shortly.",
   redirectTo = "/login",
-  delay = 5000,
-  onComplete, // ✅ new optional prop
+  delay = 10000, // default 10s
+  onComplete, // optional
 }) {
   const navigate = useNavigate();
+  const [secondsLeft, setSecondsLeft] = useState(delay / 1000);
 
   const verse = useMemo(() => {
     return encouragementVerses[
@@ -18,13 +19,20 @@ export default function EncouragementRedirect({
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (onComplete) await onComplete(); // call it first if provided
+    const interval = setInterval(() => {
+      setSecondsLeft((s) => s - 1);
+    }, 1000);
+
+    const timeout = setTimeout(async () => {
+      if (onComplete) await onComplete();
       navigate(redirectTo, { replace: true });
     }, delay);
 
-    return () => clearTimeout(timer);
-  }, [navigate, redirectTo, delay, onComplete]);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [delay, navigate, redirectTo, onComplete]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
@@ -43,17 +51,18 @@ export default function EncouragementRedirect({
           “{verse.text}”
         </blockquote>
 
-        <p style={{ fontWeight: 500, color: "#4f46e5" }}>
-          — {verse.ref}
-        </p>
+        <p style={{ fontWeight: 500, color: "#4f46e5" }}>— {verse.ref}</p>
 
         <p className="text-sm text-gray-500 mt-4">
-          Redirecting in {delay / 1000} seconds…
+          Redirecting in {secondsLeft} second{secondsLeft !== 1 ? "s" : ""}…
         </p>
 
         <button
           className="btn btn-secondary mt-4"
-          onClick={() => navigate(redirectTo, { replace: true })}
+          onClick={async () => {
+            if (onComplete) await onComplete();
+            navigate(redirectTo, { replace: true });
+          }}
         >
           Go now
         </button>
