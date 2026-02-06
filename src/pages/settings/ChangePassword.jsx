@@ -52,8 +52,8 @@ export default function ChangePassword() {
     try {
       await AuthAPI.changePassword(newPassword);
 
-      await logout();       // invalidate session
-      setCompleted(true);   // show encouragement screen
+      // ✅ DO NOT logout yet
+      setCompleted(true);
     } catch (err) {
       setError(
         err.data?.message ||
@@ -73,6 +73,9 @@ export default function ChangePassword() {
         message="Your password has been changed successfully. You’ll be redirected to sign in again."
         redirectTo="/login"
         delay={6000}
+        onComplete={async () => {
+          await logout(); // ✅ logout AFTER encouragement
+        }}
       />
     );
   }

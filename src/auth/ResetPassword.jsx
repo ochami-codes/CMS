@@ -32,17 +32,20 @@ export default function ResetPassword() {
     }
   };
 
-  /* ------------------ Success Screen ------------------ */
-  if (submitted) {
-    return (
-      <EncouragementRedirect
-        title="Check your email 📩"
-        message="If an account exists for this email, a password reset link has been sent. Please open the link in your email to continue."
-        redirectTo="/login"
-        delay={7000}
-      />
-    );
-  }
+/* ------------------ Success Screen ------------------ */
+if (submitted) {
+  return (
+    <EncouragementRedirect
+      title="Check your email 📩"
+      message="If an account exists for this email, a password reset link has been sent. Please open the link in your email to continue."
+      redirectTo="/login"
+      delay={7000}
+      onComplete={() => {
+        // nothing needed here, but you could do analytics etc.
+      }}
+    />
+  );
+}
 
   if (loading) {
     return <Loader message="Sending reset link… God loves you..." />;

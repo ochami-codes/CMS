@@ -7,10 +7,10 @@ export default function EncouragementRedirect({
   message = "You’ll be redirected shortly.",
   redirectTo = "/login",
   delay = 5000,
+  onComplete, // ✅ new optional prop
 }) {
   const navigate = useNavigate();
 
-  // Pick a random verse ONCE
   const verse = useMemo(() => {
     return encouragementVerses[
       Math.floor(Math.random() * encouragementVerses.length)
@@ -18,12 +18,13 @@ export default function EncouragementRedirect({
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
+      if (onComplete) await onComplete(); // call it first if provided
       navigate(redirectTo, { replace: true });
     }, delay);
 
     return () => clearTimeout(timer);
-  }, [navigate, redirectTo, delay]);
+  }, [navigate, redirectTo, delay, onComplete]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
