@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import { ProfileAPI, AuthAPI } from "../../../utils/api";
 import ProfileForm from "./ProfileForm";
-import Contributions from "./Contributions";
 import SummaryChart from "./SummaryChart";
 import { Link } from "react-router-dom";
 
 export default function ProfilePage() {
-  const { profile, logout } = useAuth();
+  const { profile } = useAuth();
+
   const [localProfile, setLocalProfile] = useState(null);
   const [contributions, setContributions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,28 +21,27 @@ export default function ProfilePage() {
   const [pwError, setPwError] = useState("");
   const [pwSuccess, setPwSuccess] = useState("");
 
-  // -------------------- Load profile & contributions --------------------
+  // -------------------- Load profile --------------------
   useEffect(() => {
     if (!profile) return;
 
-    const loadProfile = async () => {
+    const load = async () => {
       setLoading(true);
-      setMessage("");
       try {
         const res = await ProfileAPI.get();
         setLocalProfile(res.profile || null);
         setContributions(res.contributions || []);
       } catch (err) {
-        console.error(err);
         setMessage(err?.message || "Failed to load profile");
       } finally {
         setLoading(false);
       }
     };
 
-    loadProfile();
+    load();
   }, [profile]);
 
+  // -------------------- Profile update --------------------
   const handleUpdate = async (updates) => {
     setLoading(true);
     setMessage("");
@@ -51,14 +50,13 @@ export default function ProfilePage() {
       setLocalProfile((prev) => ({ ...prev, ...updates }));
       setMessage("Profile updated successfully");
     } catch (err) {
-      console.error(err);
       setMessage(err?.message || "Profile update failed");
     } finally {
       setLoading(false);
     }
   };
 
-  // -------------------- Handle password change --------------------
+  // -------------------- Password change --------------------
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setPwError("");
@@ -83,20 +81,52 @@ export default function ProfilePage() {
       setPwSuccess(res.message || "Password updated successfully");
       setNewPassword("");
       setConfirmPassword("");
-
-      if (res.logout) {
-        await logout();
-        window.location.href = "/login";
-      }
     } catch (err) {
-      console.error(err);
       setPwError(err?.message || "Failed to update password");
     } finally {
       setPwLoading(false);
     }
   };
 
-  // -------------------- Loading / Missing profile --------------------
+  // -------------------- Styled Message --------------------
+  const Message = ({ type = "success", children }) => {
+    const styles =
+      type === "success"
+        ? {
+            bg: "bg-green-50",
+            border: "border-green-400",
+            text: "text-green-800",
+            icon: "M5 13l4 4L19 7",
+          }
+        : {
+            bg: "bg-red-50",
+            border: "border-red-400",
+            text: "text-red-800",
+            icon: "M6 18L18 6M6 6l12 12",
+          };
+
+    return (
+      <div
+        className={`my-3 p-3 rounded-md border-l-4 ${styles.bg} ${styles.border} flex items-center gap-2`}
+      >
+        <svg
+          className={`w-4 h-4 ${styles.text} flex-shrink-0`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d={styles.icon} />
+        </svg>
+
+        <span className={`text-sm font-medium ${styles.text}`}>
+          {children}
+        </span>
+      </div>
+    );
+  };
+
+  // -------------------- Loading / missing --------------------
   if (loading) {
     return (
       <div className="dashboard-content">
@@ -113,33 +143,10 @@ export default function ProfilePage() {
     );
   }
 
-  // -------------------- Helper: Styled messages --------------------
-  const Message = ({ type = "success", children }) => {
-    const colors =
-      type === "success"
-        ? { bg: "bg-green-50", border: "border-green-400", text: "text-green-800", icon: "M5 13l4 4L19 7" }
-        : { bg: "bg-red-50", border: "border-red-400", text: "text-red-800", icon: "M6 18L18 6M6 6l12 12" };
-
-    return (
-      <div className={`my-2 p-3 rounded-md border-l-4 ${colors.bg} ${colors.border} flex items-center space-x-2`}>
-        <svg
-          className="w-5 h-5 flex-shrink-0"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d={colors.icon} />
-        </svg>
-        <span className="text-sm font-medium">{children}</span>
-      </div>
-    );
-  };
-
   // -------------------- Render --------------------
   return (
     <div className="dashboard-content">
-      {/* ====================== ROLE REQUEST CARD ====================== */}
+      {/* ROLE REQUEST */}
       <div className="card">
         <h2 className="text-lg font-semibold">Role Requests</h2>
         <p className="text-gray-500 mb-3">
@@ -150,29 +157,33 @@ export default function ProfilePage() {
         </Link>
       </div>
 
-      {/* ====================== PROFILE CARD ====================== */}
+      {/* PROFILE */}
       <div className="card">
         <h2 className="text-lg font-semibold">My Profile</h2>
         <p className="text-gray-500 mb-3">
           Update your personal and church details below.
         </p>
 
-        {/* Profile success/error message */}
-        {message && <Message type={message.toLowerCase().includes("success") ? "success" : "error"}>{message}</Message>}
+        {message && (
+          <Message
+            type={message.toLowerCase().includes("success") ? "success" : "error"}
+          >
+            {message}
+          </Message>
+        )}
 
         <ProfileForm
           profile={localProfile}
           onUpdate={handleUpdate}
           loading={loading}
-          message={message}
         />
       </div>
 
-      {/* ====================== CHANGE PASSWORD COLLAPSIBLE CARD ====================== */}
+      {/* CHANGE PASSWORD */}
       <div className="card">
         <div
-          style={{ cursor: "pointer" }}
-          onClick={() => setShowChangePw((prev) => !prev)}
+          className="cursor-pointer"
+          onClick={() => setShowChangePw((v) => !v)}
         >
           <h2 className="text-lg font-semibold">
             Change Password {showChangePw ? "▲" : "▼"}
@@ -198,16 +209,22 @@ export default function ProfilePage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="input-field"
             />
+
             {pwError && <Message type="error">{pwError}</Message>}
             {pwSuccess && <Message type="success">{pwSuccess}</Message>}
-            <button type="submit" className="btn btn-primary" disabled={pwLoading}>
+
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={pwLoading}
+            >
               {pwLoading ? "Updating…" : "Update Password"}
             </button>
           </form>
         )}
       </div>
 
-      {/* ====================== CONTRIBUTIONS ====================== */}
+      {/* CONTRIBUTIONS */}
       {contributions && (
         <div className="stats-grid">
           <div className="card">
@@ -219,6 +236,7 @@ export default function ProfilePage() {
               <li>Church Development: KES {contributions.churchDevelopment}</li>
             </ul>
           </div>
+
           <div className="card">
             <h3 className="font-semibold mb-2">Contributions Breakdown</h3>
             <div style={{ height: "280px" }}>
