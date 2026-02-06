@@ -14,8 +14,7 @@ import Register from "./auth/Register";
 import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
 import Callback from "./auth/Callback";
-//profiles success page
-import ChangePasswordSuccess from "./auth/ChangePasswordSuccess.jsx";
+import ChangePasswordSuccess from "./auth/ChangePasswordSuccess";
 
 // Pages
 import Home from "./pages/Home";
@@ -41,12 +40,11 @@ import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
-<>
-      <Toaster position="top-right" reverseOrder={false} />
-      <Router>
-       <AuthProvider>
-        <Routes>
+    <Router>
+      <AuthProvider>
+        <Toaster position="top-right" reverseOrder={false} />
 
+        <Routes>
           {/* ================= PUBLIC ================= */}
           <Route element={<PublicLayout />}>
             <Route index element={<Home />} />
@@ -55,12 +53,12 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/auth/reset-password-confirm" element={<ResetPasswordConfirm />} />
             <Route path="/auth/callback" element={<Callback />} />
+            <Route path="/profile/change-password-success" element={<ChangePasswordSuccess />} />
           </Route>
 
           {/* ================= PROTECTED DASHBOARD ================= */}
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
-
               {/* Main dashboards */}
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/myrolerequest" element={<MyRoleRequests />} />
@@ -118,7 +116,6 @@ function App() {
               {/* Settings */}
               <Route path="/dashboard/profiles" element={<ProfilePage />} />
               <Route path="/dashboard/settings/change-password" element={<ChangePassword />} />
-              <Route path="/profile/change-password-success" element={<ChangePasswordSuccess />} />
 
               {/* ================= ADMIN ONLY ================= */}
               <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
@@ -128,14 +125,11 @@ function App() {
                   <Route path="/manage-roles" element={<ManageRoles />} />
                 </Route>
               </Route>
-
             </Route>
           </Route>
-
         </Routes>
-       </AuthProvider>
-      </Router>
-</>
+      </AuthProvider>
+    </Router>
   );
 }
 
