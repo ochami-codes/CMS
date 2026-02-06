@@ -14,6 +14,7 @@ import Register from "./auth/Register";
 import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
 import Callback from "./auth/Callback";
+//profiles success page
 import ChangePasswordSuccess from "./auth/ChangePasswordSuccess.jsx";
 
 // Pages
@@ -54,7 +55,6 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/auth/reset-password-confirm" element={<ResetPasswordConfirm />} />
             <Route path="/auth/callback" element={<Callback />} />
-            <Route path="/change-password-success" element={<ChangePasswordSuccess />} />
           </Route>
 
           {/* ================= PROTECTED DASHBOARD ================= */}
@@ -118,6 +118,7 @@ function App() {
               {/* Settings */}
               <Route path="/dashboard/profiles" element={<ProfilePage />} />
               <Route path="/dashboard/settings/change-password" element={<ChangePassword />} />
+              <Route path="/profile/change-password-success" element={<ChangePasswordSuccess />} />
 
               {/* ================= ADMIN ONLY ================= */}
               <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>

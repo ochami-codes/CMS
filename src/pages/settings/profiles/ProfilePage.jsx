@@ -3,10 +3,11 @@ import { useAuth } from "../../../context/AuthContext";
 import { ProfileAPI, AuthAPI } from "../../../utils/api";
 import ProfileForm from "./ProfileForm";
 import SummaryChart from "./SummaryChart";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function ProfilePage() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
 
   const [localProfile, setLocalProfile] = useState(null);
   const [contributions, setContributions] = useState([]);
@@ -19,7 +20,6 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
   const [pwError, setPwError] = useState("");
-  const [pwSuccess, setPwSuccess] = useState("");
 
   // -------------------- Load profile --------------------
   useEffect(() => {
@@ -56,31 +56,35 @@ export default function ProfilePage() {
     }
   };
 
-  // -------------------- Password change --------------------
+  // -------------------- Password change (PROFILE OWNS FLOW) --------------------
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setPwError("");
-    setPwSuccess("");
 
     if (!newPassword || !confirmPassword) {
       setPwError("Both fields are required");
       return;
     }
+
     if (newPassword !== confirmPassword) {
       setPwError("Passwords do not match");
       return;
     }
+
     if (newPassword.length < 6) {
       setPwError("Password must be at least 6 characters");
       return;
     }
 
     setPwLoading(true);
+
     try {
-      const res = await AuthAPI.changePassword({ newPassword });
-      setPwSuccess(res.message || "Password updated successfully");
-      setNewPassword("");
-      setConfirmPassword("");
+      await AuthAPI.changePassword({ newPassword });
+
+      // 🔑 hand off to success page
+      navigate("/profile/change-password-success", {
+        state: { fromProfile: true },
+      });
     } catch (err) {
       setPwError(err?.message || "Failed to update password");
     } finally {
@@ -88,31 +92,32 @@ export default function ProfilePage() {
     }
   };
 
-// -------------------- Styled Message (no icon) --------------------
-const Message = ({ type = "success", children }) => {
-  const styles =
-    type === "success"
-      ? {
-          bg: "bg-green-50",
-          border: "border-green-400",
-          text: "text-green-800",
-        }
-      : {
-          bg: "bg-red-50",
-          border: "border-red-400",
-          text: "text-red-800",
-        };
+  // -------------------- Styled Message (unchanged) --------------------
+  const Message = ({ type = "success", children }) => {
+    const styles =
+      type === "success"
+        ? {
+            bg: "bg-green-50",
+            border: "border-green-400",
+            text: "text-green-800",
+          }
+        : {
+            bg: "bg-red-50",
+            border: "border-red-400",
+            text: "text-red-800",
+          };
 
-  return (
-    <div
-      className={`my-3 px-4 py-3 rounded-md border-l-4 ${styles.bg} ${styles.border}`}
-    >
-      <p className={`text-sm font-medium leading-relaxed ${styles.text}`}>
-        {children}
-      </p>
-    </div>
-  );
-};
+    return (
+      <div
+        className={`my-3 px-4 py-3 rounded-md border-l-4 ${styles.bg} ${styles.border}`}
+      >
+        <p className={`text-sm font-medium leading-relaxed ${styles.text}`}>
+          {children}
+        </p>
+      </div>
+    );
+  };
+
   // -------------------- Loading / missing --------------------
   if (loading) {
     return (
@@ -198,7 +203,6 @@ const Message = ({ type = "success", children }) => {
             />
 
             {pwError && <Message type="error">{pwError}</Message>}
-            {pwSuccess && <Message type="success">{pwSuccess}</Message>}
 
             <button
               type="submit"
