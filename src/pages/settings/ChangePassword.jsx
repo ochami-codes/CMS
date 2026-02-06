@@ -1,3 +1,4 @@
+// src/auth/ChangePassword.jsx
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +15,6 @@ export default function ChangePassword() {
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [passwordStrength, setPasswordStrength] = useState("");
@@ -52,14 +52,10 @@ export default function ChangePassword() {
     try {
       await AuthAPI.changePassword(newPassword);
 
-      // ✅ DO NOT logout yet
+      // ✅ Show encouragement first
       setCompleted(true);
     } catch (err) {
-      setError(
-        err.data?.message ||
-          err.message ||
-          "Failed to update password."
-      );
+      setError(err.data?.message || err.message || "Failed to update password.");
     } finally {
       setLoading(false);
     }
@@ -72,9 +68,10 @@ export default function ChangePassword() {
         title="Password updated 🔐"
         message="Your password has been changed successfully. You’ll be redirected to sign in again."
         redirectTo="/login"
-        delay={6000}
+        delay={10000}
         onComplete={async () => {
-          await logout(); // ✅ logout AFTER encouragement
+          // ✅ Logout AFTER encouragement
+          await logout();
         }}
       />
     );
@@ -123,9 +120,7 @@ export default function ChangePassword() {
             required
           />
 
-          {error && (
-            <p className="text-red-600 text-sm text-center">{error}</p>
-          )}
+          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
           <Button type="submit" disabled={loading} className="w-full">
             Update Password

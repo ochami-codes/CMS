@@ -7,20 +7,29 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const type = params.get("type");
+    const origin = params.get("origin"); // optional: identify the flow
 
+    // Only handle signup email verification
     if (type === "signup") {
-      // Navigate to login and pass state verified
       navigate("/login", { replace: true, state: { verified: true } });
       return;
     }
 
-    // Fallback: just go to login
+    // If this callback was triggered for reset or password change, do nothing
+    if (origin === "reset" || origin === "change-password") {
+      // optional: maybe show a message instead of redirecting
+      return;
+    }
+
+    // Default fallback: go to login safely
     navigate("/login", { replace: true });
   }, [params, navigate]);
 
   return (
-    <div className="h-screen flex items-center justify-center">
-      <p className="text-lg font-medium">Email verified. Redirecting…</p>
+    <div className="h-screen flex items-center justify-center px-4">
+      <p className="text-lg font-medium text-center">
+        Email verified. Redirecting…
+      </p>
     </div>
   );
 }

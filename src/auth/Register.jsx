@@ -122,7 +122,7 @@ export default function Register() {
         title="Registration successful 🎉"
         message="Your account has been created successfully."
         redirectTo="/login"
-        delay={6000}
+        delay={10000}
       />
     );
   }

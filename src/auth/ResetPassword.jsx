@@ -39,7 +39,7 @@ if (submitted) {
       title="Check your email 📩"
       message="If an account exists for this email, a password reset link has been sent. Please open the link in your email to continue."
       redirectTo="/login"
-      delay={7000}
+      delay={10000}
       onComplete={() => {
         // nothing needed here, but you could do analytics etc.
       }}
