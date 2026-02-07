@@ -1,7 +1,9 @@
 /* ==========================
    RESET & GLOBALS
 ========================== */
-* {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -43,11 +45,18 @@ button {
    BUTTONS (GLOBAL)
 ========================== */
 .btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
   font-weight: 600;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
 }
 
 .btn-primary {
@@ -84,30 +93,32 @@ button {
 .input-group {
   display: flex;
   flex-direction: column;
+  gap: 0.4rem;
   margin-bottom: 1rem;
 }
 
-.form-group label,
-.input-group label {
-  margin-bottom: 0.4rem;
-  font-weight: 500;
-}
-
 input,
-textarea {
+textarea,
+select {
   width: 100%;
   padding: 0.55rem 0.75rem;
   border: 1px solid #cbd5e0;
   border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 0.9rem;
+  background: #fff;
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   border-color: #4f46e5;
   box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
   outline: none;
+}
+
+select:disabled {
+  background-color: #f1f5f9;
+  cursor: not-allowed;
 }
 
 /* ==========================
@@ -117,7 +128,6 @@ textarea:focus {
   display: grid;
   grid-template-columns: 220px 1fr;
   min-height: 100vh;
-  background-color: #f8f9fa;
 }
 
 /* ==========================
@@ -129,30 +139,27 @@ textarea:focus {
   border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
+  gap: 1.2rem;
 }
 
 .sidebar-title {
-  font-size: 1.4rem;
-  font-weight: bold;
-  margin-bottom: 2rem;
+  font-size: 1.3rem;
+  font-weight: 700;
 }
 
 .sidebar-links {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.4rem;
 }
 
-.sidebar-links a,
-.sidebar-profile-link {
+.sidebar-links a {
   padding: 0.45rem 0.6rem;
   border-radius: 6px;
-  transition: background-color 0.2s ease;
 }
 
 .sidebar-links a:hover,
-.sidebar-links a.active,
-.sidebar-profile-link:hover {
+.sidebar-links a.active {
   background-color: #e5e7eb;
   font-weight: 500;
 }
@@ -181,53 +188,47 @@ textarea:focus {
 }
 
 .user-email {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: #4b5563;
 }
 
 /* ==========================
-   CARDS & STATS
+   CARDS
 ========================== */
-.card,
-.stat-card,
-.greeting-card,
-.announcement-card {
+.card {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 1rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 /* ==========================
-   TABLES
+   TABLES (REBUILT)
 ========================== */
-.table,
-.member-list-table,
-.attendance-table {
+.table {
   width: 100%;
-  border-collapse: collapse;
-}
-
-.table th,
-.table td,
-.member-list-table th,
-.member-list-table td,
-.attendance-table th,
-.attendance-table td {
-  padding: 0.6rem;
-  border-bottom: 1px solid #e5e7eb;
-  text-align: left;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .table th {
-  background-color: #f9fafb;
-  font-weight: 600;
+  background: #f9fafb;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #374151;
+}
+
+.table th,
+.table td {
+  padding: 0.85rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+}
+
+.table tr:hover td {
+  background: #f9fafb;
 }
 
 /* ==========================
@@ -237,9 +238,13 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.25rem 0.5rem;
+  min-width: 76px;
+  height: 30px;
+  padding: 0 0.6rem;
   font-size: 0.75rem;
-  border-radius: 4px;
+  font-weight: 600;
+  border-radius: 6px;
+  white-space: nowrap;
 }
 
 .btn-table-primary { background: #2563eb; color: #fff; }
@@ -247,75 +252,15 @@ textarea:focus {
 .btn-table-success { background: #16a34a; color: #fff; }
 .btn-table-neutral { background: #e5e7eb; color: #374151; }
 
-/* ==========================
-   CHARTS & BARS
-========================== */
-.bar-track,
-.money-track {
-  background: #f1f5f9;
-  border-radius: 8px;
-  overflow: hidden;
+.btn-table:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.bar-fill {
-  background: #4f46e5;
-}
-
-.money-fill.expenses { background: #ef4444; }
-.money-fill.net { background: #7c3aed; }
-
-/* ==========================
-   LOADER
-========================== */
-.loader {
-  width: 30px;
-  height: 30px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #4f46e5;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-/* ==========================
-   FULL SCREEN LOADER
-========================== */
-.loader-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(248, 249, 250, 0.85); /* semi-transparent background */
+.table-actions {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  gap: 0.5rem;
   align-items: center;
-  z-index: 9999;
-}
-
-.loader-message {
-  margin-top: 1rem;
-  font-size: 1.2rem;
-  color: #4f46e5;
-  font-weight: 500;
-}
-
-/* ==========================
-   HOME / LANDING PAGE
-========================== */
-.home-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f9fafb, #eef2ff);
-  padding: 2rem;
-}
-
-.home-hero {
-  text-align: center;
-  max-width: 800px;
-  margin: 5rem auto 3rem;
 }
 
 /* ==========================
@@ -325,43 +270,12 @@ textarea:focus {
   .dashboard-layout {
     grid-template-columns: 1fr;
   }
-
-  .sidebar {
-    flex-direction: row;
-    overflow-x: auto;
-    border-right: none;
-    border-bottom: 1px solid #ddd;
-  }
-
-  .sidebar-links {
-    flex-direction: row;
-  }
 }
 
 @media (max-width: 768px) {
   .dashboard-navbar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 0.6rem;
   }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .sidebar-links a {
-    font-size: 0.9rem;
-    padding: 0.3rem 0.5rem;
-  }
-}
-/* Profile Highlight Card */
-.card p {
-  font-size: 0.95rem;
-}
-
-/* Role Request CTA emphasis */
-.card .btn {
-  margin-top: 0.5rem;
 }

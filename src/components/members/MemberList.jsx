@@ -1,5 +1,5 @@
 // src/components/members/MemberList.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { MembersAPI } from "../../utils/api";
 import { memberFields } from "../../utils/memberFields";
@@ -13,13 +13,15 @@ export default function MemberList({ department, refreshKey }) {
   const fields = config?.fields ?? [];
 
   // ---------------- FETCH MEMBERS ----------------
-  const loadMembers = async () => {
+  const loadMembers = useCallback(async () => {
     if (!department) return;
 
     setLoading(true);
     try {
-      const data = await MembersAPI.fetchAll(department);
-      setMembers(data?.members ?? []);
+      const res = await MembersAPI.fetchAll(department);
+
+      // Endpoint returns: { members: [...] }
+      setMembers(Array.isArray(res?.members) ? res.members : []);
     } catch (err) {
       console.error("Load members error:", err);
       toast.error(err.message || "Failed to fetch members");
@@ -27,11 +29,11 @@ export default function MemberList({ department, refreshKey }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [department]);
 
   useEffect(() => {
     loadMembers();
-  }, [department, refreshKey]);
+  }, [loadMembers, refreshKey]);
 
   // ---------------- DELETE MEMBER ----------------
   const handleDelete = async (id) => {
@@ -42,7 +44,7 @@ export default function MemberList({ department, refreshKey }) {
 
     try {
       await MembersAPI.remove(id);
-      setMembers(prev => prev.filter(m => m.id !== id));
+      setMembers((prev) => prev.filter((m) => m.id !== id));
       toast.success("Member deleted successfully", { id: toastId });
     } catch (err) {
       console.error("Delete member error:", err);
@@ -83,17 +85,17 @@ export default function MemberList({ department, refreshKey }) {
   return (
     <div className="dashboard-content">
       <div className="card">
-        <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "0.75rem" }}>
+        <h2 className="text-lg font-semibold mb-3">
           {department} Members
         </h2>
 
         {members.length === 0 ? (
-          <p style={{ color: "#6b7280" }}>No members found.</p>
+          <p className="text-gray-500">No members found.</p>
         ) : (
           <table className="member-list-table">
             <thead>
               <tr>
-                {fields.map(f => (
+                {fields.map((f) => (
                   <th key={f.name}>{f.label}</th>
                 ))}
                 <th>Actions</th>
@@ -101,10 +103,14 @@ export default function MemberList({ department, refreshKey }) {
             </thead>
 
             <tbody>
-              {members.map(member => (
+              {members.map((member) => (
                 <tr key={member.id}>
-                  {fields.map(f => (
-                    <td key={f.name}>{member[f.name] ?? "-"}</td>
+                  {fields.map((f) => (
+                    <td key={f.name}>
+                      {member[f.name] !== null && member[f.name] !== undefined
+                        ? member[f.name]
+                        : "-"}
+                    </td>
                   ))}
 
                   <td>
