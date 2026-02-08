@@ -3,7 +3,7 @@ import { DEPARTMENTS } from "./departments";
 
 export const memberFields = {
   // ------------------------
-  // Youth (stored in members table)
+  // Youth Members
   // ------------------------
   [DEPARTMENTS.YOUTH]: {
     table: "members",
@@ -14,7 +14,7 @@ export const memberFields = {
       { name: "email", label: "Email", type: "email", required: true },
       {
         name: "department",
-        label: "Select Department",
+        label: "Department",
         type: "select",
         options: ["Youth", "Adults", "Women", "Men"],
         required: true,
@@ -30,7 +30,7 @@ export const memberFields = {
   },
 
   // ------------------------
-  // Children (stored in children table)
+  // Children
   // ------------------------
   [DEPARTMENTS.CHILDREN]: {
     table: "children",
@@ -46,12 +46,11 @@ export const memberFields = {
       },
       { name: "parent_name", label: "Parent's Name", type: "text", required: true },
       { name: "parent_phone", label: "Parent's Phone", type: "text", required: true },
-      { name: "department", type: "hidden", value: "children" }, // automatically set
     ],
   },
 
   // ------------------------
-  // General Members (other adult members stored in members table)
+  // General Adult Members
   // ------------------------
   [DEPARTMENTS.MEMBERS]: {
     table: "members",
@@ -61,7 +60,7 @@ export const memberFields = {
       { name: "date_of_birth", label: "Date of Birth", type: "date", required: true },
       {
         name: "department",
-        label: "Select Department",
+        label: "Department",
         type: "select",
         options: ["Adults", "Women", "Men"],
         required: true,
@@ -77,7 +76,7 @@ export const memberFields = {
   },
 
   // ------------------------
-  // Communication Members (optional separate table)
+  // Communication Team
   // ------------------------
   [DEPARTMENTS.COMMUNICATION]: {
     table: "communication_members",

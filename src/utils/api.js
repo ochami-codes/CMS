@@ -102,19 +102,39 @@ export const AuthAPI = {
     }),
 };
 /* ======================
-   ATTENDANCE API
+   Attendance API
 ====================== */
 export const AttendanceAPI = {
+  /**
+   * Fetch attendance records for a given department on a specific date
+   * @param {string} department
+   * @param {string} date - YYYY-MM-DD
+   * @returns {Promise<{records: Array}>}
+   */
   fetch: (department, date) =>
     request(
       `/attendance?department=${encodeURIComponent(department)}&date=${date}`
     ),
 
+  /**
+   * Save attendance records
+   * @param {Array} records - [{ member_id, department, date, present, notes?, service_type? }]
+   */
   save: (records) =>
     request("/attendance", {
       method: "POST",
       body: JSON.stringify({ records }),
     }),
+
+  /**
+   * Fetch aggregated attendance summary
+   * @param {string} department
+   * @param {string} period - "month" | "year"
+   */
+  summary: (department, period) =>
+    request(
+      `/attendance/summary?department=${encodeURIComponent(department)}&period=${period}`
+    ),
 };
 /* ======================
    ANNOUNCEMENTS / COMMUNICATION API
