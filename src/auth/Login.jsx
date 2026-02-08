@@ -12,7 +12,6 @@ export default function Login() {
   const location = useLocation();
 
   const { user, login, loading: authLoading } = useAuth();
-
   const verified = location.state?.verified;
 
   const [email, setEmail] = useState("");
@@ -25,9 +24,7 @@ export default function Login() {
      Redirect once authenticated
   -------------------------------------------------- */
   useEffect(() => {
-    if (user) {
-      navigate("/dashboard", { replace: true });
-    }
+    if (user) navigate("/dashboard", { replace: true });
   }, [user, navigate]);
 
   /* --------------------------------------------------
@@ -43,7 +40,6 @@ export default function Login() {
 
     try {
       await login({ email, password });
-      // AuthContext handles redirect
     } catch (err) {
       console.error(err);
       setError(err?.message || "Login failed. Please try again.");
@@ -56,10 +52,7 @@ export default function Login() {
      Resend verification
   -------------------------------------------------- */
   const handleResendVerification = async () => {
-    if (!email) {
-      setResendMessage("Please enter your email first.");
-      return;
-    }
+    if (!email) return setResendMessage("Please enter your email first.");
 
     try {
       await AuthAPI.resendVerification(email);
@@ -72,34 +65,28 @@ export default function Login() {
   /* --------------------------------------------------
      Global auth loader
   -------------------------------------------------- */
-  if (authLoading) {
-    return <Loader message="Checking session… God loves you!" />;
-  }
+  if (authLoading) return <Loader message="Checking session… God loves you!" />;
 
   /* --------------------------------------------------
      UI
   -------------------------------------------------- */
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
-      <div className="w-full max-w-md card p-6 shadow-md">
-        <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
+      <div className="w-full max-w-md card p-6 space-y-4 shadow-md">
+        <h2 className="text-2xl font-bold text-center">Login</h2>
 
+        {/* Verification / Error Messages */}
         {verified && (
-          <p className="text-green-600 text-sm text-center mb-3">
+          <p className="text-green-600 text-sm text-center">
             Registration successful! Please log in.
           </p>
         )}
-
-        {error && (
-          <p className="text-red-600 text-sm text-center mb-3">{error}</p>
-        )}
-
+        {error && <p className="text-red-600 text-sm text-center">{error}</p>}
         {resendMessage && (
-          <p className="text-blue-600 text-sm text-center mb-3">
-            {resendMessage}
-          </p>
+          <p className="text-blue-600 text-sm text-center">{resendMessage}</p>
         )}
 
+        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             type="email"
@@ -119,29 +106,19 @@ export default function Login() {
           />
 
           {error.toLowerCase().includes("verify") && (
-            <Button
-              type="button"
-              className="w-full"
-              onClick={handleResendVerification}
-            >
+            <Button type="button" className="w-full" onClick={handleResendVerification}>
               Resend verification email
             </Button>
           )}
 
-          <Button
-            type="submit"
-            disabled={submitting}
-            className="w-full"
-          >
+          <Button type="submit" disabled={submitting} className="w-full">
             {submitting ? "Logging in…" : "Login"}
           </Button>
         </form>
 
-        <div className="mt-4 text-center">
-          <Link
-            to="/reset-password"
-            className="text-blue-600 hover:underline text-sm"
-          >
+        {/* Forgot Password */}
+        <div className="text-center mt-2">
+          <Link to="/reset-password" className="text-blue-600 hover:underline text-sm">
             Forgot password?
           </Link>
         </div>

@@ -1,5 +1,5 @@
 // src/components/members/Attendance.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { MembersAPI, AttendanceAPI } from "../../utils/api";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -18,37 +18,36 @@ export default function Attendance({ department }) {
   const [yearlyData, setYearlyData] = useState([]);
 
   // ---------------- FETCH MEMBERS & ATTENDANCE ----------------
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!department) return;
+    setLoading(true);
+    try {
+      const membersData = await MembersAPI.fetchAll(department);
+      setMembers(membersData?.members ?? []);
 
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const membersData = await MembersAPI.fetchAll(department);
-        setMembers(membersData?.members ?? []);
+      const attendanceRecords = await AttendanceAPI.fetch(department, today);
+      const map = {};
+      const notesMap = {};
+      attendanceRecords?.records?.forEach((r) => {
+        map[r.member_id] = r.present;
+        notesMap[r.member_id] = r.notes || "";
+      });
+      setAttendance(map);
+      setNotes(notesMap);
 
-        const attendanceRecords = await AttendanceAPI.fetch(department, today);
-        const map = {};
-        const notesMap = {};
-        attendanceRecords?.records?.forEach((r) => {
-          map[r.member_id] = r.present;
-          notesMap[r.member_id] = r.notes || "";
-        });
-        setAttendance(map);
-        setNotes(notesMap);
-
-        await fetchSummary("month");
-        await fetchSummary("year");
-      } catch (err) {
-        console.error("Attendance fetch error:", err);
-        toast.error(err.message || "Error fetching attendance");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+      await fetchSummary("month");
+      await fetchSummary("year");
+    } catch (err) {
+      console.error("Attendance fetch error:", err);
+      toast.error(err.message || "Error fetching attendance");
+    } finally {
+      setLoading(false);
+    }
   }, [department, today]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // ---------------- FETCH SUMMARY ----------------
   const fetchSummary = async (period = "month") => {
@@ -78,7 +77,7 @@ export default function Attendance({ department }) {
       date: today,
       present: attendance[m.id] ?? false,
       notes: notes[m.id] ?? "",
-      service_type,
+      service_type: serviceType, // ✅ consistent use
     }));
 
     try {

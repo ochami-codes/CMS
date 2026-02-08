@@ -12,50 +12,47 @@ export default function YouthDashboard() {
   };
 
   return (
-    <div className="dashboard-layout" style={{ maxWidth: 1100, margin: "0 auto", padding: "1.5rem" }}>
-      <h1 className="page-title">Youth Department</h1>
-      <p className="page-subtext">
-        Manage youth members, programs, and attendance records.
-      </p>
+    <div className="dashboard-content">
+      {/* Page Header */}
+      <header className="mb-6">
+        <h1 className="text-2xl font-bold mb-1">Youth Department</h1>
+        <p className="text-gray-700 text-sm">
+          Manage youth members, programs, and attendance records.
+        </p>
+      </header>
 
-      {/* Overview cards */}
-      <div className="stats-grid" style={{ marginTop: "1.5rem", marginBottom: "2.5rem" }}>
-        <div className="stat-card">
-          <h3>Youth Members</h3>
-          <p>Register and manage youth membership.</p>
+      {/* Overview Cards */}
+      <div className="stats-grid mb-8">
+        <div className="stat-card card p-4">
+          <h3 className="font-semibold mb-1">Youth Members</h3>
+          <p className="text-gray-700 text-sm">Register and manage youth membership.</p>
         </div>
 
-        <div className="stat-card">
-          <h3>Programs & Activities</h3>
-          <p>Track youth events, fellowships, and outreach.</p>
+        <div className="stat-card card p-4">
+          <h3 className="font-semibold mb-1">Programs & Activities</h3>
+          <p className="text-gray-700 text-sm">Track youth events, fellowships, and outreach.</p>
         </div>
 
-        <div className="stat-card">
-          <h3>Attendance</h3>
-          <p>Record Sabbath and program attendance.</p>
+        <div className="stat-card card p-4">
+          <h3 className="font-semibold mb-1">Attendance</h3>
+          <p className="text-gray-700 text-sm">Record Sabbath and program attendance.</p>
         </div>
       </div>
 
       {/* Add Member */}
-      <section style={{ marginBottom: "2.5rem" }}>
-        <AddMember
-          department="youth"
-          onMemberAdded={handleMemberAdded}
-        />
+      <section className="mb-8">
+        <AddMember department="youth" onMemberAdded={handleMemberAdded} />
       </section>
 
       {/* Member List */}
-      <section style={{ marginBottom: "2.5rem" }}>
-        <h2 className="section-title">Youth Members</h2>
-        <MemberList
-          department="youth"
-          refreshKey={refreshKey}
-        />
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-3">Youth Members</h2>
+        <MemberList department="youth" refreshKey={refreshKey} />
       </section>
 
       {/* Attendance */}
       <section>
-        <h2 className="section-title">Attendance</h2>
+        <h2 className="text-xl font-semibold mb-3">Attendance</h2>
         <Attendance department="youth" />
       </section>
     </div>

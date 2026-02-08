@@ -1,24 +1,29 @@
 // src/layouts/PublicLayout.jsx
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link } from "react-router-dom";
+
 export default function PublicLayout() {
   return (
-    <div>
+    <div className="public-layout">
       {/* Navbar */}
-      <nav style={{ padding: '1rem 2rem', backgroundColor: '#4f46e5', color: '#fff' }}>
-        <h1 style={{ display: 'inline' }}>ChurchApp</h1>
-        <div style={{ float: 'right' }}>
-          <Link to="/login" style={{ marginRight: '1rem', color: '#fff' }}>Login</Link>
-          <Link to="/register" style={{ color: '#fff' }}>Register</Link>
+      <nav className="navbar">
+        <h1 className="navbar-brand">ChurchApp</h1>
+        <div className="navbar-links">
+          <Link to="/login" className="btn btn-secondary btn-sm">
+            Login
+          </Link>
+          <Link to="/register" className="btn btn-primary btn-sm">
+            Register
+          </Link>
         </div>
       </nav>
 
       {/* Page Content */}
-      <main className="container" style={{ padding: '2rem 0' }}>
+      <main className="container">
         <Outlet />
       </main>
 
       {/* Footer */}
-      <footer style={{ textAlign: 'center', padding: '1rem', backgroundColor: '#f3f4f6', marginTop: '2rem' }}>
+      <footer className="footer">
         &copy; {new Date().getFullYear()} ChurchApp. All rights reserved.
       </footer>
     </div>

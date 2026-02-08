@@ -42,6 +42,76 @@ button {
 }
 
 /* ==========================
+   PUBLIC LAYOUT
+========================== */
+.public-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+/* --------------------------
+   Navbar
+-------------------------- */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #4f46e5;
+  color: #fff;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.navbar-links .btn {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.9rem;
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+.navbar-links .btn:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+/* --------------------------
+   Main Content
+-------------------------- */
+main.container {
+  flex: 1;
+  padding: 2rem 1rem;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* --------------------------
+   Footer
+-------------------------- */
+.footer {
+  text-align: center;
+  padding: 1rem;
+  background-color: #f3f4f6;
+  margin-top: auto;
+  font-size: 0.9rem;
+  color: #4b5563;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ==========================
    BUTTONS (GLOBAL)
 ========================== */
 .btn {
@@ -173,6 +243,7 @@ select:disabled {
   flex-direction: column;
   gap: 1.5rem;
 }
+
 /* ==========================
    DASHBOARD PAGE WRAPPER
 ========================== */
@@ -183,7 +254,7 @@ select:disabled {
 }
 
 /* ==========================
-   NAVBAR
+   DASHBOARD NAVBAR
 ========================== */
 .dashboard-navbar {
   display: flex;
@@ -211,7 +282,74 @@ select:disabled {
 }
 
 /* ==========================
-   TABLES (REBUILT)
+   LOADER (DASHBOARD CARD STYLE)
+========================== */
+.loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(248, 249, 250, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.loader-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  background: #fff;
+  max-width: 90%;
+  width: 300px;
+}
+
+.loader {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #4f46e5;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loader-text {
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #4f46e5;
+  text-align: center;
+  word-break: break-word;
+}
+
+/* Responsive adjustments for loader */
+@media (max-width: 480px) {
+  .loader-card {
+    padding: 1rem 1.25rem;
+    width: 90%;
+  }
+  .loader {
+    width: 30px;
+    height: 30px;
+  }
+  .loader-text {
+    font-size: 1rem;
+  }
+}
+
+/* ==========================
+   TABLES
 ========================== */
 .table {
   width: 100%;
@@ -255,10 +393,10 @@ select:disabled {
   white-space: nowrap;
 }
 
-.btn-table-primary { background: #2563eb; color: #fff; }
-.btn-table-danger  { background: #dc2626; color: #fff; }
-.btn-table-success { background: #16a34a; color: #fff; }
-.btn-table-neutral { background: #e5e7eb; color: #374151; }
+.btn-table-primary   { background: #2563eb; color: #fff; }
+.btn-table-danger    { background: #dc2626; color: #fff; }
+.btn-table-success   { background: #16a34a; color: #fff; }
+.btn-table-neutral   { background: #e5e7eb; color: #374151; }
 
 .btn-table:disabled {
   opacity: 0.6;

@@ -13,9 +13,9 @@ import {
 } from "../utils/api";
 import { hasRole, isAdmin } from "../utils/permissions";
 
-/* ======================================================
-   🇰🇪 KENYA SABBATH HELPERS
-====================================================== */
+/* ========================
+   KENYA SABBATH HELPERS
+======================== */
 const isSabbathNow = () => {
   const now = new Date();
   const day = now.getDay();
@@ -60,9 +60,9 @@ const birthdayCountdown = (dob) => {
   };
 };
 
-/* ======================================================
+/* ========================
    DASHBOARD
-====================================================== */
+======================== */
 export default function Dashboard() {
   const { profile } = useAuth();
 
@@ -139,12 +139,12 @@ export default function Dashboard() {
   const bday = birthdayCountdown(birthday?.birthday);
 
   return (
-    <div className="dashboard-content">
+    <div className="dashboard-content space-y-4">
       {/* Greeting */}
-      <div className="greeting-card">
-        <h2>{greeting}</h2>
+      <div className="card greeting-card">
+        <h2 className="text-lg font-semibold">{greeting}</h2>
         {verse && (
-          <p>
+          <p className="mt-1 text-sm text-gray-700">
             <strong>{verse.reference}:</strong> {verse.text}
           </p>
         )}
@@ -153,7 +153,7 @@ export default function Dashboard() {
       {/* Church */}
       {church && (
         <div className="card">
-          <h3>⛪ My Church</h3>
+          <h3 className="text-md font-semibold mb-1">⛪ My Church</h3>
           <p>{church}</p>
         </div>
       )}
@@ -161,7 +161,7 @@ export default function Dashboard() {
       {/* Sabbath Countdown */}
       {!isSabbathNow() && sabbathTimer && (
         <div className="card">
-          <h3>🌅 Sabbath Countdown</h3>
+          <h3 className="text-md font-semibold mb-1">🌅 Sabbath Countdown</h3>
           <p>
             Begins in{" "}
             <strong>
@@ -177,19 +177,19 @@ export default function Dashboard() {
         {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
           <Link to="/dashboard/treasury" className="stat-card">
             <h3>💰 Treasury</h3>
-            <p>View church finances</p>
+            <p className="text-sm text-gray-600">View church finances</p>
           </Link>
         )}
         {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
           <Link to="/dashboard/youth" className="stat-card">
             <h3>🧑‍🤝‍🧑 Youth Ministry</h3>
-            <p>Attendance & programs</p>
+            <p className="text-sm text-gray-600">Attendance & programs</p>
           </Link>
         )}
         {isAdmin(profile.role_name) && (
           <Link to="/dashboard/admin" className="stat-card">
             <h3>🛠 Admin Panel</h3>
-            <p>Members & roles</p>
+            <p className="text-sm text-gray-600">Members & roles</p>
           </Link>
         )}
       </div>
@@ -199,12 +199,14 @@ export default function Dashboard() {
         <div className="card">
           {birthday.isBirthday ? (
             <>
-              <h3>🎉 Happy Birthday!</h3>
-              <p>“The Lord bless you and keep you” — Numbers 6:24</p>
+              <h3 className="text-md font-semibold mb-1">🎉 Happy Birthday!</h3>
+              <p className="text-sm text-gray-700">
+                “The Lord bless you and keep you” — Numbers 6:24
+              </p>
             </>
           ) : (
             <>
-              <h3>🎈 Birthday Countdown</h3>
+              <h3 className="text-md font-semibold mb-1">🎈 Birthday Countdown</h3>
               {bday && (
                 <p>
                   In{" "}
@@ -222,18 +224,18 @@ export default function Dashboard() {
       {/* Other Birthdays */}
       {(todayBirthdays.length > 0 || upcomingBirthdays.length > 0) && (
         <div className="card">
-          <h3>🎂 Church Birthdays</h3>
+          <h3 className="text-md font-semibold mb-2">🎂 Church Birthdays</h3>
           <div className="stats-grid">
             {todayBirthdays.map((b) => (
               <div key={b.id} className="stat-card">
-                <h4>{b.full_name}</h4>
-                <p>Today 🎉</p>
+                <h4 className="font-medium">{b.full_name}</h4>
+                <p className="text-sm text-gray-600">Today 🎉</p>
               </div>
             ))}
             {upcomingBirthdays.map((b) => (
               <div key={b.id} className="stat-card">
-                <h4>{b.full_name}</h4>
-                <p>Coming soon</p>
+                <h4 className="font-medium">{b.full_name}</h4>
+                <p className="text-sm text-gray-600">Coming soon</p>
               </div>
             ))}
           </div>
@@ -241,16 +243,18 @@ export default function Dashboard() {
       )}
 
       {/* Announcements */}
-      <div className="announcement-section">
-        <h3>📢 Announcements</h3>
+      <div className="card space-y-2">
+        <h3 className="text-md font-semibold mb-2">📢 Announcements</h3>
         {announcements.length === 0 ? (
-          <p>No recent announcements.</p>
+          <p className="text-sm text-gray-600">No recent announcements.</p>
         ) : (
           announcements.map((a) => (
             <div key={a.id} className="announcement-card">
-              <h4>{a.title}</h4>
-              <p>{a.message}</p>
-              <span>{new Date(a.created_at).toLocaleDateString()}</span>
+              <h4 className="font-medium">{a.title}</h4>
+              <p className="text-sm text-gray-700">{a.message}</p>
+              <span className="text-xs text-gray-500">
+                {new Date(a.created_at).toLocaleDateString()}
+              </span>
             </div>
           ))
         )}
