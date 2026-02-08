@@ -1,6 +1,6 @@
 // src/components/members/MemberList.jsx
 import { useEffect, useState, useCallback } from "react";
-import toast from "react-hot-toast";
+import { useToast } from "../ToastProvider";
 import { MembersAPI } from "../../utils/api";
 import { memberFields } from "../../utils/memberFields";
 import { DEPARTMENT_LABELS } from "../../utils/departmentLabels";
@@ -9,6 +9,8 @@ export default function MemberList({ department, refreshKey }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
+
+  const { showToast } = useToast(); // use global toast
 
   const config = memberFields[department];
   const fields = config?.fields ?? [];
@@ -26,12 +28,12 @@ export default function MemberList({ department, refreshKey }) {
       setMembers(Array.isArray(res?.members) ? res.members : []);
     } catch (err) {
       console.error("Load members error:", err);
-      toast.error(err.message || "Failed to fetch members");
+      showToast(err.message || "Failed to fetch members", "error");
       setMembers([]);
     } finally {
       setLoading(false);
     }
-  }, [department]);
+  }, [department, showToast]);
 
   useEffect(() => {
     loadMembers();
@@ -42,15 +44,14 @@ export default function MemberList({ department, refreshKey }) {
     if (!window.confirm("Are you sure you want to delete this member?")) return;
 
     setDeletingId(id);
-    const toastId = toast.loading("Deleting member...");
 
     try {
       await MembersAPI.remove(id);
       setMembers((prev) => prev.filter((m) => m.id !== id));
-      toast.success("Member deleted successfully", { id: toastId });
+      showToast("Member deleted successfully", "success");
     } catch (err) {
       console.error("Delete member error:", err);
-      toast.error(err.message || "Failed to delete member", { id: toastId });
+      showToast(err.message || "Failed to delete member", "error");
     } finally {
       setDeletingId(null);
     }

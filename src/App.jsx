@@ -1,7 +1,7 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-
+import { ToastProvider } from "./components/ToastProvider";
 // Layouts
 import PublicLayout from "./layouts/PublicLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
@@ -40,6 +40,7 @@ import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
+<ToastProvider>
     <Router>
       <AuthProvider>
         <Toaster position="top-right" reverseOrder={false} />
@@ -130,6 +131,7 @@ function App() {
         </Routes>
       </AuthProvider>
     </Router>
+</ToastProvider>
   );
 }
 
