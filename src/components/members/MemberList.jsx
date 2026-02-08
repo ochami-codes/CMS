@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { MembersAPI } from "../../utils/api";
 import { memberFields } from "../../utils/memberFields";
+import { DEPARTMENT_LABELS } from "../../utils/departmentLabels";
 
 export default function MemberList({ department, refreshKey }) {
   const [members, setMembers] = useState([]);
@@ -12,6 +13,9 @@ export default function MemberList({ department, refreshKey }) {
   const config = memberFields[department];
   const fields = config?.fields ?? [];
 
+  const departmentLabel =
+    DEPARTMENT_LABELS[department] ?? department;
+
   // ---------------- FETCH MEMBERS ----------------
   const loadMembers = useCallback(async () => {
     if (!department) return;
@@ -19,8 +23,6 @@ export default function MemberList({ department, refreshKey }) {
     setLoading(true);
     try {
       const res = await MembersAPI.fetchAll(department);
-
-      // Endpoint returns: { members: [...] }
       setMembers(Array.isArray(res?.members) ? res.members : []);
     } catch (err) {
       console.error("Load members error:", err);
@@ -67,7 +69,7 @@ export default function MemberList({ department, refreshKey }) {
     return (
       <div className="dashboard-content">
         <div className="card">
-          No member configuration for "{department}".
+          No member configuration for <strong>{departmentLabel}</strong>.
         </div>
       </div>
     );
@@ -86,7 +88,7 @@ export default function MemberList({ department, refreshKey }) {
     <div className="dashboard-content">
       <div className="card">
         <h2 className="text-lg font-semibold mb-3">
-          {department} Members
+          {departmentLabel} Members
         </h2>
 
         {members.length === 0 ? (
@@ -107,9 +109,7 @@ export default function MemberList({ department, refreshKey }) {
                 <tr key={member.id}>
                   {fields.map((f) => (
                     <td key={f.name}>
-                      {member[f.name] !== null && member[f.name] !== undefined
-                        ? member[f.name]
-                        : "-"}
+                      {member[f.name] ?? "-"}
                     </td>
                   ))}
 
