@@ -40,6 +40,15 @@ export const MembersAPI = {
     request(`/members/${id}`, { method: "DELETE" }),
 };
 /* ======================
+   DEPARTMENTS API
+====================== */
+export const DepartmentsAPI = {
+  fetchAll: () => request("/departments"),
+
+  // optional helpers (future-proofing)
+  fetchById: (id) => request(`/departments/${id}`),
+};
+/* ======================
    TREASURY API
 ====================== */
 export const TreasuryAPI = {

@@ -1,7 +1,8 @@
 // src/components/members/AddMember.jsx
-import { useState, useMemo } from "react";
-import { memberFields } from "../../utils/memberFields";
-import { MembersAPI } from "../../utils/api";
+import { useState, useMemo, useEffect } from "react";
+import { memberFields } from "../../utils/memberFields.js";
+import { DepartmentsAPI, MembersAPI } from "../../utils/api";
+import { useToast } from "../ToastProvider";
 
 export default function AddMember({ department, onMemberAdded }) {
   const config = memberFields[department];
@@ -14,7 +15,23 @@ export default function AddMember({ department, onMemberAdded }) {
 
   const [formData, setFormData] = useState(initialState);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [departmentsList, setDepartmentsList] = useState([]);
+
+  const { showToast } = useToast(); // use global toast
+
+  // ---------------- FETCH DEPARTMENTS ----------------
+  useEffect(() => {
+    const loadDepartments = async () => {
+      try {
+        const res = await DepartmentsAPI.fetchAll();
+        setDepartmentsList(res ?? []);
+      } catch (err) {
+        console.error("Load departments error:", err);
+        showToast("Failed to load departments", "error");
+      }
+    };
+    loadDepartments();
+  }, [showToast]);
 
   if (!fields.length) {
     return (
@@ -30,11 +47,11 @@ export default function AddMember({ department, onMemberAdded }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
 
+    // Validate required fields
     for (const field of fields) {
       if (field.required && !formData[field.name]) {
-        setError(`${field.label} is required`);
+        showToast(`${field.label} is required`, "error");
         return;
       }
     }
@@ -44,15 +61,14 @@ export default function AddMember({ department, onMemberAdded }) {
       const payload = { ...formData, department };
       const result = await MembersAPI.add(payload);
 
-      if (!result?.member) {
-        throw new Error("Failed to add member");
-      }
+      if (!result?.member) throw new Error("Failed to add member");
 
       setFormData(initialState);
+      showToast("Member added successfully", "success");
       onMemberAdded?.(result.member);
     } catch (err) {
       console.error("AddMember error:", err);
-      setError(err.message || "Failed to add member");
+      showToast(err.message || "Failed to add member", "error");
     } finally {
       setLoading(false);
     }
@@ -61,15 +77,9 @@ export default function AddMember({ department, onMemberAdded }) {
   return (
     <div className="dashboard-content">
       <div className="card">
-        <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "1rem" }}>
+        <h2 className="text-lg font-semibold mb-4">
           Add Member – {department}
         </h2>
-
-        {error && (
-          <p style={{ color: "#dc2626", marginBottom: "1rem" }}>
-            {error}
-          </p>
-        )}
 
         <form onSubmit={handleSubmit}>
           {fields.map(f => (
@@ -81,16 +91,21 @@ export default function AddMember({ department, onMemberAdded }) {
                   value={formData[f.name] || ""}
                   onChange={e => handleChange(e, f.name)}
                   required={f.required}
-                  style={{
-                    padding: "0.55rem 0.75rem",
-                    borderRadius: "6px",
-                    border: "1px solid #cbd5e0",
-                  }}
+                  className="input"
                 >
-                  <option value="">Select {f.label}</option>
-                  {f.options?.map(opt => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
+                  <option value="">
+                    {f.name === "department" ? "Select Department" : `Select ${f.label}`}
+                  </option>
+                  {f.name === "department"
+                    ? departmentsList.map(d => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))
+                    : f.options?.map(opt => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))
+                  }
                 </select>
               ) : (
                 <input
@@ -98,12 +113,13 @@ export default function AddMember({ department, onMemberAdded }) {
                   value={formData[f.name] || ""}
                   onChange={e => handleChange(e, f.name)}
                   required={f.required}
+                  className="input"
                 />
               )}
             </div>
           ))}
 
-          <div style={{ marginTop: "1rem" }}>
+          <div className="mt-4">
             <button
               type="submit"
               className="btn btn-primary"

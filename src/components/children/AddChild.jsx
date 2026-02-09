@@ -1,97 +1,135 @@
 // src/components/members/AddChild.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { memberFields } from "../../utils/memberFields";
-import { DEPARTMENTS } from "../../utils/departments";
-import { ChildrenAPI } from "../../utils/api"; // centralized API
-import Button from "../Button";
-import Input from "../Input";
-import toast from "react-hot-toast";
+import { ChildrenAPI, DepartmentsAPI } from "../../utils/api";
+import { useToast } from "../ToastProvider";
 
 export default function AddChild({ onAdded }) {
-  const { fields } = memberFields[DEPARTMENTS.CHILDREN];
-
-  // Initialize form state dynamically
-  const initialState = {};
-  fields.forEach(f => (initialState[f.name] = ""));
-  const [formData, setFormData] = useState(initialState);
-
+  const { showToast } = useToast(); // global toast
+  const [departments, setDepartments] = useState([]);
+  const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
 
+  // ------------------ LOAD DEPARTMENTS ------------------
+  useEffect(() => {
+    const loadDepartments = async () => {
+      try {
+        const res = await DepartmentsAPI.fetchAll();
+        setDepartments(res ?? []);
+      } catch (err) {
+        console.error("Failed to load departments:", err);
+        showToast("Failed to load departments", "error");
+      }
+    };
+    loadDepartments();
+  }, [showToast]);
+
+  // ------------------ SETUP FORM ------------------
+  const { fields } = memberFields["children"]; // always children
+  useEffect(() => {
+    const initialState = {};
+    fields.forEach((f) => {
+      if (f.name === "department") {
+        // dynamically populate department options
+        f.options = departments.map((d) => d.name);
+      }
+      initialState[f.name] = "";
+    });
+    setFormData(initialState);
+  }, [fields, departments]);
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // ------------------ SUBMIT FORM ------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validate required fields
     for (const field of fields) {
       if (field.required && !formData[field.name]) {
-        toast.error(`${field.label} is required`);
+        showToast(`${field.label} is required`, "error");
         return;
       }
     }
 
-    // Format date fields
     const payload = { ...formData };
     if (payload.date_of_birth) {
       payload.date_of_birth = new Date(payload.date_of_birth).toISOString();
     }
 
     setLoading(true);
-    const toastId = toast.loading("Adding child...");
     try {
       const result = await ChildrenAPI.add(payload);
       if (!result) throw new Error("Failed to add child");
 
-      toast.success("Child added successfully", { id: toastId });
-      setFormData(initialState);
-      onAdded?.(); // trigger refresh in dashboard
+      showToast("Child added successfully", "success");
+
+      // reset form
+      const resetState = {};
+      fields.forEach((f) => (resetState[f.name] = ""));
+      setFormData(resetState);
+
+      onAdded?.();
     } catch (err) {
       console.error(err);
-      toast.error(err.message || "Error adding child", { id: toastId });
+      showToast(err.message || "Error adding child", "error");
     } finally {
       setLoading(false);
     }
   };
 
+  // ------------------ RENDER ------------------
   return (
-    <form className="add-member-form" onSubmit={handleSubmit}>
-      <h3>Add Child</h3>
+    <div className="dashboard-content">
+      <div className="card">
+        <h3 className="text-lg font-semibold mb-4">Add Child</h3>
 
-      {fields.map(field =>
-        field.type === "select" ? (
-          <div key={field.name} className="form-group">
-            <label>{field.label}</label>
-            <select
-              name={field.name}
-              value={formData[field.name]}
-              onChange={handleChange}
-              required={field.required}
+        <form onSubmit={handleSubmit}>
+          {fields.map((field) => (
+            <div key={field.name} className="form-group">
+              <label>{field.label}</label>
+
+              {field.type === "select" ? (
+                <select
+                  name={field.name}
+                  value={formData[field.name]}
+                  onChange={handleChange}
+                  required={field.required}
+                  className="input"
+                >
+                  <option value="">Select {field.label}</option>
+                  {field.options?.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type={field.type || "text"}
+                  name={field.name}
+                  value={formData[field.name]}
+                  onChange={handleChange}
+                  required={field.required}
+                  className="input"
+                />
+              )}
+            </div>
+          ))}
+
+          <div className="mt-4">
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading}
             >
-              <option value="">Select {field.label}</option>
-              {field.options?.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+              {loading ? "Saving..." : "Add Child"}
+            </button>
           </div>
-        ) : (
-          <div key={field.name} className="form-group">
-            <label>{field.label}</label>
-            <Input
-              type={field.type}
-              name={field.name}
-              value={formData[field.name]}
-              onChange={handleChange}
-              required={field.required}
-            />
-          </div>
-        )
-      )}
-
-      <Button type="submit" disabled={loading}>
-        {loading ? "Saving..." : "Add Child"}
-      </Button>
-    </form>
+        </form>
+      </div>
+    </div>
   );
 }

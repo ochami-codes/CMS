@@ -1,27 +1,37 @@
 // src/components/members/MemberList.jsx
 import { useEffect, useState, useCallback } from "react";
 import { useToast } from "../ToastProvider";
-import { MembersAPI } from "../../utils/api";
+import { MembersAPI, DepartmentsAPI } from "../../utils/api";
 import { memberFields } from "../../utils/memberFields";
-import { DEPARTMENT_LABELS } from "../../utils/departmentLabels";
 
-export default function MemberList({ department, refreshKey }) {
+export default function MemberList({ department, refreshKey, currentUser }) {
   const [members, setMembers] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
 
-  const { showToast } = useToast(); // use global toast
+  const { showToast } = useToast();
 
   const config = memberFields[department];
   const fields = config?.fields ?? [];
 
-  const departmentLabel =
-    DEPARTMENT_LABELS[department] ?? department;
+  // ---------------- FETCH DEPARTMENTS ----------------
+  useEffect(() => {
+    const loadDepartments = async () => {
+      try {
+        const res = await DepartmentsAPI.fetchAll();
+        setDepartments(res ?? []);
+      } catch (err) {
+        console.error("Load departments error:", err);
+        showToast("Failed to fetch departments", "error");
+      }
+    };
+    loadDepartments();
+  }, [showToast]);
 
   // ---------------- FETCH MEMBERS ----------------
   const loadMembers = useCallback(async () => {
     if (!department) return;
-
     setLoading(true);
     try {
       const res = await MembersAPI.fetchAll(department);
@@ -44,7 +54,6 @@ export default function MemberList({ department, refreshKey }) {
     if (!window.confirm("Are you sure you want to delete this member?")) return;
 
     setDeletingId(id);
-
     try {
       await MembersAPI.remove(id);
       setMembers((prev) => prev.filter((m) => m.id !== id));
@@ -55,6 +64,13 @@ export default function MemberList({ department, refreshKey }) {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  // ---------------- EDIT MEMBER ----------------
+  const handleEdit = (id) => {
+    // Only Admin or Church Clerk can edit
+    if (!["Admin", "Clerk"].includes(currentUser?.role)) return;
+    window.location.href = `/members/${department}/edit/${id}`;
   };
 
   // ---------------- UI STATES ----------------
@@ -69,9 +85,7 @@ export default function MemberList({ department, refreshKey }) {
   if (!fields.length) {
     return (
       <div className="dashboard-content">
-        <div className="card">
-          No member configuration for <strong>{departmentLabel}</strong>.
-        </div>
+        <div className="card">No member configuration for this department.</div>
       </div>
     );
   }
@@ -89,7 +103,7 @@ export default function MemberList({ department, refreshKey }) {
     <div className="dashboard-content">
       <div className="card">
         <h2 className="text-lg font-semibold mb-3">
-          {departmentLabel} Members
+          {departments.find((d) => d.code === department)?.name ?? department} Members
         </h2>
 
         {members.length === 0 ? (
@@ -109,12 +123,19 @@ export default function MemberList({ department, refreshKey }) {
               {members.map((member) => (
                 <tr key={member.id}>
                   {fields.map((f) => (
-                    <td key={f.name}>
-                      {member[f.name] ?? "-"}
-                    </td>
+                    <td key={f.name}>{member[f.name] ?? "-"}</td>
                   ))}
 
                   <td>
+                    {["Admin", "Clerk"].includes(currentUser?.role) && (
+                      <button
+                        onClick={() => handleEdit(member.id)}
+                        className="btn-table btn-table-primary"
+                        style={{ marginRight: "0.5rem" }}
+                      >
+                        Edit
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDelete(member.id)}
                       disabled={deletingId === member.id}
