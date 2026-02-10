@@ -40,7 +40,7 @@ export default function Register() {
   const sanitizeChurchBaseName = (value) =>
     value
       .replace(/\b(sda|church|seventh day adventist)\b/gi, "")
-      .replace(/\s+/g, " ")
+      .replace(/\s{2,}/g, " ") // replace multiple spaces with single space
       .trim();
 
   const handleChange = (e) => {
@@ -103,11 +103,11 @@ export default function Register() {
   }
 
   return (
-    <div className="container" style={{ maxWidth: "480px", marginTop: "3rem" }}>
-      <div className="card space-y-4 p-6">
-        <h2 className="text-xl font-semibold">Create an Account</h2>
+    <div className="container max-w-md mt-12">
+      <div className="card p-6 space-y-6">
+        <h2 className="text-2xl font-semibold text-center">Create an Account</h2>
 
-        {errors.global && <p className="text-red-600">{errors.global}</p>}
+        {errors.global && <p className="text-red-600 text-center">{errors.global}</p>}
 
         <form onSubmit={handleRegister} className="space-y-4">
           <Input label="Full Name" name="fullName" value={form.fullName} onChange={handleChange} />
@@ -130,7 +130,12 @@ export default function Register() {
 
           <div className="form-group">
             <label>Gender</label>
-            <select name="gender" value={form.gender} onChange={handleChange}>
+            <select
+              name="gender"
+              value={form.gender}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-200"
+            >
               <option value="">Select gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
@@ -140,7 +145,12 @@ export default function Register() {
 
           <div className="form-group">
             <label>Conference</label>
-            <select name="conference" value={form.conference} onChange={handleChange}>
+            <select
+              name="conference"
+              value={form.conference}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-200"
+            >
               <option value="">Select your conference</option>
               {kenyaConferences.map((conf) => (
                 <option key={conf} value={conf}>{conf}</option>
@@ -155,14 +165,11 @@ export default function Register() {
                 type="text"
                 name="churchBaseName"
                 value={form.churchBaseName}
-                onChange={(e) => {
-                  const clean = sanitizeChurchBaseName(e.target.value);
-                  setForm((prev) => ({ ...prev, churchBaseName: clean }));
-                }}
+                onChange={(e) => setForm((prev) => ({ ...prev, churchBaseName: sanitizeChurchBaseName(e.target.value) }))}
                 placeholder="e.g. Maai Mahiu"
-                className="flex-1 border rounded px-2 py-1"
+                className="flex-1 border rounded px-3 py-2 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-200"
               />
-              <span className="px-3 py-1 bg-gray-200 rounded text-gray-700">SDA Church</span>
+              <span className="px-3 py-2 bg-gray-200 rounded text-gray-700 whitespace-nowrap">SDA Church</span>
             </div>
             <small className="text-gray-500">
               Type only the church name. <strong>SDA Church</strong> is added automatically.
@@ -171,9 +178,12 @@ export default function Register() {
           </div>
 
           <Input label="Password" name="password" type="password" value={form.password} onChange={handleChange} />
-          <Input label="Confirm Password" name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} />
+          {errors.password && <p className="text-red-600">{errors.password}</p>}
 
-          <Button type="submit" disabled={loading}>
+          <Input label="Confirm Password" name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} />
+          {errors.confirmPassword && <p className="text-red-600">{errors.confirmPassword}</p>}
+
+          <Button type="submit" disabled={loading} className="w-full">
             {loading ? "Creating account…" : "Register"}
           </Button>
         </form>

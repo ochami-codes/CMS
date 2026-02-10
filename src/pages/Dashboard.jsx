@@ -139,21 +139,44 @@ export default function Dashboard() {
   const bday = birthdayCountdown(birthday?.birthday);
 
   return (
-    <div className="dashboard-content space-y-4">
+    <div className="dashboard-content space-y-6">
+
       {/* Greeting */}
-      <div className="card greeting-card">
-        <h2 className="text-lg font-semibold">{greeting}</h2>
+      <div className="card">
+        <h2 className="text-xl font-semibold">{greeting}</h2>
         {verse && (
-          <p className="mt-1 text-sm text-gray-700">
+          <p className="mt-2 text-sm text-gray-700">
             <strong>{verse.reference}:</strong> {verse.text}
           </p>
+        )}
+      </div>
+
+      {/* Quick Links / Actions */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
+          <Link to="/dashboard/treasury" className="card hover:shadow-md transition">
+            <h3 className="font-semibold">💰 Treasury</h3>
+            <p className="text-sm text-gray-600">View church finances</p>
+          </Link>
+        )}
+        {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
+          <Link to="/dashboard/youth" className="card hover:shadow-md transition">
+            <h3 className="font-semibold">🧑‍🤝‍🧑 Youth Ministry</h3>
+            <p className="text-sm text-gray-600">Attendance & programs</p>
+          </Link>
+        )}
+        {isAdmin(profile.role_name) && (
+          <Link to="/dashboard/admin" className="card hover:shadow-md transition">
+            <h3 className="font-semibold">🛠 Admin Panel</h3>
+            <p className="text-sm text-gray-600">Members & roles</p>
+          </Link>
         )}
       </div>
 
       {/* Church */}
       {church && (
         <div className="card">
-          <h3 className="text-md font-semibold mb-1">⛪ My Church</h3>
+          <h3 className="font-semibold mb-1">⛪ My Church</h3>
           <p>{church}</p>
         </div>
       )}
@@ -161,7 +184,7 @@ export default function Dashboard() {
       {/* Sabbath Countdown */}
       {!isSabbathNow() && sabbathTimer && (
         <div className="card">
-          <h3 className="text-md font-semibold mb-1">🌅 Sabbath Countdown</h3>
+          <h3 className="font-semibold mb-1">🌅 Sabbath Countdown</h3>
           <p>
             Begins in{" "}
             <strong>
@@ -172,41 +195,19 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Quick Actions */}
-      <div className="stats-grid">
-        {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
-          <Link to="/dashboard/treasury" className="stat-card">
-            <h3>💰 Treasury</h3>
-            <p className="text-sm text-gray-600">View church finances</p>
-          </Link>
-        )}
-        {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
-          <Link to="/dashboard/youth" className="stat-card">
-            <h3>🧑‍🤝‍🧑 Youth Ministry</h3>
-            <p className="text-sm text-gray-600">Attendance & programs</p>
-          </Link>
-        )}
-        {isAdmin(profile.role_name) && (
-          <Link to="/dashboard/admin" className="stat-card">
-            <h3>🛠 Admin Panel</h3>
-            <p className="text-sm text-gray-600">Members & roles</p>
-          </Link>
-        )}
-      </div>
-
       {/* Birthday */}
       {birthday?.birthday && (
         <div className="card">
           {birthday.isBirthday ? (
             <>
-              <h3 className="text-md font-semibold mb-1">🎉 Happy Birthday!</h3>
+              <h3 className="font-semibold mb-1">🎉 Happy Birthday!</h3>
               <p className="text-sm text-gray-700">
                 “The Lord bless you and keep you” — Numbers 6:24
               </p>
             </>
           ) : (
             <>
-              <h3 className="text-md font-semibold mb-1">🎈 Birthday Countdown</h3>
+              <h3 className="font-semibold mb-1">🎈 Birthday Countdown</h3>
               {bday && (
                 <p>
                   In{" "}
@@ -224,16 +225,16 @@ export default function Dashboard() {
       {/* Other Birthdays */}
       {(todayBirthdays.length > 0 || upcomingBirthdays.length > 0) && (
         <div className="card">
-          <h3 className="text-md font-semibold mb-2">🎂 Church Birthdays</h3>
-          <div className="stats-grid">
+          <h3 className="font-semibold mb-2">🎂 Church Birthdays</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {todayBirthdays.map((b) => (
-              <div key={b.id} className="stat-card">
+              <div key={b.id} className="card bg-gray-50 hover:bg-gray-100 transition">
                 <h4 className="font-medium">{b.full_name}</h4>
-                <p className="text-sm text-gray-600">Today 🎉</p>
+                <p className="text-sm text-green-600">Today 🎉</p>
               </div>
             ))}
             {upcomingBirthdays.map((b) => (
-              <div key={b.id} className="stat-card">
+              <div key={b.id} className="card bg-gray-50 hover:bg-gray-100 transition">
                 <h4 className="font-medium">{b.full_name}</h4>
                 <p className="text-sm text-gray-600">Coming soon</p>
               </div>
@@ -244,12 +245,12 @@ export default function Dashboard() {
 
       {/* Announcements */}
       <div className="card space-y-2">
-        <h3 className="text-md font-semibold mb-2">📢 Announcements</h3>
+        <h3 className="font-semibold mb-2">📢 Announcements</h3>
         {announcements.length === 0 ? (
           <p className="text-sm text-gray-600">No recent announcements.</p>
         ) : (
           announcements.map((a) => (
-            <div key={a.id} className="announcement-card">
+            <div key={a.id} className="card bg-gray-50 p-3 hover:bg-gray-100 transition">
               <h4 className="font-medium">{a.title}</h4>
               <p className="text-sm text-gray-700">{a.message}</p>
               <span className="text-xs text-gray-500">
