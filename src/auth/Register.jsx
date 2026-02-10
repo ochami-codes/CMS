@@ -95,7 +95,7 @@ export default function Register() {
     return (
       <EncouragementRedirect
         title="Registration successful 🎉"
-        message="Your account has been created successfully."
+        message="Your account has been created successfully. We've sent a verification link to your email, click it and proceed to login."
         redirectTo="/login"
         delay={10000}
       />
