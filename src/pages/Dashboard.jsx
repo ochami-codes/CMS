@@ -1,4 +1,3 @@
-// src/pages/Dashboard.jsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -12,6 +11,9 @@ import {
   ChurchAPI,
 } from "../utils/api";
 import { hasRole, isAdmin } from "../utils/permissions";
+
+// Lucide Icons
+import { Coffee, Users, UserPlus, Home, Calendar, Gift, Megaphone } from "lucide-react";
 
 /* ========================
    KENYA SABBATH HELPERS
@@ -139,57 +141,62 @@ export default function Dashboard() {
   const bday = birthdayCountdown(birthday?.birthday);
 
   return (
-    <div className="dashboard-content space-y-6">
+    <div className="dashboard-content">
 
       {/* Greeting */}
       <div className="card">
-        <h2 className="text-xl font-semibold">{greeting}</h2>
+        <h2 className="card-title">{greeting}</h2>
         {verse && (
-          <p className="mt-2 text-sm text-gray-700">
+          <p className="card-subtitle">
             <strong>{verse.reference}:</strong> {verse.text}
           </p>
         )}
       </div>
 
       {/* Quick Links / Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="dashboard-actions">
         {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
-          <Link to="/dashboard/treasury" className="card hover:shadow-md transition">
-            <h3 className="font-semibold">💰 Treasury</h3>
-            <p className="text-sm text-gray-600">View church finances</p>
+          <Link to="/dashboard/treasury" className="dashboard-action-card">
+            <h3>
+              <Coffee size={18} /> Treasury
+            </h3>
+            <p>View church finances</p>
           </Link>
         )}
         {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
-          <Link to="/dashboard/youth" className="card hover:shadow-md transition">
-            <h3 className="font-semibold">🧑‍🤝‍🧑 Youth Ministry</h3>
-            <p className="text-sm text-gray-600">Attendance & programs</p>
+          <Link to="/dashboard/youth" className="dashboard-action-card">
+            <h3>
+              <Users size={18} /> Youth Ministry
+            </h3>
+            <p>Attendance & programs</p>
           </Link>
         )}
         {isAdmin(profile.role_name) && (
-          <Link to="/dashboard/admin" className="card hover:shadow-md transition">
-            <h3 className="font-semibold">🛠 Admin Panel</h3>
-            <p className="text-sm text-gray-600">Members & roles</p>
+          <Link to="/dashboard/admin" className="dashboard-action-card">
+            <h3>
+              <UserPlus size={18} /> Admin Panel
+            </h3>
+            <p>Members & roles</p>
           </Link>
         )}
       </div>
 
       {/* Church */}
       {church && (
-        <div className="card">
-          <h3 className="font-semibold mb-1">⛪ My Church</h3>
+        <div className="dashboard-info-card card">
+          <Home size={18} /> 
           <p>{church}</p>
         </div>
       )}
 
       {/* Sabbath Countdown */}
       {!isSabbathNow() && sabbathTimer && (
-        <div className="card">
-          <h3 className="font-semibold mb-1">🌅 Sabbath Countdown</h3>
+        <div className="dashboard-info-card card">
+          <Calendar size={18} /> 
           <p>
-            Begins in{" "}
+            Sabbath begins in{" "}
             <strong>
-              {sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m{" "}
-              {sabbathTimer.s}s
+              {sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m {sabbathTimer.s}s
             </strong>
           </p>
         </div>
@@ -197,24 +204,22 @@ export default function Dashboard() {
 
       {/* Birthday */}
       {birthday?.birthday && (
-        <div className="card">
+        <div className="dashboard-birthday-card card">
           {birthday.isBirthday ? (
             <>
-              <h3 className="font-semibold mb-1">🎉 Happy Birthday!</h3>
-              <p className="text-sm text-gray-700">
-                “The Lord bless you and keep you” — Numbers 6:24
-              </p>
+              <h3>
+                <Gift size={18} /> Happy Birthday!
+              </h3>
+              <p>“The Lord bless you and keep you” — Numbers 6:24</p>
             </>
           ) : (
             <>
-              <h3 className="font-semibold mb-1">🎈 Birthday Countdown</h3>
+              <h3>
+                <Gift size={18} /> Birthday Countdown
+              </h3>
               {bday && (
                 <p>
-                  In{" "}
-                  <strong>
-                    {bday.months}m {bday.days}d {bday.hours}h {bday.minutes}m{" "}
-                    {bday.seconds}s
-                  </strong>
+                  In <strong>{bday.months}m {bday.days}d {bday.hours}h {bday.minutes}m {bday.seconds}s</strong>
                 </p>
               )}
             </>
@@ -225,18 +230,20 @@ export default function Dashboard() {
       {/* Other Birthdays */}
       {(todayBirthdays.length > 0 || upcomingBirthdays.length > 0) && (
         <div className="card">
-          <h3 className="font-semibold mb-2">🎂 Church Birthdays</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <h3 className="card-title">
+            <Gift size={18} /> Church Birthdays
+          </h3>
+          <div className="birthdays-grid">
             {todayBirthdays.map((b) => (
-              <div key={b.id} className="card bg-gray-50 hover:bg-gray-100 transition">
-                <h4 className="font-medium">{b.full_name}</h4>
-                <p className="text-sm text-green-600">Today 🎉</p>
+              <div key={b.id} className="birthday-card">
+                <h4>{b.full_name}</h4>
+                <p className="birthday-today">Today 🎉</p>
               </div>
             ))}
             {upcomingBirthdays.map((b) => (
-              <div key={b.id} className="card bg-gray-50 hover:bg-gray-100 transition">
-                <h4 className="font-medium">{b.full_name}</h4>
-                <p className="text-sm text-gray-600">Coming soon</p>
+              <div key={b.id} className="birthday-card">
+                <h4>{b.full_name}</h4>
+                <p className="birthday-upcoming">Coming soon</p>
               </div>
             ))}
           </div>
@@ -244,18 +251,18 @@ export default function Dashboard() {
       )}
 
       {/* Announcements */}
-      <div className="card space-y-2">
-        <h3 className="font-semibold mb-2">📢 Announcements</h3>
+      <div className="card">
+        <h3 className="card-title">
+          <Megaphone size={18} /> Announcements
+        </h3>
         {announcements.length === 0 ? (
-          <p className="text-sm text-gray-600">No recent announcements.</p>
+          <p className="card-subtitle">No recent announcements.</p>
         ) : (
           announcements.map((a) => (
-            <div key={a.id} className="card bg-gray-50 p-3 hover:bg-gray-100 transition">
-              <h4 className="font-medium">{a.title}</h4>
-              <p className="text-sm text-gray-700">{a.message}</p>
-              <span className="text-xs text-gray-500">
-                {new Date(a.created_at).toLocaleDateString()}
-              </span>
+            <div key={a.id} className="announcement-card">
+              <h4>{a.title}</h4>
+              <p>{a.message}</p>
+              <span>{new Date(a.created_at).toLocaleDateString()}</span>
             </div>
           ))
         )}

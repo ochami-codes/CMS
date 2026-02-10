@@ -96,7 +96,345 @@ main.container {
   margin: 0 auto;
   width: 100%;
 }
+/* ==========================
+   PROFILE PAGE
+========================== */
 
+/* Card Titles */
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Card Subtitles */
+.card-subtitle {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: #4b5563;
+}
+
+/* Muted text */
+.text-muted {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+/* Profile info section */
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profile-item .icon {
+  font-size: 1.2rem;
+  color: #4f46e5;
+}
+
+.profile-item .label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.profile-item .value {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+/* Input fields */
+.input-field {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: #fff;
+  outline: none;
+}
+
+.input-field:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+/* Form groups */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Messages */
+.message-success {
+  background-color: #dcfce7;
+  color: #166534;
+  border-left: 4px solid #16a34a;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+}
+
+.message-error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-left: 4px solid #dc2626;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.stats-list {
+  list-style: none;
+  padding-left: 0;
+  line-height: 1.5;
+}
+
+/* Chart container */
+.chart-container {
+  width: 100%;
+  height: 280px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  .card-subtitle {
+    font-size: 0.95rem;
+  }
+}
+/* ==========================
+   DASHBOARD & PROFILE
+========================== */
+
+/* Cards */
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-subtitle {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: #4b5563;
+}
+
+/* Muted text */
+.text-muted {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Dashboard Layout */
+.dashboard-content,
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.dashboard-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.dashboard-action-card {
+  padding: 1rem;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-action-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+}
+
+.dashboard-action-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dashboard-action-card p {
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+/* Info Cards: Church / Sabbath Countdown / Birthday */
+.dashboard-info-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dashboard-info-card p {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.dashboard-birthday-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dashboard-birthday-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dashboard-birthday-card p {
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+/* Church Birthday Grid */
+.birthdays-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.birthday-card {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #f9fafb;
+  transition: background 0.2s ease;
+}
+
+.birthday-card:hover { background: #f3f4f6; }
+
+.birthday-card h4 { font-weight: 500; margin-bottom: 0.25rem; }
+
+.birthday-card .birthday-today { color: #16a34a; font-size: 0.8rem; }
+.birthday-card .birthday-upcoming { color: #6b7280; font-size: 0.8rem; }
+
+/* Announcements */
+.announcement-card {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #f9fafb;
+  transition: background 0.2s ease;
+}
+
+.announcement-card:hover { background: #f3f4f6; }
+
+.announcement-card h4 { font-weight: 500; margin-bottom: 0.25rem; }
+.announcement-card p { font-size: 0.875rem; color: #374151; margin-bottom: 0.25rem; }
+.announcement-card span { font-size: 0.75rem; color: #6b7280; }
+
+/* Profile Info Section */
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profile-item .icon { font-size: 1.2rem; color: #4f46e5; }
+.profile-item .label { font-size: 0.75rem; color: #6b7280; }
+.profile-item .value { font-weight: 500; font-size: 0.95rem; }
+
+/* Input fields & Forms */
+.input-field,
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: #fff;
+}
+
+.input-field:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79,70,229,0.1);
+  outline: none;
+}
+
+.form-group { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
+
+/* Messages */
+.message-success { background-color: #dcfce7; color: #166534; border-left: 4px solid #16a34a; padding: 0.75rem 1rem; border-radius: 6px; }
+.message-error   { background-color: #fee2e2; color: #991b1b; border-left: 4px solid #dc2626; padding: 0.75rem 1rem; border-radius: 6px; }
+
+/* Responsive Grids */
+@media (min-width: 640px) {
+  .dashboard-actions,
+  .birthdays-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-actions,
+  .birthdays-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .profile-item { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+  .card-title { font-size: 1.1rem; }
+  .card-subtitle { font-size: 0.95rem; }
+}
 /* --------------------------
    Footer
 -------------------------- */
