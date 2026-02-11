@@ -140,133 +140,150 @@ export default function Dashboard() {
 
   const bday = birthdayCountdown(birthday?.birthday);
 
-  return (
-    <div className="dashboard-content">
+return (
+  <div className="dashboard-content">
 
-      {/* Greeting */}
-      <div className="card">
-        <h2 className="card-title">{greeting}</h2>
-        {verse && (
-          <p className="card-subtitle">
-            <strong>{verse.reference}:</strong> {verse.text}
-          </p>
-        )}
-      </div>
+    {/* ======================
+       DASHBOARD HEADER
+    ====================== */}
+    <div className="card">
+      <h2 className="card-title">
+        <Home size={20} /> {church || "Your Church"}
+      </h2>
+      <p className="card-subtitle">{greeting}</p>
 
-      {/* Quick Links / Actions */}
-      <div className="dashboard-actions">
-        {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
-          <Link to="/dashboard/treasury" className="dashboard-action-card">
-            <h3>
-              <Coffee size={18} /> Treasury
-            </h3>
-            <p>View church finances</p>
-          </Link>
-        )}
-        {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
-          <Link to="/dashboard/youth" className="dashboard-action-card">
-            <h3>
-              <Users size={18} /> Youth Ministry
-            </h3>
-            <p>Attendance & programs</p>
-          </Link>
-        )}
-        {isAdmin(profile.role_name) && (
-          <Link to="/dashboard/admin" className="dashboard-action-card">
-            <h3>
-              <UserPlus size={18} /> Admin Panel
-            </h3>
-            <p>Members & roles</p>
-          </Link>
-        )}
-      </div>
-
-      {/* Church */}
-      {church && (
-        <div className="dashboard-info-card card">
-          <Home size={18} /> 
-          <p>{church}</p>
-        </div>
+      {verse && (
+        <p className="text-muted">
+          <strong>{verse.reference}:</strong> {verse.text}
+        </p>
       )}
+    </div>
 
-      {/* Sabbath Countdown */}
-      {!isSabbathNow() && sabbathTimer && (
-        <div className="dashboard-info-card card">
-          <Calendar size={18} /> 
-          <p>
-            Sabbath begins in{" "}
-            <strong>
-              {sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m {sabbathTimer.s}s
-            </strong>
-          </p>
-        </div>
-      )}
-
-      {/* Birthday */}
-      {birthday?.birthday && (
-        <div className="dashboard-birthday-card card">
-          {birthday.isBirthday ? (
-            <>
-              <h3>
-                <Gift size={18} /> Happy Birthday!
-              </h3>
-              <p>“The Lord bless you and keep you” — Numbers 6:24</p>
-            </>
-          ) : (
-            <>
-              <h3>
-                <Gift size={18} /> Birthday Countdown
-              </h3>
-              {bday && (
-                <p>
-                  In <strong>{bday.months}m {bday.days}d {bday.hours}h {bday.minutes}m {bday.seconds}s</strong>
-                </p>
-              )}
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Other Birthdays */}
-      {(todayBirthdays.length > 0 || upcomingBirthdays.length > 0) && (
-        <div className="card">
-          <h3 className="card-title">
-            <Gift size={18} /> Church Birthdays
+    {/* ======================
+       QUICK ACTIONS
+    ====================== */}
+    <div className="dashboard-actions">
+      {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
+        <Link to="/dashboard/treasury" className="dashboard-action-card">
+          <h3>
+            <Coffee size={18} /> Treasury
           </h3>
-          <div className="birthdays-grid">
-            {todayBirthdays.map((b) => (
-              <div key={b.id} className="birthday-card">
-                <h4>{b.full_name}</h4>
-                <p className="birthday-today">Today 🎉</p>
-              </div>
-            ))}
-            {upcomingBirthdays.map((b) => (
-              <div key={b.id} className="birthday-card">
-                <h4>{b.full_name}</h4>
-                <p className="birthday-upcoming">Coming soon</p>
-              </div>
-            ))}
-          </div>
-        </div>
+          <p>Church finances & reports</p>
+        </Link>
       )}
 
-      {/* Announcements */}
+      {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
+        <Link to="/dashboard/youth" className="dashboard-action-card">
+          <h3>
+            <Users size={18} /> Youth Ministry
+          </h3>
+          <p>Attendance & activities</p>
+        </Link>
+      )}
+
+      {isAdmin(profile.role_name) && (
+        <Link to="/dashboard/admin" className="dashboard-action-card">
+          <h3>
+            <UserPlus size={18} /> Administration
+          </h3>
+          <p>Members, roles & permissions</p>
+        </Link>
+      )}
+    </div>
+
+    {/* ======================
+       SABBATH STATUS
+    ====================== */}
+    {!isSabbathNow() && sabbathTimer && (
+      <div className="dashboard-info-card card">
+        <Calendar size={18} />
+        <p>
+          Sabbath begins in{" "}
+          <strong>
+            {sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m {sabbathTimer.s}s
+          </strong>
+        </p>
+      </div>
+    )}
+
+    {/* ======================
+       PERSONAL BIRTHDAY
+    ====================== */}
+    {birthday?.birthday && (
+      <div className="dashboard-birthday-card card">
+        {birthday.isBirthday ? (
+          <>
+            <h3>
+              <Gift size={18} /> Happy Birthday!
+            </h3>
+            <p>“The Lord bless you and keep you” — Numbers 6:24</p>
+          </>
+        ) : (
+          <>
+            <h3>
+              <Gift size={18} /> Your Birthday Countdown
+            </h3>
+            {bday && (
+              <p>
+                In{" "}
+                <strong>
+                  {bday.months}m {bday.days}d {bday.hours}h {bday.minutes}m {bday.seconds}s
+                </strong>
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    )}
+
+    {/* ======================
+       CHURCH BIRTHDAYS
+    ====================== */}
+    {(todayBirthdays.length > 0 || upcomingBirthdays.length > 0) && (
       <div className="card">
         <h3 className="card-title">
-          <Megaphone size={18} /> Announcements
+          <Gift size={18} /> Church Birthdays
         </h3>
-        {announcements.length === 0 ? (
-          <p className="card-subtitle">No recent announcements.</p>
-        ) : (
-          announcements.map((a) => (
-            <div key={a.id} className="announcement-card">
-              <h4>{a.title}</h4>
-              <p>{a.message}</p>
-              <span>{new Date(a.created_at).toLocaleDateString()}</span>
+
+        <div className="birthdays-grid">
+          {todayBirthdays.map(b => (
+            <div key={b.id} className="birthday-card">
+              <h4>{b.full_name}</h4>
+              <p className="birthday-today">Today 🎉</p>
             </div>
-          ))
-        )}
+          ))}
+
+          {upcomingBirthdays.map(b => (
+            <div key={b.id} className="birthday-card">
+              <h4>{b.full_name}</h4>
+              <p className="birthday-upcoming">Coming soon</p>
+            </div>
+          ))}
+        </div>
       </div>
+    )}
+
+    {/* ======================
+       ANNOUNCEMENTS
+    ====================== */}
+    <div className="card">
+      <h3 className="card-title">
+        <Megaphone size={18} /> Announcements
+      </h3>
+
+      {announcements.length === 0 ? (
+        <p className="card-subtitle">No recent announcements.</p>
+      ) : (
+        announcements.map(a => (
+          <div key={a.id} className="announcement-card">
+            <h4>{a.title}</h4>
+            <p>{a.message}</p>
+            <span>{new Date(a.created_at).toLocaleDateString()}</span>
+          </div>
+        ))
+      )}
     </div>
-  );
+
+  </div>
+);
 }

@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { AdminAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast"; // optional toast notifications
 
 export default function RoleRequests() {
   const { profile, loading: authLoading } = useAuth();
@@ -21,12 +22,8 @@ export default function RoleRequests() {
     try {
       const data = await AdminAPI.fetchRoleRequests();
 
-      if (!Array.isArray(data)) {
-        setRequests([]);
-        return;
-      }
-
-      setRequests(data);
+      // Ensure we get an array
+      setRequests(Array.isArray(data.requests) ? data.requests : []);
     } catch (err) {
       console.error("Failed to fetch role requests:", err);
       setRequests([]);
@@ -36,13 +33,24 @@ export default function RoleRequests() {
     }
   }, [profile]);
 
-  /* ------------------ Effects ------------------ */
+  /* ------------------ Polling ------------------ */
   useEffect(() => {
     if (authLoading || !profile?.church_id) return;
 
-    fetchRequests();
-    const interval = setInterval(fetchRequests, 10000);
-    return () => clearInterval(interval);
+    let isMounted = true;
+
+    const fetchLoop = async () => {
+      while (isMounted) {
+        await fetchRequests();
+        await new Promise((r) => setTimeout(r, 10000));
+      }
+    };
+
+    fetchLoop();
+
+    return () => {
+      isMounted = false;
+    };
   }, [authLoading, profile, fetchRequests]);
 
   /* ------------------ Actions ------------------ */
@@ -51,8 +59,10 @@ export default function RoleRequests() {
     try {
       await AdminAPI.approveRoleRequest(id);
       setRequests((prev) => prev.filter((r) => r.id !== id));
-    } catch {
-      alert("Failed to approve request");
+      toast.success("Request approved");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to approve request");
     } finally {
       setProcessingId(null);
     }
@@ -63,25 +73,19 @@ export default function RoleRequests() {
     try {
       await AdminAPI.rejectRoleRequest(id);
       setRequests((prev) => prev.filter((r) => r.id !== id));
-    } catch {
-      alert("Failed to reject request");
+      toast.success("Request rejected");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to reject request");
     } finally {
       setProcessingId(null);
     }
   };
 
   /* ------------------ Render Guards ------------------ */
-  if (authLoading) {
-    return <div className="p-4">Checking admin permissions…</div>;
-  }
-
-  if (!profile) {
-    return <div className="p-4">Loading admin profile…</div>;
-  }
-
-  if (loading) {
-    return <div className="p-4">Loading role requests…</div>;
-  }
+  if (authLoading) return <div className="p-4">Checking admin permissions…</div>;
+  if (!profile) return <div className="p-4">Loading admin profile…</div>;
+  if (loading) return <div className="p-4">Loading role requests…</div>;
 
   /* ------------------ UI ------------------ */
   return (
@@ -106,19 +110,11 @@ export default function RoleRequests() {
 
           <tbody>
             {requests.map((req) => (
-              <tr key={req.id} className="border-b">
-                <td className="p-2">
-                  {req.target_user?.full_name || "(Unknown member)"}
-                </td>
-                <td className="p-2">
-                  {req.target_user?.role || "-"}
-                </td>
-                <td className="p-2 font-semibold">
-                  {req.requested_role}
-                </td>
-                <td className="p-2">
-                  {req.requester?.full_name || "(System)"}
-                </td>
+              <tr key={req.id} className="border-b hover:bg-gray-100">
+                <td className="p-2">{req.target_user?.full_name || "(Unknown member)"}</td>
+                <td className="p-2">{req.target_user?.role || "-"}</td>
+                <td className="p-2 font-semibold">{req.requested_role}</td>
+                <td className="p-2">{req.requester?.full_name || "(System)"}</td>
                 <td className="p-2 flex gap-2">
                   <button
                     disabled={processingId === req.id}

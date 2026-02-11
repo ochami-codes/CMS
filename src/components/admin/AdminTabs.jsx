@@ -1,32 +1,37 @@
 import { useEffect, useState } from "react";
 import { RoleRequestsAPI } from "../../utils/api";
+import { AdminMembershipAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 
 export default function AdminTabs({ activeTab, setActiveTab }) {
   const { profile } = useAuth();
-  const [pendingCount, setPendingCount] = useState(0);
+  const [rolePending, setRolePending] = useState(0);
+  const [membershipPending, setMembershipPending] = useState(0);
 
+  /* ------------------ Fetch Pending Counts ------------------ */
   useEffect(() => {
     if (!profile?.role_name || profile.role_name !== "Admin") return;
 
-    const fetchPendingCount = async () => {
+    const fetchCounts = async () => {
       try {
-        const data = await RoleRequestsAPI.pendingCount();
-        setPendingCount(data.count || 0);
+        const roleData = await RoleRequestsAPI.pendingCount();
+        const membershipData = await AdminMembershipAPI.fetchAll();
+        setRolePending(roleData.count || 0);
+        setMembershipPending(membershipData.length || 0);
       } catch (err) {
-        console.error("Failed to fetch pending count:", err);
+        console.error("Failed to fetch pending counts:", err);
       }
     };
 
-    fetchPendingCount();
-    const interval = setInterval(fetchPendingCount, 10000);
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 10000);
     return () => clearInterval(interval);
   }, [profile]);
 
   if (!profile?.role_name || profile.role_name !== "Admin") return null;
 
   return (
-    <div className="stats-grid">
+    <div className="stats-grid flex flex-wrap gap-2">
       <button
         className={`btn ${activeTab === "manage" ? "btn-primary" : "btn-secondary"}`}
         onClick={() => setActiveTab("manage")}
@@ -35,10 +40,24 @@ export default function AdminTabs({ activeTab, setActiveTab }) {
       </button>
 
       <button
-        className={`btn ${activeTab === "requests" ? "btn-primary" : "btn-secondary"}`}
-        onClick={() => setActiveTab("requests")}
+        className={`btn ${activeTab === "non-members" ? "btn-primary" : "btn-secondary"}`}
+        onClick={() => setActiveTab("non-members")}
       >
-        Role Requests {pendingCount > 0 && <span>({pendingCount})</span>}
+        Non-Members
+      </button>
+
+      <button
+        className={`btn ${activeTab === "membership-requests" ? "btn-primary" : "btn-secondary"}`}
+        onClick={() => setActiveTab("membership-requests")}
+      >
+        Membership Requests {membershipPending > 0 && <span>({membershipPending})</span>}
+      </button>
+
+      <button
+        className={`btn ${activeTab === "role-requests" ? "btn-primary" : "btn-secondary"}`}
+        onClick={() => setActiveTab("role-requests")}
+      >
+        Role Requests {rolePending > 0 && <span>({rolePending})</span>}
       </button>
     </div>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
-import { AdminAPI } from "../../utils/api";
+import { AdminAPI, AdminMembershipAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
+import { Check, X, RefreshCw, UserPlus } from "lucide-react";
 
 const ROLES = [
   "Admin",
@@ -12,28 +13,32 @@ const ROLES = [
   "Member",
 ];
 
-export default function ManageRoles() {
+export default function AdminMembers() {
   const { profile, setProfile, setUser, loading: authLoading } = useAuth();
 
+  /* ------------------ State ------------------ */
   const [members, setMembers] = useState([]);
+  const [nonMembers, setNonMembers] = useState([]);
   const [roleRequests, setRoleRequests] = useState([]);
+  const [membershipRequests, setMembershipRequests] = useState([]);
 
   const [loadingMembers, setLoadingMembers] = useState(true);
-  const [loadingRequests, setLoadingRequests] = useState(true);
+  const [loadingNonMembers, setLoadingNonMembers] = useState(true);
+  const [loadingRoleRequests, setLoadingRoleRequests] = useState(true);
+  const [loadingMembershipRequests, setLoadingMembershipRequests] = useState(true);
 
   const [processingId, setProcessingId] = useState(null);
   const [requestProcessingId, setRequestProcessingId] = useState(null);
 
   const [search, setSearch] = useState("");
 
+  /* ------------------ Fetch Functions ------------------ */
   const fetchMembers = useCallback(async () => {
     if (!profile?.church_id) return;
-
     setLoadingMembers(true);
     try {
       const params = new URLSearchParams({ search }).toString();
       const data = await AdminAPI.fetchMembers(params);
-
       setMembers(
         (data.members ?? []).map((m) => ({
           ...m,
@@ -45,37 +50,65 @@ export default function ManageRoles() {
     }
   }, [profile, search]);
 
+  const fetchNonMembers = useCallback(async () => {
+    if (!profile?.church_id) return;
+    setLoadingNonMembers(true);
+    try {
+      const data = await AdminAPI.fetchNonMembers();
+      setNonMembers(data.non_members ?? []);
+    } finally {
+      setLoadingNonMembers(false);
+    }
+  }, [profile]);
+
   const fetchRoleRequests = useCallback(async () => {
     if (!profile?.church_id) return;
-
-    setLoadingRequests(true);
+    setLoadingRoleRequests(true);
     try {
       const data = await AdminAPI.fetchRoleRequests();
       setRoleRequests(data.requests ?? []);
     } finally {
-      setLoadingRequests(false);
+      setLoadingRoleRequests(false);
     }
   }, [profile]);
 
+  const fetchMembershipRequests = useCallback(async () => {
+    if (!profile?.church_id) return;
+    setLoadingMembershipRequests(true);
+    try {
+      const data = await AdminMembershipAPI.fetchAll();
+      setMembershipRequests(data.requests ?? []);
+    } finally {
+      setLoadingMembershipRequests(false);
+    }
+  }, [profile]);
+
+  /* ------------------ Effects ------------------ */
   useEffect(() => {
     if (!authLoading && profile?.church_id) {
       fetchMembers();
+      fetchNonMembers();
       fetchRoleRequests();
+      fetchMembershipRequests();
     }
-  }, [authLoading, profile, fetchMembers, fetchRoleRequests]);
+  }, [
+    authLoading,
+    profile,
+    fetchMembers,
+    fetchNonMembers,
+    fetchRoleRequests,
+    fetchMembershipRequests,
+  ]);
 
+  /* ------------------ Member Actions ------------------ */
   const updateRole = async (member) => {
     if (member.selectedRole === member.role_name) return;
-
     setProcessingId(member.id);
     try {
       await AdminAPI.updateMemberRole(member.id, member.selectedRole);
-
       setMembers((prev) =>
         prev.map((m) =>
-          m.id === member.id
-            ? { ...m, role_name: member.selectedRole }
-            : m
+          m.id === member.id ? { ...m, role_name: member.selectedRole } : m
         )
       );
 
@@ -89,26 +122,22 @@ export default function ManageRoles() {
   };
 
   const toggleMember = async (id, active) => {
-    if (!confirm(active ? "Deactivate this member?" : "Activate this member?"))
-      return;
-
+    if (!confirm(active ? "Deactivate this member?" : "Activate this member?")) return;
     setProcessingId(id);
     try {
       active
         ? await AdminAPI.deactivateMember(id)
         : await AdminAPI.activateMember(id);
-
       setMembers((prev) =>
-        prev.map((m) =>
-          m.id === id ? { ...m, active: !active } : m
-        )
+        prev.map((m) => (m.id === id ? { ...m, active: !active } : m))
       );
     } finally {
       setProcessingId(null);
     }
   };
 
-  const approveRequest = async (id) => {
+  /* ------------------ Role Requests ------------------ */
+  const approveRole = async (id) => {
     setRequestProcessingId(id);
     await AdminAPI.approveRoleRequest(id);
     await fetchMembers();
@@ -116,11 +145,40 @@ export default function ManageRoles() {
     setRequestProcessingId(null);
   };
 
-  const rejectRequest = async (id) => {
+  const rejectRole = async (id) => {
     setRequestProcessingId(id);
     await AdminAPI.rejectRoleRequest(id);
     await fetchRoleRequests();
     setRequestProcessingId(null);
+  };
+
+  /* ------------------ Membership Requests ------------------ */
+  const approveMembership = async (id) => {
+    setRequestProcessingId(id);
+    await AdminMembershipAPI.approve(id);
+    await fetchNonMembers();
+    await fetchMembershipRequests();
+    setRequestProcessingId(null);
+  };
+
+  const rejectMembership = async (id) => {
+    setRequestProcessingId(id);
+    await AdminMembershipAPI.reject(id);
+    await fetchMembershipRequests();
+    setRequestProcessingId(null);
+  };
+
+  /* ------------------ Invite Non-Member ------------------ */
+  const inviteNonMember = async (id) => {
+    if (!confirm("Send membership request to this profile?")) return;
+    setProcessingId(id);
+    try {
+      await AdminAPI.sendInvite(id);
+      await fetchNonMembers();
+      await fetchMembershipRequests();
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   if (authLoading) return <div>Checking permissions…</div>;
@@ -128,16 +186,17 @@ export default function ManageRoles() {
 
   return (
     <div className="dashboard-content">
-      <h2>Manage Members & Roles</h2>
-
+      <h2>Admin Members & Roles</h2>
       <input
         placeholder="Search members…"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
+        className="mb-4"
       />
 
-      {/* Members */}
+      {/* ------------------ Members Table ------------------ */}
       <div className="card">
+        <h3>Manage Members</h3>
         {loadingMembers ? (
           <div>Loading members…</div>
         ) : (
@@ -165,7 +224,7 @@ export default function ManageRoles() {
                     <td>{m.full_name}</td>
                     <td>{m.department || "-"}</td>
                     <td>{m.active ? "Active" : "Inactive"}</td>
-                    <td><strong>{m.role_name}</strong></td>
+                    <td>{m.role_name}</td>
                     <td>
                       <select
                         value={m.selectedRole}
@@ -173,39 +232,33 @@ export default function ManageRoles() {
                         onChange={(e) =>
                           setMembers((prev) =>
                             prev.map((x) =>
-                              x.id === m.id
-                                ? { ...x, selectedRole: e.target.value }
-                                : x
+                              x.id === m.id ? { ...x, selectedRole: e.target.value } : x
                             )
                           )
                         }
                       >
                         {ROLES.map((r) => (
-                          <option key={r} value={r}>{r}</option>
+                          <option key={r} value={r}>
+                            {r}
+                          </option>
                         ))}
                       </select>
                     </td>
                     <td>
-                      <div className="table-actions">
-                        <button
-                          disabled={processingId === m.id || !m.active}
-                          onClick={() => updateRole(m)}
-                          className="btn-table btn-table-primary"
-                        >
-                          Update
-                        </button>
-                        <button
-                          disabled={processingId === m.id}
-                          onClick={() => toggleMember(m.id, m.active)}
-                          className={
-                            m.active
-                              ? "btn-table btn-table-danger"
-                              : "btn-table btn-table-success"
-                          }
-                        >
-                          {m.active ? "Deactivate" : "Activate"}
-                        </button>
-                      </div>
+                      <button
+                        disabled={processingId === m.id || !m.active}
+                        onClick={() => updateRole(m)}
+                        title="Update Role"
+                      >
+                        <RefreshCw size={16} />
+                      </button>
+                      <button
+                        disabled={processingId === m.id}
+                        onClick={() => toggleMember(m.id, m.active)}
+                        title={m.active ? "Deactivate" : "Activate"}
+                      >
+                        {m.active ? <X size={16} /> : <Check size={16} />}
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -215,37 +268,89 @@ export default function ManageRoles() {
         )}
       </div>
 
-      {/* Role Requests */}
+      {/* ------------------ Non-Members ------------------ */}
+      <div className="card">
+        <h3>Profiles Not Yet Members</h3>
+        {loadingNonMembers ? (
+          <div>Loading…</div>
+        ) : nonMembers.length === 0 ? (
+          <div>No profiles found</div>
+        ) : (
+          <ul>
+            {nonMembers.map((p) => (
+              <li key={p.id}>
+                {p.full_name} ({p.email})
+                <button
+                  onClick={() => inviteNonMember(p.id)}
+                  disabled={processingId === p.id}
+                  title="Send Membership Invite"
+                >
+                  <UserPlus size={16} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* ------------------ Role Requests ------------------ */}
       <div className="card">
         <h3>Pending Role Requests</h3>
-
-        {loadingRequests ? (
-          <div>Loading requests…</div>
+        {loadingRoleRequests ? (
+          <div>Loading…</div>
         ) : roleRequests.length === 0 ? (
           <div>No pending requests</div>
         ) : (
           <ul>
             {roleRequests.map((r) => (
-              <li key={r.id} className="table-actions">
-                <span>
-                  {r.requester?.full_name} → <b>{r.requested_role}</b>
-                </span>
-                <div className="table-actions">
-                  <button
-                    disabled={requestProcessingId === r.id}
-                    onClick={() => approveRequest(r.id)}
-                    className="btn-table btn-table-success"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    disabled={requestProcessingId === r.id}
-                    onClick={() => rejectRequest(r.id)}
-                    className="btn-table btn-table-danger"
-                  >
-                    Reject
-                  </button>
-                </div>
+              <li key={r.id}>
+                {r.requester?.full_name} → <b>{r.requested_role}</b>
+                <button
+                  disabled={requestProcessingId === r.id}
+                  onClick={() => approveRole(r.id)}
+                  title="Approve"
+                >
+                  <Check size={16} />
+                </button>
+                <button
+                  disabled={requestProcessingId === r.id}
+                  onClick={() => rejectRole(r.id)}
+                  title="Reject"
+                >
+                  <X size={16} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* ------------------ Membership Requests ------------------ */}
+      <div className="card">
+        <h3>Pending Membership Requests</h3>
+        {loadingMembershipRequests ? (
+          <div>Loading…</div>
+        ) : membershipRequests.length === 0 ? (
+          <div>No pending requests</div>
+        ) : (
+          <ul>
+            {membershipRequests.map((r) => (
+              <li key={r.id}>
+                {r.requester?.full_name} ({r.membership_requested_at})
+                <button
+                  disabled={requestProcessingId === r.id}
+                  onClick={() => approveMembership(r.id)}
+                  title="Approve"
+                >
+                  <Check size={16} />
+                </button>
+                <button
+                  disabled={requestProcessingId === r.id}
+                  onClick={() => rejectMembership(r.id)}
+                  title="Reject"
+                >
+                  <X size={16} />
+                </button>
               </li>
             ))}
           </ul>

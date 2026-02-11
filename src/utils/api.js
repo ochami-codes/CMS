@@ -10,8 +10,7 @@ export const ChildrenAPI = {
     request("/children", { method: "POST", body: JSON.stringify(childData) }),
   update: (id, childData) =>
     request(`/children/${id}`, { method: "PUT", body: JSON.stringify(childData) }),
-  delete: (id) =>
-    request(`/children/${id}`, { method: "DELETE" }),
+  delete: (id) => request(`/children/${id}`, { method: "DELETE" }),
 };
 
 /* ======================
@@ -29,122 +28,61 @@ export const ProfileAPI = {
 export const MembersAPI = {
   fetchAll: (department = "") =>
     request(department ? `/members?department=${encodeURIComponent(department)}` : "/members"),
-
-  add: (payload) =>
-    request("/members", { method: "POST", body: JSON.stringify(payload) }),
-
-  update: (id, updates) =>
-    request(`/members/${id}`, { method: "PUT", body: JSON.stringify(updates) }),
-
-  remove: (id) =>
-    request(`/members/${id}`, { method: "DELETE" }),
+  add: (payload) => request("/members", { method: "POST", body: JSON.stringify(payload) }),
+  update: (id, updates) => request(`/members/${id}`, { method: "PUT", body: JSON.stringify(updates) }),
+  remove: (id) => request(`/members/${id}`, { method: "DELETE" }),
 };
+
 /* ======================
    DEPARTMENTS API
 ====================== */
 export const DepartmentsAPI = {
   fetchAll: () => request("/departments"),
-
-  // optional helpers (future-proofing)
   fetchById: (id) => request(`/departments/${id}`),
 };
+
 /* ======================
    TREASURY API
 ====================== */
 export const TreasuryAPI = {
   overview: (params = "") => request(`/treasury/overview${params}`),
   fundGroups: (params = "") => request(`/treasury/fund-groups${params}`),
-  fundsByGroup: (groupId, params = "") =>
-    request(`/treasury/fund-groups/${groupId}/funds${params}`),
-  memberGivingSummary: (params = "") =>
-    request(`/treasury/member-giving-summary${params}`),
-  createTransaction: (payload) =>
-    request("/treasury/transactions", { method: "POST", body: JSON.stringify(payload) }),
+  fundsByGroup: (groupId, params = "") => request(`/treasury/fund-groups/${groupId}/funds${params}`),
+  memberGivingSummary: (params = "") => request(`/treasury/member-giving-summary${params}`),
+  createTransaction: (payload) => request("/treasury/transactions", { method: "POST", body: JSON.stringify(payload) }),
 };
 
 /* ======================
-   AUTH API (FINAL)
+   AUTH API
 ====================== */
 export const AuthAPI = {
   me: () => request("/auth/me"),
-  /* -------- Auth -------- */
-  login: (payload) =>
-    request("/auth/login", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
-
-  register: (payload) =>
-    request("/auth/register", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
-
-  logout: () =>
-    request("/auth/logout", {
-      method: "POST",
-    }),
-
+  login: (payload) => request("/auth/login", { method: "POST", body: JSON.stringify(payload) }),
+  register: (payload) => request("/auth/register", { method: "POST", body: JSON.stringify(payload) }),
+  logout: () => request("/auth/logout", { method: "POST" }),
   callback: ({ access_token, refresh_token, type }) =>
-    request(
-      `/auth/callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`
-    ),
+    request(`/auth/callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`),
 
-  /* -------- Email & Password -------- */
   resendVerification: (email) =>
-    request("/auth/resend-verification", {
-      method: "POST",
-      body: JSON.stringify({ email }),
-    }),
-
+    request("/auth/resend-verification", { method: "POST", body: JSON.stringify({ email }) }),
   resetPassword: (email) =>
-    request("/auth/reset-password", {
-      method: "POST",
-      body: JSON.stringify({ email }),
-    }),
-
-  /* -------- Authenticated actions -------- */
+    request("/auth/reset-password", { method: "POST", body: JSON.stringify({ email }) }),
   changePassword: (newPassword) =>
-    request("/auth/change-password", {
-      method: "POST",
-      body: JSON.stringify({ newPassword }),
-    }),
+    request("/auth/change-password", { method: "POST", body: JSON.stringify({ newPassword }) }),
 };
+
 /* ======================
-   Attendance API
+   ATTENDANCE API
 ====================== */
 export const AttendanceAPI = {
-  /**
-   * Fetch attendance records for a given department on a specific date
-   * @param {string} department
-   * @param {string} date - YYYY-MM-DD
-   * @returns {Promise<{records: Array}>}
-   */
   fetch: (department, date) =>
-    request(
-      `/attendance?department=${encodeURIComponent(department)}&date=${date}`
-    ),
-
-  /**
-   * Save attendance records
-   * @param {Array} records - [{ member_id, department, date, present, notes?, service_type? }]
-   */
+    request(`/attendance?department=${encodeURIComponent(department)}&date=${date}`),
   save: (records) =>
-    request("/attendance", {
-      method: "POST",
-      body: JSON.stringify({ records }),
-    }),
-
-  /**
-   * Fetch aggregated attendance summary
-   * @param {string} department
-   * @param {string} period - "month" | "year"
-   */
+    request("/attendance", { method: "POST", body: JSON.stringify({ records }) }),
   summary: (department, period) =>
-    request(
-      `/attendance/summary?department=${encodeURIComponent(department)}&period=${period}`
-    ),
+    request(`/attendance/summary?department=${encodeURIComponent(department)}&period=${period}`),
 };
+
 /* ======================
    ANNOUNCEMENTS / COMMUNICATION API
 ====================== */
@@ -167,53 +105,34 @@ export const CommunicationAPI = {
 ====================== */
 export const DashboardAPI = {
   dailyVerse: async () => {
-    try {
-      return await request("/dashboard/daily-verse");
-    } catch {
-      return {
-        reference: "Psalm 118:24",
-        text: "This is the day the Lord has made; let us rejoice and be glad in it.",
-      };
-    }
+    try { return await request("/dashboard/daily-verse"); }
+    catch { return { reference: "Psalm 118:24", text: "This is the day the Lord has made; let us rejoice and be glad in it." }; }
   },
-
   myBirthday: async () => {
-    try {
-      return await request("/dashboard/my-birthday");
-    } catch {
-      return { full_name: "Child of God", birthday: null, isBirthday: false };
-    }
+    try { return await request("/dashboard/my-birthday"); }
+    catch { return { full_name: "Child of God", birthday: null, isBirthday: false }; }
   },
-
   todaysBirthdays: async (churchId) => {
-    try {
-      return churchId
-        ? await request(`/dashboard/todays-birthdays?church_id=${churchId}`)
-        : await request("/dashboard/todays-birthdays");
-    } catch {
-      return [];
-    }
+    try { return churchId ? await request(`/dashboard/todays-birthdays?church_id=${churchId}`) : await request("/dashboard/todays-birthdays"); }
+    catch { return []; }
   },
-
   upcomingBirthdays: async (churchId, daysAhead = 30) => {
-    try {
-      if (!churchId) return [];
-      return await request(
-        `/dashboard/upcoming-birthdays?church_id=${churchId}&days=${daysAhead}`
-      );
-    } catch {
-      return [];
-    }
+    try { return churchId ? await request(`/dashboard/upcoming-birthdays?church_id=${churchId}&days=${daysAhead}`) : []; }
+    catch { return []; }
   },
 };
 
 /* ======================
-   OVERVIEW / ADMIN API
+   ADMIN / OVERVIEW API
 ====================== */
 export const OverviewAPI = {
   admin: () => request("/admin/overview"),
   fetchPastorOverview: () => request("/pastor/overview"),
 };
+
+/* ======================
+   ADMIN API
+====================== */
 export const AdminAPI = {
   fetchMembers: (params = "") => request(`/admin/members?${params}`),
 
@@ -234,36 +153,50 @@ export const AdminAPI = {
     request(`/admin/role-requests/${id}/approve`, { method: "POST" }),
   rejectRoleRequest: (id) =>
     request(`/admin/role-requests/${id}/reject`, { method: "POST" }),
+
+  /* -------- NEW: Non-members API -------- */
+  fetchNonMembers: () => request("/admin/membership-request/non-members"),
+
+  /* -------- NEW: Invite API -------- */
+  sendInvite: (payload) =>
+    request(`/admin/membership-request/invite/${id}`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" },
+    }),
 };
 /* ======================
    ROLE REQUESTS API
 ====================== */
-
 export const RoleRequestsAPI = {
-  // Member submits a role request
   submit: (requested_role) =>
-    request("/role-requests", {
-      method: "POST",
-      body: JSON.stringify({ requested_role }),
-      headers: { "Content-Type": "application/json" },
-    }),
-
-  // Fetch all pending requests (Admin)
+    request("/role-requests", { method: "POST", body: JSON.stringify({ requested_role }), headers: { "Content-Type": "application/json" } }),
   fetchPending: () => request("/admin/role-requests"),
-
-  // Approve a specific request (Admin)
-  approve: (requestId) =>
-    request(`/admin/role-requests/${requestId}/approve`, { method: "POST" }),
-
-  // Reject a specific request (Admin)
-  reject: (requestId) =>
-    request(`/admin/role-requests/${requestId}/reject`, { method: "POST" }),
-
-  // Fetch pending count (Admin)
+  approve: (id) => request(`/admin/role-requests/${id}/approve`, { method: "POST" }),
+  reject: (id) => request(`/admin/role-requests/${id}/reject`, { method: "POST" }),
   pendingCount: () => request("/admin/role-requests/pending-count"),
-
-  // Fetch logged-in member's requests
   fetchMyRequests: () => request("/role-requests/my-requests"),
+};
+
+/* ======================
+   MEMBERSHIP API
+====================== */
+export const MembershipAPI = {
+  submit: (payload) => request("/membership-requests", { method: "POST", body: JSON.stringify(payload) }),
+  myRequests: () => request("/membership-requests/me"),
+};
+
+export const AdminMembershipAPI = {
+  fetchAll: () => request("/admin/membership-requests"),
+  approve: (requestId) => request(`/admin/membership-requests/${requestId}/approve`, { method: "POST" }),
+  reject: (requestId) => request(`/admin/membership-requests/${requestId}/reject`, { method: "POST" }),
+};
+
+/* ======================
+   ADMIN DASHBOARD API
+====================== */
+export const AdminDashboardAPI = {
+  fetchAll: () => request("/admin/dashboard"),
 };
 
 /* ======================
@@ -272,12 +205,12 @@ export const RoleRequestsAPI = {
 export const ChurchAPI = {
   getById: (id) => request(`/churches/${id}`),
 };
+
 /* ======================
-   LEGACY / HELPER EXPORTS
+   LEGACY / HELPERS
 ====================== */
 export const getDailyVerse = () => DashboardAPI.dailyVerse();
 export const getAnnouncements = (churchId) => AnnouncementsAPI.fetch(churchId);
 export const getMyBirthday = () => DashboardAPI.myBirthday();
 export const getTodaysBirthdays = (churchId) => DashboardAPI.todaysBirthdays(churchId);
-export const getUpcomingBirthdays = (churchId, daysAhead = 30) =>
-  DashboardAPI.upcomingBirthdays(churchId, daysAhead);
+export const getUpcomingBirthdays = (churchId, daysAhead = 30) => DashboardAPI.upcomingBirthdays(churchId, daysAhead);
