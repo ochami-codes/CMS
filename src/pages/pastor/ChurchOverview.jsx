@@ -1,8 +1,8 @@
 // src/pages/pastor/ChurchOverview.jsx
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { formatDate } from "../../utils/formatDate";
 import { OverviewAPI } from "../../utils/api";
+import "../../styles/pages.css";
 import RequirePermission from "../../components/RequirePermission";
 
 export default function ChurchOverview() {
@@ -45,37 +45,48 @@ export default function ChurchOverview() {
     }
   };
 
-  if (loading) return <p>Loading overview...</p>;
+  if (loading) return <p>Loading overview…</p>;
 
   return (
     <RequirePermission permission="view_finances">
-      <div className="dashboard-page">
-        <h1 className="page-title">Church Overview</h1>
-        <p className="page-subtext">
-          A full summary of the entire church.
-        </p>
+      <div className="dashboard-content">
 
-        {/* MEMBERS SUMMARY */}
+        {/* ======================
+           PAGE HEADER
+        ====================== */}
+        <div className="card">
+          <h2 className="card-title">Church Overview</h2>
+          <p className="card-subtitle">
+            A full summary of the entire church.
+          </p>
+        </div>
+
+        {/* ======================
+           MEMBERS SUMMARY
+        ====================== */}
         <div className="stats-grid">
-          <div className="stat-card">
+          <div className="stat-card card">
             <h3>Total Members</h3>
             <p className="stat-value">{counts.total}</p>
           </div>
-          <div className="stat-card">
+          <div className="stat-card card">
             <h3>Youth Members</h3>
             <p className="stat-value">{counts.youth}</p>
           </div>
-          <div className="stat-card">
+          <div className="stat-card card">
             <h3>Children Members</h3>
             <p className="stat-value">{counts.children}</p>
           </div>
-          <div className="stat-card">
+          <div className="stat-card card">
             <h3>Adult Members</h3>
             <p className="stat-value">{counts.adults}</p>
           </div>
         </div>
 
-        {/* rest of your component unchanged */}
+        {/* ======================
+           ATTENDANCE, FINANCES, EVENTS
+        ====================== */}
+        {/* You can wrap attendanceTrend, offerSummary, expenseSummary, and events in `card`s too */}
       </div>
     </RequirePermission>
   );

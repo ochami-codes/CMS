@@ -1,7 +1,6 @@
 // src/pages/treasury/TreasuryDashboard.jsx
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
-import RequirePermission from "../../components/RequirePermission";
 import { TreasuryAPI } from "../../utils/api";
 import FundGroupChart from "../../components/treasury/FundGroupChart";
 import FundBreakdownChart from "../../components/treasury/FundBreakdownChart";
@@ -10,7 +9,8 @@ import DateFilter from "../../components/treasury/DateFilter";
 import { generateTablePDF } from "../../utils/pdf";
 import toast from "react-hot-toast";
 import Loader from "../../components/Loader";
-
+import RequirePermission from "../../components/RequirePermission";
+import "../../styles/pages.css";
 export default function TreasuryDashboard() {
   const { profile } = useAuth();
 
@@ -22,10 +22,7 @@ export default function TreasuryDashboard() {
   const [filter, setFilter] = useState({ start: "", end: "" });
   const [loading, setLoading] = useState(true);
 
-  const params =
-    filter.start || filter.end
-      ? `?start=${filter.start}&end=${filter.end}`
-      : "";
+  const params = filter.start || filter.end ? `?start=${filter.start}&end=${filter.end}` : "";
 
   /* ---------------- Load dashboard data ---------------- */
   const loadData = async () => {
@@ -80,26 +77,28 @@ export default function TreasuryDashboard() {
     );
   };
 
-  /* ---------------- Loader ---------------- */
   if (loading) return <Loader message="God loves you..." />;
 
   return (
     <RequirePermission permission="view_finances">
-      <div className="dashboard-content space-y-6">
+      <main className="page-container space-y-6">
+
         {/* Header */}
-        <div className="greeting-card">
-          <h2>Treasury Dashboard</h2>
-          <p>Financial overview based on church funds and transactions</p>
-        </div>
+        <section className="page-card">
+          <h1 className="page-title">Treasury Dashboard</h1>
+          <p className="text-muted">
+            Financial overview based on church funds and transactions
+          </p>
+        </section>
 
         {/* Date Filter */}
-        <div className="card">
+        <section className="page-card">
           <DateFilter onChange={setFilter} />
-        </div>
+        </section>
 
         {/* Overview Snapshot */}
         {overview && (
-          <div className="stats-grid">
+          <section className="stats-grid">
             <div className="stat-card">
               <h3>Total Income</h3>
               <p>KES {overview.total_income?.toLocaleString()}</p>
@@ -116,18 +115,18 @@ export default function TreasuryDashboard() {
               <h3>Active Funds</h3>
               <p>{overview.active_funds ?? 0}</p>
             </div>
-          </div>
+          </section>
         )}
 
         {/* Fund Group Overview */}
-        <div className="card">
-          <h3>Fund Group Overview</h3>
+        <section className="page-card">
+          <h2 className="card-title">Fund Group Overview</h2>
           <FundGroupChart data={groups} />
-        </div>
+        </section>
 
         {/* Fund Breakdown */}
-        <div className="card space-y-3">
-          <h3>Fund Breakdown</h3>
+        <section className="page-card space-y-3">
+          <h2 className="card-title">Fund Breakdown</h2>
           <select
             className="input-group input-select"
             value={selectedGroup}
@@ -142,18 +141,18 @@ export default function TreasuryDashboard() {
           </select>
 
           {funds.length > 0 && <FundBreakdownChart data={funds} />}
-        </div>
+        </section>
 
         {/* Add Transaction Form */}
         <RequirePermission permission="edit_finances">
-          <div className="card">
+          <section className="page-card">
             <AddTransactionForm onSuccess={loadData} />
-          </div>
+          </section>
         </RequirePermission>
 
         {/* Member Giving Summary */}
-        <div className="card">
-          <h3>Member Giving Summary</h3>
+        <section className="page-card">
+          <h2 className="card-title">Member Giving Summary</h2>
           {members.length === 0 ? (
             <p>No contributions yet.</p>
           ) : (
@@ -184,8 +183,9 @@ export default function TreasuryDashboard() {
               </button>
             </>
           )}
-        </div>
-      </div>
+        </section>
+
+      </main>
     </RequirePermission>
   );
 }

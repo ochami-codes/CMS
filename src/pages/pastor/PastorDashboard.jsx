@@ -1,5 +1,6 @@
 // src/pages/pastor/PastorDashboard.jsx
 import { useEffect, useState } from "react";
+import "../../styles/pages.css";
 import { OverviewAPI } from "../../utils/api";
 import toast from "react-hot-toast";
 
@@ -40,19 +41,30 @@ export default function PastorDashboard() {
   ];
 
   return (
-    <div className="dashboard-layout">
-      <h1 className="page-title">Pastor Dashboard</h1>
-      <p className="page-subtext">Overview of church departments and members.</p>
+    <div className="dashboard-content">
 
+      {/* ======================
+         PAGE HEADER
+      ====================== */}
+      <div className="card">
+        <h2 className="card-title">Pastor Dashboard</h2>
+        <p className="card-subtitle">
+          Overview of church departments and members.
+        </p>
+      </div>
+
+      {/* ======================
+         STATS GRID
+      ====================== */}
       <div className="stats-grid">
         {cards.map((card) => (
-          <div key={card.title} className="stat-card">
+          <div key={card.title} className="stat-card card">
             <h3>{card.title}</h3>
             <p>Total members: {card.value}</p>
           </div>
         ))}
 
-        <div className="stat-card">
+        <div className="stat-card card">
           <h3>Reports</h3>
           <p>Generate overall church reports and attendance summaries.</p>
         </div>

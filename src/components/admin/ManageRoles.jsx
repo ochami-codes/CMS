@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { AdminAPI, AdminMembershipAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import { Check, X, RefreshCw, UserPlus } from "lucide-react";
-
+import "../../styles/pages.css";
 const ROLES = [
   "Admin",
   "Pastor",
@@ -13,7 +13,7 @@ const ROLES = [
   "Member",
 ];
 
-export default function AdminMembers() {
+export default function ManageRoles() {
   const { profile, setProfile, setUser, loading: authLoading } = useAuth();
 
   /* ------------------ State ------------------ */
@@ -181,36 +181,42 @@ export default function AdminMembers() {
     }
   };
 
-  if (authLoading) return <div>Checking permissions…</div>;
-  if (!profile) return <div>Loading profile…</div>;
+if (authLoading) return <div className="dashboard-content">Checking permissions…</div>;
+  if (!profile) return <div className="dashboard-content">Loading profile…</div>;
 
   return (
-    <div className="dashboard-content">
-      <h2>Admin Members & Roles</h2>
-      <input
-        placeholder="Search members…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="mb-4"
-      />
-
-      {/* ------------------ Members Table ------------------ */}
+    <>
+      {/* Page Title */}
       <div className="card">
-        <h3>Manage Members</h3>
+        <h2 className="card-title">Admin Members & Roles</h2>
+
+        <input
+          placeholder="Search members…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="input"
+        />
+      </div>
+
+      {/* ------------------ Members ------------------ */}
+      <div className="card">
+        <h3 className="card-title">Manage Members</h3>
+
         {loadingMembers ? (
           <div>Loading members…</div>
         ) : (
-          <table className="table">
+          <table className="members-table">
             <thead>
               <tr>
                 <th>Name</th>
                 <th>Department</th>
                 <th>Status</th>
-                <th>Current Role</th>
+                <th>Role</th>
                 <th>New Role</th>
                 <th>Actions</th>
               </tr>
             </thead>
+
             <tbody>
               {members.length === 0 ? (
                 <tr>
@@ -232,27 +238,31 @@ export default function AdminMembers() {
                         onChange={(e) =>
                           setMembers((prev) =>
                             prev.map((x) =>
-                              x.id === m.id ? { ...x, selectedRole: e.target.value } : x
+                              x.id === m.id
+                                ? { ...x, selectedRole: e.target.value }
+                                : x
                             )
                           )
                         }
                       >
                         {ROLES.map((r) => (
-                          <option key={r} value={r}>
-                            {r}
-                          </option>
+                          <option key={r} value={r}>{r}</option>
                         ))}
                       </select>
                     </td>
-                    <td>
+
+                    <td className="dashboard-actions">
                       <button
+                        className="btn btn-primary"
                         disabled={processingId === m.id || !m.active}
                         onClick={() => updateRole(m)}
                         title="Update Role"
                       >
                         <RefreshCw size={16} />
                       </button>
+
                       <button
+                        className="btn btn-secondary"
                         disabled={processingId === m.id}
                         onClick={() => toggleMember(m.id, m.active)}
                         title={m.active ? "Deactivate" : "Activate"}
@@ -268,94 +278,29 @@ export default function AdminMembers() {
         )}
       </div>
 
-      {/* ------------------ Non-Members ------------------ */}
+      {/* ------------------ Non Members ------------------ */}
       <div className="card">
-        <h3>Profiles Not Yet Members</h3>
+        <h3 className="card-title">Profiles Not Yet Members</h3>
+
         {loadingNonMembers ? (
           <div>Loading…</div>
         ) : nonMembers.length === 0 ? (
           <div>No profiles found</div>
         ) : (
-          <ul>
+          <div className="dashboard-actions">
             {nonMembers.map((p) => (
-              <li key={p.id}>
-                {p.full_name} ({p.email})
-                <button
-                  onClick={() => inviteNonMember(p.id)}
-                  disabled={processingId === p.id}
-                  title="Send Membership Invite"
-                >
-                  <UserPlus size={16} />
-                </button>
-              </li>
+              <button
+                key={p.id}
+                className="btn btn-secondary"
+                onClick={() => inviteNonMember(p.id)}
+                disabled={processingId === p.id}
+              >
+                <UserPlus size={16} /> {p.full_name}
+              </button>
             ))}
-          </ul>
+          </div>
         )}
       </div>
-
-      {/* ------------------ Role Requests ------------------ */}
-      <div className="card">
-        <h3>Pending Role Requests</h3>
-        {loadingRoleRequests ? (
-          <div>Loading…</div>
-        ) : roleRequests.length === 0 ? (
-          <div>No pending requests</div>
-        ) : (
-          <ul>
-            {roleRequests.map((r) => (
-              <li key={r.id}>
-                {r.requester?.full_name} → <b>{r.requested_role}</b>
-                <button
-                  disabled={requestProcessingId === r.id}
-                  onClick={() => approveRole(r.id)}
-                  title="Approve"
-                >
-                  <Check size={16} />
-                </button>
-                <button
-                  disabled={requestProcessingId === r.id}
-                  onClick={() => rejectRole(r.id)}
-                  title="Reject"
-                >
-                  <X size={16} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* ------------------ Membership Requests ------------------ */}
-      <div className="card">
-        <h3>Pending Membership Requests</h3>
-        {loadingMembershipRequests ? (
-          <div>Loading…</div>
-        ) : membershipRequests.length === 0 ? (
-          <div>No pending requests</div>
-        ) : (
-          <ul>
-            {membershipRequests.map((r) => (
-              <li key={r.id}>
-                {r.requester?.full_name} ({r.membership_requested_at})
-                <button
-                  disabled={requestProcessingId === r.id}
-                  onClick={() => approveMembership(r.id)}
-                  title="Approve"
-                >
-                  <Check size={16} />
-                </button>
-                <button
-                  disabled={requestProcessingId === r.id}
-                  onClick={() => rejectMembership(r.id)}
-                  title="Reject"
-                >
-                  <X size={16} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
+    </>
   );
 }

@@ -1,5 +1,5 @@
 // src/components/Input.jsx
-
+import "../styles/layout.css";
 export default function Input({
   label,
   type = "text",

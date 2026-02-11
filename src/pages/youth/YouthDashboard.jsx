@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
 import Attendance from "../../components/members/Attendance";
-
+import "../../styles/pages.css";
 export default function YouthDashboard() {
   const { profile } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
@@ -15,41 +15,42 @@ export default function YouthDashboard() {
   };
 
   return (
-    <div className="dashboard-content">
+    <main className="page-container space-y-6">
+
       {/* Page Header */}
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold mb-1">Youth Department</h1>
-        <p className="text-gray-700 text-sm">
+      <header className="page-header">
+        <h1 className="page-title">Youth Department</h1>
+        <p className="text-muted">
           Manage youth members, programs, and attendance records.
         </p>
       </header>
 
       {/* Overview Cards */}
-      <div className="stats-grid mb-8">
-        <div className="stat-card card p-4">
-          <h3 className="font-semibold mb-1">Youth Members</h3>
-          <p className="text-gray-700 text-sm">
+      <section className="stats-grid">
+        <div className="page-card">
+          <h3 className="card-subtitle">Youth Members</h3>
+          <p className="text-muted">
             Register and manage youth membership.
           </p>
         </div>
 
-        <div className="stat-card card p-4">
-          <h3 className="font-semibold mb-1">Programs & Activities</h3>
-          <p className="text-gray-700 text-sm">
+        <div className="page-card">
+          <h3 className="card-subtitle">Programs & Activities</h3>
+          <p className="text-muted">
             Track youth events, fellowships, and outreach.
           </p>
         </div>
 
-        <div className="stat-card card p-4">
-          <h3 className="font-semibold mb-1">Attendance</h3>
-          <p className="text-gray-700 text-sm">
+        <div className="page-card">
+          <h3 className="card-subtitle">Attendance</h3>
+          <p className="text-muted">
             Record Sabbath and program attendance.
           </p>
         </div>
-      </div>
+      </section>
 
-      {/* Add Member */}
-      <section className="mb-8">
+      {/* Add Member Form */}
+      <section className="page-card">
         <AddMember
           department="youth"
           onMemberAdded={handleMemberAdded}
@@ -57,7 +58,7 @@ export default function YouthDashboard() {
       </section>
 
       {/* Member List */}
-      <section className="mb-8">
+      <section className="page-card">
         <MemberList
           department="youth"
           refreshKey={refreshKey}
@@ -66,9 +67,10 @@ export default function YouthDashboard() {
       </section>
 
       {/* Attendance */}
-      <section>
+      <section className="page-card">
         <Attendance department="youth" />
       </section>
-    </div>
+
+    </main>
   );
 }

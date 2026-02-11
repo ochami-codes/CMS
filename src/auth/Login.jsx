@@ -6,6 +6,7 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 import Loader from "../components/Loader";
 import { AuthAPI } from "../utils/api";
+import "../styles/auth.css";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -71,23 +72,25 @@ export default function Login() {
      UI
   -------------------------------------------------- */
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
-      <div className="w-full max-w-md card p-6 space-y-4 shadow-md">
-        <h2 className="text-2xl font-bold text-center">Login</h2>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2>Login</h2>
 
         {/* Verification / Error Messages */}
         {verified && (
-          <p className="text-green-600 text-sm text-center">
+          <p className="text-green-600 text-center text-sm">
             Registration successful! Please log in.
           </p>
         )}
-        {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+        {error && (
+          <p className="text-red-600 text-center text-sm">{error}</p>
+        )}
         {resendMessage && (
-          <p className="text-blue-600 text-sm text-center">{resendMessage}</p>
+          <p className="text-blue-600 text-center text-sm">{resendMessage}</p>
         )}
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit}>
           <Input
             type="email"
             label="Email"
@@ -106,19 +109,26 @@ export default function Login() {
           />
 
           {error.toLowerCase().includes("verify") && (
-            <Button type="button" className="w-full" onClick={handleResendVerification}>
+            <Button
+              type="button"
+              className="btn-primary w-full"
+              onClick={handleResendVerification}
+            >
               Resend verification email
             </Button>
           )}
 
-          <Button type="submit" disabled={submitting} className="w-full">
+          <Button type="submit" disabled={submitting} className="btn-primary w-full">
             {submitting ? "Logging in…" : "Login"}
           </Button>
         </form>
 
         {/* Forgot Password */}
         <div className="text-center mt-2">
-          <Link to="/reset-password" className="text-blue-600 hover:underline text-sm">
+          <Link
+            to="/reset-password"
+            className="text-blue-600 hover:underline text-sm"
+          >
             Forgot password?
           </Link>
         </div>

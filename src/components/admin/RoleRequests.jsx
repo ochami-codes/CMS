@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { AdminAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast"; // optional toast notifications
-
+import "../../styles/pages.css";
 export default function RoleRequests() {
   const { profile, loading: authLoading } = useAuth();
 
@@ -83,50 +83,57 @@ export default function RoleRequests() {
   };
 
   /* ------------------ Render Guards ------------------ */
-  if (authLoading) return <div className="p-4">Checking admin permissions…</div>;
-  if (!profile) return <div className="p-4">Loading admin profile…</div>;
-  if (loading) return <div className="p-4">Loading role requests…</div>;
+if (authLoading)
+    return <div className="dashboard-content">Checking admin permissions…</div>;
 
-  /* ------------------ UI ------------------ */
+  if (!profile)
+    return <div className="dashboard-content">Loading admin profile…</div>;
+
+  if (loading)
+    return <div className="dashboard-content">Loading role requests…</div>;
+
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Role Change Requests</h2>
+    <div className="card">
+      <h2 className="card-title">Role Change Requests</h2>
 
-      {error && <p className="text-red-600 mb-3">{error}</p>}
+      {error && <p style={{ color: "#dc2626" }}>{error}</p>}
 
       {requests.length === 0 ? (
-        <p className="text-gray-600">No pending requests.</p>
+        <p style={{ color: "#6b7280" }}>No pending requests.</p>
       ) : (
-        <table className="w-full border">
+        <table className="members-table">
           <thead>
-            <tr className="border-b bg-gray-50">
-              <th className="p-2 text-left">Member</th>
-              <th className="p-2 text-left">Current Role</th>
-              <th className="p-2 text-left">Requested Role</th>
-              <th className="p-2 text-left">Requested By</th>
-              <th className="p-2 text-left">Action</th>
+            <tr>
+              <th>Member</th>
+              <th>Current Role</th>
+              <th>Requested Role</th>
+              <th>Requested By</th>
+              <th>Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {requests.map((req) => (
-              <tr key={req.id} className="border-b hover:bg-gray-100">
-                <td className="p-2">{req.target_user?.full_name || "(Unknown member)"}</td>
-                <td className="p-2">{req.target_user?.role || "-"}</td>
-                <td className="p-2 font-semibold">{req.requested_role}</td>
-                <td className="p-2">{req.requester?.full_name || "(System)"}</td>
-                <td className="p-2 flex gap-2">
+              <tr key={req.id}>
+                <td>{req.target_user?.full_name || "—"}</td>
+                <td>{req.target_user?.role || "—"}</td>
+                <td>
+                  <strong>{req.requested_role}</strong>
+                </td>
+                <td>{req.requester?.full_name || "System"}</td>
+                <td className="dashboard-actions">
                   <button
+                    className="btn btn-primary"
                     disabled={processingId === req.id}
                     onClick={() => approve(req.id)}
-                    className="px-3 py-1 bg-green-600 text-white rounded disabled:opacity-50"
                   >
                     Approve
                   </button>
+
                   <button
+                    className="btn btn-secondary"
                     disabled={processingId === req.id}
                     onClick={() => reject(req.id)}
-                    className="px-3 py-1 bg-red-600 text-white rounded disabled:opacity-50"
                   >
                     Reject
                   </button>

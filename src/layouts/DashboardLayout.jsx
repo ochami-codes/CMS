@@ -3,7 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "../components/Sidebar";
 import { useState } from "react";
-
+import "../styles/layout.css";
 export default function DashboardLayout() {
   const { logout } = useAuth();
   const navigate = useNavigate();

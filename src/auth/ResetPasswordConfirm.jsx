@@ -6,7 +6,7 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 import Loader from "../components/Loader";
 import { isStrongPassword } from "../utils/validators";
-
+import "../styles/auth.css";
 export default function ResetPasswordConfirm() {
   const navigate = useNavigate();
 
@@ -16,9 +16,7 @@ export default function ResetPasswordConfirm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  /* --------------------------------------------------
-     1️⃣ Read recovery session from URL hash
-  -------------------------------------------------- */
+  /* ------------------ Read recovery session ------------------ */
   useEffect(() => {
     const hash = window.location.hash.replace("#", "");
     const params = new URLSearchParams(hash);
@@ -42,9 +40,7 @@ export default function ResetPasswordConfirm() {
       });
   }, []);
 
-  /* --------------------------------------------------
-     2️⃣ Submit new password
-  -------------------------------------------------- */
+  /* ------------------ Submit new password ------------------ */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
@@ -77,11 +73,11 @@ export default function ResetPasswordConfirm() {
     navigate("/login", { replace: true });
   };
 
-  /* ---------------- Invalid link ---------------- */
+  /* ------------------ Invalid link ------------------ */
   if (error && !sessionReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="w-full max-w-md text-center">
+      <div className="auth-container">
+        <div className="auth-card text-center">
           <p className="text-red-600">{error}</p>
           <Link
             to="/login"
@@ -94,20 +90,18 @@ export default function ResetPasswordConfirm() {
     );
   }
 
-  /* ---------------- Verifying session ---------------- */
+  /* ------------------ Verifying session ------------------ */
   if (!sessionReady) {
     return <Loader message="Verifying reset link… God loves you!" />;
   }
 
-  /* ---------------- Form ---------------- */
+  /* ------------------ Form ------------------ */
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
-      <div className="w-full max-w-md card p-6 shadow-md">
-        <h2 className="text-2xl font-bold mb-4 text-center">
-          Set New Password
-        </h2>
+    <div className="auth-container">
+      <div className="auth-card flex flex-col gap-4">
+        <h2 className="text-2xl font-semibold text-center">Set New Password</h2>
 
-        <p className="text-gray-600 mb-6 text-center">
+        <p className="text-gray-600 text-center">
           Choose a strong password for your account.
         </p>
 
@@ -128,9 +122,7 @@ export default function ResetPasswordConfirm() {
             required
           />
 
-          {error && (
-            <p className="text-red-600 text-sm text-center">{error}</p>
-          )}
+          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? "Updating…" : "Update Password"}

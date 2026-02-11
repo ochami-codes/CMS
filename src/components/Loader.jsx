@@ -1,4 +1,5 @@
 // src/components/Loader.jsx
+import "../styles/layout.css";
 export default function Loader({ message = "Loading..." }) {
   return (
     <div className="loader-overlay">

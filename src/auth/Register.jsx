@@ -6,7 +6,7 @@ import Button from "../components/Button";
 import EncouragementRedirect from "../components/EncouragementRedirect";
 import { AuthAPI } from "../utils/api";
 import { kenyaConferences } from "../data/kenyaConferences";
-
+import "../styles/auth.css";
 export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -106,13 +106,13 @@ export default function Register() {
 
   // ---------- Render Form ----------
   return (
-    <div className="container max-w-md mt-12">
-      <div className="card p-6 space-y-6">
-        <h2 className="text-2xl font-semibold text-center">Create an Account</h2>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2>Create an Account</h2>
 
-        {errors.global && <p className="text-red-600 text-center">{errors.global}</p>}
+        {errors.global && <p className="text-red-600 text-center text-sm">{errors.global}</p>}
 
-        <form onSubmit={handleRegister} className="space-y-4">
+        <form onSubmit={handleRegister}>
           <Input label="Full Name" name="fullName" value={form.fullName} onChange={handleChange} />
           {errors.fullName && <p className="text-red-600">{errors.fullName}</p>}
 
@@ -137,7 +137,7 @@ export default function Register() {
               name="gender"
               value={form.gender}
               onChange={handleChange}
-              className="w-full border rounded px-3 py-2 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-200"
+              className="w-full"
             >
               <option value="">Select gender</option>
               <option value="Male">Male</option>
@@ -152,7 +152,7 @@ export default function Register() {
               name="conference"
               value={form.conference}
               onChange={handleChange}
-              className="w-full border rounded px-3 py-2 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-200"
+              className="w-full"
             >
               <option value="">Select your conference</option>
               {kenyaConferences.map((conf) => (
@@ -163,22 +163,17 @@ export default function Register() {
 
           <div className="form-group">
             <label>Church Name</label>
-            <div className="flex gap-2">
+            <div className="church-input">
               <input
                 type="text"
                 name="churchBaseName"
                 value={form.churchBaseName}
-                onChange={handleChange} // allow spaces
+                onChange={handleChange}
                 placeholder="e.g. Maai Mahiu"
-                className="flex-1 border rounded px-3 py-2 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-200"
               />
-              <span className="px-3 py-2 bg-gray-200 rounded text-gray-700 whitespace-nowrap">
-                SDA Church
-              </span>
+              <span>SDA Church</span>
             </div>
-            <small className="text-gray-500">
-              Type only the church name. <strong>SDA Church</strong> is added automatically.
-            </small>
+            <small>Type only the church name. <strong>SDA Church</strong> is added automatically.</small>
             {errors.churchBaseName && <p className="text-red-600">{errors.churchBaseName}</p>}
           </div>
 
@@ -188,7 +183,7 @@ export default function Register() {
           <Input label="Confirm Password" name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} />
           {errors.confirmPassword && <p className="text-red-600">{errors.confirmPassword}</p>}
 
-          <Button type="submit" disabled={loading} className="w-full">
+          <Button type="submit" disabled={loading} className="btn-primary w-full">
             {loading ? "Creating account…" : "Register"}
           </Button>
         </form>

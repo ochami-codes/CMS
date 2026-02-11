@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import ChildrenList from "../../components/children/ChildrenList";
 import { ChildrenAPI } from "../../utils/api";
+import "../../styles/pages.css";
 import RequirePermission from "../../components/RequirePermission";
 
 export default function ChildrenDashboard() {
@@ -14,7 +15,7 @@ export default function ChildrenDashboard() {
   const loadChildren = async () => {
     setLoading(true);
     try {
-      const data = await ChildrenAPI.fetchAll(); // ✅ fixed
+      const data = await ChildrenAPI.fetchAll();
       setChildren(data || []);
     } catch (err) {
       console.error(err);
@@ -29,24 +30,33 @@ export default function ChildrenDashboard() {
     loadChildren();
   }, [refreshToggle]);
 
-  const refreshChildren = () =>
-    setRefreshToggle((prev) => !prev);
+  const refreshChildren = () => setRefreshToggle((prev) => !prev);
 
   return (
     <RequirePermission permission="manage_children">
-      <div className="dashboard-layout">
-        {/* Page header */}
-        <h1 className="page-title">Children Department</h1>
-        <p className="page-subtext">
-          Manage children records, parents’ contacts, and attendance.
-        </p>
+      <div className="dashboard-content">
 
-        {/* Children CRUD */}
-        <ChildrenList
-          children={children}
-          loading={loading}
-          onRefresh={refreshChildren}
-        />
+        {/* ======================
+           PAGE HEADER
+        ====================== */}
+        <div className="card">
+          <h2 className="card-title">Children Department</h2>
+          <p className="card-subtitle">
+            Manage children records, parents’ contacts, and attendance.
+          </p>
+        </div>
+
+        {/* ======================
+           CHILDREN LIST
+        ====================== */}
+        <div className="card">
+          <ChildrenList
+            children={children}
+            loading={loading}
+            onRefresh={refreshChildren}
+          />
+        </div>
+
       </div>
     </RequirePermission>
   );

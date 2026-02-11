@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import encouragementVerses from "../utils/encouragementVerses";
-
+import "../styles/layout.css";
 export default function EncouragementRedirect({
   title = "All set ✨",
   message = "You’ll be redirected shortly.",
@@ -34,33 +34,33 @@ export default function EncouragementRedirect({
     };
   }, [delay, navigate, redirectTo, onComplete]);
 
-  return (
-    <div className="dashboard-content" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-      <div className="card" style={{ maxWidth: "400px", width: "100%", textAlign: "center", padding: "2rem", gap: "1.5rem", display: "flex", flexDirection: "column" }}>
-        <h2 className="text-lg font-semibold">{title}</h2>
+return (
+  <div className="dashboard-content redirect-container">
+    <div className="card redirect-card">
+      <h2 className="redirect-title">{title}</h2>
 
-        <p style={{ color: "#4b5563", marginBottom: "1rem" }}>{message}</p>
+      <p className="redirect-message">{message}</p>
 
-        <blockquote style={{ fontStyle: "italic", color: "#374151", marginBottom: "0.5rem" }}>
-          “{verse.text}”
-        </blockquote>
+      <blockquote className="redirect-verse">
+        “{verse.text}”
+      </blockquote>
 
-        <p style={{ fontWeight: 500, color: "#4f46e5", marginBottom: "1rem" }}>— {verse.ref}</p>
+      <p className="redirect-ref">— {verse.ref}</p>
 
-        <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-          Redirecting in {secondsLeft} second{secondsLeft !== 1 ? "s" : ""}…
-        </p>
+      <p className="redirect-timer">
+        Redirecting in {secondsLeft} second{secondsLeft !== 1 ? "s" : ""}…
+      </p>
 
-        <button
-          className="btn btn-secondary"
-          onClick={async () => {
-            if (onComplete) await onComplete();
-            navigate(redirectTo, { replace: true });
-          }}
-        >
-          Go now
-        </button>
-      </div>
+      <button
+        className="btn btn-secondary"
+        onClick={async () => {
+          if (onComplete) await onComplete();
+          navigate(redirectTo, { replace: true });
+        }}
+      >
+        Go now
+      </button>
     </div>
-  );
+  </div>
+);
 }

@@ -87,39 +87,45 @@ export default function ProfilePage() {
 
   const Message = ({ type = "success", children }) => {
     const className = type === "success" ? "message-success" : "message-error";
-    return <div className={`card ${className}`}><p>{children}</p></div>;
+    return (
+      <div className={`card ${className}`}>
+        <p>{children}</p>
+      </div>
+    );
   };
 
   if (loading) {
     return (
-      <div className="dashboard-content">
-        <div className="card">Loading profile…</div>
-      </div>
+      <main className="page-container">
+        <section className="page-card">Loading profile…</section>
+      </main>
     );
   }
 
   if (!localProfile) {
     return (
-      <div className="dashboard-content">
-        <div className="card">Profile not found.</div>
-      </div>
+      <main className="page-container">
+        <section className="page-card">Profile not found.</section>
+      </main>
     );
   }
 
   return (
-    <div className="dashboard-content">
+    <main className="page-container">
 
       {/* ROLE REQUEST */}
-      <div className="card">
+      <section className="page-card">
         <h2 className="card-title">Role Requests</h2>
         <p className="text-muted">
           Apply for leadership or ministry roles and track approval status.
         </p>
-        <Link to="/myrolerequest" className="btn btn-primary">View / Submit Role Request</Link>
-      </div>
+        <Link to="/myrolerequest" className="btn btn-primary">
+          View / Submit Role Request
+        </Link>
+      </section>
 
       {/* MY ACCOUNT */}
-      <div className="card">
+      <section className="page-card">
         <h2 className="card-title"><User /> My Account</h2>
         <p className="text-muted">Your basic account information.</p>
 
@@ -148,43 +154,68 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* UPDATE PROFILE */}
-      <div className="card">
+      <section className="page-card">
         <h2 className="card-title"><Edit3 /> Update Profile</h2>
         <p className="text-muted">Update your personal details below.</p>
 
-        {message && <Message type={message.toLowerCase().includes("success") ? "success" : "error"}>{message}</Message>}
+        {message && (
+          <Message
+            type={message.toLowerCase().includes("success") ? "success" : "error"}
+          >
+            {message}
+          </Message>
+        )}
 
-        <ProfileForm profile={localProfile} onUpdate={handleUpdate} loading={loading} />
-      </div>
+        <ProfileForm
+          profile={localProfile}
+          onUpdate={handleUpdate}
+          loading={loading}
+        />
+      </section>
 
       {/* CHANGE PASSWORD */}
-      <div className="card">
-        <div onClick={() => setShowChangePw(v => !v)} className="cursor-pointer">
+      <section className="page-card">
+        <div
+          onClick={() => setShowChangePw((v) => !v)}
+          className="cursor-pointer"
+        >
           <h2 className="card-title"><Lock /> Change Password {showChangePw ? "▲" : "▼"}</h2>
           <p className="text-muted">Click to {showChangePw ? "hide" : "update"} your account password.</p>
         </div>
 
         {showChangePw && (
-          <form onSubmit={handleChangePassword} className="form-group">
-            <input type="password" className="input-field" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-            <input type="password" className="input-field" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+          <form onSubmit={handleChangePassword} className="form-stack">
+            <input
+              type="password"
+              className="input-field"
+              placeholder="New password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              className="input-field"
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
 
             {pwError && <Message type="error">{pwError}</Message>}
 
-            <button type="submit" className="btn btn-primary" disabled={pwLoading}>
+            <button type="submit" className="btn btn-primary w-full" disabled={pwLoading}>
               {pwLoading ? "Updating…" : "Update Password"}
             </button>
           </form>
         )}
-      </div>
+      </section>
 
       {/* CONTRIBUTIONS */}
       {contributions && (
-        <div className="stats-grid">
-          <div className="card">
+        <section className="stats-grid">
+          <div className="page-card">
             <h3 className="card-subtitle">Contributions</h3>
             <ul className="stats-list">
               <li>Tithes: KES {contributions.tithes}</li>
@@ -194,15 +225,15 @@ export default function ProfilePage() {
             </ul>
           </div>
 
-          <div className="card">
+          <div className="page-card">
             <h3 className="card-subtitle">Contributions Breakdown</h3>
             <div className="chart-container">
               <SummaryChart contributions={contributions} />
             </div>
           </div>
-        </div>
+        </section>
       )}
 
-    </div>
+    </main>
   );
 }

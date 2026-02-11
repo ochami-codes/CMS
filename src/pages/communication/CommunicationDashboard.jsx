@@ -1,3 +1,4 @@
+// src/pages/communication/CommunicationDashboard.jsx
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { AnnouncementsAPI } from "../../utils/api";
@@ -5,7 +6,7 @@ import RequirePermission from "../../components/RequirePermission";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import toast from "react-hot-toast";
-
+import "../../styles/pages.css";
 export default function CommunicationDashboard() {
   const { profile } = useAuth();
   const [announcements, setAnnouncements] = useState([]);
@@ -74,17 +75,27 @@ export default function CommunicationDashboard() {
     }
   };
 
-  if (loading) return <p>Loading…</p>;
+  if (loading)
+    return (
+      <main className="page-container">
+        <p>Loading…</p>
+      </main>
+    );
 
   return (
     <RequirePermission permission="manage_announcements">
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Communication Dashboard</h1>
+      <main className="page-container space-y-6">
 
-        {/* Add announcement */}
-        <div className="card">
-          <h3 className="font-semibold mb-2">Add Announcement</h3>
-          <form onSubmit={handleAdd} className="space-y-2">
+        {/* Page Header */}
+        <header className="page-header">
+          <h1 className="page-title">Communication Dashboard</h1>
+          <p className="text-muted">Manage church announcements.</p>
+        </header>
+
+        {/* Add Announcement */}
+        <section className="page-card">
+          <h2 className="card-title">Add Announcement</h2>
+          <form onSubmit={handleAdd} className="form-stack">
             <Input
               label="Title"
               value={title}
@@ -100,11 +111,11 @@ export default function CommunicationDashboard() {
               {submitting ? "Saving…" : "Add"}
             </Button>
           </form>
-        </div>
+        </section>
 
-        {/* List announcements */}
-        <div className="card">
-          <h3 className="font-semibold mb-2">Recent Announcements</h3>
+        {/* Recent Announcements */}
+        <section className="page-card">
+          <h2 className="card-title">Recent Announcements</h2>
 
           {announcements.length === 0 ? (
             <p>No announcements yet.</p>
@@ -118,7 +129,7 @@ export default function CommunicationDashboard() {
                   <div>
                     <strong>{a.title}</strong>
                     <p>{a.message}</p>
-                    <small className="text-gray-500">
+                    <small className="text-muted">
                       {new Date(a.created_at).toLocaleString()}
                     </small>
                   </div>
@@ -133,8 +144,9 @@ export default function CommunicationDashboard() {
               ))}
             </ul>
           )}
-        </div>
-      </div>
+        </section>
+
+      </main>
     </RequirePermission>
   );
 }

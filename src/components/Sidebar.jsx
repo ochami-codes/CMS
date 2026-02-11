@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { canUser } from "../utils/permissions";
+import "../styles/layout.css";
 import {
   LayoutDashboard,
   Users,
@@ -58,6 +59,12 @@ const SIDEBAR_ITEMS = [
     icon: Shield,
     permission: "manage_users",
   },
+{
+   label: "Profile",
+   path: "/dashboard/profiles",
+   icon: User,
+   permission: null,
+},
 ];
 
 export default function Sidebar({ open, onClose }) {
@@ -102,16 +109,6 @@ export default function Sidebar({ open, onClose }) {
               );
             })}
         </nav>
-
-        {/* Profile */}
-        <NavLink
-          to="/dashboard/profiles"
-          className="sidebar-profile-link"
-          onClick={onClose}
-        >
-          <User size={18} />
-          <span>Profile</span>
-        </NavLink>
       </aside>
     </>
   );

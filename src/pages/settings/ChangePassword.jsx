@@ -5,6 +5,7 @@ import Input from "../../components/Input";
 import Button from "../../components/Button";
 import Loader from "../../components/Loader";
 import { isStrongPassword } from "../../utils/validators";
+import "../../styles/pages.css";
 import { AuthAPI } from "../../utils/api";
 
 export default function ChangePassword() {
@@ -16,17 +17,20 @@ export default function ChangePassword() {
   const [error, setError] = useState("");
   const [passwordStrength, setPasswordStrength] = useState("");
 
-  /* ---------------- Password strength ---------------- */
+  /* ---------------- Password Strength ---------------- */
   useEffect(() => {
-    if (!newPassword) setPasswordStrength("");
-    else if (isStrongPassword(newPassword))
+    if (!newPassword) {
+      setPasswordStrength("");
+    } else if (isStrongPassword(newPassword)) {
       setPasswordStrength("Strong password ✅");
-    else if (newPassword.length >= 6)
+    } else if (newPassword.length >= 6) {
       setPasswordStrength("Weak: include letters and numbers ⚠️");
-    else setPasswordStrength("Too short ⚠️");
+    } else {
+      setPasswordStrength("Too short ⚠️");
+    }
   }, [newPassword]);
 
-  /* ---------------- Submit ---------------- */
+  /* ---------------- Handle Submit ---------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -47,8 +51,7 @@ export default function ChangePassword() {
 
     try {
       await AuthAPI.changePassword(newPassword);
-      // ✅ Navigate to dedicated success page
-      navigate("/change-password-success");
+      navigate("/profile/change-password-success");
     } catch (err) {
       setError(err.data?.message || err.message || "Failed to update password.");
     } finally {
@@ -56,18 +59,14 @@ export default function ChangePassword() {
     }
   };
 
-  if (loading) {
-    return <Loader message="Updating password… God is faithful." />;
-  }
+  if (loading) return <Loader message="Updating password… God is faithful." />;
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
-      <div className="w-full max-w-md card p-6 shadow-md">
-        <h2 className="text-2xl font-bold mb-4 text-center">
-          Change Password
-        </h2>
+    <main className="page-container">
+      <section className="page-card">
+        <h1 className="page-title text-center">Change Password</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="form-stack">
           <Input
             label="New password"
             type="password"
@@ -79,10 +78,10 @@ export default function ChangePassword() {
 
           {passwordStrength && (
             <p
-              className={`text-sm ${
+              className={`form-helper ${
                 passwordStrength.includes("Strong")
-                  ? "text-green-600"
-                  : "text-orange-500"
+                  ? "text-success"
+                  : "text-warning"
               }`}
             >
               {passwordStrength}
@@ -98,22 +97,22 @@ export default function ChangePassword() {
             required
           />
 
-          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+          {error && <p className="form-error text-center">{error}</p>}
 
-          <Button type="submit" disabled={loading} className="w-full">
+          <Button type="submit" className="w-full">
             Update Password
           </Button>
 
           <Button
             type="button"
             variant="secondary"
-            onClick={() => navigate("/dashboard/profile")}
+            onClick={() => navigate("/dashboard/profiles")}
             className="w-full"
           >
             Cancel
           </Button>
         </form>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
