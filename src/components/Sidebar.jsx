@@ -60,33 +60,19 @@ const SIDEBAR_ITEMS = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ open, onClose }) {
   const { profile } = useAuth();
-  const [open, setOpen] = useState(false);
 
   if (!profile) return null;
 
   return (
     <>
-      {/* Hamburger (mobile) */}
-      <button className="hamburger-btn" onClick={() => setOpen(true)}>
-        <Menu size={22} />
-      </button>
-
-      {/* Overlay */}
-      {open && (
-        <div
-          className="sidebar-overlay"
-          onClick={() => setOpen(false)}
-        />
-      )}
-
       {/* Sidebar */}
       <aside className={`sidebar ${open ? "open" : ""}`}>
         {/* Header */}
         <div className="sidebar-header">
           <h2 className="sidebar-title">ChurchApp</h2>
-          <button className="close-btn" onClick={() => setOpen(false)}>
+          <button className="close-btn" onClick={onClose}>
             <X size={20} />
           </button>
         </div>
@@ -101,16 +87,13 @@ export default function Sidebar() {
             )
             .map(item => {
               const Icon = item.icon;
-
               return (
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  onClick={() => setOpen(false)}
+                  onClick={onClose}
                   className={({ isActive }) =>
-                    isActive
-                      ? "sidebar-link active"
-                      : "sidebar-link"
+                    isActive ? "sidebar-link active" : "sidebar-link"
                   }
                 >
                   <Icon size={18} className="sidebar-icon" />
@@ -124,7 +107,7 @@ export default function Sidebar() {
         <NavLink
           to="/dashboard/profiles"
           className="sidebar-profile-link"
-          onClick={() => setOpen(false)}
+          onClick={onClose}
         >
           <User size={18} />
           <span>Profile</span>
