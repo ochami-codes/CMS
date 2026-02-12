@@ -3,10 +3,11 @@ import { useState, useMemo, useEffect } from "react";
 import { memberFields } from "../../utils/memberFields.js";
 import { DepartmentsAPI, MembersAPI } from "../../utils/api";
 import { useToast } from "../ToastProvider";
-
+import "../../styles/pages.css";
 export default function AddMember({ department, onMemberAdded }) {
   const config = memberFields[department];
   const fields = config?.fields ?? [];
+  const { showToast } = useToast();
 
   const initialState = useMemo(
     () => Object.fromEntries(fields.map(f => [f.name, ""])),
@@ -17,16 +18,14 @@ export default function AddMember({ department, onMemberAdded }) {
   const [loading, setLoading] = useState(false);
   const [departmentsList, setDepartmentsList] = useState([]);
 
-  const { showToast } = useToast(); // use global toast
-
-  // ---------------- FETCH DEPARTMENTS ----------------
+  /* ---------------- FETCH DEPARTMENTS ---------------- */
   useEffect(() => {
     const loadDepartments = async () => {
       try {
         const res = await DepartmentsAPI.fetchAll();
         setDepartmentsList(res ?? []);
       } catch (err) {
-        console.error("Load departments error:", err);
+        console.error(err);
         showToast("Failed to load departments", "error");
       }
     };
@@ -35,20 +34,24 @@ export default function AddMember({ department, onMemberAdded }) {
 
   if (!fields.length) {
     return (
-      <div className="dashboard-content">
-        <div className="card">No form configuration for "{department}"</div>
-      </div>
+      <>
+        <h2 className="card-title">Add Member</h2>
+        <p className="card-subtitle">
+          No form configuration for "{department}"
+        </p>
+      </>
     );
   }
 
+  /* ---------------- CHANGE ---------------- */
   const handleChange = (e, name) => {
     setFormData(prev => ({ ...prev, [name]: e.target.value }));
   };
 
+  /* ---------------- SUBMIT ---------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate required fields
     for (const field of fields) {
       if (field.required && !formData[field.name]) {
         showToast(`${field.label} is required`, "error");
@@ -67,69 +70,77 @@ export default function AddMember({ department, onMemberAdded }) {
       showToast("Member added successfully", "success");
       onMemberAdded?.(result.member);
     } catch (err) {
-      console.error("AddMember error:", err);
+      console.error(err);
       showToast(err.message || "Failed to add member", "error");
     } finally {
       setLoading(false);
     }
   };
 
+  /* ---------------- UI ---------------- */
   return (
-    <div className="dashboard-content">
-      <div className="card">
-        <h2 className="text-lg font-semibold mb-4">
-          Add Member – {department}
-        </h2>
+    <>
+      <h2 className="card-title">
+        Add Member
+        <span className="card-title-muted"> – {department}</span>
+      </h2>
 
-        <form onSubmit={handleSubmit}>
-          {fields.map(f => (
-            <div key={f.name} className="form-group">
-              <label>{f.label}</label>
+      <p className="card-subtitle">
+        Fill in the details below to register a new member.
+      </p>
 
-              {f.type === "select" ? (
-                <select
-                  value={formData[f.name] || ""}
-                  onChange={e => handleChange(e, f.name)}
-                  required={f.required}
-                  className="input"
-                >
-                  <option value="">
-                    {f.name === "department" ? "Select Department" : `Select ${f.label}`}
-                  </option>
+      <form onSubmit={handleSubmit} className="form-stack">
+        {fields.map(f => (
+          <div key={f.name} className="form-group">
+            <label className="label">{f.label}</label>
+
+            {f.type === "select" ? (
+              <select
+                value={formData[f.name] || ""}
+                onChange={e => handleChange(e, f.name)}
+                required={f.required}
+                className="input-field"
+              >
+                <option value="">
                   {f.name === "department"
-                    ? departmentsList.map(d => (
-                        <option key={d.id} value={d.id}>
-                          {d.name}
-                        </option>
-                      ))
-                    : f.options?.map(opt => (
-                        <option key={opt} value={opt}>{opt}</option>
-                      ))
-                  }
-                </select>
-              ) : (
-                <input
-                  type={f.type || "text"}
-                  value={formData[f.name] || ""}
-                  onChange={e => handleChange(e, f.name)}
-                  required={f.required}
-                  className="input"
-                />
-              )}
-            </div>
-          ))}
+                    ? "Select Department"
+                    : `Select ${f.label}`}
+                </option>
 
-          <div className="mt-4">
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? "Saving..." : "Add Member"}
-            </button>
+                {f.name === "department"
+                  ? departmentsList.map(d => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))
+                  : f.options?.map(opt => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+              </select>
+            ) : (
+              <input
+                type={f.type || "text"}
+                value={formData[f.name] || ""}
+                onChange={e => handleChange(e, f.name)}
+                required={f.required}
+                className="input-field"
+              />
+            )}
           </div>
-        </form>
-      </div>
-    </div>
+        ))}
+
+        <div className="mt-4">
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={loading}
+          >
+            {loading ? "Saving…" : "Add Member"}
+          </button>
+        </div>
+      </form>
+    </>
   );
 }

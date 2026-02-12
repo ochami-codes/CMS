@@ -4,11 +4,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { memberFields } from "../../utils/memberFields";
 import { MembersAPI, DepartmentsAPI } from "../../utils/api";
 import { useToast } from "../ToastProvider";
-
+import "../../styles/pages.css";
 export default function EditMember({ department, onUpdated }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { showToast } = useToast(); // global toast
+  const { showToast } = useToast();
 
   const config = memberFields[department];
   const fields = config?.fields ?? [];
@@ -18,35 +18,32 @@ export default function EditMember({ department, onUpdated }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // ------------------ FETCH MEMBER & DEPARTMENTS ------------------
+  /* ---------------- FETCH DATA ---------------- */
   useEffect(() => {
     if (!department || !id) return;
 
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch live departments
         const deptRes = await DepartmentsAPI.fetchAll();
-        setDepartments(Array.isArray(deptRes?.departments) ? deptRes.departments : []);
+        setDepartments(Array.isArray(deptRes) ? deptRes : []);
 
-        // Fetch member
-        const data = await MembersAPI.fetchAll(department);
-        const member = data?.members?.find((m) => m.id === id);
+        const res = await MembersAPI.fetchAll(department);
+        const member = res?.members?.find((m) => m.id === id);
         if (!member) throw new Error("Member not found");
 
         const initialData = {};
         fields.forEach((f) => {
-          if (f.name === "department") {
-            // store department_id for select
-            initialData[f.name] = member.department_id ?? "";
-          } else {
-            initialData[f.name] = member[f.name] ?? "";
-          }
+          initialData[f.name] =
+            f.name === "department"
+              ? member.department_id ?? ""
+              : member[f.name] ?? "";
         });
+
         setFormData(initialData);
       } catch (err) {
-        console.error("Fetch member error:", err);
-        showToast(err.message || "Failed to fetch member", "error");
+        console.error(err);
+        showToast(err.message || "Failed to load member", "error");
       } finally {
         setLoading(false);
       }
@@ -55,64 +52,81 @@ export default function EditMember({ department, onUpdated }) {
     fetchData();
   }, [department, id, fields, showToast]);
 
-  // ------------------ HANDLE CHANGE ------------------
-  const handleChange = (e, name) => {
-    setFormData((prev) => ({ ...prev, [name]: e.target.value }));
-  };
-
-  // ------------------ SAVE UPDATE ------------------
+  /* ---------------- UPDATE ---------------- */
   const handleUpdate = async (e) => {
     e.preventDefault();
     setSaving(true);
 
     try {
-      // Validate required fields
       for (const field of fields) {
         if (field.required && !formData[field.name]) {
           throw new Error(`${field.label} is required`);
         }
       }
 
-      // Prepare payload
       const payload = { ...formData };
       if (payload.department) payload.department_id = payload.department;
 
       await MembersAPI.update(id, payload);
-      showToast("Member updated successfully!", "success");
+      showToast("Member updated successfully", "success");
       onUpdated?.();
       navigate(`/dashboard/${department}`);
     } catch (err) {
-      console.error("Update member error:", err);
+      console.error(err);
       showToast(err.message || "Failed to update member", "error");
     } finally {
       setSaving(false);
     }
   };
 
-  // ------------------ RENDER ------------------
-  if (loading) return <p>Loading member…</p>;
-  if (!formData || !Object.keys(formData).length) return <p>No member data</p>;
+  /* ---------------- STATES ---------------- */
+  if (loading) {
+    return (
+      <div className="page-container">
+        <div className="page-card">Loading member…</div>
+      </div>
+    );
+  }
 
+  if (!Object.keys(formData).length) {
+    return (
+      <div className="page-container">
+        <div className="page-card">No member data found.</div>
+      </div>
+    );
+  }
+
+  /* ---------------- UI ---------------- */
   return (
-    <div className="dashboard-content">
-      <div className="card">
-        <h2 className="text-lg font-semibold mb-4">
+    <div className="page-container">
+      <div className="page-card">
+        <h2 className="card-title">
           Edit {department.replace("_", " ")}
         </h2>
+
+        <p className="card-subtitle">
+          Update member details and save changes.
+        </p>
 
         <form onSubmit={handleUpdate}>
           {fields.map((f) => (
             <div key={f.name} className="form-group">
               <label>{f.label}</label>
+
               {f.type === "select" ? (
                 <select
-                  name={f.name}
                   value={formData[f.name]}
-                  onChange={(e) => handleChange(e, f.name)}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      [f.name]: e.target.value,
+                    }))
+                  }
                   required={f.required}
                   className="input"
                 >
                   <option value="">Select {f.label}</option>
+
                   {f.name === "department"
                     ? departments.map((d) => (
                         <option key={d.id} value={d.id}>
@@ -128,9 +142,13 @@ export default function EditMember({ department, onUpdated }) {
               ) : (
                 <input
                   type={f.type || "text"}
-                  name={f.name}
                   value={formData[f.name]}
-                  onChange={(e) => handleChange(e, f.name)}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      [f.name]: e.target.value,
+                    }))
+                  }
                   required={f.required}
                   className="input"
                 />
@@ -139,7 +157,11 @@ export default function EditMember({ department, onUpdated }) {
           ))}
 
           <div className="mt-4">
-            <button type="submit" disabled={saving} className="btn btn-primary">
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={saving}
+            >
               {saving ? "Saving…" : "Update Member"}
             </button>
           </div>

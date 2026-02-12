@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { RoleRequestsAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
-
+import "../../styles/pages.css";
 const ROLES = [
   "Admin",
   "Pastor",
@@ -21,16 +21,12 @@ export default function MyRoleRequests() {
 
   const loadRequests = async () => {
     if (!profile?.id) return;
-
     try {
       setLoading(true);
       const data = await RoleRequestsAPI.fetchMyRequests();
-
-      // Ensure we always have an array
-      const arr = Array.isArray(data) ? data : data.requests ?? [];
-      setRequests(arr);
+      setRequests(Array.isArray(data) ? data : data.requests ?? []);
     } catch (err) {
-      console.error("Failed to load role requests:", err);
+      console.error(err);
       setRequests([]);
     } finally {
       setLoading(false);
@@ -44,7 +40,7 @@ export default function MyRoleRequests() {
       setSubmitting(true);
       await RoleRequestsAPI.submit(role);
       alert("Role request submitted!");
-      setRole("Member"); // reset selection
+      setRole("Member");
       loadRequests();
     } catch (err) {
       alert(err.message || "Failed to submit request");
@@ -58,24 +54,32 @@ export default function MyRoleRequests() {
   }, [profile]);
 
   if (!profile) {
-    return <div className="p-4 card">Loading profile…</div>;
+    return (
+      <div className="page-container">
+        <div className="page-card">Loading profile…</div>
+      </div>
+    );
   }
 
   if (loading) {
-    return <div className="p-4 card">Loading requests…</div>;
+    return (
+      <div className="page-container">
+        <div className="page-card">Loading requests…</div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="page-container space-y-6">
       {/* Request Form */}
-      <div className="card p-4 space-y-4">
-        <h2 className="text-xl font-bold">Request a Role</h2>
+      <div className="page-card">
+        <h2 className="card-title">Request a Role</h2>
 
-        <div className="flex gap-2">
+        <div className="form-group flex-row">
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="border rounded px-3 py-2 flex-1"
+            className="input flex-1"
           >
             {ROLES.map((r) => (
               <option key={r} value={r}>
@@ -86,7 +90,7 @@ export default function MyRoleRequests() {
           <button
             onClick={submitRequest}
             disabled={submitting}
-            className="btn-table btn-table-primary"
+            className="btn btn-primary ml-2"
           >
             {submitting ? "Submitting…" : "Submit Request"}
           </button>
@@ -94,15 +98,17 @@ export default function MyRoleRequests() {
       </div>
 
       {/* My Requests */}
-      <div className="card p-4">
-        <h3 className="text-lg font-semibold mb-3">My Requests</h3>
-
+      <div className="page-card">
+        <h3 className="card-title">My Requests</h3>
         {requests.length === 0 ? (
-          <p className="text-gray-500">No role requests yet.</p>
+          <p className="card-subtitle">No role requests yet.</p>
         ) : (
-          <ul className="list-disc pl-5 space-y-1">
+          <ul className="list-disc pl-5">
             {requests.map((r) => (
-              <li key={r.id} className="flex flex-col sm:flex-row sm:justify-between">
+              <li
+                key={r.id}
+                className="flex flex-col sm:flex-row sm:justify-between py-1"
+              >
                 <span>
                   {r.requested_role} – <strong>{r.status}</strong>
                 </span>

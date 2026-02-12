@@ -3,34 +3,34 @@ import { useState, useEffect } from "react";
 import { memberFields } from "../../utils/memberFields";
 import { ChildrenAPI, DepartmentsAPI } from "../../utils/api";
 import { useToast } from "../ToastProvider";
-
+import "../../styles/pages.css";
 export default function AddChild({ onAdded }) {
-  const { showToast } = useToast(); // global toast
+  const { showToast } = useToast();
   const [departments, setDepartments] = useState([]);
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // ------------------ LOAD DEPARTMENTS ------------------
+  /* ------------------ LOAD DEPARTMENTS ------------------ */
   useEffect(() => {
     const loadDepartments = async () => {
       try {
         const res = await DepartmentsAPI.fetchAll();
         setDepartments(res ?? []);
       } catch (err) {
-        console.error("Failed to load departments:", err);
+        console.error(err);
         showToast("Failed to load departments", "error");
       }
     };
     loadDepartments();
   }, [showToast]);
 
-  // ------------------ SETUP FORM ------------------
-  const { fields } = memberFields["children"]; // always children
+  /* ------------------ SETUP FORM ------------------ */
+  const { fields } = memberFields["children"];
+
   useEffect(() => {
     const initialState = {};
     fields.forEach((f) => {
       if (f.name === "department") {
-        // dynamically populate department options
         f.options = departments.map((d) => d.name);
       }
       initialState[f.name] = "";
@@ -39,14 +39,16 @@ export default function AddChild({ onAdded }) {
   }, [fields, departments]);
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
-  // ------------------ SUBMIT FORM ------------------
+  /* ------------------ SUBMIT ------------------ */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate required fields
     for (const field of fields) {
       if (field.required && !formData[field.name]) {
         showToast(`${field.label} is required`, "error");
@@ -61,15 +63,12 @@ export default function AddChild({ onAdded }) {
 
     setLoading(true);
     try {
-      const result = await ChildrenAPI.add(payload);
-      if (!result) throw new Error("Failed to add child");
-
+      await ChildrenAPI.add(payload);
       showToast("Child added successfully", "success");
 
-      // reset form
-      const resetState = {};
-      fields.forEach((f) => (resetState[f.name] = ""));
-      setFormData(resetState);
+      const reset = {};
+      fields.forEach((f) => (reset[f.name] = ""));
+      setFormData(reset);
 
       onAdded?.();
     } catch (err) {
@@ -80,16 +79,19 @@ export default function AddChild({ onAdded }) {
     }
   };
 
-  // ------------------ RENDER ------------------
+  /* ------------------ UI ------------------ */
   return (
-    <div className="dashboard-content">
-      <div className="card">
-        <h3 className="text-lg font-semibold mb-4">Add Child</h3>
+    <main className="page-container">
+      <section className="page-card">
+        <h2 className="card-title">Add Child</h2>
+        <p className="card-subtitle">
+          Register a child and assign them to the appropriate department.
+        </p>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="form-stack">
           {fields.map((field) => (
             <div key={field.name} className="form-group">
-              <label>{field.label}</label>
+              <label className="label">{field.label}</label>
 
               {field.type === "select" ? (
                 <select
@@ -97,7 +99,7 @@ export default function AddChild({ onAdded }) {
                   value={formData[field.name]}
                   onChange={handleChange}
                   required={field.required}
-                  className="input"
+                  className="input-field"
                 >
                   <option value="">Select {field.label}</option>
                   {field.options?.map((opt) => (
@@ -113,23 +115,21 @@ export default function AddChild({ onAdded }) {
                   value={formData[field.name]}
                   onChange={handleChange}
                   required={field.required}
-                  className="input"
+                  className="input-field"
                 />
               )}
             </div>
           ))}
 
-          <div className="mt-4">
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? "Saving..." : "Add Child"}
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={loading}
+          >
+            {loading ? "Saving…" : "Add Child"}
+          </button>
         </form>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

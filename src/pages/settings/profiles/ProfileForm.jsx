@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import Input from "../../../components/Input";
 import Button from "../../../components/Button";
 import Toast from "../../../components/Toast";
-
-const ProfileForm = ({ profile, onUpdate, loading, message }) => {
+import "../../../styles/pages.css";
+export default function ProfileForm({ profile, onUpdate, loading, message }) {
   const [localProfile, setLocalProfile] = useState(profile);
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState(null);
@@ -45,7 +45,7 @@ const ProfileForm = ({ profile, onUpdate, loading, message }) => {
   };
 
   return (
-    <>
+    <div className="card">
       {toast && (
         <Toast
           message={toast.text}
@@ -54,7 +54,9 @@ const ProfileForm = ({ profile, onUpdate, loading, message }) => {
         />
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <h2 className="text-lg font-semibold mb-4">Edit Profile</h2>
+
+      <form onSubmit={handleSubmit} className="form-stack">
         <div className="form-group">
           <label htmlFor="fullName">Full Name</label>
           <input
@@ -63,8 +65,9 @@ const ProfileForm = ({ profile, onUpdate, loading, message }) => {
             type="text"
             value={localProfile.fullName}
             onChange={handleChange}
+            className="input-field"
           />
-          {errors.fullName && <p className="text-red-600 text-sm">{errors.fullName}</p>}
+          {errors.fullName && <p className="message-error">{errors.fullName}</p>}
         </div>
 
         <div className="form-group">
@@ -75,8 +78,9 @@ const ProfileForm = ({ profile, onUpdate, loading, message }) => {
             type="text"
             value={localProfile.phone}
             onChange={handleChange}
+            className="input-field"
           />
-          {errors.phone && <p className="text-red-600 text-sm">{errors.phone}</p>}
+          {errors.phone && <p className="message-error">{errors.phone}</p>}
         </div>
 
         <div className="form-group">
@@ -87,8 +91,9 @@ const ProfileForm = ({ profile, onUpdate, loading, message }) => {
             type="email"
             value={localProfile.email}
             onChange={handleChange}
+            className="input-field"
           />
-          {errors.email && <p className="text-red-600 text-sm">{errors.email}</p>}
+          {errors.email && <p className="message-error">{errors.email}</p>}
         </div>
 
         <button
@@ -96,11 +101,9 @@ const ProfileForm = ({ profile, onUpdate, loading, message }) => {
           className="btn btn-primary"
           disabled={loading}
         >
-          {loading ? "Saving..." : "Save changes"}
+          {loading ? "Saving..." : "Save Changes"}
         </button>
       </form>
-    </>
+    </div>
   );
-};
-
-export default ProfileForm;
+}

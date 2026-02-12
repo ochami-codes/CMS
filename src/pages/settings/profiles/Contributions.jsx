@@ -1,17 +1,27 @@
 import React from "react";
-
-const Contributions = ({ contributions }) => {
+import "../../../styles/pages.css";
+export default function Contributions({ contributions }) {
   return (
     <div className="card">
-      <h4 className="font-semibold mb-3">Contributions Summary</h4>
+      <h3 className="text-lg font-semibold mb-3">Contributions Summary</h3>
       <ul className="space-y-2">
-        <li className="text-gray-700">Tithes: {contributions.tithes}</li>
-        <li className="text-gray-700">Offerings: {contributions.offerings}</li>
-        <li className="text-gray-700">Camp Offerings: {contributions.campOfferings}</li>
-        <li className="text-gray-700">Church Development: {contributions.churchDevelopment}</li>
+        <li>
+          <span className="label">Tithes:</span>{" "}
+          <span className="value">{contributions.tithes}</span>
+        </li>
+        <li>
+          <span className="label">Offerings:</span>{" "}
+          <span className="value">{contributions.offerings}</span>
+        </li>
+        <li>
+          <span className="label">Camp Offerings:</span>{" "}
+          <span className="value">{contributions.campOfferings}</span>
+        </li>
+        <li>
+          <span className="label">Church Development:</span>{" "}
+          <span className="value">{contributions.churchDevelopment}</span>
+        </li>
       </ul>
     </div>
   );
-};
-
-export default Contributions;
+}

@@ -1,4 +1,5 @@
 import React from "react";
+import "../../../styles/pages.css";
 import {
   PieChart,
   Pie,
@@ -16,7 +17,7 @@ const formatCurrency = (value) =>
     currency: "KES",
   }).format(value);
 
-const SummaryChart = ({ contributions }) => {
+export default function SummaryChart({ contributions }) {
   const pieChartData = [
     { name: "Tithes", value: contributions.tithes },
     { name: "Offerings", value: contributions.offerings },
@@ -28,7 +29,7 @@ const SummaryChart = ({ contributions }) => {
 
   return (
     <div className="card">
-      <h4 className="font-semibold mb-3">Contributions Breakdown</h4>
+      <h2 className="text-lg font-semibold mb-4">Contributions Breakdown</h2>
 
       {!hasData ? (
         <p className="text-gray-500 text-center mt-4">
@@ -36,7 +37,7 @@ const SummaryChart = ({ contributions }) => {
         </p>
       ) : (
         <div className="w-full h-72">
-          <ResponsiveContainer>
+          <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={pieChartData}
@@ -60,6 +61,4 @@ const SummaryChart = ({ contributions }) => {
       )}
     </div>
   );
-};
-
-export default SummaryChart;
+}
