@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { canUser } from "../utils/permissions";
+import sdaLogo from "../assets/sda-logo.png";
 import "../styles/layout.css";
 import {
   LayoutDashboard,
@@ -79,7 +80,7 @@ export default function Sidebar({ open, onClose }) {
       <div className="sidebar-header">
         <div className="sidebar-brand">
           <img
-            src="/logo/sda-logo.png"
+            src={sdaLogo}
             alt="SDA Logo"
             className="sidebar-logo"
           />
