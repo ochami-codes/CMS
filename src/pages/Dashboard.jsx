@@ -10,6 +10,7 @@ import {
   getUpcomingBirthdays,
   AnnouncementsAPI,
   ChurchAPI,
+  MembershipAPI,
 } from "../utils/api";
 import { hasRole, isAdmin } from "../utils/permissions";
 
@@ -79,6 +80,9 @@ export default function Dashboard() {
   const [sabbathTimer, setSabbathTimer] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [membershipStatus, setMembershipStatus] = useState(null);
+  const [requestLoading, setRequestLoading] = useState(false);
+
   /* ---------------- Greeting ---------------- */
   useEffect(() => {
     const name = profile?.full_name || "Child of God";
@@ -114,6 +118,7 @@ export default function Dashboard() {
       churchId ? getUpcomingBirthdays(churchId, 30) : [],
       churchId ? AnnouncementsAPI.fetch(churchId, 5) : [],
       churchId ? ChurchAPI.getById(churchId) : null,
+      profile.role_name === "Guest" ? MembershipAPI.myRequests() : null,
     ])
       .then(
         ([
@@ -123,6 +128,7 @@ export default function Dashboard() {
           upcoming,
           ann,
           churchData,
+          membershipData,
         ]) => {
           setVerse(verseData);
           setBirthday(myBirthday);
@@ -130,6 +136,10 @@ export default function Dashboard() {
           setUpcomingBirthdays(upcoming || []);
           setAnnouncements(ann || []);
           setChurch(churchData?.name || null);
+
+          if (membershipData?.request) {
+            setMembershipStatus(membershipData.request.status);
+          }
         }
       )
       .catch(console.error)
@@ -141,6 +151,26 @@ export default function Dashboard() {
 
   const bday = birthdayCountdown(birthday?.birthday);
 
+  /* ---------------- Handle Membership Request ---------------- */
+  const handleRequestMembership = async () => {
+    if (!profile?.church_id) {
+      alert("No church selected.");
+      return;
+    }
+
+    setRequestLoading(true);
+    try {
+      await MembershipAPI.submit({});
+      setMembershipStatus("pending");
+      alert("Membership request submitted! 🙏");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to submit request");
+    } finally {
+      setRequestLoading(false);
+    }
+  };
+
+  /* ---------------- JSX ---------------- */
   return (
     <div className="dashboard-content">
 
@@ -158,38 +188,57 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* GUEST MEMBERSHIP SECTION */}
+      {profile.role_name === "Guest" && (
+        <div className="card">
+          <h3 className="card-title">Join Your Church</h3>
+          <p className="card-subtitle">
+            Become a full member of your church to access ministries, announcements, and participation.
+          </p>
+          <button
+            className="btn btn-primary"
+            onClick={handleRequestMembership}
+            disabled={requestLoading || membershipStatus === "pending"}
+          >
+            {membershipStatus === "pending" ? "Request Pending" : "Request Membership"}
+          </button>
+        </div>
+      )}
+
       {/* QUICK ACTIONS */}
-      <div className="dashboard-actions">
-        {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
-          <Link to="/dashboard/treasury" className="dashboard-action-card">
-            <h3>
-              <Coffee size={18} /> Treasury
-            </h3>
-            <p>Church finances & reports</p>
-          </Link>
-        )}
+      {profile.role_name !== "Guest" && (
+        <div className="dashboard-actions">
+          {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
+            <Link to="/dashboard/treasury" className="dashboard-action-card">
+              <h3>
+                <Coffee size={18} /> Treasury
+              </h3>
+              <p>Church finances & reports</p>
+            </Link>
+          )}
 
-        {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
-          <Link to="/dashboard/youth" className="dashboard-action-card">
-            <h3>
-              <Users size={18} /> Youth Ministry
-            </h3>
-            <p>Attendance & activities</p>
-          </Link>
-        )}
+          {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
+            <Link to="/dashboard/youth" className="dashboard-action-card">
+              <h3>
+                <Users size={18} /> Youth Ministry
+              </h3>
+              <p>Attendance & activities</p>
+            </Link>
+          )}
 
-        {isAdmin(profile.role_name) && (
-          <Link to="/dashboard/admin" className="dashboard-action-card">
-            <h3>
-              <UserPlus size={18} /> Administration
-            </h3>
-            <p>Members, roles & permissions</p>
-          </Link>
-        )}
-      </div>
+          {isAdmin(profile.role_name) && (
+            <Link to="/dashboard/admin" className="dashboard-action-card">
+              <h3>
+                <UserPlus size={18} /> Administration
+              </h3>
+              <p>Members, roles & permissions</p>
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* SABBATH STATUS */}
-      {!isSabbathNow() && sabbathTimer && (
+      {!isSabbathNow() && sabbathTimer && profile.role_name !== "Guest" && (
         <div className="dashboard-info-card card">
           <Calendar size={18} />
           <p>
@@ -202,7 +251,7 @@ export default function Dashboard() {
       )}
 
       {/* PERSONAL BIRTHDAY */}
-      {birthday?.birthday && (
+      {birthday?.birthday && profile.role_name !== "Guest" && (
         <div className="dashboard-birthday-card card">
           {birthday.isBirthday ? (
             <>
@@ -230,7 +279,7 @@ export default function Dashboard() {
       )}
 
       {/* CHURCH BIRTHDAYS */}
-      {(todayBirthdays.length > 0 || upcomingBirthdays.length > 0) && (
+      {profile.role_name !== "Guest" && (todayBirthdays.length > 0 || upcomingBirthdays.length > 0) && (
         <div className="card">
           <h3 className="card-title">
             <Gift size={18} /> Church Birthdays
@@ -255,23 +304,25 @@ export default function Dashboard() {
       )}
 
       {/* ANNOUNCEMENTS */}
-      <div className="card">
-        <h3 className="card-title">
-          <Megaphone size={18} /> Announcements
-        </h3>
+      {profile.role_name !== "Guest" && (
+        <div className="card">
+          <h3 className="card-title">
+            <Megaphone size={18} /> Announcements
+          </h3>
 
-        {announcements.length === 0 ? (
-          <p className="card-subtitle">No recent announcements.</p>
-        ) : (
-          announcements.map(a => (
-            <div key={a.id} className="announcement-card">
-              <h4>{a.title}</h4>
-              <p>{a.message}</p>
-              <span>{new Date(a.created_at).toLocaleDateString()}</span>
-            </div>
-          ))
-        )}
-      </div>
+          {announcements.length === 0 ? (
+            <p className="card-subtitle">No recent announcements.</p>
+          ) : (
+            announcements.map(a => (
+              <div key={a.id} className="announcement-card">
+                <h4>{a.title}</h4>
+                <p>{a.message}</p>
+                <span>{new Date(a.created_at).toLocaleDateString()}</span>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
     </div>
   );

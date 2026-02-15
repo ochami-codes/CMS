@@ -273,7 +273,33 @@ a {
 .sidebar-profile-link:hover {
   background-color: #e5e7eb;
 }
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
 
+.sidebar-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-church-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.sidebar-status {
+  font-size: 0.7rem;
+  color: #f59e0b; /* amber */
+}
 /* ---------------- CARDS & GRID ---------------- */
 .page-card,
 .card {

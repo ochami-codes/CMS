@@ -31,38 +31,36 @@ export const AuthProvider = ({ children }) => {
   /* -------------------------------
      Fetch authenticated user
   ------------------------------- */
-  const fetchMe = async () => {
-    try {
-      const data = await AuthAPI.me();
+const fetchMe = async () => {
+  try {
+    const data = await AuthAPI.me();
 
-      if (!data?.user) {
-        setUser(null);
-        setProfile(null);
-        return null;
-      }
-
-      const normalized = {
-        ...data.user,
-        role_name: data.user.role_name || "Member",
-        active: data.user.active ?? true,
-      };
-
-      setUser(normalized);
-      setProfile({
-        ...normalized,
-        full_name: normalized.full_name || "Child of God",
-      });
-
-      return normalized;
-    } catch (err) {
-      console.error("fetchMe error:", err);
-      localStorage.removeItem("access_token");
+    if (!data?.user) {
       setUser(null);
       setProfile(null);
       return null;
     }
-  };
 
+    const normalized = {
+      ...data.user,
+      role_name: data.user.role_name ?? "Guest",
+    };
+
+    setUser(normalized);
+    setProfile({
+      ...normalized,
+      full_name: normalized.full_name || "Child of God",
+    });
+
+    return normalized;
+  } catch (err) {
+    console.error("fetchMe error:", err);
+    localStorage.removeItem("access_token");
+    setUser(null);
+    setProfile(null);
+    return null;
+  }
+};
   /* -------------------------------
      Login
   ------------------------------- */
