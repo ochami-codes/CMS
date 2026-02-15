@@ -5,16 +5,12 @@ import { AuthAPI } from "../utils/api";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const location = useLocation(); // ✅ ALWAYS called
+  const location = useLocation();
 
   const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
-  /* -------------------------------
-     Public routes (NO auto-auth)
-  ------------------------------- */
   const publicAuthRoutes = [
     "/login",
     "/register",
@@ -31,36 +27,32 @@ export const AuthProvider = ({ children }) => {
   /* -------------------------------
      Fetch authenticated user
   ------------------------------- */
-const fetchMe = async () => {
-  try {
-    const data = await AuthAPI.me();
+  const fetchMe = async () => {
+    try {
+      const data = await AuthAPI.me();
 
-    if (!data?.user) {
+      if (!data?.user) {
+        setUser(null);
+        return null;
+      }
+
+      const normalized = {
+        id: data.user.id,
+        email: data.user.email,
+        role_name: data.user.role_name ?? "Guest",
+        church_id: data.user.church_id ?? null,
+      };
+
+      setUser(normalized);
+      return normalized;
+    } catch (err) {
+      console.error("fetchMe error:", err);
+      localStorage.removeItem("access_token");
       setUser(null);
-      setProfile(null);
       return null;
     }
+  };
 
-    const normalized = {
-      ...data.user,
-      role_name: data.user.role_name ?? "Guest",
-    };
-
-    setUser(normalized);
-    setProfile({
-      ...normalized,
-      full_name: normalized.full_name || "Child of God",
-    });
-
-    return normalized;
-  } catch (err) {
-    console.error("fetchMe error:", err);
-    localStorage.removeItem("access_token");
-    setUser(null);
-    setProfile(null);
-    return null;
-  }
-};
   /* -------------------------------
      Login
   ------------------------------- */
@@ -76,8 +68,7 @@ const fetchMe = async () => {
       }
 
       localStorage.setItem("access_token", data.access_token);
-
-      await fetchMe(); // ✅ THIS triggers re-render
+      await fetchMe();
     } catch (err) {
       setAuthError(err.message || "Login failed");
       throw err;
@@ -95,11 +86,10 @@ const fetchMe = async () => {
     } catch {}
     localStorage.removeItem("access_token");
     setUser(null);
-    setProfile(null);
   };
 
   /* -------------------------------
-     Init auth ONCE per route change
+     Init auth
   ------------------------------- */
   useEffect(() => {
     const init = async () => {
@@ -125,7 +115,6 @@ const fetchMe = async () => {
     <AuthContext.Provider
       value={{
         user,
-        profile,
         loading,
         authError,
         login,

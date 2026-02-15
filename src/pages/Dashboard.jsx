@@ -1,8 +1,10 @@
+// src/pages/Dashboard.jsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
 import "../styles/pages.css";
+
 import {
   getDailyVerse,
   getMyBirthday,
@@ -11,11 +13,21 @@ import {
   AnnouncementsAPI,
   ChurchAPI,
   MembershipAPI,
+  ProfileAPI,
 } from "../utils/api";
+
 import { hasRole, isAdmin } from "../utils/permissions";
 
 // Lucide Icons
-import { Coffee, Users, UserPlus, Home, Calendar, Gift, Megaphone } from "lucide-react";
+import {
+  Coffee,
+  Users,
+  UserPlus,
+  Home,
+  Calendar,
+  Gift,
+  Megaphone,
+} from "lucide-react";
 
 /* ========================
    KENYA SABBATH HELPERS
@@ -30,9 +42,11 @@ const isSabbathNow = () => {
 const nextSabbathStart = () => {
   const now = new Date();
   const start = new Date(now);
+
   if (now.getDay() < 5) start.setDate(now.getDate() + (5 - now.getDay()));
   else if (now.getDay() === 5 && now.getHours() < 18) {}
   else start.setDate(now.getDate() + (12 - now.getDay()));
+
   start.setHours(18, 0, 0, 0);
   return start;
 };
@@ -40,21 +54,27 @@ const nextSabbathStart = () => {
 const timeDiff = (target) => {
   const diff = target - new Date();
   if (diff <= 0) return null;
+
   const s = Math.floor(diff / 1000) % 60;
   const m = Math.floor(diff / (1000 * 60)) % 60;
   const h = Math.floor(diff / (1000 * 60 * 60)) % 24;
   const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+
   return { d, h, m, s };
 };
 
 const birthdayCountdown = (dob) => {
   if (!dob) return null;
+
   const now = new Date();
   const b = new Date(dob);
   let next = new Date(now.getFullYear(), b.getMonth(), b.getDate());
+
   if (next < now) next.setFullYear(now.getFullYear() + 1);
+
   const diff = timeDiff(next);
   if (!diff) return null;
+
   return {
     months: Math.floor(diff.d / 30),
     days: diff.d % 30,
@@ -68,47 +88,66 @@ const birthdayCountdown = (dob) => {
    DASHBOARD
 ======================== */
 export default function Dashboard() {
-  const { profile } = useAuth();
+  const { user } = useAuth();
 
+  const [displayName, setDisplayName] = useState("Child of God");
   const [greeting, setGreeting] = useState("");
+
   const [verse, setVerse] = useState(null);
   const [church, setChurch] = useState(null);
   const [birthday, setBirthday] = useState(null);
   const [todayBirthdays, setTodayBirthdays] = useState([]);
   const [upcomingBirthdays, setUpcomingBirthdays] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
-  const [sabbathTimer, setSabbathTimer] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   const [membershipStatus, setMembershipStatus] = useState(null);
   const [requestLoading, setRequestLoading] = useState(false);
 
+  const [sabbathTimer, setSabbathTimer] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  /* ---------------- Load display name ---------------- */
+  useEffect(() => {
+    ProfileAPI.get()
+      .then((res) => {
+        if (res?.profile?.full_name) {
+          setDisplayName(res.profile.full_name);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   /* ---------------- Greeting ---------------- */
   useEffect(() => {
-    const name = profile?.full_name || "Child of God";
     const hour = new Date().getHours();
     let greet;
+
     if (isSabbathNow()) greet = "Happy Sabbath";
     else if (hour < 12) greet = "Good morning";
     else if (hour < 18) greet = "Good afternoon";
     else greet = "Good evening";
-    setGreeting(`${greet}, ${name}!`);
-  }, [profile]);
+
+    setGreeting(`${greet}, ${displayName}!`);
+  }, [displayName]);
 
   /* ---------------- Sabbath Countdown ---------------- */
   useEffect(() => {
     const timer = setInterval(() => {
-      if (!isSabbathNow()) setSabbathTimer(timeDiff(nextSabbathStart()));
-      else setSabbathTimer(null);
+      if (!isSabbathNow()) {
+        setSabbathTimer(timeDiff(nextSabbathStart()));
+      } else {
+        setSabbathTimer(null);
+      }
     }, 1000);
+
     return () => clearInterval(timer);
   }, []);
 
-  /* ---------------- Fetch Data ---------------- */
+  /* ---------------- Fetch Dashboard Data ---------------- */
   useEffect(() => {
-    if (!profile) return;
+    if (!user) return;
 
-    const churchId = profile.church_id;
+    const churchId = user.church_id;
     setLoading(true);
 
     Promise.all([
@@ -118,7 +157,7 @@ export default function Dashboard() {
       churchId ? getUpcomingBirthdays(churchId, 30) : [],
       churchId ? AnnouncementsAPI.fetch(churchId, 5) : [],
       churchId ? ChurchAPI.getById(churchId) : null,
-      profile.role_name === "Guest" ? MembershipAPI.myRequests() : null,
+      user.role_name === "Guest" ? MembershipAPI.myRequests() : null,
     ])
       .then(
         ([
@@ -144,16 +183,11 @@ export default function Dashboard() {
       )
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [profile]);
+  }, [user]);
 
-  /* ---------------- Loader ---------------- */
-  if (loading) return <Loader message="God loves you..." />;
-
-  const bday = birthdayCountdown(birthday?.birthday);
-
-  /* ---------------- Handle Membership Request ---------------- */
+  /* ---------------- Membership Request ---------------- */
   const handleRequestMembership = async () => {
-    if (!profile?.church_id) {
+    if (!user?.church_id) {
       alert("No church selected.");
       return;
     }
@@ -170,11 +204,15 @@ export default function Dashboard() {
     }
   };
 
+  /* ---------------- Loader ---------------- */
+  if (loading) return <Loader message="God loves you..." />;
+
+  const bday = birthdayCountdown(birthday?.birthday);
+
   /* ---------------- JSX ---------------- */
   return (
     <div className="dashboard-content">
-
-      {/* DASHBOARD HEADER */}
+      {/* HEADER */}
       <div className="card">
         <h2 className="card-title">
           <Home size={20} /> {church || "Your Church"}
@@ -188,27 +226,29 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* GUEST MEMBERSHIP SECTION */}
-      {profile.role_name === "Guest" && (
+      {/* GUEST MEMBERSHIP */}
+      {user.role_name === "Guest" && (
         <div className="card">
           <h3 className="card-title">Join Your Church</h3>
           <p className="card-subtitle">
-            Become a full member of your church to access ministries, announcements, and participation.
+            Become a full member of your church to access ministries and announcements.
           </p>
           <button
             className="btn btn-primary"
             onClick={handleRequestMembership}
             disabled={requestLoading || membershipStatus === "pending"}
           >
-            {membershipStatus === "pending" ? "Request Pending" : "Request Membership"}
+            {membershipStatus === "pending"
+              ? "Request Pending"
+              : "Request Membership"}
           </button>
         </div>
       )}
 
       {/* QUICK ACTIONS */}
-      {profile.role_name !== "Guest" && (
+      {user.role_name !== "Guest" && (
         <div className="dashboard-actions">
-          {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
+          {hasRole(user.role_name, ["Treasurer", "Admin", "Pastor"]) && (
             <Link to="/dashboard/treasury" className="dashboard-action-card">
               <h3>
                 <Coffee size={18} /> Treasury
@@ -217,7 +257,7 @@ export default function Dashboard() {
             </Link>
           )}
 
-          {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
+          {hasRole(user.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
             <Link to="/dashboard/youth" className="dashboard-action-card">
               <h3>
                 <Users size={18} /> Youth Ministry
@@ -226,7 +266,7 @@ export default function Dashboard() {
             </Link>
           )}
 
-          {isAdmin(profile.role_name) && (
+          {isAdmin(user.role_name) && (
             <Link to="/dashboard/admin" className="dashboard-action-card">
               <h3>
                 <UserPlus size={18} /> Administration
@@ -237,21 +277,22 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* SABBATH STATUS */}
-      {!isSabbathNow() && sabbathTimer && profile.role_name !== "Guest" && (
+      {/* SABBATH COUNTDOWN */}
+      {!isSabbathNow() && sabbathTimer && user.role_name !== "Guest" && (
         <div className="dashboard-info-card card">
           <Calendar size={18} />
           <p>
             Sabbath begins in{" "}
             <strong>
-              {sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m {sabbathTimer.s}s
+              {sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m{" "}
+              {sabbathTimer.s}s
             </strong>
           </p>
         </div>
       )}
 
       {/* PERSONAL BIRTHDAY */}
-      {birthday?.birthday && profile.role_name !== "Guest" && (
+      {birthday?.birthday && user.role_name !== "Guest" && (
         <div className="dashboard-birthday-card card">
           {birthday.isBirthday ? (
             <>
@@ -269,7 +310,8 @@ export default function Dashboard() {
                 <p>
                   In{" "}
                   <strong>
-                    {bday.months}m {bday.days}d {bday.hours}h {bday.minutes}m {bday.seconds}s
+                    {bday.months}m {bday.days}d {bday.hours}h{" "}
+                    {bday.minutes}m {bday.seconds}s
                   </strong>
                 </p>
               )}
@@ -279,32 +321,33 @@ export default function Dashboard() {
       )}
 
       {/* CHURCH BIRTHDAYS */}
-      {profile.role_name !== "Guest" && (todayBirthdays.length > 0 || upcomingBirthdays.length > 0) && (
-        <div className="card">
-          <h3 className="card-title">
-            <Gift size={18} /> Church Birthdays
-          </h3>
+      {user.role_name !== "Guest" &&
+        (todayBirthdays.length > 0 || upcomingBirthdays.length > 0) && (
+          <div className="card">
+            <h3 className="card-title">
+              <Gift size={18} /> Church Birthdays
+            </h3>
 
-          <div className="birthdays-grid">
-            {todayBirthdays.map(b => (
-              <div key={b.id} className="birthday-card">
-                <h4>{b.full_name}</h4>
-                <p className="birthday-today">Today 🎉</p>
-              </div>
-            ))}
+            <div className="birthdays-grid">
+              {todayBirthdays.map((b) => (
+                <div key={b.id} className="birthday-card">
+                  <h4>{b.full_name}</h4>
+                  <p className="birthday-today">Today 🎉</p>
+                </div>
+              ))}
 
-            {upcomingBirthdays.map(b => (
-              <div key={b.id} className="birthday-card">
-                <h4>{b.full_name}</h4>
-                <p className="birthday-upcoming">Coming soon</p>
-              </div>
-            ))}
+              {upcomingBirthdays.map((b) => (
+                <div key={b.id} className="birthday-card">
+                  <h4>{b.full_name}</h4>
+                  <p className="birthday-upcoming">Coming soon</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* ANNOUNCEMENTS */}
-      {profile.role_name !== "Guest" && (
+      {user.role_name !== "Guest" && (
         <div className="card">
           <h3 className="card-title">
             <Megaphone size={18} /> Announcements
@@ -313,17 +356,18 @@ export default function Dashboard() {
           {announcements.length === 0 ? (
             <p className="card-subtitle">No recent announcements.</p>
           ) : (
-            announcements.map(a => (
+            announcements.map((a) => (
               <div key={a.id} className="announcement-card">
                 <h4>{a.title}</h4>
                 <p>{a.message}</p>
-                <span>{new Date(a.created_at).toLocaleDateString()}</span>
+                <span>
+                  {new Date(a.created_at).toLocaleDateString()}
+                </span>
               </div>
             ))
           )}
         </div>
       )}
-
     </div>
   );
 }

@@ -1,6 +1,5 @@
 // src/pages/settings/profiles/ProfilePage.jsx
 import { useEffect, useState } from "react";
-import { useAuth } from "../../../context/AuthContext";
 import { ProfileAPI, AuthAPI } from "../../../utils/api";
 import ProfileForm from "./ProfileForm";
 import SummaryChart from "./SummaryChart";
@@ -10,11 +9,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { User, Mail, Phone, Edit3, Lock } from "lucide-react";
 
 export default function ProfilePage() {
-  const { profile } = useAuth();
   const navigate = useNavigate();
 
-  const [localProfile, setLocalProfile] = useState(null);
-  const [contributions, setContributions] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [contributions, setContributions] = useState(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
@@ -24,15 +22,45 @@ export default function ProfilePage() {
   const [pwLoading, setPwLoading] = useState(false);
   const [pwError, setPwError] = useState("");
 
+  /* -------------------------------
+     Load profile (source of truth)
+  ------------------------------- */
   useEffect(() => {
-    if (!profile) return;
-
     const loadProfile = async () => {
       setLoading(true);
       try {
         const res = await ProfileAPI.get();
-        setLocalProfile(res.profile || null);
-        setContributions(res.contributions || []);
+
+        setProfile(res.profile || null);
+
+        // Normalize contributions for UI & chart
+        const giving = {
+          tithes: 0,
+          offerings: 0,
+          campOfferings: 0,
+          churchDevelopment: 0,
+        };
+
+        (res.contributions || []).forEach((item) => {
+          switch (item.fund_name) {
+            case "Tithes":
+              giving.tithes += item.total_amount;
+              break;
+            case "Offerings":
+              giving.offerings += item.total_amount;
+              break;
+            case "Camp Offerings":
+              giving.campOfferings += item.total_amount;
+              break;
+            case "Church Development":
+              giving.churchDevelopment += item.total_amount;
+              break;
+            default:
+              break;
+          }
+        });
+
+        setContributions(giving);
       } catch (err) {
         setMessage(err?.message || "Failed to load profile");
       } finally {
@@ -41,14 +69,17 @@ export default function ProfilePage() {
     };
 
     loadProfile();
-  }, [profile]);
+  }, []);
 
+  /* -------------------------------
+     Update profile
+  ------------------------------- */
   const handleUpdate = async (updates) => {
     setLoading(true);
     setMessage("");
     try {
       await ProfileAPI.update(updates);
-      setLocalProfile((prev) => ({ ...prev, ...updates }));
+      setProfile((prev) => ({ ...prev, ...updates }));
       setMessage("Profile updated successfully");
     } catch (err) {
       setMessage(err?.message || "Profile update failed");
@@ -57,6 +88,9 @@ export default function ProfilePage() {
     }
   };
 
+  /* -------------------------------
+     Change password
+  ------------------------------- */
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setPwError("");
@@ -65,10 +99,12 @@ export default function ProfilePage() {
       setPwError("Both fields are required");
       return;
     }
+
     if (newPassword !== confirmPassword) {
       setPwError("Passwords do not match");
       return;
     }
+
     if (newPassword.length < 6) {
       setPwError("Password must be at least 6 characters");
       return;
@@ -77,7 +113,9 @@ export default function ProfilePage() {
     setPwLoading(true);
     try {
       await AuthAPI.changePassword({ newPassword });
-      navigate("/profile/change-password-success", { state: { fromProfile: true } });
+      navigate("/profile/change-password-success", {
+        state: { fromProfile: true },
+      });
     } catch (err) {
       setPwError(err?.message || "Failed to update password");
     } finally {
@@ -85,15 +123,18 @@ export default function ProfilePage() {
     }
   };
 
-  const Message = ({ type = "success", children }) => {
-    const className = type === "success" ? "message-success" : "message-error";
-    return (
-      <div className={`card ${className}`}>
-        <p>{children}</p>
-      </div>
-    );
-  };
+  /* -------------------------------
+     Message component
+  ------------------------------- */
+  const Message = ({ type = "success", children }) => (
+    <div className={`card ${type === "success" ? "message-success" : "message-error"}`}>
+      <p>{children}</p>
+    </div>
+  );
 
+  /* -------------------------------
+     Guards
+  ------------------------------- */
   if (loading) {
     return (
       <main className="page-container">
@@ -102,7 +143,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (!localProfile) {
+  if (!profile) {
     return (
       <main className="page-container">
         <section className="page-card">Profile not found.</section>
@@ -110,9 +151,11 @@ export default function ProfilePage() {
     );
   }
 
+  /* -------------------------------
+     Render
+  ------------------------------- */
   return (
     <main className="page-container">
-
       {/* ROLE REQUEST */}
       <section className="page-card">
         <h2 className="card-title">Role Requests</h2>
@@ -126,7 +169,9 @@ export default function ProfilePage() {
 
       {/* MY ACCOUNT */}
       <section className="page-card">
-        <h2 className="card-title"><User /> My Account</h2>
+        <h2 className="card-title">
+          <User /> My Account
+        </h2>
         <p className="text-muted">Your basic account information.</p>
 
         <div className="profile-info">
@@ -134,7 +179,7 @@ export default function ProfilePage() {
             <User className="icon" />
             <div>
               <p className="label">Full Name</p>
-              <p className="value">{localProfile.full_name}</p>
+              <p className="value">{profile.full_name}</p>
             </div>
           </div>
 
@@ -142,7 +187,7 @@ export default function ProfilePage() {
             <Mail className="icon" />
             <div>
               <p className="label">Email Address</p>
-              <p className="value">{localProfile.email}</p>
+              <p className="value">{profile.email}</p>
             </div>
           </div>
 
@@ -150,7 +195,7 @@ export default function ProfilePage() {
             <Phone className="icon" />
             <div>
               <p className="label">Phone Number</p>
-              <p className="value">{localProfile.phone || "Not provided"}</p>
+              <p className="value">{profile.phone || "Not provided"}</p>
             </div>
           </div>
         </div>
@@ -158,7 +203,9 @@ export default function ProfilePage() {
 
       {/* UPDATE PROFILE */}
       <section className="page-card">
-        <h2 className="card-title"><Edit3 /> Update Profile</h2>
+        <h2 className="card-title">
+          <Edit3 /> Update Profile
+        </h2>
         <p className="text-muted">Update your personal details below.</p>
 
         {message && (
@@ -170,7 +217,7 @@ export default function ProfilePage() {
         )}
 
         <ProfileForm
-          profile={localProfile}
+          profile={profile}
           onUpdate={handleUpdate}
           loading={loading}
         />
@@ -182,8 +229,12 @@ export default function ProfilePage() {
           onClick={() => setShowChangePw((v) => !v)}
           className="cursor-pointer"
         >
-          <h2 className="card-title"><Lock /> Change Password {showChangePw ? "▲" : "▼"}</h2>
-          <p className="text-muted">Click to {showChangePw ? "hide" : "update"} your account password.</p>
+          <h2 className="card-title">
+            <Lock /> Change Password {showChangePw ? "▲" : "▼"}
+          </h2>
+          <p className="text-muted">
+            Click to {showChangePw ? "hide" : "update"} your account password.
+          </p>
         </div>
 
         {showChangePw && (
@@ -205,7 +256,11 @@ export default function ProfilePage() {
 
             {pwError && <Message type="error">{pwError}</Message>}
 
-            <button type="submit" className="btn btn-primary w-full" disabled={pwLoading}>
+            <button
+              type="submit"
+              className="btn btn-primary w-full"
+              disabled={pwLoading}
+            >
               {pwLoading ? "Updating…" : "Update Password"}
             </button>
           </form>
@@ -233,7 +288,6 @@ export default function ProfilePage() {
           </div>
         </section>
       )}
-
     </main>
   );
 }
