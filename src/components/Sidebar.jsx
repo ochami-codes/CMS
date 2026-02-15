@@ -1,5 +1,4 @@
 import { NavLink } from "react-router-dom";
-import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { canUser } from "../utils/permissions";
 import "../styles/layout.css";
@@ -12,7 +11,6 @@ import {
   Megaphone,
   Shield,
   User,
-  Menu,
   X,
 } from "lucide-react";
 
@@ -59,12 +57,12 @@ const SIDEBAR_ITEMS = [
     icon: Shield,
     permission: "manage_users",
   },
-{
-   label: "Profile",
-   path: "/dashboard/profiles",
-   icon: User,
-   permission: null,
-},
+  {
+    label: "Profile",
+    path: "/dashboard/profile",
+    icon: User,
+    permission: null,
+  },
 ];
 
 export default function Sidebar({ open, onClose }) {
@@ -72,44 +70,58 @@ export default function Sidebar({ open, onClose }) {
 
   if (!profile) return null;
 
+  const isMember = profile.is_member;
+  const churchName = profile.church_name || "Seventh-day Adventist Church";
+
   return (
-    <>
-      {/* Sidebar */}
-      <aside className={`sidebar ${open ? "open" : ""}`}>
-        {/* Header */}
-        <div className="sidebar-header">
-          <h2 className="sidebar-title">ChurchApp</h2>
-          <button className="close-btn" onClick={onClose}>
-            <X size={20} />
-          </button>
+    <aside className={`sidebar ${open ? "open" : ""}`}>
+      {/* Header */}
+      <div className="sidebar-header">
+        <div className="sidebar-brand">
+          <img
+            src="/logo/sda-logo.png"
+            alt="SDA Logo"
+            className="sidebar-logo"
+          />
+          <div className="sidebar-brand-text">
+            <span className="sidebar-church-name">{churchName}</span>
+            {!isMember && (
+              <span className="sidebar-status">Pending approval</span>
+            )}
+          </div>
         </div>
 
-        {/* Links */}
-        <nav className="sidebar-links">
-          {SIDEBAR_ITEMS
-            .filter(
-              item =>
-                !item.permission ||
-                canUser(profile.role_name, item.permission)
-            )
-            .map(item => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  onClick={onClose}
-                  className={({ isActive }) =>
-                    isActive ? "sidebar-link active" : "sidebar-link"
-                  }
-                >
-                  <Icon size={18} className="sidebar-icon" />
-                  <span>{item.label}</span>
-                </NavLink>
-              );
-            })}
-        </nav>
-      </aside>
-    </>
+        <button className="close-btn" onClick={onClose}>
+          <X size={20} />
+        </button>
+      </div>
+
+      {/* Navigation */}
+      <nav className="sidebar-links">
+        {SIDEBAR_ITEMS
+          .filter(item => {
+            if (!item.permission) return true;
+            if (!isMember) return false;
+            return canUser(profile.role_name, item.permission);
+          })
+          .map(item => {
+            const Icon = item.icon;
+
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={onClose}
+                className={({ isActive }) =>
+                  isActive ? "sidebar-link active" : "sidebar-link"
+                }
+              >
+                <Icon size={18} className="sidebar-icon" />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
+      </nav>
+    </aside>
   );
 }
