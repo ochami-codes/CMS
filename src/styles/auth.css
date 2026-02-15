@@ -13,6 +13,9 @@
 }
 
 /* Card wrapper */
+.auth-card * {
+ box-sizing: border-box;
+ }
 .auth-card {
   width: 100%;
   max-width: 400px;
@@ -61,6 +64,7 @@
 
 .church-input input {
   flex: 1;
+  min-width: 0;  
   padding: 0.5rem 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 8px;
@@ -161,5 +165,14 @@
 
   .auth-card h2 {
     font-size: 1.5rem;
+  }
+}
+@media (max-width: 360px) {
+  .church-input {
+    flex-direction: column;
+  }
+
+  .church-input span {
+    text-align: center;
   }
 }
