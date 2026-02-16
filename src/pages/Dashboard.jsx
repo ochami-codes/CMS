@@ -17,7 +17,6 @@ import {
 
 import { hasRole, isAdmin } from "../utils/permissions";
 
-// Lucide Icons
 import {
   Coffee,
   Users,
@@ -29,7 +28,7 @@ import {
 } from "lucide-react";
 
 /* ========================
-   SABBATH HELPERS
+   Helpers
 ======================== */
 const isSabbathNow = () => {
   const now = new Date();
@@ -64,13 +63,10 @@ const timeDiff = (target) => {
 
 const birthdayCountdown = (dob) => {
   if (!dob) return null;
-
   const now = new Date();
   const b = new Date(dob);
   let next = new Date(now.getFullYear(), b.getMonth(), b.getDate());
-
   if (next < now) next.setFullYear(now.getFullYear() + 1);
-
   const diff = timeDiff(next);
   if (!diff) return null;
 
@@ -84,10 +80,10 @@ const birthdayCountdown = (dob) => {
 };
 
 /* ========================
-   DASHBOARD
+   Dashboard
 ======================== */
 export default function Dashboard() {
-  const { user, profile, loading: authLoading } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
 
   const [verse, setVerse] = useState(null);
   const [churchName, setChurchName] = useState(null);
@@ -95,41 +91,35 @@ export default function Dashboard() {
   const [todayBirthdays, setTodayBirthdays] = useState([]);
   const [upcomingBirthdays, setUpcomingBirthdays] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
-
   const [membershipStatus, setMembershipStatus] = useState(null);
   const [requestLoading, setRequestLoading] = useState(false);
-
   const [sabbathTimer, setSabbathTimer] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const isGuest = profile?.role_name === "Guest";
+  const isMember = !isGuest;
 
   /* ---------------- Greeting ---------------- */
   const greeting = useMemo(() => {
     const name = profile?.full_name || "Child of God";
     const hour = new Date().getHours();
-
-    let greet;
-    if (isSabbathNow()) greet = "Happy Sabbath";
-    else if (hour < 12) greet = "Good morning";
-    else if (hour < 18) greet = "Good afternoon";
-    else greet = "Good evening";
-
-    return `${greet}, ${name}!`;
+    if (isSabbathNow()) return `Happy Sabbath, ${name}!`;
+    if (hour < 12) return `Good morning, ${name}!`;
+    if (hour < 18) return `Good afternoon, ${name}!`;
+    return `Good evening, ${name}!`;
   }, [profile]);
 
   /* ---------------- Sabbath Countdown ---------------- */
   useEffect(() => {
     const timer = setInterval(() => {
-      setSabbathTimer(
-        isSabbathNow() ? null : timeDiff(nextSabbathStart())
-      );
+      setSabbathTimer(isSabbathNow() ? null : timeDiff(nextSabbathStart()));
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
   /* ---------------- Fetch Dashboard Data ---------------- */
   useEffect(() => {
-    if (!user || !profile) return;
+    if (!profile) return;
 
     const churchId = profile.church_id;
     setLoading(true);
@@ -137,11 +127,11 @@ export default function Dashboard() {
     Promise.all([
       getDailyVerse(),
       getMyBirthday(),
-      churchId ? getTodaysBirthdays(churchId) : [],
-      churchId ? getUpcomingBirthdays(churchId, 30) : [],
-      churchId ? AnnouncementsAPI.fetch(churchId, 5) : [],
-      churchId ? ChurchAPI.getById(churchId) : null,
-      profile.role_name === "Guest" ? MembershipAPI.myRequests() : null,
+      churchId ? getTodaysBirthdays(churchId) : Promise.resolve([]),
+      churchId ? getUpcomingBirthdays(churchId, 30) : Promise.resolve([]),
+      churchId ? AnnouncementsAPI.fetch(churchId, 5) : Promise.resolve([]),
+      churchId ? ChurchAPI.getById(churchId) : Promise.resolve(null),
+      isGuest ? MembershipAPI.myRequests() : Promise.resolve(null),
     ])
       .then(
         ([
@@ -153,13 +143,12 @@ export default function Dashboard() {
           churchData,
           membershipData,
         ]) => {
-          setVerse(verseData);
-          setBirthday(myBirthday);
+          setVerse(verseData || null);
+          setBirthday(myBirthday || null);
           setTodayBirthdays(todays || []);
           setUpcomingBirthdays(upcoming || []);
           setAnnouncements(ann || []);
           setChurchName(churchData?.name || null);
-
           if (membershipData?.request) {
             setMembershipStatus(membershipData.request.status);
           }
@@ -167,7 +156,7 @@ export default function Dashboard() {
       )
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [user, profile]);
+  }, [profile]);
 
   /* ---------------- Membership Request ---------------- */
   const handleRequestMembership = async () => {
@@ -175,7 +164,6 @@ export default function Dashboard() {
       alert("No church selected.");
       return;
     }
-
     setRequestLoading(true);
     try {
       await MembershipAPI.submit({});
@@ -189,7 +177,7 @@ export default function Dashboard() {
   };
 
   /* ---------------- Loader ---------------- */
-  if (authLoading || loading) {
+  if (authLoading || loading || !profile) {
     return <Loader message="God loves you..." />;
   }
 
@@ -205,7 +193,6 @@ export default function Dashboard() {
           <Home size={20} /> {churchName || "Your Church"}
         </h2>
         <p className="card-subtitle">{greeting}</p>
-
         {verse && (
           <p className="text-muted">
             <strong>{verse.reference}:</strong> {verse.text}
@@ -214,7 +201,7 @@ export default function Dashboard() {
       </div>
 
       {/* GUEST MEMBERSHIP */}
-      {profile.role_name === "Guest" && (
+      {isGuest && (
         <div className="card">
           <h3 className="card-title">Join Your Church</h3>
           <p className="card-subtitle">
@@ -233,7 +220,7 @@ export default function Dashboard() {
       )}
 
       {/* QUICK ACTIONS */}
-      {profile.role_name !== "Guest" && (
+      {isMember && (
         <div className="dashboard-actions">
           {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
             <Link to="/dashboard/treasury" className="dashboard-action-card">
@@ -259,21 +246,20 @@ export default function Dashboard() {
       )}
 
       {/* SABBATH COUNTDOWN */}
-      {!isSabbathNow() && sabbathTimer && profile.role_name !== "Guest" && (
+      {isMember && !isSabbathNow() && sabbathTimer && (
         <div className="dashboard-info-card card">
           <Calendar size={18} />
           <p>
             Sabbath begins in{" "}
             <strong>
-              {sabbathTimer.d}d {sabbathTimer.h}h{" "}
-              {sabbathTimer.m}m {sabbathTimer.s}s
+              {sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m {sabbathTimer.s}s
             </strong>
           </p>
         </div>
       )}
 
       {/* PERSONAL BIRTHDAY */}
-      {birthday?.birthday && profile.role_name !== "Guest" && (
+      {isMember && birthday?.birthday && (
         <div className="dashboard-birthday-card card">
           {birthday.isBirthday ? (
             <>
@@ -287,8 +273,7 @@ export default function Dashboard() {
                 <p>
                   In{" "}
                   <strong>
-                    {bday.months}m {bday.days}d {bday.hours}h{" "}
-                    {bday.minutes}m {bday.seconds}s
+                    {bday.months}m {bday.days}d {bday.hours}h {bday.minutes}m {bday.seconds}s
                   </strong>
                 </p>
               )}
@@ -298,7 +283,7 @@ export default function Dashboard() {
       )}
 
       {/* ANNOUNCEMENTS */}
-      {profile.role_name !== "Guest" && (
+      {isMember && (
         <div className="card">
           <h3 className="card-title">
             <Megaphone size={18} /> Announcements

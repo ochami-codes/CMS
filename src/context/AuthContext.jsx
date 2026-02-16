@@ -11,8 +11,8 @@ export const AuthProvider = ({ children }) => {
   /* -------------------------------
      Core state
   ------------------------------- */
-  const [user, setUser] = useState(null);              // auth identity
-  const [profile, setProfile] = useState(null);        // profile snapshot
+  const [user, setUser] = useState(null);       // auth identity
+  const [profile, setProfile] = useState(null); // profile snapshot
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
@@ -33,12 +33,11 @@ export const AuthProvider = ({ children }) => {
   );
 
   /* -------------------------------
-     Fetch auth identity (FAST)
+     Fetch auth identity
   ------------------------------- */
   const fetchMe = async () => {
     try {
       const data = await AuthAPI.me();
-
       if (!data?.user) {
         setUser(null);
         return null;
@@ -62,19 +61,29 @@ export const AuthProvider = ({ children }) => {
   };
 
   /* -------------------------------
-     Fetch profile snapshot (NON-BLOCKING)
+     Fetch profile snapshot
   ------------------------------- */
   const fetchProfile = async () => {
     try {
       const res = await ProfileAPI.get();
 
-      // snapshot only — no heavy logic here
-      setProfile(res?.profile || null);
-      return res?.profile || null;
+      // Ensure profile object always has role_name and church_id
+      const normalizedProfile = {
+        ...res?.profile,
+        role_name: res?.profile?.role_name ?? "Guest",
+        church_id: res?.profile?.church_id ?? null,
+      };
+
+      setProfile(normalizedProfile);
+      return normalizedProfile;
     } catch (err) {
       console.error("fetchProfile error:", err);
-      setProfile(null);
-      return null;
+      setProfile({
+        full_name: "Child of God",
+        role_name: "Guest",
+        church_id: null,
+      });
+      return profile;
     }
   };
 
@@ -92,9 +101,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("access_token", data.access_token);
 
       const me = await fetchMe();
-
-      // fire-and-forget profile snapshot
-      if (me) fetchProfile();
+      if (me) await fetchProfile(); // block until profile is ready
     } catch (err) {
       setAuthError(err.message || "Login failed");
       throw err;
@@ -132,9 +139,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       const me = await fetchMe();
-
-      // IMPORTANT: profile does NOT block rendering
-      if (me) fetchProfile();
+      if (me) await fetchProfile(); // block until profile is ready
 
       setLoading(false);
     };
@@ -145,13 +150,13 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider
       value={{
-        user,          // auth identity
-        profile,       // snapshot (optional)
+        user,
+        profile,
         loading,
         authError,
         login,
         logout,
-        refetchProfile: fetchProfile, // exposed if pages need refresh
+        refetchProfile: fetchProfile,
       }}
     >
       {children}
