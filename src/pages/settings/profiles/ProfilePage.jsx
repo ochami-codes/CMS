@@ -1,46 +1,14 @@
 // src/pages/settings/profiles/ProfilePage.jsx
-import { useEffect, useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ProfileAPI, AuthAPI } from "../../../utils/api";
-
 import ProfileForm from "./ProfileForm";
 import SummaryChart from "./SummaryChart";
-
 import { User, Mail, Phone, Edit3, Lock } from "lucide-react";
 
 /* =========================
-   Helpers
+   Message Component
 ========================= */
-const normalizeContributions = (list = []) => {
-  const totals = {
-    tithes: 0,
-    offerings: 0,
-    campOfferings: 0,
-    churchDevelopment: 0,
-  };
-
-  list.forEach(({ fund_name, total_amount }) => {
-    switch (fund_name) {
-      case "Tithes":
-        totals.tithes += total_amount;
-        break;
-      case "Offerings":
-        totals.offerings += total_amount;
-        break;
-      case "Camp Offerings":
-        totals.campOfferings += total_amount;
-        break;
-      case "Church Development":
-        totals.churchDevelopment += total_amount;
-        break;
-      default:
-        break;
-    }
-  });
-
-  return totals;
-};
-
 const Message = ({ type = "success", children }) => (
   <div className={`card ${type === "success" ? "message-success" : "message-error"}`}>
     <p>{children}</p>
@@ -48,59 +16,68 @@ const Message = ({ type = "success", children }) => (
 );
 
 /* =========================
-   Profile Page
+   useProfile Hook
 ========================= */
-export default function ProfilePage() {
+const useProfile = () => {
   const navigate = useNavigate();
 
-  /* -------- Core data -------- */
   const [profile, setProfile] = useState(null);
   const [contributions, setContributions] = useState(null);
-
-  /* -------- UI state -------- */
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
-  /* -------- Password change -------- */
   const [showChangePw, setShowChangePw] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
   const [pwError, setPwError] = useState("");
 
-  /* -----------------------------
-     Load profile (single source)
-  ----------------------------- */
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        setLoading(true);
-        setMessage("");
-
-        const res = await ProfileAPI.get();
-
-        setProfile(res?.profile || null);
-        setContributions(
-          res?.contributions ? normalizeContributions(res.contributions) : null
-        );
-      } catch (err) {
-        setMessage(err?.message || "Failed to load profile");
-      } finally {
-        setLoading(false);
-      }
+  const normalizeContributions = (list = []) => {
+    const totals = {
+      tithes: 0,
+      offerings: 0,
+      campOfferings: 0,
+      churchDevelopment: 0,
     };
+    list.forEach(({ fund_name, total_amount }) => {
+      switch (fund_name) {
+        case "Tithes":
+          totals.tithes += total_amount;
+          break;
+        case "Offerings":
+          totals.offerings += total_amount;
+          break;
+        case "Camp Offerings":
+          totals.campOfferings += total_amount;
+          break;
+        case "Church Development":
+          totals.churchDevelopment += total_amount;
+          break;
+      }
+    });
+    return totals;
+  };
 
-    loadProfile();
-  }, []);
-
-  /* -----------------------------
-     Update profile
-  ----------------------------- */
-  const handleUpdate = async (updates) => {
+  const loadProfile = async () => {
     try {
       setLoading(true);
       setMessage("");
+      const res = await ProfileAPI.get();
+      setProfile(res?.profile || null);
+      setContributions(
+        res?.contributions ? normalizeContributions(res.contributions) : null
+      );
+    } catch (err) {
+      setMessage(err?.message || "Failed to load profile");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const updateProfile = async (updates) => {
+    try {
+      setLoading(true);
+      setMessage("");
       await ProfileAPI.update(updates);
       setProfile((prev) => ({ ...prev, ...updates }));
       setMessage("Profile updated successfully");
@@ -111,21 +88,16 @@ export default function ProfilePage() {
     }
   };
 
-  /* -----------------------------
-     Change password
-  ----------------------------- */
-  const handleChangePassword = async (e) => {
+  const changePassword = async (e) => {
     e.preventDefault();
     setPwError("");
 
     if (!newPassword || !confirmPassword) {
       return setPwError("Both fields are required");
     }
-
     if (newPassword !== confirmPassword) {
       return setPwError("Passwords do not match");
     }
-
     if (newPassword.length < 6) {
       return setPwError("Password must be at least 6 characters");
     }
@@ -133,10 +105,7 @@ export default function ProfilePage() {
     try {
       setPwLoading(true);
       await AuthAPI.changePassword({ newPassword });
-
-      navigate("/profile/change-password-success", {
-        state: { fromProfile: true },
-      });
+      navigate("/profile/change-password-success", { state: { fromProfile: true } });
     } catch (err) {
       setPwError(err?.message || "Failed to update password");
     } finally {
@@ -144,28 +113,69 @@ export default function ProfilePage() {
     }
   };
 
-  /* -----------------------------
-     Guards
-  ----------------------------- */
-  if (loading) {
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  return {
+    profile,
+    contributions,
+    loading,
+    message,
+    showChangePw,
+    setShowChangePw,
+    newPassword,
+    setNewPassword,
+    confirmPassword,
+    setConfirmPassword,
+    pwLoading,
+    pwError,
+    loadProfile,
+    updateProfile,
+    changePassword,
+    setMessage,
+  };
+};
+
+/* =========================
+   Profile Page
+========================= */
+export default function ProfilePage() {
+  const navigate = useNavigate();
+  const {
+    profile,
+    contributions,
+    loading,
+    message,
+    showChangePw,
+    setShowChangePw,
+    newPassword,
+    setNewPassword,
+    confirmPassword,
+    setConfirmPassword,
+    pwLoading,
+    pwError,
+    updateProfile,
+    changePassword,
+    setMessage,
+  } = useProfile();
+
+  if (loading || !profile) {
     return (
       <main className="page-container">
-        <section className="page-card">Loading profile…</section>
+        <section className="page-card">
+          {loading ? "Loading profile…" : "Profile not found."}
+        </section>
       </main>
     );
   }
 
-  if (!profile) {
-    return (
-      <main className="page-container">
-        <section className="page-card">Profile not found.</section>
-      </main>
-    );
-  }
+  const profileFields = [
+    { label: "Full Name", value: profile.full_name, Icon: User },
+    { label: "Email Address", value: profile.email, Icon: Mail },
+    { label: "Phone Number", value: profile.phone || "Not provided", Icon: Phone },
+  ];
 
-  /* =========================
-     Render
-  ========================= */
   return (
     <main className="page-container">
       {/* ROLE REQUEST */}
@@ -187,29 +197,15 @@ export default function ProfilePage() {
         <p className="text-muted">Your basic account information.</p>
 
         <div className="profile-info">
-          <div className="profile-item">
-            <User className="icon" />
-            <div>
-              <p className="label">Full Name</p>
-              <p className="value">{profile.full_name}</p>
+          {profileFields.map(({ label, value, Icon }) => (
+            <div className="profile-item" key={label}>
+              <Icon className="icon" />
+              <div>
+                <p className="label">{label}</p>
+                <p className="value">{value}</p>
+              </div>
             </div>
-          </div>
-
-          <div className="profile-item">
-            <Mail className="icon" />
-            <div>
-              <p className="label">Email Address</p>
-              <p className="value">{profile.email}</p>
-            </div>
-          </div>
-
-          <div className="profile-item">
-            <Phone className="icon" />
-            <div>
-              <p className="label">Phone Number</p>
-              <p className="value">{profile.phone || "Not provided"}</p>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -228,29 +224,22 @@ export default function ProfilePage() {
           </Message>
         )}
 
-        <ProfileForm
-          profile={profile}
-          onUpdate={handleUpdate}
-          loading={loading}
-        />
+        <ProfileForm profile={profile} onUpdate={updateProfile} loading={loading} />
       </section>
 
       {/* CHANGE PASSWORD */}
       <section className="page-card">
-        <div
+        <button
+          type="button"
           onClick={() => setShowChangePw((v) => !v)}
-          className="cursor-pointer"
+          aria-expanded={showChangePw}
+          className="btn-toggle"
         >
-          <h2 className="card-title">
-            <Lock /> Change Password {showChangePw ? "▲" : "▼"}
-          </h2>
-          <p className="text-muted">
-            Click to {showChangePw ? "hide" : "update"} your account password.
-          </p>
-        </div>
+          <Lock /> Change Password {showChangePw ? "▲" : "▼"}
+        </button>
 
         {showChangePw && (
-          <form onSubmit={handleChangePassword} className="form-stack">
+          <form onSubmit={changePassword} className="form-stack">
             <input
               type="password"
               className="input-field"
@@ -268,11 +257,7 @@ export default function ProfilePage() {
 
             {pwError && <Message type="error">{pwError}</Message>}
 
-            <button
-              type="submit"
-              className="btn btn-primary w-full"
-              disabled={pwLoading}
-            >
+            <button type="submit" className="btn btn-primary w-full" disabled={pwLoading}>
               {pwLoading ? "Updating…" : "Update Password"}
             </button>
           </form>
@@ -280,7 +265,7 @@ export default function ProfilePage() {
       </section>
 
       {/* CONTRIBUTIONS */}
-      {contributions && (
+      {contributions && Object.values(contributions).some((v) => v > 0) && (
         <section className="stats-grid">
           <div className="page-card">
             <h3 className="card-subtitle">Contributions</h3>

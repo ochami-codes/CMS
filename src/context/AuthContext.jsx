@@ -1,7 +1,7 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { AuthAPI, ProfileAPI } from "../utils/api";
+import { AuthAPI } from "../utils/api";
 
 const AuthContext = createContext(null);
 
@@ -12,7 +12,6 @@ export const AuthProvider = ({ children }) => {
      Core state
   ------------------------------- */
   const [user, setUser] = useState(null);       // auth identity
-  const [profile, setProfile] = useState(null); // profile snapshot
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
@@ -33,21 +32,27 @@ export const AuthProvider = ({ children }) => {
   );
 
   /* -------------------------------
-     Fetch auth identity
+     Fetch /auth/me
   ------------------------------- */
   const fetchMe = async () => {
     try {
       const data = await AuthAPI.me();
+
       if (!data?.user) {
         setUser(null);
         return null;
       }
 
+      // Normalize all users, including Guests
       const normalized = {
         id: data.user.id,
         email: data.user.email,
         role_name: data.user.role_name ?? "Guest",
         church_id: data.user.church_id ?? null,
+        church_name: data.user.church_name ?? "Seventh-day Adventist Church",
+        full_name: data.user.full_name ?? "Guest",
+        is_member: data.user.is_member ?? false,
+        membership_status: data.user.membership_status ?? "none",
       };
 
       setUser(normalized);
@@ -57,33 +62,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("access_token");
       setUser(null);
       return null;
-    }
-  };
-
-  /* -------------------------------
-     Fetch profile snapshot
-  ------------------------------- */
-  const fetchProfile = async () => {
-    try {
-      const res = await ProfileAPI.get();
-
-      // Ensure profile object always has role_name and church_id
-      const normalizedProfile = {
-        ...res?.profile,
-        role_name: res?.profile?.role_name ?? "Guest",
-        church_id: res?.profile?.church_id ?? null,
-      };
-
-      setProfile(normalizedProfile);
-      return normalizedProfile;
-    } catch (err) {
-      console.error("fetchProfile error:", err);
-      setProfile({
-        full_name: "Child of God",
-        role_name: "Guest",
-        church_id: null,
-      });
-      return profile;
     }
   };
 
@@ -99,9 +77,7 @@ export const AuthProvider = ({ children }) => {
       if (!data?.access_token) throw new Error("Login failed");
 
       localStorage.setItem("access_token", data.access_token);
-
-      const me = await fetchMe();
-      if (me) await fetchProfile(); // block until profile is ready
+      await fetchMe(); // always fetch auth identity
     } catch (err) {
       setAuthError(err.message || "Login failed");
       throw err;
@@ -119,7 +95,6 @@ export const AuthProvider = ({ children }) => {
     } catch {}
     localStorage.removeItem("access_token");
     setUser(null);
-    setProfile(null);
   };
 
   /* -------------------------------
@@ -138,9 +113,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      const me = await fetchMe();
-      if (me) await fetchProfile(); // block until profile is ready
-
+      await fetchMe();
       setLoading(false);
     };
 
@@ -151,12 +124,11 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        profile,
         loading,
         authError,
         login,
         logout,
-        refetchProfile: fetchProfile,
+        refetchUser: fetchMe, // can call to refresh guest/member state
       }}
     >
       {children}
