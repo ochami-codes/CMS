@@ -16,15 +16,7 @@ import {
 } from "../utils/api";
 
 import { hasRole, isAdmin } from "../utils/permissions";
-import {
-  Coffee,
-  Users,
-  UserPlus,
-  Home,
-  Calendar,
-  Gift,
-  Megaphone,
-} from "lucide-react";
+import { Coffee, Users, UserPlus, Home, Calendar, Gift, Megaphone } from "lucide-react";
 
 /* ------------------------- Helpers ------------------------- */
 const isSabbathNow = () => {
@@ -57,10 +49,9 @@ const timeDiff = (target) => {
 
 /* ------------------------- Dashboard ------------------------- */
 export default function Dashboard() {
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
-  const [dataLoading, setDataLoading] = useState(true);
-
+  const [loading, setLoading] = useState(true);
   const [verse, setVerse] = useState(null);
   const [birthday, setBirthday] = useState(null);
   const [todayBirthdays, setTodayBirthdays] = useState([]);
@@ -71,17 +62,17 @@ export default function Dashboard() {
   const [sabbathTimer, setSabbathTimer] = useState(null);
 
   const isGuest = user?.role_name === "Guest";
-  const churchId = profile?.church_id;
+  const churchId = user?.church_id;
 
   /* ---------------- Greeting ---------------- */
   const greeting = useMemo(() => {
-    const name = profile?.full_name || "Child of God";
+    const name = user?.full_name || "Child of God";
     const hour = new Date().getHours();
     if (isSabbathNow()) return `Happy Sabbath, ${name}!`;
     if (hour < 12) return `Good morning, ${name}!`;
     if (hour < 18) return `Good afternoon, ${name}!`;
     return `Good evening, ${name}!`;
-  }, [profile]);
+  }, [user]);
 
   /* ---------------- Sabbath Countdown ---------------- */
   useEffect(() => {
@@ -93,50 +84,49 @@ export default function Dashboard() {
 
   /* ---------------- Fetch Dashboard Data ---------------- */
   useEffect(() => {
-    if (!profile) return;
+    if (!user) return; // wait for auth context
 
     let alive = true;
-    setDataLoading(true);
+    setLoading(true);
 
-    const requests = [
-      getDailyVerse(),
-      ChurchAPI.getById(churchId),
-    ];
+    const fetchData = async () => {
+      try {
+        const results = await Promise.all([
+          getDailyVerse(),
+          churchId ? ChurchAPI.getById(churchId) : Promise.resolve(null),
+          !isGuest ? getMyBirthday() : Promise.resolve(null),
+          !isGuest ? getTodaysBirthdays(churchId) : Promise.resolve([]),
+          !isGuest ? getUpcomingBirthdays(churchId, 30) : Promise.resolve([]),
+          !isGuest ? AnnouncementsAPI.fetch(churchId, 5) : Promise.resolve([]),
+          isGuest ? MembershipAPI.myRequests() : Promise.resolve(null),
+        ]);
 
-    if (!isGuest) {
-      requests.push(
-        getMyBirthday(),
-        getTodaysBirthdays(churchId),
-        getUpcomingBirthdays(churchId, 30),
-        AnnouncementsAPI.fetch(churchId, 5)
-      );
-    } else {
-      requests.push(MembershipAPI.myRequests());
-    }
-
-    Promise.all(requests)
-      .then((res) => {
         if (!alive) return;
 
-        setVerse(res[0]);
-        setChurchName(res[1]?.name || "Your Church");
+        setVerse(results[0]);
+        setChurchName(results[1]?.name || user.church_name || "Your Church");
 
         if (isGuest) {
-          setMembershipStatus(res[2]?.request?.status || null);
+          setMembershipStatus(results[6]?.request?.status || null);
         } else {
-          setBirthday(res[2]);
-          setTodayBirthdays(res[3] || []);
-          setUpcomingBirthdays(res[4] || []);
-          setAnnouncements(res[5] || []);
+          setBirthday(results[2]);
+          setTodayBirthdays(results[3] || []);
+          setUpcomingBirthdays(results[4] || []);
+          setAnnouncements(results[5] || []);
         }
-      })
-      .catch(console.error)
-      .finally(() => alive && setDataLoading(false));
+      } catch (err) {
+        console.error("Dashboard fetch error:", err);
+      } finally {
+        alive && setLoading(false);
+      }
+    };
+
+    fetchData();
 
     return () => {
       alive = false;
     };
-  }, [profile, isGuest, churchId]);
+  }, [user, churchId, isGuest]);
 
   /* ---------------- Membership Request ---------------- */
   const handleRequestMembership = async () => {
@@ -150,9 +140,7 @@ export default function Dashboard() {
   };
 
   /* ---------------- Loader ---------------- */
-  if (authLoading || dataLoading) {
-    return <Loader message="Preparing your dashboard…" />;
-  }
+  if (authLoading || loading) return <Loader message="Preparing your dashboard…" />;
 
   /* ---------------- JSX ---------------- */
   return (
@@ -192,21 +180,21 @@ export default function Dashboard() {
       {/* MEMBER QUICK ACTIONS */}
       {!isGuest && (
         <div className="dashboard-actions">
-          {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
+          {hasRole(user.role_name, ["Treasurer", "Admin", "Pastor"]) && (
             <Link to="/dashboard/treasury" className="dashboard-action-card">
               <h3><Coffee size={18} /> Treasury</h3>
               <p>Church finances</p>
             </Link>
           )}
 
-          {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
+          {hasRole(user.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
             <Link to="/dashboard/youth" className="dashboard-action-card">
               <h3><Users size={18} /> Youth Ministry</h3>
               <p>Activities & attendance</p>
             </Link>
           )}
 
-          {isAdmin(profile.role_name) && (
+          {isAdmin(user.role_name) && (
             <Link to="/dashboard/admin" className="dashboard-action-card">
               <h3><UserPlus size={18} /> Administration</h3>
               <p>Members & roles</p>
@@ -216,22 +204,17 @@ export default function Dashboard() {
       )}
 
       {/* ANNOUNCEMENTS */}
-      {!isGuest && (
+      {!isGuest && announcements.length > 0 && (
         <div className="card">
           <h3 className="card-title">
             <Megaphone size={18} /> Announcements
           </h3>
-
-          {announcements.length === 0 ? (
-            <p className="card-subtitle">No recent announcements.</p>
-          ) : (
-            announcements.map((a) => (
-              <div key={a.id} className="announcement-card">
-                <h4>{a.title}</h4>
-                <p>{a.message}</p>
-              </div>
-            ))
-          )}
+          {announcements.map((a) => (
+            <div key={a.id} className="announcement-card">
+              <h4>{a.title}</h4>
+              <p>{a.message}</p>
+            </div>
+          ))}
         </div>
       )}
 
@@ -242,8 +225,7 @@ export default function Dashboard() {
           <p>
             Sabbath begins in{" "}
             <strong>
-              {sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m{" "}
-              {sabbathTimer.s}s
+              {sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m {sabbathTimer.s}s
             </strong>
           </p>
         </div>
