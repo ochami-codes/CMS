@@ -16,15 +16,22 @@ import {
 } from "../utils/api";
 
 import { hasRole, isAdmin } from "../utils/permissions";
-
-import { Coffee, Users, UserPlus, Home, Calendar, Gift, Megaphone } from "lucide-react";
+import {
+  Coffee,
+  Users,
+  UserPlus,
+  Home,
+  Calendar,
+  Gift,
+  Megaphone,
+} from "lucide-react";
 
 /* ------------------------- Helpers ------------------------- */
 const isSabbathNow = () => {
   const now = new Date();
-  const day = now.getDay();
-  const hour = now.getHours();
-  return (day === 5 && hour >= 18) || (day === 6 && hour < 18);
+  const d = now.getDay();
+  const h = now.getHours();
+  return (d === 5 && h >= 18) || (d === 6 && h < 18);
 };
 
 const nextSabbathStart = () => {
@@ -48,40 +55,23 @@ const timeDiff = (target) => {
   };
 };
 
-const birthdayCountdown = (dob) => {
-  if (!dob) return null;
-  const now = new Date();
-  const b = new Date(dob);
-  let next = new Date(now.getFullYear(), b.getMonth(), b.getDate());
-  if (next < now) next.setFullYear(now.getFullYear() + 1);
-  const diff = timeDiff(next);
-  if (!diff) return null;
-  return {
-    months: Math.floor(diff.d / 30),
-    days: diff.d % 30,
-    hours: diff.h,
-    minutes: diff.m,
-    seconds: diff.s,
-  };
-};
-
 /* ------------------------- Dashboard ------------------------- */
 export default function Dashboard() {
   const { user, profile, loading: authLoading } = useAuth();
+
+  const [dataLoading, setDataLoading] = useState(true);
 
   const [verse, setVerse] = useState(null);
   const [birthday, setBirthday] = useState(null);
   const [todayBirthdays, setTodayBirthdays] = useState([]);
   const [upcomingBirthdays, setUpcomingBirthdays] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
-  const [churchName, setChurchName] = useState(null);
+  const [churchName, setChurchName] = useState("Your Church");
   const [membershipStatus, setMembershipStatus] = useState(null);
-  const [requestLoading, setRequestLoading] = useState(false);
   const [sabbathTimer, setSabbathTimer] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   const isGuest = user?.role_name === "Guest";
-  const isMember = !isGuest;
+  const churchId = profile?.church_id;
 
   /* ---------------- Greeting ---------------- */
   const greeting = useMemo(() => {
@@ -104,70 +94,65 @@ export default function Dashboard() {
   /* ---------------- Fetch Dashboard Data ---------------- */
   useEffect(() => {
     if (!profile) return;
-    setLoading(true);
 
-    const churchId = profile.church_id;
+    let alive = true;
+    setDataLoading(true);
 
-    const promises = [
+    const requests = [
       getDailyVerse(),
-      getMyBirthday(),
-      churchId ? getTodaysBirthdays(churchId) : Promise.resolve([]),
-      churchId ? getUpcomingBirthdays(churchId, 30) : Promise.resolve([]),
-      churchId ? AnnouncementsAPI.fetch(churchId, 5) : Promise.resolve([]),
-      churchId ? ChurchAPI.getById(churchId) : Promise.resolve(null),
-      isGuest ? MembershipAPI.myRequests() : Promise.resolve(null),
+      ChurchAPI.getById(churchId),
     ];
 
-    Promise.all(promises)
-      .then(
-        ([
-          verseData,
-          myBirthday,
-          todays,
-          upcoming,
-          ann,
-          churchData,
-          membershipData,
-        ]) => {
-          setVerse(verseData || null);
-          setBirthday(myBirthday || null);
-          setTodayBirthdays(todays || []);
-          setUpcomingBirthdays(upcoming || []);
-          setAnnouncements(ann || []);
-          setChurchName(churchData?.name || profile?.church_name || "Your Church");
-          if (membershipData?.request) {
-            setMembershipStatus(membershipData.request.status);
-          }
+    if (!isGuest) {
+      requests.push(
+        getMyBirthday(),
+        getTodaysBirthdays(churchId),
+        getUpcomingBirthdays(churchId, 30),
+        AnnouncementsAPI.fetch(churchId, 5)
+      );
+    } else {
+      requests.push(MembershipAPI.myRequests());
+    }
+
+    Promise.all(requests)
+      .then((res) => {
+        if (!alive) return;
+
+        setVerse(res[0]);
+        setChurchName(res[1]?.name || "Your Church");
+
+        if (isGuest) {
+          setMembershipStatus(res[2]?.request?.status || null);
+        } else {
+          setBirthday(res[2]);
+          setTodayBirthdays(res[3] || []);
+          setUpcomingBirthdays(res[4] || []);
+          setAnnouncements(res[5] || []);
         }
-      )
+      })
       .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [profile]);
+      .finally(() => alive && setDataLoading(false));
+
+    return () => {
+      alive = false;
+    };
+  }, [profile, isGuest, churchId]);
 
   /* ---------------- Membership Request ---------------- */
   const handleRequestMembership = async () => {
-    if (!profile?.church_id) {
-      alert("No church selected.");
-      return;
-    }
-    setRequestLoading(true);
     try {
       await MembershipAPI.submit({});
       setMembershipStatus("pending");
-      alert("Membership request submitted! 🙏");
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to submit request");
-    } finally {
-      setRequestLoading(false);
+      alert("Membership request submitted 🙏");
+    } catch (e) {
+      alert(e.response?.data?.message || "Request failed");
     }
   };
 
   /* ---------------- Loader ---------------- */
-  if (authLoading || loading || !profile) {
-    return <Loader message="God loves you..." />;
+  if (authLoading || dataLoading) {
+    return <Loader message="Preparing your dashboard…" />;
   }
-
-  const bdayCountdown = birthdayCountdown(birthday?.birthday);
 
   /* ---------------- JSX ---------------- */
   return (
@@ -175,7 +160,7 @@ export default function Dashboard() {
       {/* HEADER */}
       <div className="card">
         <h2 className="card-title">
-          <Home size={20} /> {churchName}
+          <Home size={18} /> {churchName}
         </h2>
         <p className="card-subtitle">{greeting}</p>
         {verse && (
@@ -185,17 +170,17 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* GUEST MEMBERSHIP */}
+      {/* GUEST */}
       {isGuest && (
         <div className="card">
           <h3 className="card-title">Join Your Church</h3>
           <p className="card-subtitle">
-            Become a full member to access ministries and announcements.
+            Request membership to access ministries and announcements.
           </p>
           <button
             className="btn btn-primary"
+            disabled={membershipStatus === "pending"}
             onClick={handleRequestMembership}
-            disabled={requestLoading || membershipStatus === "pending"}
           >
             {membershipStatus === "pending"
               ? "Request Pending"
@@ -204,71 +189,34 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* QUICK ACTIONS FOR MEMBERS */}
-      {isMember && (
+      {/* MEMBER QUICK ACTIONS */}
+      {!isGuest && (
         <div className="dashboard-actions">
           {hasRole(profile.role_name, ["Treasurer", "Admin", "Pastor"]) && (
             <Link to="/dashboard/treasury" className="dashboard-action-card">
               <h3><Coffee size={18} /> Treasury</h3>
-              <p>Church finances & reports</p>
+              <p>Church finances</p>
             </Link>
           )}
 
           {hasRole(profile.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
             <Link to="/dashboard/youth" className="dashboard-action-card">
               <h3><Users size={18} /> Youth Ministry</h3>
-              <p>Attendance & activities</p>
+              <p>Activities & attendance</p>
             </Link>
           )}
 
           {isAdmin(profile.role_name) && (
             <Link to="/dashboard/admin" className="dashboard-action-card">
               <h3><UserPlus size={18} /> Administration</h3>
-              <p>Members, roles & permissions</p>
+              <p>Members & roles</p>
             </Link>
           )}
         </div>
       )}
 
-      {/* SABBATH COUNTDOWN */}
-      {isMember && !isSabbathNow() && sabbathTimer && (
-        <div className="dashboard-info-card card">
-          <Calendar size={18} />
-          <p>
-            Sabbath begins in{" "}
-            <strong>
-              {sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m {sabbathTimer.s}s
-            </strong>
-          </p>
-        </div>
-      )}
-
-      {/* PERSONAL BIRTHDAY */}
-      {isMember && birthday?.birthday && (
-        <div className="dashboard-birthday-card card">
-          {birthday.isBirthday ? (
-            <>
-              <h3><Gift size={18} /> Happy Birthday!</h3>
-              <p>“The Lord bless you and keep you” — Numbers 6:24</p>
-            </>
-          ) : (
-            <>
-              <h3><Gift size={18} /> Your Birthday Countdown</h3>
-              {bdayCountdown && (
-                <p>
-                  In{" "}
-                  <strong>
-                    {bdayCountdown.months}m {bdayCountdown.days}d {bdayCountdown.hours}h {bdayCountdown.minutes}m {bdayCountdown.seconds}s
-                  </strong>
-                </p>
-              )}
-            </>
-          )}
-        </div>
-      )}
-
       {/* ANNOUNCEMENTS */}
-      {isMember && (
+      {!isGuest && (
         <div className="card">
           <h3 className="card-title">
             <Megaphone size={18} /> Announcements
@@ -281,10 +229,23 @@ export default function Dashboard() {
               <div key={a.id} className="announcement-card">
                 <h4>{a.title}</h4>
                 <p>{a.message}</p>
-                <span>{new Date(a.created_at).toLocaleDateString()}</span>
               </div>
             ))
           )}
+        </div>
+      )}
+
+      {/* SABBATH COUNTDOWN */}
+      {!isGuest && sabbathTimer && (
+        <div className="card dashboard-info-card">
+          <Calendar size={18} />
+          <p>
+            Sabbath begins in{" "}
+            <strong>
+              {sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m{" "}
+              {sabbathTimer.s}s
+            </strong>
+          </p>
         </div>
       )}
     </div>

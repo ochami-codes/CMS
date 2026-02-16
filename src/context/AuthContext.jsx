@@ -1,5 +1,5 @@
 // src/context/AuthContext.jsx
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { AuthAPI } from "../utils/api";
 
@@ -11,59 +11,47 @@ export const AuthProvider = ({ children }) => {
   /* -------------------------------
      Core state
   ------------------------------- */
-  const [user, setUser] = useState(null);       // auth identity
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
   /* -------------------------------
-     Public routes (skip auth)
+     Routes that DO NOT require auth
   ------------------------------- */
-  const publicAuthRoutes = [
+  const publicRoutes = [
     "/login",
     "/register",
     "/reset-password",
-    "/change-password-success",
-    "/profile/change-password-success",
     "/auth/reset-password-confirm",
+    "/profile/change-password-success",
   ];
 
-  const isPublicAuthRoute = publicAuthRoutes.some((route) =>
+  const isPublicRoute = publicRoutes.some((route) =>
     location.pathname.startsWith(route)
   );
 
   /* -------------------------------
-     Fetch /auth/me
+     Fetch /auth/me (single source)
   ------------------------------- */
-  const fetchMe = async () => {
+  const fetchMe = useCallback(async () => {
     try {
-      const data = await AuthAPI.me();
+      const res = await AuthAPI.me();
 
-      if (!data?.user) {
+      if (!res?.user) {
         setUser(null);
         return null;
       }
 
-      // Normalize all users, including Guests
-      const normalized = {
-        id: data.user.id,
-        email: data.user.email,
-        role_name: data.user.role_name ?? "Guest",
-        church_id: data.user.church_id ?? null,
-        church_name: data.user.church_name ?? "Seventh-day Adventist Church",
-        full_name: data.user.full_name ?? "Guest",
-        is_member: data.user.is_member ?? false,
-        membership_status: data.user.membership_status ?? "none",
-      };
-
-      setUser(normalized);
-      return normalized;
+      // DO NOT invent defaults here – backend is truth
+      setUser(res.user);
+      return res.user;
     } catch (err) {
-      console.error("fetchMe error:", err);
+      console.error("AuthContext fetchMe error:", err);
       localStorage.removeItem("access_token");
       setUser(null);
       return null;
     }
-  };
+  }, []);
 
   /* -------------------------------
      Login
@@ -73,11 +61,14 @@ export const AuthProvider = ({ children }) => {
     setAuthError(null);
 
     try {
-      const data = await AuthAPI.login({ email, password });
-      if (!data?.access_token) throw new Error("Login failed");
+      const res = await AuthAPI.login({ email, password });
 
-      localStorage.setItem("access_token", data.access_token);
-      await fetchMe(); // always fetch auth identity
+      if (!res?.access_token) {
+        throw new Error("Invalid login response");
+      }
+
+      localStorage.setItem("access_token", res.access_token);
+      await fetchMe();
     } catch (err) {
       setAuthError(err.message || "Login failed");
       throw err;
@@ -92,23 +83,22 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await AuthAPI.logout();
-    } catch {}
-    localStorage.removeItem("access_token");
-    setUser(null);
+    } catch {
+      // ignore
+    } finally {
+      localStorage.removeItem("access_token");
+      setUser(null);
+    }
   };
 
   /* -------------------------------
-     Init auth on route change
+     Init auth ONCE (no spinner loop)
   ------------------------------- */
   useEffect(() => {
-    const init = async () => {
-      if (isPublicAuthRoute) {
-        setLoading(false);
-        return;
-      }
-
+    const initAuth = async () => {
       const token = localStorage.getItem("access_token");
-      if (!token) {
+
+      if (!token || isPublicRoute) {
         setLoading(false);
         return;
       }
@@ -117,8 +107,8 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     };
 
-    init();
-  }, [location.pathname]);
+    initAuth();
+  }, [fetchMe, isPublicRoute]);
 
   return (
     <AuthContext.Provider
@@ -128,7 +118,7 @@ export const AuthProvider = ({ children }) => {
         authError,
         login,
         logout,
-        refetchUser: fetchMe, // can call to refresh guest/member state
+        refetchUser: fetchMe, // useful after role approval
       }}
     >
       {children}

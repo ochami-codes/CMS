@@ -6,26 +6,35 @@ import Loader from "../components/Loader";
 /**
  * ProtectedRoute ensures:
  * 1. User is authenticated
- * 2. Role is allowed (based on user.role_name)
- * 3. Optionally, waits for profile if `requireProfile` is true
+ * 2. User role is allowed
+ * 3. Optionally blocks guests / pending members
  */
-export default function ProtectedRoute({ allowedRoles, requireProfile = false }) {
-  const { user, profile, loading } = useAuth();
+export default function ProtectedRoute({
+  allowedRoles,
+  requireMember = false,
+}) {
+  const { user, loading } = useAuth();
 
-  // Show loader while fetching auth
-  if (loading) return <Loader message="Checking session…" />;
+  // Still checking session
+  if (loading) {
+    return <Loader message="Checking session…" />;
+  }
 
-  // Not authenticated → redirect to login
-  if (!user) return <Navigate to="/login" replace />;
+  // Not logged in
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
-  // Require full profile → wait for it
-  if (requireProfile && !profile) return <Loader message="Loading profile…" />;
-
-  // Role-based restriction (using auth identity)
-  if (allowedRoles && !allowedRoles.includes(user.role_name || "Member")) {
+  // Block guests / pending members
+  if (requireMember && !user.is_member) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // ✅ Authenticated and allowed
+  // Role-based restriction
+  if (allowedRoles && !allowedRoles.includes(user.role_name)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // ✅ Allowed
   return <Outlet />;
 }
