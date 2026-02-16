@@ -3,6 +3,7 @@ import { AdminAPI, AdminMembershipAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import { Check, X, RefreshCw, UserPlus } from "lucide-react";
 import "../../styles/pages.css";
+
 const ROLES = [
   "Admin",
   "Pastor",
@@ -14,9 +15,7 @@ const ROLES = [
 ];
 
 export default function ManageRoles() {
-  const { profile, setProfile, setUser, loading: authLoading } = useAuth();
-
-  /* ------------------ State ------------------ */
+  const { user, setUser, loading: authLoading } = useAuth(); // updated
   const [members, setMembers] = useState([]);
   const [nonMembers, setNonMembers] = useState([]);
   const [roleRequests, setRoleRequests] = useState([]);
@@ -29,29 +28,25 @@ export default function ManageRoles() {
 
   const [processingId, setProcessingId] = useState(null);
   const [requestProcessingId, setRequestProcessingId] = useState(null);
-
   const [search, setSearch] = useState("");
 
   /* ------------------ Fetch Functions ------------------ */
   const fetchMembers = useCallback(async () => {
-    if (!profile?.church_id) return;
+    if (!user?.church_id) return;
     setLoadingMembers(true);
     try {
       const params = new URLSearchParams({ search }).toString();
       const data = await AdminAPI.fetchMembers(params);
       setMembers(
-        (data.members ?? []).map((m) => ({
-          ...m,
-          selectedRole: m.role_name,
-        }))
+        (data.members ?? []).map((m) => ({ ...m, selectedRole: m.role_name }))
       );
     } finally {
       setLoadingMembers(false);
     }
-  }, [profile, search]);
+  }, [user, search]);
 
   const fetchNonMembers = useCallback(async () => {
-    if (!profile?.church_id) return;
+    if (!user?.church_id) return;
     setLoadingNonMembers(true);
     try {
       const data = await AdminAPI.fetchNonMembers();
@@ -59,10 +54,10 @@ export default function ManageRoles() {
     } finally {
       setLoadingNonMembers(false);
     }
-  }, [profile]);
+  }, [user]);
 
   const fetchRoleRequests = useCallback(async () => {
-    if (!profile?.church_id) return;
+    if (!user?.church_id) return;
     setLoadingRoleRequests(true);
     try {
       const data = await AdminAPI.fetchRoleRequests();
@@ -70,10 +65,10 @@ export default function ManageRoles() {
     } finally {
       setLoadingRoleRequests(false);
     }
-  }, [profile]);
+  }, [user]);
 
   const fetchMembershipRequests = useCallback(async () => {
-    if (!profile?.church_id) return;
+    if (!user?.church_id) return;
     setLoadingMembershipRequests(true);
     try {
       const data = await AdminMembershipAPI.fetchAll();
@@ -81,11 +76,11 @@ export default function ManageRoles() {
     } finally {
       setLoadingMembershipRequests(false);
     }
-  }, [profile]);
+  }, [user]);
 
   /* ------------------ Effects ------------------ */
   useEffect(() => {
-    if (!authLoading && profile?.church_id) {
+    if (!authLoading && user?.church_id) {
       fetchMembers();
       fetchNonMembers();
       fetchRoleRequests();
@@ -93,7 +88,7 @@ export default function ManageRoles() {
     }
   }, [
     authLoading,
-    profile,
+    user,
     fetchMembers,
     fetchNonMembers,
     fetchRoleRequests,
@@ -112,8 +107,7 @@ export default function ManageRoles() {
         )
       );
 
-      if (member.id === profile.id) {
-        setProfile((p) => ({ ...p, role_name: member.selectedRole }));
+      if (member.id === user.id) {
         setUser((u) => ({ ...u, role_name: member.selectedRole }));
       }
     } finally {
@@ -181,8 +175,8 @@ export default function ManageRoles() {
     }
   };
 
-if (authLoading) return <div className="dashboard-content">Checking permissionsâ€¦</div>;
-  if (!profile) return <div className="dashboard-content">Loading profileâ€¦</div>;
+  if (authLoading) return <div className="dashboard-content">Checking permissionsâ€¦</div>;
+  if (!user) return <div className="dashboard-content">Loading profileâ€¦</div>;
 
   return (
     <>
@@ -198,10 +192,9 @@ if (authLoading) return <div className="dashboard-content">Checking permissionsâ
         />
       </div>
 
-      {/* ------------------ Members ------------------ */}
+      {/* Members Table */}
       <div className="card">
         <h3 className="card-title">Manage Members</h3>
-
         {loadingMembers ? (
           <div>Loading membersâ€¦</div>
         ) : (
@@ -216,7 +209,6 @@ if (authLoading) return <div className="dashboard-content">Checking permissionsâ
                 <th>Actions</th>
               </tr>
             </thead>
-
             <tbody>
               {members.length === 0 ? (
                 <tr>
@@ -250,7 +242,6 @@ if (authLoading) return <div className="dashboard-content">Checking permissionsâ
                         ))}
                       </select>
                     </td>
-
                     <td className="dashboard-actions">
                       <button
                         className="btn btn-primary"
@@ -260,7 +251,6 @@ if (authLoading) return <div className="dashboard-content">Checking permissionsâ
                       >
                         <RefreshCw size={16} />
                       </button>
-
                       <button
                         className="btn btn-secondary"
                         disabled={processingId === m.id}
@@ -278,10 +268,9 @@ if (authLoading) return <div className="dashboard-content">Checking permissionsâ
         )}
       </div>
 
-      {/* ------------------ Non Members ------------------ */}
+      {/* Non Members */}
       <div className="card">
         <h3 className="card-title">Profiles Not Yet Members</h3>
-
         {loadingNonMembers ? (
           <div>Loadingâ€¦</div>
         ) : nonMembers.length === 0 ? (

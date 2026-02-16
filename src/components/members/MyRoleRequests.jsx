@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { RoleRequestsAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/pages.css";
+
 const ROLES = [
   "Admin",
   "Pastor",
@@ -13,14 +14,14 @@ const ROLES = [
 ];
 
 export default function MyRoleRequests() {
-  const { profile } = useAuth();
+  const { user } = useAuth(); // <- updated to new AuthContext
   const [requests, setRequests] = useState([]);
   const [role, setRole] = useState("Member");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const loadRequests = async () => {
-    if (!profile?.id) return;
+    if (!user?.id) return; // use user instead of profile
     try {
       setLoading(true);
       const data = await RoleRequestsAPI.fetchMyRequests();
@@ -51,9 +52,9 @@ export default function MyRoleRequests() {
 
   useEffect(() => {
     loadRequests();
-  }, [profile]);
+  }, [user]);
 
-  if (!profile) {
+  if (!user) {
     return (
       <div className="page-container">
         <div className="page-card">Loading profile…</div>

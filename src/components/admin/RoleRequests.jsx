@@ -1,11 +1,11 @@
-// src/components/admin/RoleRequests.jsx
 import { useEffect, useState, useCallback } from "react";
 import { AdminAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast"; // optional toast notifications
 import "../../styles/pages.css";
+
 export default function RoleRequests() {
-  const { profile, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth(); // updated
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,15 +14,13 @@ export default function RoleRequests() {
 
   /* ------------------ Fetch Requests ------------------ */
   const fetchRequests = useCallback(async () => {
-    if (!profile?.church_id) return;
+    if (!user?.church_id) return;
 
     setLoading(true);
     setError("");
 
     try {
       const data = await AdminAPI.fetchRoleRequests();
-
-      // Ensure we get an array
       setRequests(Array.isArray(data.requests) ? data.requests : []);
     } catch (err) {
       console.error("Failed to fetch role requests:", err);
@@ -31,11 +29,11 @@ export default function RoleRequests() {
     } finally {
       setLoading(false);
     }
-  }, [profile]);
+  }, [user]);
 
   /* ------------------ Polling ------------------ */
   useEffect(() => {
-    if (authLoading || !profile?.church_id) return;
+    if (authLoading || !user?.church_id) return;
 
     let isMounted = true;
 
@@ -51,7 +49,7 @@ export default function RoleRequests() {
     return () => {
       isMounted = false;
     };
-  }, [authLoading, profile, fetchRequests]);
+  }, [authLoading, user, fetchRequests]);
 
   /* ------------------ Actions ------------------ */
   const approve = async (id) => {
@@ -83,10 +81,10 @@ export default function RoleRequests() {
   };
 
   /* ------------------ Render Guards ------------------ */
-if (authLoading)
+  if (authLoading)
     return <div className="dashboard-content">Checking admin permissions…</div>;
 
-  if (!profile)
+  if (!user)
     return <div className="dashboard-content">Loading admin profile…</div>;
 
   if (loading)

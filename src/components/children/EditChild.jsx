@@ -1,12 +1,12 @@
-// src/components/members/EditChild.jsx
 import { useState, useEffect } from "react";
 import { memberFields } from "../../utils/memberFields";
 import { ChildrenAPI, DepartmentsAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../ToastProvider";
 import "../../styles/pages.css";
+
 export default function EditChild({ child, onUpdated, onCancel }) {
-  const { profile } = useAuth();
+  const { user } = useAuth(); // <- updated from profile to user
   const { showToast } = useToast();
   const { fields } = memberFields["children"];
 
@@ -56,7 +56,7 @@ export default function EditChild({ child, onUpdated, onCancel }) {
       }
     }
 
-    const payload = { ...formData, church_id: profile?.church_id };
+    const payload = { ...formData, church_id: user?.church_id }; // <- use user.church_id
     if (payload.date_of_birth) {
       payload.date_of_birth = new Date(payload.date_of_birth).toISOString();
     }

@@ -7,8 +7,9 @@ import Input from "../../components/Input";
 import Button from "../../components/Button";
 import toast from "react-hot-toast";
 import "../../styles/pages.css";
+
 export default function CommunicationDashboard() {
-  const { profile } = useAuth();
+  const { user } = useAuth(); // use normalized user
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,9 +19,11 @@ export default function CommunicationDashboard() {
 
   /* ---------------- Fetch announcements ---------------- */
   const loadAnnouncements = async () => {
+    if (!user?.church_id) return;
+
     try {
       setLoading(true);
-      const data = await AnnouncementsAPI.fetch(profile.church_id, 20);
+      const data = await AnnouncementsAPI.fetch(user.church_id, 20);
       setAnnouncements(data || []);
     } catch (err) {
       toast.error(err.message || "Failed to load announcements");
@@ -30,8 +33,8 @@ export default function CommunicationDashboard() {
   };
 
   useEffect(() => {
-    if (profile?.church_id) loadAnnouncements();
-  }, [profile?.church_id]);
+    loadAnnouncements();
+  }, [user?.church_id]);
 
   /* ---------------- Add announcement ---------------- */
   const handleAdd = async (e) => {
@@ -44,11 +47,10 @@ export default function CommunicationDashboard() {
 
     try {
       setSubmitting(true);
-
       await AnnouncementsAPI.create({
         title,
         message,
-        churchId: profile.church_id,
+        churchId: user.church_id,
       });
 
       toast.success("Announcement added");

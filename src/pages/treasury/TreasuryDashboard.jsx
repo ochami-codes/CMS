@@ -11,8 +11,9 @@ import toast from "react-hot-toast";
 import Loader from "../../components/Loader";
 import RequirePermission from "../../components/RequirePermission";
 import "../../styles/pages.css";
+
 export default function TreasuryDashboard() {
-  const { profile } = useAuth();
+  const { user } = useAuth(); // <- aligned with new AuthContext
 
   const [overview, setOverview] = useState(null);
   const [groups, setGroups] = useState([]);
@@ -26,6 +27,8 @@ export default function TreasuryDashboard() {
 
   /* ---------------- Load dashboard data ---------------- */
   const loadData = async () => {
+    if (!user?.church_id) return; // early return if no church
+
     setLoading(true);
     try {
       const [overviewData, groupsData, membersData] = await Promise.all([
@@ -64,7 +67,7 @@ export default function TreasuryDashboard() {
 
   useEffect(() => {
     loadData();
-  }, [params]);
+  }, [params, user?.church_id]); // reload if church changes
 
   /* ---------------- Download PDF ---------------- */
   const downloadMembersPDF = () => {

@@ -4,8 +4,9 @@ import AdminHeader from "./AdminHeader";
 import AdminTabs from "./AdminTabs";
 import AdminContent from "./AdminContent";
 import "../../styles/pages.css";
+
 export default function AdminDashboard() {
-  const { profile, loading } = useAuth();
+  const { user, loading } = useAuth(); // <- updated from profile to user
   const [activeTab, setActiveTab] = useState("manage");
 
   if (loading) {
@@ -16,7 +17,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!profile) {
+  if (!user) {
     return (
       <div className="dashboard-content">
         <div className="card">Loading admin profile…</div>

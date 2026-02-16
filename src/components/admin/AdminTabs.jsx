@@ -3,13 +3,14 @@ import { RoleRequestsAPI } from "../../utils/api";
 import { AdminMembershipAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/pages.css";
+
 export default function AdminTabs({ activeTab, setActiveTab }) {
-  const { profile } = useAuth();
+  const { user } = useAuth(); // <- updated from profile to user
   const [rolePending, setRolePending] = useState(0);
   const [membershipPending, setMembershipPending] = useState(0);
 
   useEffect(() => {
-    if (profile?.role_name !== "Admin") return;
+    if (user?.role_name !== "Admin") return;
 
     const fetchCounts = async () => {
       try {
@@ -25,9 +26,9 @@ export default function AdminTabs({ activeTab, setActiveTab }) {
     fetchCounts();
     const interval = setInterval(fetchCounts, 10000);
     return () => clearInterval(interval);
-  }, [profile]);
+  }, [user]);
 
-  if (profile?.role_name !== "Admin") return null;
+  if (user?.role_name !== "Admin") return null;
 
   return (
     <div className="dashboard-actions">

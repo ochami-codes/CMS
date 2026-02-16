@@ -6,8 +6,9 @@ import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
 import Attendance from "../../components/members/Attendance";
 import "../../styles/pages.css";
+
 export default function YouthDashboard() {
-  const { profile } = useAuth();
+  const { user } = useAuth(); // use normalized user
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleMemberAdded = () => {
@@ -62,7 +63,7 @@ export default function YouthDashboard() {
         <MemberList
           department="youth"
           refreshKey={refreshKey}
-          currentUser={profile}
+          currentUser={user} // now uses normalized user
         />
       </section>
 
