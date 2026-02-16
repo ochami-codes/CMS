@@ -1,16 +1,24 @@
+// src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { AuthAPI } from "../utils/api";
+import { AuthAPI, ProfileAPI } from "../utils/api";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const location = useLocation();
 
-  const [user, setUser] = useState(null);
+  /* -------------------------------
+     Core state
+  ------------------------------- */
+  const [user, setUser] = useState(null);              // auth identity
+  const [profile, setProfile] = useState(null);        // profile snapshot
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
+  /* -------------------------------
+     Public routes (skip auth)
+  ------------------------------- */
   const publicAuthRoutes = [
     "/login",
     "/register",
@@ -25,7 +33,7 @@ export const AuthProvider = ({ children }) => {
   );
 
   /* -------------------------------
-     Fetch authenticated user
+     Fetch auth identity (FAST)
   ------------------------------- */
   const fetchMe = async () => {
     try {
@@ -54,6 +62,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   /* -------------------------------
+     Fetch profile snapshot (NON-BLOCKING)
+  ------------------------------- */
+  const fetchProfile = async () => {
+    try {
+      const res = await ProfileAPI.get();
+
+      // snapshot only — no heavy logic here
+      setProfile(res?.profile || null);
+      return res?.profile || null;
+    } catch (err) {
+      console.error("fetchProfile error:", err);
+      setProfile(null);
+      return null;
+    }
+  };
+
+  /* -------------------------------
      Login
   ------------------------------- */
   const login = async ({ email, password }) => {
@@ -62,13 +87,14 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const data = await AuthAPI.login({ email, password });
-
-      if (!data?.access_token) {
-        throw new Error("Login failed");
-      }
+      if (!data?.access_token) throw new Error("Login failed");
 
       localStorage.setItem("access_token", data.access_token);
-      await fetchMe();
+
+      const me = await fetchMe();
+
+      // fire-and-forget profile snapshot
+      if (me) fetchProfile();
     } catch (err) {
       setAuthError(err.message || "Login failed");
       throw err;
@@ -86,10 +112,11 @@ export const AuthProvider = ({ children }) => {
     } catch {}
     localStorage.removeItem("access_token");
     setUser(null);
+    setProfile(null);
   };
 
   /* -------------------------------
-     Init auth
+     Init auth on route change
   ------------------------------- */
   useEffect(() => {
     const init = async () => {
@@ -104,7 +131,11 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      await fetchMe();
+      const me = await fetchMe();
+
+      // IMPORTANT: profile does NOT block rendering
+      if (me) fetchProfile();
+
       setLoading(false);
     };
 
@@ -114,11 +145,13 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider
       value={{
-        user,
+        user,          // auth identity
+        profile,       // snapshot (optional)
         loading,
         authError,
         login,
         logout,
+        refetchProfile: fetchProfile, // exposed if pages need refresh
       }}
     >
       {children}

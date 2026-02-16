@@ -1,66 +1,88 @@
 // src/pages/settings/profiles/ProfilePage.jsx
 import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { ProfileAPI, AuthAPI } from "../../../utils/api";
+
 import ProfileForm from "./ProfileForm";
 import SummaryChart from "./SummaryChart";
-import { Link, useNavigate } from "react-router-dom";
 
-// Lucide Icons
 import { User, Mail, Phone, Edit3, Lock } from "lucide-react";
 
+/* =========================
+   Helpers
+========================= */
+const normalizeContributions = (list = []) => {
+  const totals = {
+    tithes: 0,
+    offerings: 0,
+    campOfferings: 0,
+    churchDevelopment: 0,
+  };
+
+  list.forEach(({ fund_name, total_amount }) => {
+    switch (fund_name) {
+      case "Tithes":
+        totals.tithes += total_amount;
+        break;
+      case "Offerings":
+        totals.offerings += total_amount;
+        break;
+      case "Camp Offerings":
+        totals.campOfferings += total_amount;
+        break;
+      case "Church Development":
+        totals.churchDevelopment += total_amount;
+        break;
+      default:
+        break;
+    }
+  });
+
+  return totals;
+};
+
+const Message = ({ type = "success", children }) => (
+  <div className={`card ${type === "success" ? "message-success" : "message-error"}`}>
+    <p>{children}</p>
+  </div>
+);
+
+/* =========================
+   Profile Page
+========================= */
 export default function ProfilePage() {
   const navigate = useNavigate();
 
+  /* -------- Core data -------- */
   const [profile, setProfile] = useState(null);
   const [contributions, setContributions] = useState(null);
+
+  /* -------- UI state -------- */
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
+  /* -------- Password change -------- */
   const [showChangePw, setShowChangePw] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
   const [pwError, setPwError] = useState("");
 
-  /* -------------------------------
-     Load profile (source of truth)
-  ------------------------------- */
+  /* -----------------------------
+     Load profile (single source)
+  ----------------------------- */
   useEffect(() => {
     const loadProfile = async () => {
-      setLoading(true);
       try {
+        setLoading(true);
+        setMessage("");
+
         const res = await ProfileAPI.get();
 
-        setProfile(res.profile || null);
-
-        // Normalize contributions for UI & chart
-        const giving = {
-          tithes: 0,
-          offerings: 0,
-          campOfferings: 0,
-          churchDevelopment: 0,
-        };
-
-        (res.contributions || []).forEach((item) => {
-          switch (item.fund_name) {
-            case "Tithes":
-              giving.tithes += item.total_amount;
-              break;
-            case "Offerings":
-              giving.offerings += item.total_amount;
-              break;
-            case "Camp Offerings":
-              giving.campOfferings += item.total_amount;
-              break;
-            case "Church Development":
-              giving.churchDevelopment += item.total_amount;
-              break;
-            default:
-              break;
-          }
-        });
-
-        setContributions(giving);
+        setProfile(res?.profile || null);
+        setContributions(
+          res?.contributions ? normalizeContributions(res.contributions) : null
+        );
       } catch (err) {
         setMessage(err?.message || "Failed to load profile");
       } finally {
@@ -71,13 +93,14 @@ export default function ProfilePage() {
     loadProfile();
   }, []);
 
-  /* -------------------------------
+  /* -----------------------------
      Update profile
-  ------------------------------- */
+  ----------------------------- */
   const handleUpdate = async (updates) => {
-    setLoading(true);
-    setMessage("");
     try {
+      setLoading(true);
+      setMessage("");
+
       await ProfileAPI.update(updates);
       setProfile((prev) => ({ ...prev, ...updates }));
       setMessage("Profile updated successfully");
@@ -88,31 +111,29 @@ export default function ProfilePage() {
     }
   };
 
-  /* -------------------------------
+  /* -----------------------------
      Change password
-  ------------------------------- */
+  ----------------------------- */
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setPwError("");
 
     if (!newPassword || !confirmPassword) {
-      setPwError("Both fields are required");
-      return;
+      return setPwError("Both fields are required");
     }
 
     if (newPassword !== confirmPassword) {
-      setPwError("Passwords do not match");
-      return;
+      return setPwError("Passwords do not match");
     }
 
     if (newPassword.length < 6) {
-      setPwError("Password must be at least 6 characters");
-      return;
+      return setPwError("Password must be at least 6 characters");
     }
 
-    setPwLoading(true);
     try {
+      setPwLoading(true);
       await AuthAPI.changePassword({ newPassword });
+
       navigate("/profile/change-password-success", {
         state: { fromProfile: true },
       });
@@ -123,18 +144,9 @@ export default function ProfilePage() {
     }
   };
 
-  /* -------------------------------
-     Message component
-  ------------------------------- */
-  const Message = ({ type = "success", children }) => (
-    <div className={`card ${type === "success" ? "message-success" : "message-error"}`}>
-      <p>{children}</p>
-    </div>
-  );
-
-  /* -------------------------------
+  /* -----------------------------
      Guards
-  ------------------------------- */
+  ----------------------------- */
   if (loading) {
     return (
       <main className="page-container">
@@ -151,9 +163,9 @@ export default function ProfilePage() {
     );
   }
 
-  /* -------------------------------
+  /* =========================
      Render
-  ------------------------------- */
+  ========================= */
   return (
     <main className="page-container">
       {/* ROLE REQUEST */}
