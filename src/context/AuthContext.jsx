@@ -1,13 +1,10 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { useLocation } from "react-router-dom";
 import { AuthAPI } from "../utils/api";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const location = useLocation();
-
   /* -------------------------------
      Core auth state
   ------------------------------- */
@@ -16,24 +13,8 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
 
   /* -------------------------------
-     Public auth routes
-  ------------------------------- */
-  const publicAuthRoutes = [
-    "/login",
-    "/register",
-    "/reset-password",
-    "/auth/reset-password-confirm",
-    "/change-password-success",
-    "/profile/change-password-success",
-  ];
-
-  const isPublicAuthRoute = publicAuthRoutes.some((route) =>
-    location.pathname.startsWith(route)
-  );
-
-  /* -------------------------------
      Fetch /auth/me
-     (single source of truth)
+     Single source of truth
   ------------------------------- */
   const fetchMe = useCallback(async () => {
     try {
@@ -78,7 +59,6 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem("access_token", data.access_token);
 
-      // 🔑 Immediately resolve user after login
       await fetchMe();
     } catch (err) {
       setAuthError(err.message || "Login failed");
@@ -100,27 +80,35 @@ export const AuthProvider = ({ children }) => {
   };
 
   /* -------------------------------
-     Auth initialization
-     (runs on route change)
+     Auth initialization (ONCE)
   ------------------------------- */
   useEffect(() => {
+    let mounted = true;
+
     const initAuth = async () => {
       const token = localStorage.getItem("access_token");
 
-      // 🚨 No token → unauthenticated
       if (!token) {
-        setUser(null);
-        setLoading(false);
+        if (mounted) {
+          setUser(null);
+          setLoading(false);
+        }
         return;
       }
 
-      // 🔑 Token exists → ALWAYS resolve user
       await fetchMe();
-      setLoading(false);
+
+      if (mounted) {
+        setLoading(false);
+      }
     };
 
     initAuth();
-  }, [location.pathname, fetchMe]);
+
+    return () => {
+      mounted = false;
+    };
+  }, [fetchMe]);
 
   return (
     <AuthContext.Provider
