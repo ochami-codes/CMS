@@ -2,6 +2,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./components/ToastProvider";
+import { Toaster } from "react-hot-toast";
+
 // Layouts
 import PublicLayout from "./layouts/PublicLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
@@ -35,122 +37,124 @@ import AdminDashboard from "./components/admin/AdminDashboard";
 import InviteUser from "./auth/InviteUser";
 import ManageRoles from "./components/admin/ManageRoles";
 
-// Toaster
-import { Toaster } from "react-hot-toast";
-
 function App() {
   return (
-<ToastProvider>
-<Router>
-<AuthProvider>
-  <Router>
-    <Routes>
+    <ToastProvider>
+      <Router>
+        <AuthProvider>
+          <Toaster position="top-right" reverseOrder={false} />
 
-      {/* ================= PUBLIC ================= */}
-      <Route element={<PublicLayout />}>
-        <Route index element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/auth/reset-password-confirm" element={<ResetPasswordConfirm />} />
-        <Route path="/auth/callback" element={<Callback />} />
-        <Route path="/profile/change-password-success" element={<ChangePasswordSuccess />} />
-      </Route>
+          <Routes>
+            {/* ============== PUBLIC ============== */}
+            <Route element={<PublicLayout />}>
+              <Route index element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route
+                path="/auth/reset-password-confirm"
+                element={<ResetPasswordConfirm />}
+              />
+              <Route path="/auth/callback" element={<Callback />} />
+              <Route
+                path="/profile/change-password-success"
+                element={<ChangePasswordSuccess />}
+              />
+            </Route>
 
-      {/* ================= PROTECTED ================= */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<DashboardLayout />}>
+            {/* ============== PROTECTED ============== */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<DashboardLayout />}>
+                {/* Main */}
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/myrolerequest" element={<MyRoleRequests />} />
 
-          {/* Main */}
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/myrolerequest" element={<MyRoleRequests />} />
+                {/* Departments */}
+                <Route
+                  path="/dashboard/youth"
+                  element={
+                    <RequirePermission permission="manage_youth">
+                      <YouthDashboard />
+                    </RequirePermission>
+                  }
+                />
 
-          {/* Departments */}
-          <Route
-            path="/dashboard/youth"
-            element={
-              <RequirePermission permission="manage_youth">
-                <YouthDashboard />
-              </RequirePermission>
-            }
-          />
+                <Route
+                  path="/dashboard/children"
+                  element={
+                    <RequirePermission permission="manage_children">
+                      <ChildrenDashboard />
+                    </RequirePermission>
+                  }
+                />
 
-          <Route
-            path="/dashboard/children"
-            element={
-              <RequirePermission permission="manage_children">
-                <ChildrenDashboard />
-              </RequirePermission>
-            }
-          />
+                <Route
+                  path="/dashboard/treasury"
+                  element={
+                    <RequirePermission permission="view_finances">
+                      <TreasuryDashboard />
+                    </RequirePermission>
+                  }
+                />
 
-          <Route
-            path="/dashboard/treasury"
-            element={
-              <RequirePermission permission="view_finances">
-                <TreasuryDashboard />
-              </RequirePermission>
-            }
-          />
+                <Route
+                  path="/dashboard/pastor"
+                  element={
+                    <RequirePermission permission="manage_departments">
+                      <PastorDashboard />
+                    </RequirePermission>
+                  }
+                />
 
-          <Route
-            path="/dashboard/pastor"
-            element={
-              <RequirePermission permission="manage_departments">
-                <PastorDashboard />
-              </RequirePermission>
-            }
-          />
+                <Route
+                  path="/dashboard/communication"
+                  element={
+                    <RequirePermission permission="manage_announcements">
+                      <CommunicationDashboard />
+                    </RequirePermission>
+                  }
+                />
 
-          <Route
-            path="/dashboard/communication"
-            element={
-              <RequirePermission permission="manage_announcements">
-                <CommunicationDashboard />
-              </RequirePermission>
-            }
-          />
+                {/* Settings */}
+                <Route path="/dashboard/profiles" element={<ProfilePage />} />
+                <Route
+                  path="/dashboard/settings/change-password"
+                  element={<ChangePassword />}
+                />
 
-          {/* Settings */}
-          <Route path="/dashboard/profiles" element={<ProfilePage />} />
-          <Route path="/dashboard/settings/change-password" element={<ChangePassword />} />
+                {/* Admin */}
+                <Route
+                  path="/dashboard/admin"
+                  element={
+                    <RequirePermission role="Admin">
+                      <AdminDashboard />
+                    </RequirePermission>
+                  }
+                />
 
-          {/* ================= ADMIN ================= */}
-          <Route
-            path="/dashboard/admin"
-            element={
-              <RequirePermission role="Admin">
-                <AdminDashboard />
-              </RequirePermission>
-            }
-          />
+                <Route
+                  path="/invite-user"
+                  element={
+                    <RequirePermission role="Admin">
+                      <InviteUser />
+                    </RequirePermission>
+                  }
+                />
 
-          <Route
-            path="/invite-user"
-            element={
-              <RequirePermission role="Admin">
-                <InviteUser />
-              </RequirePermission>
-            }
-          />
-
-          <Route
-            path="/manage-roles"
-            element={
-              <RequirePermission role="Admin">
-                <ManageRoles />
-              </RequirePermission>
-            }
-          />
-
-        </Route>
-      </Route>
-
-    </Routes>
-  </Router>
-</AuthProvider>
-</Router>
-</ToastProvider>
+                <Route
+                  path="/manage-roles"
+                  element={
+                    <RequirePermission role="Admin">
+                      <ManageRoles />
+                    </RequirePermission>
+                  }
+                />
+              </Route>
+            </Route>
+          </Routes>
+        </AuthProvider>
+      </Router>
+    </ToastProvider>
   );
 }
 
