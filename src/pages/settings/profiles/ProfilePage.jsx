@@ -1,5 +1,5 @@
 // src/pages/settings/profiles/ProfilePage.jsx
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ProfileAPI, AuthAPI } from "../../../utils/api";
 import ProfileForm from "./ProfileForm";
@@ -9,16 +9,21 @@ import { User, Mail, Phone, Edit3, Lock } from "lucide-react";
 /* =========================
    Message Component
 ========================= */
-const Message = ({ type = "success", children }) => (
-  <div className={`card ${type === "success" ? "message-success" : "message-error"}`}>
-    <p>{children}</p>
-  </div>
-);
+const Message = ({ type = "success", children }) => {
+  console.log("🟦 Message render:", { type, children });
+  return (
+    <div className={`card ${type === "success" ? "message-success" : "message-error"}`}>
+      <p>{children}</p>
+    </div>
+  );
+};
 
 /* =========================
-   useProfile Hook
+   useProfile Hook (DEBUG)
 ========================= */
 const useProfile = () => {
+  console.log("🟢 useProfile hook INIT");
+
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState(null);
@@ -32,14 +37,22 @@ const useProfile = () => {
   const [pwLoading, setPwLoading] = useState(false);
   const [pwError, setPwError] = useState("");
 
+  /* -------------------------
+     Normalize Contributions
+  ------------------------- */
   const normalizeContributions = (list = []) => {
+    console.log("🔄 normalizeContributions input:", list);
+
     const totals = {
       tithes: 0,
       offerings: 0,
       campOfferings: 0,
       churchDevelopment: 0,
     };
+
     list.forEach(({ fund_name, total_amount }) => {
+      console.log("➡️ fund row:", fund_name, total_amount);
+
       switch (fund_name) {
         case "Tithes":
           totals.tithes += total_amount;
@@ -53,69 +66,126 @@ const useProfile = () => {
         case "Church Development":
           totals.churchDevelopment += total_amount;
           break;
+        default:
+          console.warn("⚠️ Unknown fund:", fund_name);
       }
     });
+
+    console.log("✅ normalizeContributions output:", totals);
     return totals;
   };
 
+  /* -------------------------
+     Load Profile
+  ------------------------- */
   const loadProfile = async () => {
+    console.log("📡 loadProfile START");
+
     try {
       setLoading(true);
       setMessage("");
+
+      console.log("📡 Calling ProfileAPI.get()");
       const res = await ProfileAPI.get();
+
+      console.log("📡 ProfileAPI.get() response:", res);
+
       setProfile(res?.profile || null);
-      setContributions(
-        res?.contributions ? normalizeContributions(res.contributions) : null
-      );
+
+      if (res?.contributions) {
+        const normalized = normalizeContributions(res.contributions);
+        setContributions(normalized);
+      } else {
+        console.warn("⚠️ No contributions in response");
+        setContributions(null);
+      }
     } catch (err) {
+      console.error("🔥 loadProfile ERROR:", err);
       setMessage(err?.message || "Failed to load profile");
     } finally {
+      console.log("📡 loadProfile END");
       setLoading(false);
     }
   };
 
+  /* -------------------------
+     Update Profile
+  ------------------------- */
   const updateProfile = async (updates) => {
+    console.log("✏️ updateProfile called with:", updates);
+
     try {
       setLoading(true);
       setMessage("");
+
       await ProfileAPI.update(updates);
-      setProfile((prev) => ({ ...prev, ...updates }));
+      console.log("✅ ProfileAPI.update success");
+
+      setProfile((prev) => {
+        console.log("🔁 profile before update:", prev);
+        return { ...prev, ...updates };
+      });
+
       setMessage("Profile updated successfully");
     } catch (err) {
+      console.error("🔥 updateProfile ERROR:", err);
       setMessage(err?.message || "Profile update failed");
     } finally {
       setLoading(false);
     }
   };
 
+  /* -------------------------
+     Change Password
+  ------------------------- */
   const changePassword = async (e) => {
     e.preventDefault();
+    console.log("🔐 changePassword submit");
+
     setPwError("");
 
     if (!newPassword || !confirmPassword) {
+      console.warn("⚠️ Password fields empty");
       return setPwError("Both fields are required");
     }
+
     if (newPassword !== confirmPassword) {
+      console.warn("⚠️ Password mismatch");
       return setPwError("Passwords do not match");
     }
+
     if (newPassword.length < 6) {
+      console.warn("⚠️ Password too short");
       return setPwError("Password must be at least 6 characters");
     }
 
     try {
       setPwLoading(true);
+      console.log("🔐 Calling AuthAPI.changePassword");
+
       await AuthAPI.changePassword({ newPassword });
-      navigate("/profile/change-password-success", { state: { fromProfile: true } });
+
+      console.log("✅ Password changed, navigating");
+      navigate("/profile/change-password-success", {
+        state: { fromProfile: true },
+      });
     } catch (err) {
+      console.error("🔥 changePassword ERROR:", err);
       setPwError(err?.message || "Failed to update password");
     } finally {
       setPwLoading(false);
     }
   };
 
+  /* -------------------------
+     Initial Load
+  ------------------------- */
   useEffect(() => {
+    console.log("⚙️ useProfile useEffect RUN");
     loadProfile();
   }, []);
+
+  console.log("🟢 useProfile RETURN");
 
   return {
     profile,
@@ -130,7 +200,6 @@ const useProfile = () => {
     setConfirmPassword,
     pwLoading,
     pwError,
-    loadProfile,
     updateProfile,
     changePassword,
     setMessage,
@@ -138,10 +207,11 @@ const useProfile = () => {
 };
 
 /* =========================
-   Profile Page
+   Profile Page (DEBUG)
 ========================= */
 export default function ProfilePage() {
-  const navigate = useNavigate();
+  console.log("🧱 ProfilePage render START");
+
   const {
     profile,
     contributions,
@@ -157,10 +227,21 @@ export default function ProfilePage() {
     pwError,
     updateProfile,
     changePassword,
-    setMessage,
   } = useProfile();
 
+  console.log("🧱 ProfilePage state:", {
+    loading,
+    profile,
+    contributions,
+    message,
+  });
+
+  /* -------------------------
+     Guards
+  ------------------------- */
   if (loading || !profile) {
+    console.warn("⏳ Rendering loading / missing profile", { loading, profile });
+
     return (
       <main className="page-container">
         <section className="page-card">
@@ -176,14 +257,22 @@ export default function ProfilePage() {
     { label: "Phone Number", value: profile.phone || "Not provided", Icon: Phone },
   ];
 
+  console.log("🧱 Rendering FULL profile page");
+
+  const hasContributions =
+    contributions &&
+    typeof contributions === "object" &&
+    Object.values(contributions).some((v) => Number(v) > 0);
+
+  console.log("📊 hasContributions:", hasContributions, contributions);
+
   return (
     <main className="page-container">
+      {console.log("🖼️ JSX START")}
+
       {/* ROLE REQUEST */}
       <section className="page-card">
         <h2 className="card-title">Role Requests</h2>
-        <p className="text-muted">
-          Apply for leadership or ministry roles and track approval status.
-        </p>
         <Link to="/myrolerequest" className="btn btn-primary">
           View / Submit Role Request
         </Link>
@@ -194,18 +283,20 @@ export default function ProfilePage() {
         <h2 className="card-title">
           <User /> My Account
         </h2>
-        <p className="text-muted">Your basic account information.</p>
 
         <div className="profile-info">
-          {profileFields.map(({ label, value, Icon }) => (
-            <div className="profile-item" key={label}>
-              <Icon className="icon" />
-              <div>
-                <p className="label">{label}</p>
-                <p className="value">{value}</p>
+          {profileFields.map(({ label, value, Icon }) => {
+            console.log("👤 profile field:", label, value);
+            return (
+              <div className="profile-item" key={label}>
+                <Icon className="icon" />
+                <div>
+                  <p className="label">{label}</p>
+                  <p className="value">{value}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -214,7 +305,6 @@ export default function ProfilePage() {
         <h2 className="card-title">
           <Edit3 /> Update Profile
         </h2>
-        <p className="text-muted">Update your personal details below.</p>
 
         {message && (
           <Message
@@ -224,15 +314,21 @@ export default function ProfilePage() {
           </Message>
         )}
 
-        <ProfileForm profile={profile} onUpdate={updateProfile} loading={loading} />
+        <ProfileForm
+          profile={profile}
+          onUpdate={updateProfile}
+          loading={loading}
+        />
       </section>
 
       {/* CHANGE PASSWORD */}
       <section className="page-card">
         <button
           type="button"
-          onClick={() => setShowChangePw((v) => !v)}
-          aria-expanded={showChangePw}
+          onClick={() => {
+            console.log("🔁 Toggle change password");
+            setShowChangePw((v) => !v);
+          }}
           className="btn-toggle"
         >
           <Lock /> Change Password {showChangePw ? "▲" : "▼"}
@@ -242,22 +338,25 @@ export default function ProfilePage() {
           <form onSubmit={changePassword} className="form-stack">
             <input
               type="password"
-              className="input-field"
-              placeholder="New password"
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              onChange={(e) => {
+                console.log("🔐 newPassword change");
+                setNewPassword(e.target.value);
+              }}
             />
+
             <input
               type="password"
-              className="input-field"
-              placeholder="Confirm new password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => {
+                console.log("🔐 confirmPassword change");
+                setConfirmPassword(e.target.value);
+              }}
             />
 
             {pwError && <Message type="error">{pwError}</Message>}
 
-            <button type="submit" className="btn btn-primary w-full" disabled={pwLoading}>
+            <button disabled={pwLoading}>
               {pwLoading ? "Updating…" : "Update Password"}
             </button>
           </form>
@@ -265,26 +364,25 @@ export default function ProfilePage() {
       </section>
 
       {/* CONTRIBUTIONS */}
-      {contributions && Object.values(contributions).some((v) => v > 0) && (
+      {hasContributions && (
         <section className="stats-grid">
           <div className="page-card">
-            <h3 className="card-subtitle">Contributions</h3>
-            <ul className="stats-list">
-              <li>Tithes: KES {contributions.tithes}</li>
-              <li>Offerings: KES {contributions.offerings}</li>
-              <li>Camp Offerings: KES {contributions.campOfferings}</li>
-              <li>Church Development: KES {contributions.churchDevelopment}</li>
+            <ul>
+              <li>Tithes: {contributions.tithes}</li>
+              <li>Offerings: {contributions.offerings}</li>
+              <li>Camp Offerings: {contributions.campOfferings}</li>
+              <li>Church Development: {contributions.churchDevelopment}</li>
             </ul>
           </div>
 
           <div className="page-card">
-            <h3 className="card-subtitle">Contributions Breakdown</h3>
-            <div className="chart-container">
-              <SummaryChart contributions={contributions} />
-            </div>
+            {console.log("📈 Rendering SummaryChart")}
+            <SummaryChart contributions={contributions} />
           </div>
         </section>
       )}
+
+      {console.log("🖼️ JSX END")}
     </main>
   );
 }
