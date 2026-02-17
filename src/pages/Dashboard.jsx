@@ -90,75 +90,76 @@ export default function Dashboard() {
   }, []);
 
   /* Fetch Data */
-useEffect(() => {
-  if (!user) return;
-  let alive = true;
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
 
-  const fetchData = async () => {
-    try {
-      const results = await Promise.all([
-        getDailyVerse(),
-        churchId ? ChurchAPI.getById(churchId) : null,
-        !isGuest ? getMyBirthday() : null,
-        !isGuest ? getTodaysBirthdays(churchId) : [],
-        !isGuest ? getUpcomingBirthdays(churchId, 30) : [],
-        !isGuest ? AnnouncementsAPI.fetch(churchId, 5) : [],
-        isGuest ? MembershipAPI.myRequests() : null,
-      ]);
+    const fetchData = async () => {
+      try {
+        const results = await Promise.all([
+          getDailyVerse(),
+          churchId ? ChurchAPI.getById(churchId) : null,
+          !isGuest ? getMyBirthday() : null,
+          !isGuest ? getTodaysBirthdays(churchId) : [],
+          !isGuest ? getUpcomingBirthdays(churchId, 30) : [],
+          !isGuest ? AnnouncementsAPI.fetch(churchId, 5) : [],
+          isGuest ? MembershipAPI.myRequests() : null,
+        ]);
 
-      if (!alive) return;
+        if (!alive) return;
 
-      setVerse(results[0]);
-      setChurchName(results[1]?.name || user.church_name || "Your Church");
+        setVerse(results[0]);
+        setChurchName(results[1]?.name || user.church_name || "Your Church");
 
-      if (isGuest) {
-        setMembershipStatus(results[6]?.request?.status || null);
-      } else {
-        // MY BIRTHDAY PROCESSING
-        if (results[2]) {
-          const myBirthday = { ...results[2] };
-          const dob = new Date(myBirthday.birthday);
+        if (isGuest) {
+          setMembershipStatus(results[6]?.request?.status || null);
+        } else {
+          // ---------- My Birthday ----------
+          const myBirthdayData = results[2];
+          if (myBirthdayData && myBirthdayData.birthday) {
+            const dob = new Date(myBirthdayData.birthday);
+            if (!isNaN(dob)) {
+              const updateBirthday = () => {
+                const today = new Date();
+                let nextBirthday = new Date(today.getFullYear(), dob.getMonth(), dob.getDate());
+                if (nextBirthday < today) nextBirthday.setFullYear(today.getFullYear() + 1);
 
-          const updateDaysLeft = () => {
-            const today = new Date();
-            let nextBirthday = new Date(today.getFullYear(), dob.getMonth(), dob.getDate());
-            if (nextBirthday < today) nextBirthday.setFullYear(today.getFullYear() + 1);
+                setBirthday({
+                  birthday: dob.toISOString(),
+                  isBirthday: dob.getDate() === today.getDate() && dob.getMonth() === today.getMonth(),
+                  daysLeft: Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24)),
+                });
+              };
 
-            myBirthday.daysLeft = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
-            myBirthday.isBirthday =
-              dob.getDate() === today.getDate() && dob.getMonth() === today.getMonth();
+              updateBirthday();
 
-            setBirthday({ ...myBirthday }); // trigger re-render
-          };
+              // update daily at midnight
+              const msUntilMidnight =
+                new Date().setHours(24, 0, 0, 0) - new Date().getTime();
+              const timer = setTimeout(function tick() {
+                updateBirthday();
+                setTimeout(tick, 24 * 60 * 60 * 1000);
+              }, msUntilMidnight);
 
-          updateDaysLeft();
+              // cleanup
+              return () => clearTimeout(timer);
+            }
+          }
 
-          // Optional: update daily at midnight
-          const msUntilMidnight =
-            new Date().setHours(24, 0, 0, 0) - new Date().getTime();
-          const timer = setTimeout(function tick() {
-            updateDaysLeft();
-            setTimeout(tick, 24 * 60 * 60 * 1000); // repeat every 24h
-          }, msUntilMidnight);
-
-          return () => clearTimeout(timer);
+          setTodayBirthdays(results[3]);
+          setUpcomingBirthdays(results[4]);
+          setAnnouncements(results[5]);
         }
-
-        setTodayBirthdays(results[3]);
-        setUpcomingBirthdays(results[4]);
-        setAnnouncements(results[5]);
+      } finally {
+        alive && setLoading(false);
       }
-    } finally {
-      alive && setLoading(false);
-    }
-  };
+    };
 
-  fetchData();
-  return () => (alive = false);
-}, [user, churchId, isGuest]);
-  if (authLoading || loading) {
-    return <Loader message="Preparing your dashboard…" />;
-  }
+    fetchData();
+    return () => (alive = false);
+  }, [user, churchId, isGuest]);
+
+  if (authLoading || loading) return <Loader message="Preparing your dashboard…" />;
 
   return (
     <div className="dashboard-content">
@@ -166,9 +167,7 @@ useEffect(() => {
       {/* HEADER */}
       <section className="dashboard-section">
         <div className="card">
-          <h2 className="card-title">
-            <Home size={18} /> {churchName}
-          </h2>
+          <h2 className="card-title"><Home size={18} /> {churchName}</h2>
           <p className="card-subtitle">{greeting}</p>
           {verse && (
             <p className="dashboard-verse">
@@ -181,14 +180,9 @@ useEffect(() => {
       {/* GUEST MEMBERSHIP REQUEST */}
       {isGuest && (
         <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <UserPlus size={18} /> Join Your Church
-          </div>
-
+          <div className="dashboard-section-header"><UserPlus size={18} /> Join Your Church</div>
           <div className="card">
-            <p>
-              Request membership to access ministries, announcements, and resources.
-            </p>
+            <p>Request membership to access ministries, announcements, and resources.</p>
             <button
               className="btn btn-primary"
               disabled={membershipStatus === "pending"}
@@ -202,9 +196,7 @@ useEffect(() => {
                 }
               }}
             >
-              {membershipStatus === "pending"
-                ? "Request Pending"
-                : "Request Membership"}
+              {membershipStatus === "pending" ? "Request Pending" : "Request Membership"}
             </button>
           </div>
         </section>
@@ -213,10 +205,7 @@ useEffect(() => {
       {/* QUICK LINKS */}
       {!isGuest && (
         <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <Coffee size={18} /> Quick Links
-          </div>
-
+          <div className="dashboard-section-header"><Coffee size={18} /> Quick Links</div>
           <div className="dashboard-actions">
             {hasRole(user.role_name, ["Treasurer", "Admin", "Pastor"]) && (
               <Link to="/dashboard/treasury" className="dashboard-action-card">
@@ -224,14 +213,12 @@ useEffect(() => {
                 <p>Church finances</p>
               </Link>
             )}
-
             {hasRole(user.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
               <Link to="/dashboard/youth" className="dashboard-action-card">
                 <h3><Users size={18} /> Youth Ministry</h3>
                 <p>Activities & attendance</p>
               </Link>
             )}
-
             {isAdmin(user.role_name) && (
               <Link to="/dashboard/admin" className="dashboard-action-card">
                 <h3><UserPlus size={18} /> Administration</h3>
@@ -245,21 +232,14 @@ useEffect(() => {
       {/* ANNOUNCEMENTS */}
       {!isGuest && (
         <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <Megaphone size={18} /> Announcements
-          </div>
-
+          <div className="dashboard-section-header"><Megaphone size={18} /> Announcements</div>
           <div className="card">
-            {announcements.length > 0 ? (
-              announcements.map((a) => (
-                <div key={a.id} className="announcement-card">
-                  <h4>{a.title}</h4>
-                  <p>{a.message}</p>
-                </div>
-              ))
-            ) : (
-              <p>No announcements yet.</p>
-            )}
+            {announcements.length > 0 ? announcements.map(a => (
+              <div key={a.id} className="announcement-card">
+                <h4>{a.title}</h4>
+                <p>{a.message}</p>
+              </div>
+            )) : <p>No announcements yet.</p>}
           </div>
         </section>
       )}
@@ -267,20 +247,12 @@ useEffect(() => {
       {/* SABBATH TRACKER */}
       {!isGuest && (
         <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <Calendar size={18} /> Sabbath Tracker
+          <div className="dashboard-section-header"><Calendar size={18} /> Sabbath Tracker
             <span>Sunset countdown</span>
           </div>
-
           <div className="card sabbath-card">
             {sabbathTimer ? (
-              <p>
-                Sabbath begins in{" "}
-                <strong>
-                  {sabbathTimer.d}d {sabbathTimer.h}h{" "}
-                  {sabbathTimer.m}m {sabbathTimer.s}s
-                </strong>
-              </p>
+              <p>Sabbath begins in <strong>{sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m {sabbathTimer.s}s</strong></p>
             ) : (
               <p>Sabbath is ongoing. Enjoy your rest!</p>
             )}
@@ -289,43 +261,31 @@ useEffect(() => {
       )}
 
       {/* BIRTHDAY CORNER */}
-{!isGuest && birthday && (
-  <section className="dashboard-section">
-    <div className="dashboard-section-header">
-      <Gift size={18} /> Birthday Corner
-    </div>
+      {!isGuest && birthday && (
+        <section className="dashboard-section">
+          <div className="dashboard-section-header"><Gift size={18} /> Birthday Corner</div>
+          <div className="card">
+            <div className="birthdays-grid">
+              {/* My birthday always on top */}
+              <div className="birthday-card my-birthday-card">
+                {birthday.isBirthday
+                  ? <>🎉 Happy Birthday, {user.full_name}! 🎉</>
+                  : <>Your birthday is on {new Date(birthday.birthday).toLocaleDateString()} – {birthday.daysLeft} days left</>
+                }
+              </div>
 
-    <div className="card">
-      <div className="birthdays-grid">
-        {/* My birthday counter always on top */}
-        <div className="birthday-card my-birthday-card">
-          {birthday.isBirthday ? (
-            <>🎉 Happy Birthday, {user.full_name}! 🎉</>
-          ) : (
-            <>
-              Your birthday is on {new Date(birthday.birthday).toLocaleDateString()} –{" "}
-              {birthday.daysLeft} days left
-            </>
-          )}
-        </div>
+              {todayBirthdays.map(b => (
+                <div key={b.id} className="birthday-card birthday-today">🎉 {b.full_name}</div>
+              ))}
 
-        {/* Today's birthdays */}
-        {todayBirthdays.map((b) => (
-          <div key={b.id} className="birthday-card birthday-today">
-            🎉 {b.full_name}
+              {upcomingBirthdays.map(b => (
+                <div key={b.id} className="birthday-card birthday-upcoming">{b.full_name} – {b.days_left} days</div>
+              ))}
+            </div>
           </div>
-        ))}
+        </section>
+      )}
 
-        {/* Upcoming birthdays */}
-        {upcomingBirthdays.map((b) => (
-          <div key={b.id} className="birthday-card birthday-upcoming">
-            {b.full_name} – {b.days_left} days
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-)}
     </div>
   );
 }
