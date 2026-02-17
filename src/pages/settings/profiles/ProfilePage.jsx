@@ -143,6 +143,8 @@ setMessage,
 Profile Page
 ========================= */
 export default function ProfilePage() {
+const { user } = useAuth();
+const isGuest = user?.role_name === "Guest";
 const navigate = useNavigate();
 const {
 profile,
