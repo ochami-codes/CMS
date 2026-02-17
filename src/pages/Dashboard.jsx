@@ -215,20 +215,26 @@ export default function Dashboard() {
           </div>
           <div className="card">
             <p>Request membership to access ministries and announcements.</p>
-            <button
-              className="btn btn-primary"
-              disabled={membershipStatus === "pending"}
-              onClick={async () => {
-                await MembershipAPI.submit({});
-                setMembershipStatus("pending");
-                alert("Membership request submitted 🙏");
-              }}
-            >
-              {membershipStatus === "pending"
-                ? "Request Pending"
-                : "Request Membership"}
-            </button>
-          </div>
+{!isMember && (
+  <button
+    className="btn btn-primary"
+    disabled={membershipStatus === "pending"}
+    onClick={async () => {
+      try {
+        await MembershipAPI.submit({});
+        const res = await MembershipAPI.myRequests();
+        setMembershipStatus(res?.request?.status || null);
+        alert("Membership request submitted 🙏");
+      } catch (e) {
+        alert(e.response?.data?.message || "Request failed");
+      }
+    }}
+  >
+    {membershipStatus === "pending"
+      ? "Request Pending"
+      : "Request Membership"}
+  </button>
+)}          </div>
         </section>
       )}
 

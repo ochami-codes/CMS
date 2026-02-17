@@ -1,5 +1,6 @@
 // src/pages/settings/profiles/ProfilePage.jsx
 import { useState, useEffect, useMemo } from "react";
+import { useAuth } from "../../../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { ProfileAPI, AuthAPI } from "../../../utils/api";
 import ProfileForm from "./ProfileForm";
@@ -30,7 +31,8 @@ const [newPassword, setNewPassword] = useState("");
 const [confirmPassword, setConfirmPassword] = useState("");
 const [pwLoading, setPwLoading] = useState(false);
 const [pwError, setPwError] = useState("");
-
+const { user } = useAuth();
+const isGuest = user?.role_name === "Guest";
 const normalizeContributions = (list = []) => {
 const totals = {
 tithes: 0,
@@ -178,19 +180,31 @@ const profileFields = [
 
 return (
 <main className="page-container">
-{/* ROLE REQUEST */}
-<section className="page-card">
-<h2 className="card-title">Role Requests</h2>
-<p className="text-muted">
-Apply for leadership or ministry roles and track approval status.
-</p>
-<Link to="/myrolerequest" className="btn btn-primary">
-View / Submit Role Request
-</Link>
-</section>
+{/* ROLE REQUEST (Hidden for Guests) */}
+{!isGuest && (
+  <section className="page-card">
+    <h2 className="card-title">Role Requests</h2>
 
+    <p className="text-muted">
+      Click the button below to view or request for a role.
+    </p>
+
+    <Link
+      to="/myrolerequest"
+      className="btn btn-primary"
+      style={{
+        marginTop: "0.75rem",
+        width: "fit-content",
+        padding: "0.75rem 1.75rem",
+        fontSize: "0.95rem",
+      }}
+    >
+      View / Request Role
+    </Link>
+  </section>
+)}
 {/* MY ACCOUNT */}  
-  <section className="page-card">  
+  <section className="page-card">
     <h2 className="card-title">  
       <User /> My Account  
     </h2>  
