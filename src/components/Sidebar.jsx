@@ -24,7 +24,7 @@ const SIDEBAR_ITEMS = [
   { label: "Pastor", path: "/dashboard/pastor", icon: Church, permission: "manage_departments" },
   { label: "Communication", path: "/dashboard/communication", icon: Megaphone, permission: "manage_announcements" },
   { label: "Admin", path: "/dashboard/admin", icon: Shield, permission: "manage_users" },
-  { label: "Profile", path: "/dashboard/profile", icon: User, permission: null },
+  { label: "Profile", path: "/dashboard/profiles", icon: User, permission: null },
 ];
 
 export default function Sidebar({ open, onClose }) {
