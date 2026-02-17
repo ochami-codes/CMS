@@ -75,6 +75,7 @@ export default function Dashboard() {
   const [membershipStatus, setMembershipStatus] = useState(null);
   const [sabbathTimer, setSabbathTimer] = useState(null);
 
+  const isMember = user?.is_member === true;
   const isGuest = user?.role_name === "Guest";
   const churchId = user?.church_id;
 
