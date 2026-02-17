@@ -98,6 +98,13 @@
   text-align: center;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
+.my-birthday-card {
+  background-color: #f0f9ff; /* light blue */
+  border-left: 4px solid #3b82f6; /* blue highlight */
+  font-weight: 500;
+  padding: 0.75rem;
+  text-align: center;
+}
 /* ---------- Birthdays Grid ---------- */
 .birthdays-grid {
   display: grid;

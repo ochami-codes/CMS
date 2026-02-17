@@ -90,44 +90,72 @@ export default function Dashboard() {
   }, []);
 
   /* Fetch Data */
-  useEffect(() => {
-    if (!user) return;
-    let alive = true;
+useEffect(() => {
+  if (!user) return;
+  let alive = true;
 
-    const fetchData = async () => {
-      try {
-        const results = await Promise.all([
-          getDailyVerse(),
-          churchId ? ChurchAPI.getById(churchId) : null,
-          !isGuest ? getMyBirthday() : null,
-          !isGuest ? getTodaysBirthdays(churchId) : [],
-          !isGuest ? getUpcomingBirthdays(churchId, 30) : [],
-          !isGuest ? AnnouncementsAPI.fetch(churchId, 5) : [],
-          isGuest ? MembershipAPI.myRequests() : null,
-        ]);
+  const fetchData = async () => {
+    try {
+      const results = await Promise.all([
+        getDailyVerse(),
+        churchId ? ChurchAPI.getById(churchId) : null,
+        !isGuest ? getMyBirthday() : null,
+        !isGuest ? getTodaysBirthdays(churchId) : [],
+        !isGuest ? getUpcomingBirthdays(churchId, 30) : [],
+        !isGuest ? AnnouncementsAPI.fetch(churchId, 5) : [],
+        isGuest ? MembershipAPI.myRequests() : null,
+      ]);
 
-        if (!alive) return;
+      if (!alive) return;
 
-        setVerse(results[0]);
-        setChurchName(results[1]?.name || user.church_name || "Your Church");
+      setVerse(results[0]);
+      setChurchName(results[1]?.name || user.church_name || "Your Church");
 
-        if (isGuest) {
-          setMembershipStatus(results[6]?.request?.status || null);
-        } else {
-          setBirthday(results[2]);
-          setTodayBirthdays(results[3]);
-          setUpcomingBirthdays(results[4]);
-          setAnnouncements(results[5]);
+      if (isGuest) {
+        setMembershipStatus(results[6]?.request?.status || null);
+      } else {
+        // MY BIRTHDAY PROCESSING
+        if (results[2]) {
+          const myBirthday = { ...results[2] };
+          const dob = new Date(myBirthday.birthday);
+
+          const updateDaysLeft = () => {
+            const today = new Date();
+            let nextBirthday = new Date(today.getFullYear(), dob.getMonth(), dob.getDate());
+            if (nextBirthday < today) nextBirthday.setFullYear(today.getFullYear() + 1);
+
+            myBirthday.daysLeft = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
+            myBirthday.isBirthday =
+              dob.getDate() === today.getDate() && dob.getMonth() === today.getMonth();
+
+            setBirthday({ ...myBirthday }); // trigger re-render
+          };
+
+          updateDaysLeft();
+
+          // Optional: update daily at midnight
+          const msUntilMidnight =
+            new Date().setHours(24, 0, 0, 0) - new Date().getTime();
+          const timer = setTimeout(function tick() {
+            updateDaysLeft();
+            setTimeout(tick, 24 * 60 * 60 * 1000); // repeat every 24h
+          }, msUntilMidnight);
+
+          return () => clearTimeout(timer);
         }
-      } finally {
-        alive && setLoading(false);
+
+        setTodayBirthdays(results[3]);
+        setUpcomingBirthdays(results[4]);
+        setAnnouncements(results[5]);
       }
-    };
+    } finally {
+      alive && setLoading(false);
+    }
+  };
 
-    fetchData();
-    return () => (alive = false);
-  }, [user, churchId, isGuest]);
-
+  fetchData();
+  return () => (alive = false);
+}, [user, churchId, isGuest]);
   if (authLoading || loading) {
     return <Loader message="Preparing your dashboard…" />;
   }
@@ -261,41 +289,43 @@ export default function Dashboard() {
       )}
 
       {/* BIRTHDAY CORNER */}
-      {!isGuest && (
-        <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <Gift size={18} /> Birthday Corner
-          </div>
+{!isGuest && birthday && (
+  <section className="dashboard-section">
+    <div className="dashboard-section-header">
+      <Gift size={18} /> Birthday Corner
+    </div>
 
-          <div className="card">
-            <div className="birthdays-grid">
-              {todayBirthdays.length > 0 ? (
-                todayBirthdays.map((b) => (
-                  <div key={b.id} className="birthday-card birthday-today">
-                    🎉 {b.full_name}
-                  </div>
-                ))
-              ) : (
-                <div className="birthday-card birthday-none">
-                  No birthdays today
-                </div>
-              )}
+    <div className="card">
+      <div className="birthdays-grid">
+        {/* My birthday counter always on top */}
+        <div className="birthday-card my-birthday-card">
+          {birthday.isBirthday ? (
+            <>🎉 Happy Birthday, {user.full_name}! 🎉</>
+          ) : (
+            <>
+              Your birthday is on {new Date(birthday.birthday).toLocaleDateString()} –{" "}
+              {birthday.daysLeft} days left
+            </>
+          )}
+        </div>
 
-              {upcomingBirthdays.length > 0 ? (
-                upcomingBirthdays.map((b) => (
-                  <div key={b.id} className="birthday-card birthday-upcoming">
-                    {b.full_name} – {b.days_left} days
-                  </div>
-                ))
-              ) : (
-                <div className="birthday-card birthday-none">
-                  No upcoming birthdays
-                </div>
-              )}
-            </div>
+        {/* Today's birthdays */}
+        {todayBirthdays.map((b) => (
+          <div key={b.id} className="birthday-card birthday-today">
+            🎉 {b.full_name}
           </div>
-        </section>
-      )}
+        ))}
+
+        {/* Upcoming birthdays */}
+        {upcomingBirthdays.map((b) => (
+          <div key={b.id} className="birthday-card birthday-upcoming">
+            {b.full_name} – {b.days_left} days
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
     </div>
   );
 }
