@@ -89,7 +89,15 @@
   color: #f59e0b; /* amber */
   font-weight: 500;
 }
-
+.birthday-none {
+  background-color: #f3f4f6; /* match card background */
+  color: #6b7280; /* subtle gray text */
+  font-style: italic;
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
 /* ---------- Birthdays Grid ---------- */
 .birthdays-grid {
   display: grid;

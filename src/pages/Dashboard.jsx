@@ -150,6 +150,38 @@ export default function Dashboard() {
         </div>
       </section>
 
+      {/* GUEST MEMBERSHIP REQUEST */}
+      {isGuest && (
+        <section className="dashboard-section">
+          <div className="dashboard-section-header">
+            <UserPlus size={18} /> Join Your Church
+          </div>
+
+          <div className="card">
+            <p>
+              Request membership to access ministries, announcements, and resources.
+            </p>
+            <button
+              className="btn btn-primary"
+              disabled={membershipStatus === "pending"}
+              onClick={async () => {
+                try {
+                  await MembershipAPI.submit({});
+                  setMembershipStatus("pending");
+                  alert("Membership request submitted 🙏");
+                } catch (e) {
+                  alert(e.response?.data?.message || "Request failed");
+                }
+              }}
+            >
+              {membershipStatus === "pending"
+                ? "Request Pending"
+                : "Request Membership"}
+            </button>
+          </div>
+        </section>
+      )}
+
       {/* QUICK LINKS */}
       {!isGuest && (
         <section className="dashboard-section">
@@ -183,25 +215,29 @@ export default function Dashboard() {
       )}
 
       {/* ANNOUNCEMENTS */}
-      {!isGuest && announcements.length > 0 && (
+      {!isGuest && (
         <section className="dashboard-section">
           <div className="dashboard-section-header">
             <Megaphone size={18} /> Announcements
           </div>
 
           <div className="card">
-            {announcements.map((a) => (
-              <div key={a.id} className="announcement-card">
-                <h4>{a.title}</h4>
-                <p>{a.message}</p>
-              </div>
-            ))}
+            {announcements.length > 0 ? (
+              announcements.map((a) => (
+                <div key={a.id} className="announcement-card">
+                  <h4>{a.title}</h4>
+                  <p>{a.message}</p>
+                </div>
+              ))
+            ) : (
+              <p>No announcements yet.</p>
+            )}
           </div>
         </section>
       )}
 
       {/* SABBATH TRACKER */}
-      {!isGuest && sabbathTimer && (
+      {!isGuest && (
         <section className="dashboard-section">
           <div className="dashboard-section-header">
             <Calendar size={18} /> Sabbath Tracker
@@ -209,19 +245,23 @@ export default function Dashboard() {
           </div>
 
           <div className="card sabbath-card">
-            <p>
-              Sabbath begins in{" "}
-              <strong>
-                {sabbathTimer.d}d {sabbathTimer.h}h{" "}
-                {sabbathTimer.m}m {sabbathTimer.s}s
-              </strong>
-            </p>
+            {sabbathTimer ? (
+              <p>
+                Sabbath begins in{" "}
+                <strong>
+                  {sabbathTimer.d}d {sabbathTimer.h}h{" "}
+                  {sabbathTimer.m}m {sabbathTimer.s}s
+                </strong>
+              </p>
+            ) : (
+              <p>Sabbath is ongoing. Enjoy your rest!</p>
+            )}
           </div>
         </section>
       )}
 
       {/* BIRTHDAY CORNER */}
-      {!isGuest && (todayBirthdays.length > 0 || upcomingBirthdays.length > 0) && (
+      {!isGuest && (
         <section className="dashboard-section">
           <div className="dashboard-section-header">
             <Gift size={18} /> Birthday Corner
@@ -229,22 +269,33 @@ export default function Dashboard() {
 
           <div className="card">
             <div className="birthdays-grid">
-              {todayBirthdays.map((b) => (
-                <div key={b.id} className="birthday-card birthday-today">
-                  🎉 {b.full_name}
+              {todayBirthdays.length > 0 ? (
+                todayBirthdays.map((b) => (
+                  <div key={b.id} className="birthday-card birthday-today">
+                    🎉 {b.full_name}
+                  </div>
+                ))
+              ) : (
+                <div className="birthday-card birthday-none">
+                  No birthdays today
                 </div>
-              ))}
+              )}
 
-              {upcomingBirthdays.map((b) => (
-                <div key={b.id} className="birthday-card birthday-upcoming">
-                  {b.full_name} – {b.days_left} days
+              {upcomingBirthdays.length > 0 ? (
+                upcomingBirthdays.map((b) => (
+                  <div key={b.id} className="birthday-card birthday-upcoming">
+                    {b.full_name} – {b.days_left} days
+                  </div>
+                ))
+              ) : (
+                <div className="birthday-card birthday-none">
+                  No upcoming birthdays
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </section>
       )}
-
     </div>
   );
 }
