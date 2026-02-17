@@ -122,7 +122,61 @@
   font-size: 0.75rem;
   color: #6b7280;
 }
+/* ---------- Dashboard Sections ---------- */
+.dashboard-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px dashed #e5e7eb;
+}
 
+.dashboard-section:last-child {
+  border-bottom: none;
+}
+
+.dashboard-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #374151;
+  padding-left: 0.25rem;
+}
+
+.dashboard-section-header span {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+/* ---------- Verse ---------- */
+.dashboard-verse {
+  font-size: 0.95rem;
+  color: #374151;
+  margin-top: 0.5rem;
+  line-height: 1.6;
+}
+
+/* ---------- Sabbath Card ---------- */
+.sabbath-card {
+  background-color: #f8fafc;
+  border-left: 4px solid #4f46e5;
+}
+
+/* ---------- Birthday Cards ---------- */
+.birthday-today {
+  background-color: #ecfdf5;
+  color: #065f46;
+  font-weight: 500;
+}
+
+.birthday-upcoming {
+  background-color: #fff7ed;
+  color: #92400e;
+  font-weight: 500;
+}
 /* ==========================
    HOME PAGE STYLES
 ========================== */
