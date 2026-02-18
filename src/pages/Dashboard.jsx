@@ -15,34 +15,25 @@ import {
 } from "../utils/api";
 
 import { hasRole, isAdmin } from "../utils/permissions";
-import {
-  Home,
-  Coffee,
-  Users,
-  UserPlus,
-  Calendar,
-  Gift,
-  Megaphone,
-} from "lucide-react";
+import { Home, Coffee, Users, UserPlus, Calendar, Gift, Megaphone } from "lucide-react";
 
 /* ================= HELPERS ================= */
 
 const isSabbathNow = () => {
   const now = new Date();
-  const d = now.getDay();
-  const h = now.getHours();
-  return (d === 5 && h >= 18) || (d === 6 && h < 18);
+  const day = now.getDay();
+  const hour = now.getHours();
+  return (day === 5 && hour >= 18) || (day === 6 && hour < 18);
 };
 
 const nextSabbathStart = () => {
   const now = new Date();
   const start = new Date(now);
+  const day = now.getDay();
+  const hour = now.getHours();
 
-  if (now.getDay() < 5) {
-    start.setDate(now.getDate() + (5 - now.getDay()));
-  } else if (!(now.getDay() === 5 && now.getHours() < 18)) {
-    start.setDate(now.getDate() + (12 - now.getDay()));
-  }
+  if (day < 5) start.setDate(now.getDate() + (5 - day));
+  else if (!(day === 5 && hour < 18)) start.setDate(now.getDate() + (12 - day));
 
   start.setHours(18, 0, 0, 0);
   return start;
@@ -51,7 +42,6 @@ const nextSabbathStart = () => {
 const timeDiff = (target) => {
   const diff = target - new Date();
   if (diff <= 0) return null;
-
   return {
     d: Math.floor(diff / (1000 * 60 * 60 * 24)),
     h: Math.floor(diff / (1000 * 60 * 60)) % 24,
@@ -74,6 +64,7 @@ export default function Dashboard() {
   const [churchName, setChurchName] = useState("Your Church");
   const [membershipStatus, setMembershipStatus] = useState(null);
   const [sabbathTimer, setSabbathTimer] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const isMember = user?.is_member === true;
   const isGuest = user?.role_name === "Guest";
@@ -84,7 +75,6 @@ export default function Dashboard() {
   const greeting = useMemo(() => {
     const name = user?.full_name || "Child of God";
     const hour = new Date().getHours();
-
     if (isSabbathNow()) return `Happy Sabbath, ${name}!`;
     if (hour < 12) return `Good morning, ${name}!`;
     if (hour < 18) return `Good afternoon, ${name}!`;
@@ -105,7 +95,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
-
     let alive = true;
 
     const fetchDashboard = async () => {
@@ -136,44 +125,25 @@ export default function Dashboard() {
         setUpcomingBirthdays(upcoming || []);
         setAnnouncements(anns || []);
 
-        /* ---------- GUEST ---------- */
         if (isGuest) {
           setMembershipStatus(membership?.request?.status || null);
           setBirthday(null);
           return;
         }
 
-        /* ---------- MY BIRTHDAY ---------- */
         if (myBirthdayData?.birthday?.date) {
           const dob = new Date(myBirthdayData.birthday.date);
-
           if (!isNaN(dob)) {
             const today = new Date();
-            let nextBirthday = new Date(
-              today.getFullYear(),
-              dob.getMonth(),
-              dob.getDate()
-            );
-
-            if (nextBirthday < today) {
-              nextBirthday.setFullYear(today.getFullYear() + 1);
-            }
-
-            const daysLeft = Math.ceil(
-              (nextBirthday - today) / (1000 * 60 * 60 * 24)
-            );
-
+            let nextBirthday = new Date(today.getFullYear(), dob.getMonth(), dob.getDate());
+            if (nextBirthday < today) nextBirthday.setFullYear(today.getFullYear() + 1);
             setBirthday({
               birthday: myBirthdayData.birthday.date,
               isBirthday: myBirthdayData.isBirthday,
-              daysLeft,
+              daysLeft: Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24)),
             });
-          } else {
-            setBirthday(null);
           }
-        } else {
-          setBirthday(null);
-        }
+        } else setBirthday(null);
       } finally {
         alive && setLoading(false);
       }
@@ -183,23 +153,17 @@ export default function Dashboard() {
     return () => (alive = false);
   }, [user, churchId, isGuest]);
 
-  if (authLoading || loading) {
-    return <Loader message="Preparing your dashboard…" />;
-  }
+  if (authLoading || loading) return <Loader message="Preparing your dashboard…" />;
 
   /* ================= UI ================= */
 
   return (
     <div className="dashboard-content">
-
       {/* HEADER */}
       <section className="dashboard-section">
         <div className="card">
-          <h2 className="card-title">
-            <Home size={18} /> {churchName}
-          </h2>
+          <h2 className="card-title"><Home size={18} /> {churchName}</h2>
           <p className="card-subtitle">{greeting}</p>
-
           {verse && (
             <p className="dashboard-verse">
               <strong>{verse.reference}:</strong> {verse.text}
@@ -211,64 +175,63 @@ export default function Dashboard() {
       {/* GUEST MEMBERSHIP */}
       {isGuest && (
         <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <UserPlus size={18} /> Join Your Church
-          </div>
+          <div className="dashboard-section-header"><UserPlus size={18} /> Join Your Church</div>
           <div className="card">
             <p>Request membership to access ministries and announcements.</p>
-{!isMember && (
-  <button
-    className="btn btn-primary"
-    disabled={membershipStatus === "pending"}
-    onClick={async () => {
-      try {
-        await MembershipAPI.submit({});
-        const res = await MembershipAPI.myRequests();
-        setMembershipStatus(res?.request?.status || null);
-        alert("Membership request submitted 🙏");
-      } catch (e) {
-        console.error(e);
-        alert(e.response?.data?.message || "Request failed");
-      }
-    }}
-  >
-    {membershipStatus === "pending"
-      ? "Request Pending"
-      : "Request Membership"}
-  </button>
-)}          </div>
+            {!isMember && (
+              <>
+                <button
+                  className="btn btn-primary"
+                  disabled={membershipStatus === "pending"}
+                  onClick={async () => {
+                    try {
+                      await MembershipAPI.submit({});
+                      const res = await MembershipAPI.myRequests();
+                      const status = res?.request?.status || null;
+                      setMembershipStatus(status);
+                      if (status === "pending") {
+                        setSuccessMessage("Membership request submitted 🙏");
+                        setTimeout(() => setSuccessMessage(""), 3000);
+                      }
+                    } catch (e) {
+                      console.error(e);
+                      setSuccessMessage(e.response?.data?.message || "Request failed");
+                      setTimeout(() => setSuccessMessage(""), 3000);
+                    }
+                  }}
+                >
+                  {membershipStatus === "pending" ? "Request Pending" : "Request Membership"}
+                </button>
+                {successMessage && <div className="message-success" style={{ marginTop: "0.5rem" }}>{successMessage}</div>}
+              </>
+            )}
+          </div>
         </section>
       )}
 
       {/* QUICK LINKS */}
       {!isGuest && (
         <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <Coffee size={18} /> Quick Links
-          </div>
+          <div className="dashboard-section-header"><Coffee size={18} /> Quick Links</div>
           <div className="dashboard-actions">
-
             {hasRole(user.role_name, ["Treasurer", "Admin", "Pastor"]) && (
               <Link to="/dashboard/treasury" className="dashboard-action-card">
                 <h3><Coffee size={18} /> Treasury</h3>
                 <p>Church finances</p>
               </Link>
             )}
-
             {hasRole(user.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
               <Link to="/dashboard/youth" className="dashboard-action-card">
                 <h3><Users size={18} /> Youth Ministry</h3>
                 <p>Activities & attendance</p>
               </Link>
             )}
-
             {isAdmin(user.role_name) && (
               <Link to="/dashboard/admin" className="dashboard-action-card">
                 <h3><UserPlus size={18} /> Administration</h3>
                 <p>Members & roles</p>
               </Link>
             )}
-
           </div>
         </section>
       )}
@@ -276,20 +239,14 @@ export default function Dashboard() {
       {/* ANNOUNCEMENTS */}
       {!isGuest && (
         <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <Megaphone size={18} /> Announcements
-          </div>
+          <div className="dashboard-section-header"><Megaphone size={18} /> Announcements</div>
           <div className="card">
-            {announcements.length ? (
-              announcements.map(a => (
-                <div key={a.id} className="announcement-card">
-                  <h4>{a.title}</h4>
-                  <p>{a.message}</p>
-                </div>
-              ))
-            ) : (
-              <p>No announcements yet.</p>
-            )}
+            {announcements.length ? announcements.map(a => (
+              <div key={a.id} className="announcement-card">
+                <h4>{a.title}</h4>
+                <p>{a.message}</p>
+              </div>
+            )) : <p>No announcements yet.</p>}
           </div>
         </section>
       )}
@@ -297,20 +254,11 @@ export default function Dashboard() {
       {/* SABBATH TRACKER */}
       {!isGuest && (
         <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <Calendar size={18} /> Sabbath Tracker
-          </div>
+          <div className="dashboard-section-header"><Calendar size={18} /> Sabbath Tracker</div>
           <div className="card sabbath-card">
             {sabbathTimer ? (
-              <p>
-                Sabbath begins in{" "}
-                <strong>
-                  {sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m {sabbathTimer.s}s
-                </strong>
-              </p>
-            ) : (
-              <p>Sabbath is ongoing. Enjoy your rest!</p>
-            )}
+              <p>Sabbath begins in <strong>{sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m {sabbathTimer.s}s</strong></p>
+            ) : <p>Sabbath is ongoing. Enjoy your rest!</p>}
           </div>
         </section>
       )}
@@ -318,45 +266,22 @@ export default function Dashboard() {
       {/* BIRTHDAY CORNER */}
       {!isGuest && (
         <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <Gift size={18} /> Birthday Corner
-          </div>
+          <div className="dashboard-section-header"><Gift size={18} /> Birthday Corner</div>
           <div className="card">
             <div className="birthdays-grid">
-
               <div className="birthday-card my-birthday-card">
                 {birthday ? (
-                  birthday.isBirthday ? (
-                    <>🎉 Happy Birthday, {user.full_name}! 🎉</>
-                  ) : (
-                    <>
-                      Your birthday is on{" "}
-                      {new Date(birthday.birthday).toLocaleDateString()} –{" "}
-                      {birthday.daysLeft} days left
-                    </>
-                  )
-                ) : (
-                  <p>Your birthday is not set yet.</p>
-                )}
+                  birthday.isBirthday ? <>🎉 Happy Birthday, {user.full_name}! 🎉</> :
+                  <>Your birthday is on {new Date(birthday.birthday).toLocaleDateString()} – {birthday.daysLeft} days left</>
+                ) : <p>Your birthday is not set yet.</p>}
               </div>
 
-              {todayBirthdays.map(b => (
-                <div key={b.id} className="birthday-card birthday-today">
-                  🎉 {b.full_name}
-                </div>
-              ))}
-
-              {upcomingBirthdays.map(b => (
-                <div key={b.id} className="birthday-card birthday-upcoming">
-                  {b.full_name} – {b.daysUntil} days
-                </div>
-              ))}
-
+              {todayBirthdays.map(b => <div key={b.id} className="birthday-card birthday-today">🎉 {b.full_name}</div>)}
+              {upcomingBirthdays.map(b => <div key={b.id} className="birthday-card birthday-upcoming">{b.full_name} – {b.daysUntil} days</div>)}
             </div>
           </div>
         </section>
       )}
-
     </div>
   );
 }

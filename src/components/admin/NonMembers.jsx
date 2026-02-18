@@ -33,8 +33,7 @@ export default function NonMembers() {
     setActionLoading((prev) => ({ ...prev, [id]: true }));
     try {
       await AdminMembershipAPI.invite(id);
-      // Reload list to remove invited user
-      loadNonMembers();
+      loadNonMembers(); // remove invited user
     } catch (err) {
       alert(err.message || "Failed to send invite");
     } finally {
@@ -44,7 +43,7 @@ export default function NonMembers() {
 
   if (loading) return <Loader message="Loading non-members…" />;
 
-  if (data.length === 0)
+  if (!data.length)
     return (
       <div className="page-card">
         <h3 className="card-title">Non-Members</h3>
@@ -53,41 +52,48 @@ export default function NonMembers() {
     );
 
   return (
-    <div className="page-card">
-      <h3 className="card-title">Non-Members</h3>
-
-      <table className="members-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Church</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((p) => (
-            <tr key={p.id}>
-              <td>{p.full_name}</td>
-              <td>{p.email}</td>
-              <td>{p.phone || "—"}</td>
-              <td>{p.church_name || "—"}</td>
-              <td className="birthday-upcoming">Not a member</td>
-              <td>
-                <button
-                  className="btn btn-primary"
-                  disabled={actionLoading[p.id]}
-                  onClick={() => handleInvite(p.id)}
-                >
-                  {actionLoading[p.id] ? "Inviting…" : "Invite"}
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="page-container">
+      <div className="page-card">
+        <h3 className="card-title">Non-Members</h3>
+        <div className="table-responsive">
+          <table className="members-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Church</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((p) => (
+                <tr key={p.id}>
+                  <td>{p.full_name || "-"}</td>
+                  <td>{p.email || "-"}</td>
+                  <td>{p.phone || "-"}</td>
+                  <td>{p.church_name || "-"}</td>
+                  <td>
+                    <span className="status-label status-nonmember">
+                      Not a member
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-primary btn-role-request"
+                      disabled={actionLoading[p.id]}
+                      onClick={() => handleInvite(p.id)}
+                    >
+                      {actionLoading[p.id] ? "Inviting…" : "Invite"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

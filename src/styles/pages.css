@@ -483,3 +483,60 @@
   outline: none;
   border-color: #4f46e5;
 }
+/* Responsive table wrapper */
+.table-responsive {
+  overflow-x: auto;
+}
+
+/* Status labels */
+.status-label {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+.status-pending {
+  background-color: #fef3c7; /* amber-100 */
+  color: #b45309; /* amber-700 */
+}
+
+.status-approved {
+  background-color: #d1fae5; /* green-100 */
+  color: #065f46; /* green-800 */
+}
+
+.status-rejected {
+  background-color: #fee2e2; /* red-100 */
+  color: #991b1b; /* red-800 */
+}
+
+/* Action buttons spacing */
+.actions button {
+  margin-right: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+/* Status label for non-members */
+.status-nonmember {
+  background-color: #fff7ed; /* amber-50 */
+  color: #b45309; /* amber-700 */
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+/* Responsive table wrapper */
+.table-responsive {
+  overflow-x: auto;
+}
+
+/* Action buttons spacing */
+.members-table td button {
+  margin-right: 0.5rem;
+  margin-bottom: 0.25rem;
+}
