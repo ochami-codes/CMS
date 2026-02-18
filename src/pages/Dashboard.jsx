@@ -227,6 +227,7 @@ export default function Dashboard() {
         setMembershipStatus(res?.request?.status || null);
         alert("Membership request submitted 🙏");
       } catch (e) {
+        console.error(e);
         alert(e.response?.data?.message || "Request failed");
       }
     }}
