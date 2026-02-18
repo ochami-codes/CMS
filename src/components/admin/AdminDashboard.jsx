@@ -6,7 +6,7 @@ import AdminContent from "./AdminContent";
 import "../../styles/pages.css";
 
 export default function AdminDashboard() {
-  const { user, loading } = useAuth(); // <- updated from profile to user
+  const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState("manage");
 
   if (loading) {
@@ -27,20 +27,21 @@ export default function AdminDashboard() {
 
   return (
     <div className="dashboard-content">
-      <div className="card">
-        <AdminHeader />
-      </div>
 
-      <div className="card">
-        <AdminTabs
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
-      </div>
+      {/* HEADER — no card */}
+      <AdminHeader />
 
+      {/* TABS — light container */}
+      <AdminTabs
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
+
+      {/* CONTENT — single main card */}
       <div className="card">
         <AdminContent activeTab={activeTab} />
       </div>
+
     </div>
   );
 }

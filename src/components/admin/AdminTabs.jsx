@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import "../../styles/pages.css";
 
 export default function AdminTabs({ activeTab, setActiveTab }) {
-  const { user } = useAuth(); // <- updated from profile to user
+  const { user } = useAuth();
   const [rolePending, setRolePending] = useState(0);
   const [membershipPending, setMembershipPending] = useState(0);
 
@@ -19,7 +19,7 @@ export default function AdminTabs({ activeTab, setActiveTab }) {
         setRolePending(roleData.count || 0);
         setMembershipPending(membershipData.length || 0);
       } catch (err) {
-        console.error("Failed to fetch pending counts:", err);
+        console.error(err);
       }
     };
 
@@ -31,33 +31,35 @@ export default function AdminTabs({ activeTab, setActiveTab }) {
   if (user?.role_name !== "Admin") return null;
 
   return (
-    <div className="dashboard-actions">
+    <div className="admin-tabs">
       <button
-        className={`btn ${activeTab === "manage" ? "btn-primary" : "btn-secondary"}`}
+        className={activeTab === "manage" ? "tab active" : "tab"}
         onClick={() => setActiveTab("manage")}
       >
         Manage Members
       </button>
 
       <button
-        className={`btn ${activeTab === "non-members" ? "btn-primary" : "btn-secondary"}`}
+        className={activeTab === "non-members" ? "tab active" : "tab"}
         onClick={() => setActiveTab("non-members")}
       >
         Non-Members
       </button>
 
       <button
-        className={`btn ${activeTab === "membership-requests" ? "btn-primary" : "btn-secondary"}`}
+        className={activeTab === "membership-requests" ? "tab active" : "tab"}
         onClick={() => setActiveTab("membership-requests")}
       >
-        Membership Requests {membershipPending > 0 && `(${membershipPending})`}
+        Membership Requests
+        {membershipPending > 0 && ` (${membershipPending})`}
       </button>
 
       <button
-        className={`btn ${activeTab === "role-requests" ? "btn-primary" : "btn-secondary"}`}
+        className={activeTab === "role-requests" ? "tab active" : "tab"}
         onClick={() => setActiveTab("role-requests")}
       >
-        Role Requests {rolePending > 0 && `(${rolePending})`}
+        Role Requests
+        {rolePending > 0 && ` (${rolePending})`}
       </button>
     </div>
   );
