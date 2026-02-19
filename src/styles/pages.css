@@ -569,3 +569,52 @@
   background-color: #f39c12;
   color: white;
 }
+/* ---------- Harmonized Quick Links (Fully Aligned) ---------- */
+.dashboard-action-card {
+  background-color: #f3f4f6;   /* match global card background */
+  color: #374151;              /* neutral dark text */
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;               /* same gap as info/birthday cards */
+  min-height: 100px;          /* ensures uniform card height */
+}
+
+.dashboard-action-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: #4f46e5;             /* subtle accent for title/icon */
+}
+
+.dashboard-action-card p {
+  font-size: 0.875rem;
+  color: #6b7280;             /* soft subtitle text */
+  margin: 0;
+}
+
+.dashboard-action-card:hover {
+  transform: translateY(-3px);
+  background-color: #e5e7eb;   /* subtle hover lift */
+  box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+}
+
+/* Optional: icon color consistency */
+.dashboard-action-card svg {
+  color: #4f46e5; /* match h3 title accent */
+  flex-shrink: 0;
+}
+
+/* Responsive tweaks to match dashboard spacing */
+@media (max-width: 768px) {
+  .dashboard-actions {
+    flex-direction: column;
+  }
+}
