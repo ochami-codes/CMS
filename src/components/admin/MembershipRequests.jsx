@@ -31,7 +31,7 @@ export default function MembershipRequests() {
       if (action === "reject") await AdminMembershipAPI.reject(id);
       if (action === "invite") await AdminAPI.sendInvite(id);
 
-      loadRequests();
+      await loadRequests();
     } catch (err) {
       alert(err.message || "Action failed");
     } finally {
@@ -39,19 +39,8 @@ export default function MembershipRequests() {
     }
   };
 
-  if (loading)
-    return (
-      <div className="page-card">
-        <p>Loading membership requests…</p>
-      </div>
-    );
-
-  if (!requests.length)
-    return (
-      <div className="page-card">
-        <p>No pending requests 🙏</p>
-      </div>
-    );
+  if (loading) return <div className="page-card"><p>Loading membership requests…</p></div>;
+  if (!requests.length) return <div className="page-card"><p>No pending requests 🙏</p></div>;
 
   return (
     <div className="page-container">
@@ -69,59 +58,58 @@ export default function MembershipRequests() {
               </tr>
             </thead>
             <tbody>
-              {requests.map((r) => (
-                <tr key={r.id}>
-                  <td>{r.requester?.full_name || "-"}</td>
-                  <td>{r.requester?.email || "-"}</td>
-                  <td>
-                    <span
-                      className={`status-label ${
-                        r.membership_request_status === "pending"
-                          ? "status-pending"
-                          : r.membership_request_status === "approved"
-                          ? "status-approved"
-                          : "status-rejected"
-                      }`}
-                    >
-                      {r.membership_request_status}
-                    </span>
-                  </td>
-                  <td>
-                    {r.membership_requested_at
-                      ? new Date(r.membership_requested_at).toLocaleString()
-                      : "-"}
-                  </td>
-                  <td className="actions">
-                    {r.membership_request_status === "pending" && (
-                      <>
+              {requests.map((r) => {
+                const id = r.membership_request_id;
+                return (
+                  <tr key={id}>
+                    <td>{r.requester?.full_name || "-"}</td>
+                    <td>{r.requester?.email || "-"}</td>
+                    <td>
+                      <span
+                        className={`status-label ${
+                          r.membership_request_status === "pending"
+                            ? "status-pending"
+                            : r.membership_request_status === "approved"
+                            ? "status-approved"
+                            : "status-rejected"
+                        }`}
+                      >
+                        {r.membership_request_status}
+                      </span>
+                    </td>
+                    <td>{r.membership_requested_at ? new Date(r.membership_requested_at).toLocaleString() : "-"}</td>
+                    <td className="actions">
+                      {r.membership_request_status === "pending" && (
+                        <>
+                          <button
+                            className="btn btn-primary btn-role-request"
+                            disabled={actionLoading[id]}
+                            onClick={() => handleAction(id, "approve")}
+                          >
+                            {actionLoading[id] ? "…" : "Approve"}
+                          </button>
+                          <button
+                            className="btn btn-secondary btn-role-request"
+                            disabled={actionLoading[id]}
+                            onClick={() => handleAction(id, "reject")}
+                          >
+                            {actionLoading[id] ? "…" : "Reject"}
+                          </button>
+                        </>
+                      )}
+                      {r.membership_request_status === "new" && (
                         <button
                           className="btn btn-primary btn-role-request"
-                          disabled={actionLoading[r.id]}
-                          onClick={() => handleAction(r.id, "approve")}
+                          disabled={actionLoading[id]}
+                          onClick={() => handleAction(id, "invite")}
                         >
-                          {actionLoading[r.id] ? "…" : "Approve"}
+                          {actionLoading[id] ? "…" : "Invite"}
                         </button>
-                        <button
-                          className="btn btn-secondary btn-role-request"
-                          disabled={actionLoading[r.id]}
-                          onClick={() => handleAction(r.id, "reject")}
-                        >
-                          {actionLoading[r.id] ? "…" : "Reject"}
-                        </button>
-                      </>
-                    )}
-                    {r.membership_request_status === "new" && (
-                      <button
-                        className="btn btn-primary btn-role-request"
-                        disabled={actionLoading[r.id]}
-                        onClick={() => handleAction(r.id, "invite")}
-                      >
-                        {actionLoading[r.id] ? "…" : "Invite"}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
