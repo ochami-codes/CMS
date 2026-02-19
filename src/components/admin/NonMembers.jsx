@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AdminDashboardAPI, AdminMembershipAPI } from "../../utils/api";
+import { AdminDashboardAPI, AdminAPI } from "../../utils/api";
 import Loader from "../../components/Loader";
 import "../../styles/pages.css";
 
@@ -32,7 +32,7 @@ export default function NonMembers() {
   const handleInvite = async (id) => {
     setActionLoading((prev) => ({ ...prev, [id]: true }));
     try {
-      await AdminMembershipAPI.invite(id);
+      await AdminAPI.sendInvite(id);
       loadNonMembers(); // remove invited user
     } catch (err) {
       alert(err.message || "Failed to send invite");
