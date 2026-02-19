@@ -62,8 +62,8 @@ export default function MembershipRequests() {
                 const id = r.membership_request_id;
                 return (
                   <tr key={id}>
-                    <td>{r.requester?.full_name || "-"}</td>
-                    <td>{r.requester?.email || "-"}</td>
+                    <td>{r.full_name || "-"}</td>
+                    <td>{r.email || "-"}</td>
                     <td>
                       <span
                         className={`status-label ${
