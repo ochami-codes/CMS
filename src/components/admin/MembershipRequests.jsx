@@ -92,7 +92,7 @@ export default function MembershipRequests() {
                       : "-"}
                   </td>
                   <td className="actions">
-                    {r.status === "pending" && (
+                    {r.membership_request_status === "pending" && (
                       <>
                         <button
                           className="btn btn-primary btn-role-request"
@@ -110,7 +110,7 @@ export default function MembershipRequests() {
                         </button>
                       </>
                     )}
-                    {r.status === "new" && (
+                    {r.membership_request_status === "new" && (
                       <button
                         className="btn btn-primary btn-role-request"
                         disabled={actionLoading[r.id]}

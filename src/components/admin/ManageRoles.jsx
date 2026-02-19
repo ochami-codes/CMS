@@ -242,25 +242,34 @@ export default function ManageRoles() {
                         ))}
                       </select>
                     </td>
-                    <td className="dashboard-actions">
-                      <button
-                        className="btn btn-primary"
-                        disabled={processingId === m.id || !m.active}
-                        onClick={() => updateRole(m)}
-                        title="Update Role"
-                      >
-                        <RefreshCw size={16} />
-                      </button>
-                      <button
-                        className="btn btn-secondary"
-                        disabled={processingId === m.id}
-                        onClick={() => toggleMember(m.id, m.active)}
-                        title={m.active ? "Deactivate" : "Activate"}
-                      >
-                        {m.active ? <X size={16} /> : <Check size={16} />}
-                      </button>
-                    </td>
-                  </tr>
+<td className="dashboard-actions">
+  <button
+    className="btn btn-warning action-btn"
+    disabled={processingId === m.id || !m.active}
+    onClick={() => updateRole(m)}
+  >
+    <RefreshCw size={16} /> 
+    <span>Update</span>
+  </button>
+
+  <button
+    className={`btn ${m.active ? "btn-danger" : "btn-success"} action-btn`}
+    disabled={processingId === m.id}
+    onClick={() => toggleMember(m.id, m.active)}
+  >
+    {m.active ? (
+      <>
+        <X size={16} />
+        <span>Deactivate</span>
+      </>
+    ) : (
+      <>
+        <Check size={16} />
+        <span>Activate</span>
+      </>
+    )}
+  </button>
+</td>                  </tr>
                 ))
               )}
             </tbody>
@@ -269,27 +278,43 @@ export default function ManageRoles() {
       </div>
 
       {/* Non Members */}
-      <div className="card">
-        <h3 className="card-title">Profiles Not Yet Members</h3>
-        {loadingNonMembers ? (
-          <div>Loading…</div>
-        ) : nonMembers.length === 0 ? (
-          <div>No profiles found</div>
-        ) : (
-          <div className="dashboard-actions">
-            {nonMembers.map((p) => (
+     <div className="card">
+  <h3 className="card-title">Profiles Not Yet Members</h3>
+
+  {loadingNonMembers ? (
+    <div>Loading…</div>
+  ) : nonMembers.length === 0 ? (
+    <div>No profiles found</div>
+  ) : (
+    <table className="members-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {nonMembers.map((p) => (
+          <tr key={p.id}>
+            <td>{p.full_name}</td>
+            <td>{p.email || "-"}</td>
+            <td>
               <button
-                key={p.id}
-                className="btn btn-secondary"
+                className="btn btn-primary action-btn"
                 onClick={() => inviteNonMember(p.id)}
                 disabled={processingId === p.id}
               >
-                <UserPlus size={16} /> {p.full_name}
+                <UserPlus size={16} />
+                <span>Send Invite</span>
               </button>
-            ))}
-          </div>
-        )}
-      </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+ </div>
     </>
   );
 }
