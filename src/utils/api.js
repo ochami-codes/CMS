@@ -155,11 +155,11 @@ export const AdminAPI = {
     request(`/admin/role-requests/${id}/reject`, { method: "POST" }),
 
   /* -------- NEW: Non-members API -------- */
-  fetchNonMembers: () => request("/admin/membership-request/non-members"),
+  fetchNonMembers: () => request("/admin/membership-requests/non-members"),
 
   /* -------- NEW: Invite API -------- */
   sendInvite: (payload) =>
-    request(`/admin/membership-request/invite/${id}`, {
+    request(`/admin/membership-requests/invite/${id}`, {
       method: "POST",
       body: JSON.stringify(payload),
       headers: { "Content-Type": "application/json" },
