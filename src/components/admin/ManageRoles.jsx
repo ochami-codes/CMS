@@ -15,7 +15,7 @@ const ROLES = [
 ];
 
 export default function ManageRoles() {
-  const { user, setUser, loading: authLoading } = useAuth(); // updated
+  const { user, setUser, loading: authLoading } = useAuth();
   const [members, setMembers] = useState([]);
   const [nonMembers, setNonMembers] = useState([]);
   const [roleRequests, setRoleRequests] = useState([]);
@@ -106,7 +106,6 @@ export default function ManageRoles() {
           m.id === member.id ? { ...m, role_name: member.selectedRole } : m
         )
       );
-
       if (member.id === user.id) {
         setUser((u) => ({ ...u, role_name: member.selectedRole }));
       }
@@ -183,7 +182,6 @@ export default function ManageRoles() {
       {/* Page Title */}
       <div className="card">
         <h2 className="card-title">Admin Members & Roles</h2>
-
         <input
           placeholder="Search members…"
           value={search}
@@ -242,34 +240,26 @@ export default function ManageRoles() {
                         ))}
                       </select>
                     </td>
-<td className="dashboard-actions">
-  <button
-    className="btn btn-warning action-btn"
-    disabled={processingId === m.id || !m.active}
-    onClick={() => updateRole(m)}
-  >
-    <RefreshCw size={16} /> 
-    <span>Update</span>
-  </button>
+                    <td className="dashboard-actions">
+                      <button
+                        className="btn btn-warning action-btn"
+                        disabled={processingId === m.id || !m.active}
+                        onClick={() => updateRole(m)}
+                        title="Update Role"
+                      >
+                        <RefreshCw size={16} /> <span>Update</span>
+                      </button>
 
-  <button
-    className={`btn ${m.active ? "btn-danger" : "btn-success"} action-btn`}
-    disabled={processingId === m.id}
-    onClick={() => toggleMember(m.id, m.active)}
-  >
-    {m.active ? (
-      <>
-        <X size={16} />
-        <span>Deactivate</span>
-      </>
-    ) : (
-      <>
-        <Check size={16} />
-        <span>Activate</span>
-      </>
-    )}
-  </button>
-</td>                  </tr>
+                      <button
+                        className={`btn ${m.active ? "btn-danger" : "btn-success"} action-btn`}
+                        disabled={processingId === m.id}
+                        onClick={() => toggleMember(m.id, m.active)}
+                        title={m.active ? "Deactivate" : "Activate"}
+                      >
+                        {m.active ? <><X size={16} /><span>Deactivate</span></> : <><Check size={16} /><span>Activate</span></>}
+                      </button>
+                    </td>
+                  </tr>
                 ))
               )}
             </tbody>
@@ -277,44 +267,68 @@ export default function ManageRoles() {
         )}
       </div>
 
-      {/* Non Members */}
-     <div className="card">
-  <h3 className="card-title">Profiles Not Yet Members</h3>
-
-  {loadingNonMembers ? (
-    <div>Loading…</div>
-  ) : nonMembers.length === 0 ? (
-    <div>No profiles found</div>
-  ) : (
-    <table className="members-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {nonMembers.map((p) => (
-          <tr key={p.id}>
-            <td>{p.full_name}</td>
-            <td>{p.email || "-"}</td>
-            <td>
-              <button
-                className="btn btn-primary action-btn"
-                onClick={() => inviteNonMember(p.id)}
-                disabled={processingId === p.id}
-              >
-                <UserPlus size={16} />
-                <span>Send Invite</span>
-              </button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  )}
- </div>
+      {/* Non Members Table */}
+      <div className="card">
+        <h3 className="card-title">Profiles Not Yet Members</h3>
+        {loadingNonMembers ? (
+          <div>Loading…</div>
+        ) : nonMembers.length === 0 ? (
+          <div>No profiles found</div>
+        ) : (
+          <table className="members-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Request Status</th>
+                <th>Requested At</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {nonMembers.map((p) => (
+                <tr key={p.profile_id}>
+                  <td>{p.full_name}</td>
+                  <td>{p.email || "-"}</td>
+                  <td>
+                    {p.membership_request_status
+                      ? p.membership_request_status.charAt(0).toUpperCase() +
+                        p.membership_request_status.slice(1)
+                      : "None"}
+                  </td>
+                  <td>
+                    {p.membership_requested_at
+                      ? new Date(p.membership_requested_at).toLocaleString()
+                      : "-"}
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-primary action-btn"
+                      onClick={() => inviteNonMember(p.profile_id)}
+                      disabled={
+                        processingId === p.profile_id ||
+                        p.membership_request_status === "pending"
+                      }
+                      title={
+                        p.membership_request_status === "pending"
+                          ? "Request pending"
+                          : "Send invite"
+                      }
+                    >
+                      <UserPlus size={16} />
+                      <span>
+                        {p.membership_request_status === "pending"
+                          ? "Pending"
+                          : "Send Invite"}
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </>
   );
 }
