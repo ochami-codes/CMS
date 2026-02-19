@@ -6,18 +6,16 @@ import "../../styles/pages.css";
 export default function NonMembers() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState({}); // per-row button
+  const [actionLoading, setActionLoading] = useState({});
 
   const loadNonMembers = async () => {
     try {
       setLoading(true);
-      const res = await AdminDashboardAPI.fetchAll();
 
-      const nonMembers = (res?.data || []).filter(
-        (p) => !p.is_member && p.membership_request_status !== "pending"
-      );
+      // Call the dedicated backend route
+      const res = await AdminAPI.fetchNonMembers();
+      setData(res.non_members || []);
 
-      setData(nonMembers);
     } catch (err) {
       console.error("Failed to load non-members:", err);
     } finally {
@@ -31,9 +29,10 @@ export default function NonMembers() {
 
   const handleInvite = async (id) => {
     setActionLoading((prev) => ({ ...prev, [id]: true }));
+
     try {
       await AdminAPI.sendInvite(id);
-      loadNonMembers(); // remove invited user
+      await loadNonMembers(); // refresh list
     } catch (err) {
       alert(err.message || "Failed to send invite");
     } finally {

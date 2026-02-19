@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { AdminMembershipAPI, AdminAPI } from "../../utils/api";
+import { AdminMembershipAPI } from "../../utils/api";
 import "../../styles/pages.css";
 
 export default function MembershipRequests() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState({}); // track per-row button
+  const [actionLoading, setActionLoading] = useState({});
 
   const loadRequests = async () => {
     try {
@@ -27,9 +27,13 @@ export default function MembershipRequests() {
     setActionLoading((prev) => ({ ...prev, [id]: true }));
 
     try {
-      if (action === "approve") await AdminMembershipAPI.approve(id);
-      if (action === "reject") await AdminMembershipAPI.reject(id);
-      if (action === "invite") await AdminAPI.sendInvite(id);
+      if (action === "approve") {
+        await AdminMembershipAPI.approve(id);
+      }
+
+      if (action === "reject") {
+        await AdminMembershipAPI.reject(id);
+      }
 
       await loadRequests();
     } catch (err) {
@@ -39,8 +43,19 @@ export default function MembershipRequests() {
     }
   };
 
-  if (loading) return <div className="page-card"><p>Loading membership requests…</p></div>;
-  if (!requests.length) return <div className="page-card"><p>No pending requests 🙏</p></div>;
+  if (loading)
+    return (
+      <div className="page-card">
+        <p>Loading membership requests…</p>
+      </div>
+    );
+
+  if (!requests.length)
+    return (
+      <div className="page-card">
+        <p>No pending requests 🙏</p>
+      </div>
+    );
 
   return (
     <div className="page-container">
@@ -60,52 +75,40 @@ export default function MembershipRequests() {
             <tbody>
               {requests.map((r) => {
                 const id = r.membership_request_id;
+
                 return (
                   <tr key={id}>
                     <td>{r.full_name || "-"}</td>
                     <td>{r.email || "-"}</td>
+
                     <td>
-                      <span
-                        className={`status-label ${
-                          r.membership_request_status === "pending"
-                            ? "status-pending"
-                            : r.membership_request_status === "approved"
-                            ? "status-approved"
-                            : "status-rejected"
-                        }`}
-                      >
+                      <span className="status-label status-pending">
                         {r.membership_request_status}
                       </span>
                     </td>
-                    <td>{r.membership_requested_at ? new Date(r.membership_requested_at).toLocaleString() : "-"}</td>
+
+                    <td>
+                      {r.membership_requested_at
+                        ? new Date(r.membership_requested_at).toLocaleString()
+                        : "-"}
+                    </td>
+
                     <td className="actions">
-                      {r.membership_request_status === "pending" && (
-                        <>
-                          <button
-                            className="btn btn-primary btn-role-request"
-                            disabled={actionLoading[id]}
-                            onClick={() => handleAction(id, "approve")}
-                          >
-                            {actionLoading[id] ? "…" : "Approve"}
-                          </button>
-                          <button
-                            className="btn btn-secondary btn-role-request"
-                            disabled={actionLoading[id]}
-                            onClick={() => handleAction(id, "reject")}
-                          >
-                            {actionLoading[id] ? "…" : "Reject"}
-                          </button>
-                        </>
-                      )}
-                      {r.membership_request_status === "new" && (
-                        <button
-                          className="btn btn-primary btn-role-request"
-                          disabled={actionLoading[id]}
-                          onClick={() => handleAction(id, "invite")}
-                        >
-                          {actionLoading[id] ? "…" : "Invite"}
-                        </button>
-                      )}
+                      <button
+                        className="btn btn-primary btn-role-request"
+                        disabled={actionLoading[id]}
+                        onClick={() => handleAction(id, "approve")}
+                      >
+                        {actionLoading[id] ? "…" : "Approve"}
+                      </button>
+
+                      <button
+                        className="btn btn-secondary btn-role-request"
+                        disabled={actionLoading[id]}
+                        onClick={() => handleAction(id, "reject")}
+                      >
+                        {actionLoading[id] ? "…" : "Reject"}
+                      </button>
                     </td>
                   </tr>
                 );
