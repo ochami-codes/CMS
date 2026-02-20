@@ -618,3 +618,12 @@
     flex-direction: column;
   }
 }
+.message-error {
+  color: #dc2626; /* red */
+  font-size: 0.9rem;
+}
+
+.message-success {
+  color: #16a34a; /* green */
+  font-size: 0.9rem;
+}

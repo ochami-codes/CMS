@@ -62,9 +62,13 @@ export default function Dashboard() {
   const [upcomingBirthdays, setUpcomingBirthdays] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [churchName, setChurchName] = useState("Your Church");
+
   const [membershipStatus, setMembershipStatus] = useState(null);
-  const [sabbathTimer, setSabbathTimer] = useState(null);
+  const [loadingMembershipRequest, setLoadingMembershipRequest] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [membershipError, setMembershipError] = useState("");
+
+  const [sabbathTimer, setSabbathTimer] = useState(null);
 
   const isMember = user?.is_member === true;
   const isGuest = user?.role_name === "Guest";
@@ -126,7 +130,7 @@ export default function Dashboard() {
         setAnnouncements(anns || []);
 
         if (isGuest) {
-          setMembershipStatus(membership?.request?.status || null);
+          setMembershipStatus(membership?.request?.membership_request_status || null);
           setBirthday(null);
           return;
         }
@@ -182,27 +186,60 @@ export default function Dashboard() {
               <>
                 <button
                   className="btn btn-primary"
-                  disabled={membershipStatus === "pending"}
+                  disabled={loadingMembershipRequest || membershipStatus === "pending"}
                   onClick={async () => {
                     try {
+                      setLoadingMembershipRequest(true);
+                      setMembershipError("");
+                      setSuccessMessage("");
+
                       await MembershipAPI.submit({});
                       const res = await MembershipAPI.myRequests();
-                      const status = res?.request?.status || null;
+                      const status = res?.request?.membership_request_status || null;
                       setMembershipStatus(status);
+
                       if (status === "pending") {
                         setSuccessMessage("Membership request submitted 🙏");
                         setTimeout(() => setSuccessMessage(""), 3000);
                       }
                     } catch (e) {
                       console.error(e);
-                      setSuccessMessage(e.response?.data?.message || "Request failed");
-                      setTimeout(() => setSuccessMessage(""), 3000);
+                      const message = e.response?.data?.message || "Request failed";
+
+                      if (message === "Request already pending") {
+                        setMembershipStatus("pending");
+                        setSuccessMessage("Membership request already pending 🙏");
+                      } else {
+                        setMembershipError(message);
+                      }
+
+                      setTimeout(() => {
+                        setMembershipError("");
+                        setSuccessMessage("");
+                      }, 3000);
+                    } finally {
+                      setLoadingMembershipRequest(false);
                     }
                   }}
                 >
-                  {membershipStatus === "pending" ? "Request Pending" : "Request Membership"}
+                  {loadingMembershipRequest
+                    ? "Sending request..."
+                    : membershipStatus === "pending"
+                    ? "Request Pending"
+                    : "Request Membership"}
                 </button>
-                {successMessage && <div className="message-success" style={{ marginTop: "0.5rem" }}>{successMessage}</div>}
+
+                {successMessage && (
+                  <div className="message-success" style={{ marginTop: "0.5rem" }}>
+                    {successMessage}
+                  </div>
+                )}
+
+                {membershipError && (
+                  <div className="message-error" style={{ marginTop: "0.5rem" }}>
+                    {membershipError}
+                  </div>
+                )}
               </>
             )}
           </div>
