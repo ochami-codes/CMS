@@ -33,7 +33,6 @@ const [pwLoading, setPwLoading] = useState(false);
 const [pwError, setPwError] = useState("");
 const { user } = useAuth();
 const isGuest = user?.role_name === "Guest";
-const canRequestRole = user.is_member && user.role_name !=="Admin";
 const normalizeContributions = (list = []) => {
 const totals = {
 tithes: 0,
@@ -146,6 +145,7 @@ Profile Page
 export default function ProfilePage() {
 const { user } = useAuth();
 const isGuest = user?.role_name === "Guest";
+const canRequestRole = user.is_member===true && user.role_name !=="Admin";
 const navigate = useNavigate();
 const {
 profile,
