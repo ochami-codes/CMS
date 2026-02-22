@@ -31,6 +31,7 @@ const [newPassword, setNewPassword] = useState("");
 const [confirmPassword, setConfirmPassword] = useState("");
 const [pwLoading, setPwLoading] = useState(false);
 const [pwError, setPwError] = useState("");
+const canRequestRole = user.is_member && user.role_name !== "Admin";
 const { user } = useAuth();
 const isGuest = user?.role_name === "Guest";
 const normalizeContributions = (list = []) => {
@@ -183,7 +184,7 @@ const profileFields = [
 return (
 <main className="page-container">
 {/* ROLE REQUEST (Hidden for Guests) */}
-{!isGuest && (
+{canRequestRole && (
   <section className="page-card">
     <h2 className="card-title">Role Requests</h2>
 
