@@ -31,9 +31,9 @@ const [newPassword, setNewPassword] = useState("");
 const [confirmPassword, setConfirmPassword] = useState("");
 const [pwLoading, setPwLoading] = useState(false);
 const [pwError, setPwError] = useState("");
-const canRequestRole = user.is_member && user.role_name !== "Admin";
 const { user } = useAuth();
 const isGuest = user?.role_name === "Guest";
+const canRequestRole = user.is_member && user.role_name !=="Admin";
 const normalizeContributions = (list = []) => {
 const totals = {
 tithes: 0,
