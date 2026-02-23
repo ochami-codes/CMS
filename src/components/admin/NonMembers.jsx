@@ -61,7 +61,6 @@ export default function NonMembers() {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>
-                <th>Church</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -72,21 +71,26 @@ export default function NonMembers() {
                   <td>{p.full_name || "-"}</td>
                   <td>{p.email || "-"}</td>
                   <td>{p.phone || "-"}</td>
-                  <td>{p.church_name || "-"}</td>
                   <td>
                     <span className="status-label status-nonmember">
                       Not a member
                     </span>
                   </td>
                   <td>
-                    <button
-                      className="btn btn-primary btn-role-request"
-                      disabled={actionLoading[p.id]}
-                      onClick={() => handleInvite(p.id)}
-                    >
-                      {actionLoading[p.id] ? "Inviting…" : "Invite"}
-                    </button>
-                  </td>
+  {p.membership_request_status === "pending" ? (
+    <span className="status-label status-warning">
+      Request Pending
+    </span>
+  ) : (
+    <button
+      className="btn btn-primary btn-role-request"
+      disabled={actionLoading[p.id]}
+      onClick={() => handleInvite(p.id)}
+    >
+      {actionLoading[p.id] ? "Inviting…" : "Invite"}
+    </button>
+  )}
+</td>
                 </tr>
               ))}
             </tbody>
