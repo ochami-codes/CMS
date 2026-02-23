@@ -69,6 +69,7 @@ export const AuthAPI = {
     request("/auth/reset-password", { method: "POST", body: JSON.stringify({ email }) }),
   changePassword: (newPassword) =>
     request("/auth/change-password", { method: "POST", body: JSON.stringify({ newPassword }) }),
+getConferences: () => request("/conferences"),
 };
 
 /* ======================

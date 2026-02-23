@@ -1,30 +1,39 @@
-// src/auth/Register.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import EncouragementRedirect from "../components/EncouragementRedirect";
 import { AuthAPI } from "../utils/api";
-import { kenyaConferences } from "../data/kenyaConferences";
 import "../styles/auth.css";
+
 export default function Register() {
   const navigate = useNavigate();
+
+  /* -------------------------
+     State
+  ------------------------- */
   const [form, setForm] = useState({
     fullName: "",
     email: "",
     phone: "",
     dateOfBirth: "",
     gender: "",
-    conference: "",
+    conferenceId: "",
     churchBaseName: "",
     password: "",
     confirmPassword: "",
   });
+
+  const [conferences, setConferences] = useState([]);
+
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
 
-  // ---------- Helpers ----------
+  /* -------------------------
+     Helpers
+  ------------------------- */
+
   const isValidKenyanPhone = (phone) => {
     if (!phone) return false;
     const cleaned = phone.replace(/\s+/g, "");
@@ -44,25 +53,69 @@ export default function Register() {
       .replace(/\s{2,}/g, " ")
       .trim();
 
+  /* -------------------------
+     Load Conferences Dropdown
+  ------------------------- */
+
+  useEffect(() => {
+    async function loadConferences() {
+      try {
+        const res = await AuthAPI.getConferences();
+        setConferences(res?.conferences || []);
+      } catch {
+        setConferences([]);
+      }
+    }
+
+    loadConferences();
+  }, []);
+
+  /* -------------------------
+     Form Handlers
+  ------------------------- */
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+      global: "",
+    }));
   };
+
+  /* -------------------------
+     Registration Submit
+  ------------------------- */
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setErrors({});
 
     const newErrors = {};
+
     Object.entries(form).forEach(([key, value]) => {
-      if (!value.trim()) newErrors[key] = "This field is required";
+      if (!value?.toString().trim()) {
+        newErrors[key] = "This field is required";
+      }
     });
 
-    if (form.password.length < 8) newErrors.password = "Password must be at least 8 characters";
-    if (form.password !== form.confirmPassword) newErrors.confirmPassword = "Passwords do not match";
-    if (!isValidKenyanPhone(form.phone)) newErrors.phone = "Enter a valid Kenyan phone number";
-    if (!form.churchBaseName.trim()) newErrors.churchBaseName = "Church name is required";
+    if (form.password.length < 8)
+      newErrors.password = "Password must be at least 8 characters";
+
+    if (form.password !== form.confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match";
+
+    if (!isValidKenyanPhone(form.phone))
+      newErrors.phone = "Enter a valid Kenyan phone number";
+
+    if (!form.churchBaseName.trim())
+      newErrors.churchBaseName = "Church name is required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -70,6 +123,7 @@ export default function Register() {
     }
 
     setLoading(true);
+
     try {
       const payload = {
         full_name: form.fullName.trim(),
@@ -78,46 +132,70 @@ export default function Register() {
         phone: normalizeKenyanPhone(form.phone),
         date_of_birth: form.dateOfBirth,
         gender: form.gender,
-        conference: form.conference,
+        conference_id: form.conferenceId,
         church_name: sanitizeChurchBaseName(form.churchBaseName),
       };
+
       await AuthAPI.register(payload);
+
       setRegistered(true);
     } catch (err) {
       setErrors({
-        global: err.data?.details || err.message || "Server unreachable. Please try again.",
+        global:
+          err?.data?.message ||
+          err?.message ||
+          "Server error. Please try again.",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  // ---------- After Registration ----------
+  /* -------------------------
+     Post Registration Redirect
+  ------------------------- */
+
   if (registered) {
     return (
       <EncouragementRedirect
         title="Registration successful 🎉"
-        message="Your account has been created successfully. We've sent a verification link to your email, click it and proceed to login."
+        message="Account created successfully. Please verify your email before login."
         redirectTo="/login"
         delay={10000}
       />
     );
   }
 
-  // ---------- Render Form ----------
+  /* -------------------------
+     Render
+  ------------------------- */
+
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2>Create an Account</h2>
+        <h2>Create Account</h2>
 
-        {errors.global && <p className="text-red-600 text-center text-sm">{errors.global}</p>}
+        {errors.global && (
+          <p className="text-red-600 text-center text-sm">
+            {errors.global}
+          </p>
+        )}
 
         <form onSubmit={handleRegister}>
-          <Input label="Full Name" name="fullName" value={form.fullName} onChange={handleChange} />
-          {errors.fullName && <p className="text-red-600">{errors.fullName}</p>}
+          <Input
+            label="Full Name"
+            name="fullName"
+            value={form.fullName}
+            onChange={handleChange}
+          />
 
-          <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} />
-          {errors.email && <p className="text-red-600">{errors.email}</p>}
+          <Input
+            label="Email"
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+          />
 
           <Input
             label="Phone"
@@ -125,11 +203,16 @@ export default function Register() {
             type="tel"
             value={form.phone}
             onChange={handleChange}
-            placeholder="07XXXXXXXX or +2547XXXXXXXX"
+            placeholder="07XXXXXXXX"
           />
-          {errors.phone && <p className="text-red-600">{errors.phone}</p>}
 
-          <Input label="Date of Birth" name="dateOfBirth" type="date" value={form.dateOfBirth} onChange={handleChange} />
+          <Input
+            label="Date of Birth"
+            name="dateOfBirth"
+            type="date"
+            value={form.dateOfBirth}
+            onChange={handleChange}
+          />
 
           <div className="form-group">
             <label>Gender</label>
@@ -137,53 +220,86 @@ export default function Register() {
               name="gender"
               value={form.gender}
               onChange={handleChange}
-              className="w-full"
             >
               <option value="">Select gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
             </select>
-            {errors.gender && <p className="text-red-600">{errors.gender}</p>}
+
+            {errors.gender && (
+              <p className="text-red-600">{errors.gender}</p>
+            )}
           </div>
 
+          {/* Conference Dropdown (DB Driven) */}
           <div className="form-group">
             <label>Conference</label>
+
             <select
-              name="conference"
-              value={form.conference}
+              name="conferenceId"
+              value={form.conferenceId}
               onChange={handleChange}
-              className="w-full"
             >
-              <option value="">Select your conference</option>
-              {kenyaConferences.map((conf) => (
-                <option key={conf} value={conf}>{conf}</option>
+              <option value="">Select conference</option>
+
+              {conferences.map((conf) => (
+                <option key={conf.id} value={conf.id}>
+                  {conf.name}
+                </option>
               ))}
             </select>
+
+            {errors.conferenceId && (
+              <p className="text-red-600">{errors.conferenceId}</p>
+            )}
           </div>
 
           <div className="form-group">
             <label>Church Name</label>
+
             <div className="church-input">
               <input
                 type="text"
                 name="churchBaseName"
                 value={form.churchBaseName}
                 onChange={handleChange}
-                placeholder="e.g. Maai Mahiu"
+                placeholder="Maai Mahiu"
               />
+
               <span>SDA Church</span>
             </div>
-            <small>Type only the church name. <strong>SDA Church</strong> is added automatically.</small>
-            {errors.churchBaseName && <p className="text-red-600">{errors.churchBaseName}</p>}
+
+            <small>
+              Type only church name. <strong>SDA Church</strong> is added
+              automatically.
+            </small>
+
+            {errors.churchBaseName && (
+              <p className="text-red-600">{errors.churchBaseName}</p>
+            )}
           </div>
 
-          <Input label="Password" name="password" type="password" value={form.password} onChange={handleChange} />
-          {errors.password && <p className="text-red-600">{errors.password}</p>}
+          <Input
+            label="Password"
+            name="password"
+            type="password"
+            value={form.password}
+            onChange={handleChange}
+          />
 
-          <Input label="Confirm Password" name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} />
-          {errors.confirmPassword && <p className="text-red-600">{errors.confirmPassword}</p>}
+          <Input
+            label="Confirm Password"
+            name="confirmPassword"
+            type="password"
+            value={form.confirmPassword}
+            onChange={handleChange}
+          />
 
-          <Button type="submit" disabled={loading} className="btn-primary w-full">
+          <Button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full"
+          >
             {loading ? "Creating account…" : "Register"}
           </Button>
         </form>
