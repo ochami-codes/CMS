@@ -1,6 +1,7 @@
 // src/layouts/DashboardLayout.jsx
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import NotificationBell from "../components/NotificationBell";
 import Sidebar from "../components/Sidebar";
 import { useState } from "react";
 import "../styles/layout.css";
@@ -44,13 +45,17 @@ export default function DashboardLayout() {
       {/* Main content */}
       <main className="dashboard-content">
         {/* Navbar */}
-        <header className="dashboard-navbar">
-          <h3>Dashboard</h3>
-          <button onClick={handleLogout} className="btn btn-secondary">
-            Logout
-          </button>
-        </header>
+<header className="dashboard-navbar">
+  <h3>Dashboard</h3>
 
+  <div className="navbar-actions">
+    <NotificationBell />
+
+    <button onClick={handleLogout} className="btn btn-secondary">
+      Logout
+    </button>
+  </div>
+</header>
         {/* Routed pages */}
         <section className="dashboard-page">
           <Outlet />

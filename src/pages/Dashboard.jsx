@@ -15,7 +15,15 @@ import {
 } from "../utils/api";
 
 import { hasRole, isAdmin } from "../utils/permissions";
-import { Home, Coffee, Users, UserPlus, Calendar, Gift, Megaphone } from "lucide-react";
+import {
+  Home,
+  Coffee,
+  Users,
+  UserPlus,
+  Calendar,
+  Gift,
+  Megaphone,
+} from "lucide-react";
 
 /* ================= HELPERS ================= */
 
@@ -56,6 +64,7 @@ export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
 
   const [loading, setLoading] = useState(true);
+
   const [verse, setVerse] = useState(null);
   const [birthday, setBirthday] = useState(null);
   const [todayBirthdays, setTodayBirthdays] = useState([]);
@@ -64,9 +73,13 @@ export default function Dashboard() {
   const [churchName, setChurchName] = useState("Your Church");
 
   const [membershipStatus, setMembershipStatus] = useState(null);
-  const [loadingMembershipRequest, setLoadingMembershipRequest] = useState(false);
+  const [loadingMembershipRequest, setLoadingMembershipRequest] =
+    useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [membershipError, setMembershipError] = useState("");
+
+  const [notifications, setNotifications] = useState([]);
+  const [actionLoadingId, setActionLoadingId] = useState(null);
 
   const [sabbathTimer, setSabbathTimer] = useState(null);
 
@@ -89,7 +102,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setSabbathTimer(isSabbathNow() ? null : timeDiff(nextSabbathStart()));
+      setSabbathTimer(
+        isSabbathNow() ? null : timeDiff(nextSabbathStart())
+      );
     }, 1000);
 
     return () => clearInterval(timer);
@@ -111,6 +126,7 @@ export default function Dashboard() {
           upcoming,
           anns,
           membership,
+          notificationsData,
         ] = await Promise.all([
           getDailyVerse(),
           churchId ? ChurchAPI.getById(churchId) : null,
@@ -119,6 +135,7 @@ export default function Dashboard() {
           !isGuest ? getUpcomingBirthdays(churchId, 30) : [],
           !isGuest ? AnnouncementsAPI.fetch(churchId, 5) : [],
           isGuest ? MembershipAPI.myRequests() : null,
+          isGuest ? MembershipAPI.getNotifications() : [],
         ]);
 
         if (!alive) return;
@@ -130,7 +147,10 @@ export default function Dashboard() {
         setAnnouncements(anns || []);
 
         if (isGuest) {
-          setMembershipStatus(membership?.request?.membership_request_status || null);
+          setMembershipStatus(
+            membership?.request?.membership_request_status || null
+          );
+          setNotifications(notificationsData || []);
           setBirthday(null);
           return;
         }
@@ -139,12 +159,20 @@ export default function Dashboard() {
           const dob = new Date(myBirthdayData.birthday.date);
           if (!isNaN(dob)) {
             const today = new Date();
-            let nextBirthday = new Date(today.getFullYear(), dob.getMonth(), dob.getDate());
-            if (nextBirthday < today) nextBirthday.setFullYear(today.getFullYear() + 1);
+            let nextBirthday = new Date(
+              today.getFullYear(),
+              dob.getMonth(),
+              dob.getDate()
+            );
+            if (nextBirthday < today)
+              nextBirthday.setFullYear(today.getFullYear() + 1);
+
             setBirthday({
               birthday: myBirthdayData.birthday.date,
               isBirthday: myBirthdayData.isBirthday,
-              daysLeft: Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24)),
+              daysLeft: Math.ceil(
+                (nextBirthday - today) / (1000 * 60 * 60 * 24)
+              ),
             });
           }
         } else setBirthday(null);
@@ -157,7 +185,41 @@ export default function Dashboard() {
     return () => (alive = false);
   }, [user, churchId, isGuest]);
 
-  if (authLoading || loading) return <Loader message="Preparing your dashboard…" />;
+  /* ================= INVITE ACTIONS ================= */
+
+  const handleAccept = async (id) => {
+    try {
+      setActionLoadingId(id);
+      await MembershipAPI.acceptInvite(id);
+
+      const res = await MembershipAPI.myRequests();
+      setMembershipStatus(res?.request?.membership_request_status || null);
+
+      const updated = await MembershipAPI.getNotifications();
+      setNotifications(updated || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleReject = async (id) => {
+    try {
+      setActionLoadingId(id);
+      await MembershipAPI.rejectInvite(id);
+
+      const updated = await MembershipAPI.getNotifications();
+      setNotifications(updated || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  if (authLoading || loading)
+    return <Loader message="Preparing your dashboard…" />;
 
   /* ================= UI ================= */
 
@@ -166,7 +228,9 @@ export default function Dashboard() {
       {/* HEADER */}
       <section className="dashboard-section">
         <div className="card">
-          <h2 className="card-title"><Home size={18} /> {churchName}</h2>
+          <h2 className="card-title">
+            <Home size={18} /> {churchName}
+          </h2>
           <p className="card-subtitle">{greeting}</p>
           {verse && (
             <p className="dashboard-verse">
@@ -176,148 +240,256 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* GUEST MEMBERSHIP */}
+      {/* NOTIFICATIONS (NON MEMBERS ONLY) */}
+      {isGuest && notifications.length > 0 && (
+        <section className="dashboard-section">
+          <div className="dashboard-section-header">
+            <Megaphone size={18} /> Notifications
+          </div>
+
+          <div className="card">
+            {notifications.map((n) => (
+              <div key={n.id} className="notification-card">
+                <p>
+                  <strong>{n.title}</strong>
+                </p>
+                <p>{n.message}</p>
+
+                {n.type === "membership_invite" && (
+                  <div
+                    style={{
+                      marginTop: "0.5rem",
+                      display: "flex",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <button
+                      className="btn btn-primary"
+                      disabled={actionLoadingId === n.related_id}
+                      onClick={() => handleAccept(n.related_id)}
+                    >
+                      {actionLoadingId === n.related_id
+                        ? "Accepting..."
+                        : "Accept"}
+                    </button>
+
+                    <button
+                      className="btn btn-outline"
+                      disabled={actionLoadingId === n.related_id}
+                      onClick={() => handleReject(n.related_id)}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* MEMBERSHIP REQUEST SECTION */}
       {isGuest && (
         <section className="dashboard-section">
-          <div className="dashboard-section-header"><UserPlus size={18} /> Join Your Church</div>
-          <div className="card">
-            <p>Request membership to access ministries and announcements.</p>
-            {!isMember && (
-              <>
-                <button
-                  className="btn btn-primary"
-                  disabled={loadingMembershipRequest || membershipStatus === "pending"}
-                  onClick={async () => {
-                    try {
-                      setLoadingMembershipRequest(true);
-                      setMembershipError("");
-                      setSuccessMessage("");
-
-                      await MembershipAPI.submit({});
-                      const res = await MembershipAPI.myRequests();
-                      const status = res?.request?.membership_request_status || null;
-                      setMembershipStatus(status);
-
-                      if (status === "pending") {
-                        setSuccessMessage("Membership request submitted 🙏");
-                        setTimeout(() => setSuccessMessage(""), 3000);
-                      }
-                    } catch (e) {
-                      console.error(e);
-                      const message = e.response?.data?.message || "Request failed";
-
-                      if (message === "Request already pending") {
-                        setMembershipStatus("pending");
-                        setSuccessMessage("Membership request already pending 🙏");
-                      } else {
-                        setMembershipError(message);
-                      }
-
-                      setTimeout(() => {
-                        setMembershipError("");
-                        setSuccessMessage("");
-                      }, 3000);
-                    } finally {
-                      setLoadingMembershipRequest(false);
-                    }
-                  }}
-                >
-                  {loadingMembershipRequest
-                    ? "Sending request..."
-                    : membershipStatus === "pending"
-                    ? "Request Pending"
-                    : "Request Membership"}
-                </button>
-
-                {successMessage && (
-                  <div className="message-success" style={{ marginTop: "0.5rem" }}>
-                    {successMessage}
-                  </div>
-                )}
-
-                {membershipError && (
-                  <div className="message-error" style={{ marginTop: "0.5rem" }}>
-                    {membershipError}
-                  </div>
-                )}
-              </>
-            )}
+          <div className="dashboard-section-header">
+            <UserPlus size={18} /> Join Your Church
           </div>
-        </section>
-      )}
-
-      {/* QUICK LINKS */}
-      {!isGuest && (
-        <section className="dashboard-section">
-          <div className="dashboard-section-header"><Coffee size={18} /> Quick Links</div>
-          <div className="dashboard-actions">
-            {hasRole(user.role_name, ["Treasurer", "Admin", "Pastor"]) && (
-              <Link to="/dashboard/treasury" className="dashboard-action-card">
-                <h3><Coffee size={18} /> Treasury</h3>
-                <p>Church finances</p>
-              </Link>
-            )}
-            {hasRole(user.role_name, ["Youth_leader", "Admin", "Pastor"]) && (
-              <Link to="/dashboard/youth" className="dashboard-action-card">
-                <h3><Users size={18} /> Youth Ministry</h3>
-                <p>Activities & attendance</p>
-              </Link>
-            )}
-            {isAdmin(user.role_name) && (
-              <Link to="/dashboard/admin" className="dashboard-action-card">
-                <h3><UserPlus size={18} /> Administration</h3>
-                <p>Members & roles</p>
-              </Link>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* ANNOUNCEMENTS */}
-      {!isGuest && (
-        <section className="dashboard-section">
-          <div className="dashboard-section-header"><Megaphone size={18} /> Announcements</div>
           <div className="card">
-            {announcements.length ? announcements.map(a => (
-              <div key={a.id} className="announcement-card">
-                <h4>{a.title}</h4>
-                <p>{a.message}</p>
+            <p>
+              {membershipStatus === "approved"
+                ? "Your membership has been approved 🎉"
+                : membershipStatus === "rejected"
+                ? "Your membership request was rejected."
+                : membershipStatus === "pending"
+                ? "Your membership request is pending review."
+                : "Request membership to access ministries and announcements."}
+            </p>
+
+            {!membershipStatus && (
+              <button
+                className="btn btn-primary"
+                disabled={loadingMembershipRequest}
+                onClick={async () => {
+                  try {
+                    setLoadingMembershipRequest(true);
+                    setMembershipError("");
+                    setSuccessMessage("");
+
+                    await MembershipAPI.submit({});
+                    setMembershipStatus("pending");
+                    setSuccessMessage("Membership request submitted 🙏");
+                  } catch (e) {
+                    const message =
+                      e.response?.data?.message || "Request failed";
+                    setMembershipError(message);
+                  } finally {
+                    setLoadingMembershipRequest(false);
+                  }
+                }}
+              >
+                {loadingMembershipRequest
+                  ? "Sending request..."
+                  : "Request Membership"}
+              </button>
+            )}
+
+            {successMessage && (
+              <div
+                className="message-success"
+                style={{ marginTop: "0.5rem" }}
+              >
+                {successMessage}
               </div>
-            )) : <p>No announcements yet.</p>}
-          </div>
-        </section>
-      )}
+            )}
 
-      {/* SABBATH TRACKER */}
-      {!isGuest && (
-        <section className="dashboard-section">
-          <div className="dashboard-section-header"><Calendar size={18} /> Sabbath Tracker</div>
-          <div className="card sabbath-card">
-            {sabbathTimer ? (
-              <p>Sabbath begins in <strong>{sabbathTimer.d}d {sabbathTimer.h}h {sabbathTimer.m}m {sabbathTimer.s}s</strong></p>
-            ) : <p>Sabbath is ongoing. Enjoy your rest!</p>}
-          </div>
-        </section>
-      )}
-
-      {/* BIRTHDAY CORNER */}
-      {!isGuest && (
-        <section className="dashboard-section">
-          <div className="dashboard-section-header"><Gift size={18} /> Birthday Corner</div>
-          <div className="card">
-            <div className="birthdays-grid">
-              <div className="birthday-card my-birthday-card">
-                {birthday ? (
-                  birthday.isBirthday ? <>🎉 Happy Birthday, {user.full_name}! 🎉</> :
-                  <>Your birthday is on {new Date(birthday.birthday).toLocaleDateString()} – {birthday.daysLeft} days left</>
-                ) : <p>Your birthday is not set yet.</p>}
+            {membershipError && (
+              <div
+                className="message-error"
+                style={{ marginTop: "0.5rem" }}
+              >
+                {membershipError}
               </div>
+            )}
+          </div>
+        </section>
+      )}
 
-              {todayBirthdays.map(b => <div key={b.id} className="birthday-card birthday-today">🎉 {b.full_name}</div>)}
-              {upcomingBirthdays.map(b => <div key={b.id} className="birthday-card birthday-upcoming">{b.full_name} – {b.daysUntil} days</div>)}
+      {/* REST OF DASHBOARD UNCHANGED */}
+      {!isGuest && (
+        <>
+          {/* QUICK LINKS */}
+          <section className="dashboard-section">
+            <div className="dashboard-section-header">
+              <Coffee size={18} /> Quick Links
             </div>
-          </div>
-        </section>
+            <div className="dashboard-actions">
+              {hasRole(user.role_name, ["Treasurer", "Admin", "Pastor"]) && (
+                <Link
+                  to="/dashboard/treasury"
+                  className="dashboard-action-card"
+                >
+                  <h3>
+                    <Coffee size={18} /> Treasury
+                  </h3>
+                  <p>Church finances</p>
+                </Link>
+              )}
+
+              {hasRole(user.role_name, [
+                "Youth_leader",
+                "Admin",
+                "Pastor",
+              ]) && (
+                <Link
+                  to="/dashboard/youth"
+                  className="dashboard-action-card"
+                >
+                  <h3>
+                    <Users size={18} /> Youth Ministry
+                  </h3>
+                  <p>Activities & attendance</p>
+                </Link>
+              )}
+
+              {isAdmin(user.role_name) && (
+                <Link
+                  to="/dashboard/admin"
+                  className="dashboard-action-card"
+                >
+                  <h3>
+                    <UserPlus size={18} /> Administration
+                  </h3>
+                  <p>Members & roles</p>
+                </Link>
+              )}
+            </div>
+          </section>
+
+          {/* ANNOUNCEMENTS */}
+          <section className="dashboard-section">
+            <div className="dashboard-section-header">
+              <Megaphone size={18} /> Announcements
+            </div>
+            <div className="card">
+              {announcements.length ? (
+                announcements.map((a) => (
+                  <div key={a.id} className="announcement-card">
+                    <h4>{a.title}</h4>
+                    <p>{a.message}</p>
+                  </div>
+                ))
+              ) : (
+                <p>No announcements yet.</p>
+              )}
+            </div>
+          </section>
+
+          {/* SABBATH TRACKER */}
+          <section className="dashboard-section">
+            <div className="dashboard-section-header">
+              <Calendar size={18} /> Sabbath Tracker
+            </div>
+            <div className="card sabbath-card">
+              {sabbathTimer ? (
+                <p>
+                  Sabbath begins in{" "}
+                  <strong>
+                    {sabbathTimer.d}d {sabbathTimer.h}h{" "}
+                    {sabbathTimer.m}m {sabbathTimer.s}s
+                  </strong>
+                </p>
+              ) : (
+                <p>Sabbath is ongoing. Enjoy your rest!</p>
+              )}
+            </div>
+          </section>
+
+          {/* BIRTHDAY CORNER */}
+          <section className="dashboard-section">
+            <div className="dashboard-section-header">
+              <Gift size={18} /> Birthday Corner
+            </div>
+            <div className="card">
+              <div className="birthdays-grid">
+                <div className="birthday-card my-birthday-card">
+                  {birthday ? (
+                    birthday.isBirthday ? (
+                      <>🎉 Happy Birthday, {user.full_name}! 🎉</>
+                    ) : (
+                      <>
+                        Your birthday is on{" "}
+                        {new Date(
+                          birthday.birthday
+                        ).toLocaleDateString()} –{" "}
+                        {birthday.daysLeft} days left
+                      </>
+                    )
+                  ) : (
+                    <p>Your birthday is not set yet.</p>
+                  )}
+                </div>
+
+                {todayBirthdays.map((b) => (
+                  <div
+                    key={b.id}
+                    className="birthday-card birthday-today"
+                  >
+                    🎉 {b.full_name}
+                  </div>
+                ))}
+
+                {upcomingBirthdays.map((b) => (
+                  <div
+                    key={b.id}
+                    className="birthday-card birthday-upcoming"
+                  >
+                    {b.full_name} – {b.daysUntil} days
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        </>
       )}
     </div>
   );

@@ -159,7 +159,7 @@ export const AdminAPI = {
   fetchNonMembers: () => request("/admin/membership-requests/non-members"),
 
   /* -------- NEW: Invite API -------- */
-  sendInvite: (payload) =>
+  sendInvite: (id, payload) =>
     request(`/admin/membership-requests/invite/${id}`, {
       method: "POST",
       body: JSON.stringify(payload),
@@ -183,16 +183,49 @@ export const RoleRequestsAPI = {
    MEMBERSHIP API
 ====================== */
 export const MembershipAPI = {
-  submit: (payload) => request("/membership-requests", { method: "POST", body: JSON.stringify(payload) }),
-  myRequests: () => request("/membership-requests/me"),
-};
+  // Submit membership request (guest → church)
+  submit: (payload) =>
+    request("/membership-requests", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 
+  // Get my membership request status
+  myRequests: () =>
+    request("/membership-requests/me"),
+
+  // Respond to an invite (accept / reject)
+  respondInvite: (requestId, action) =>
+    request(`/membership-requests/${requestId}/respond`, {
+      method: "PATCH",
+      body: JSON.stringify({ action }), // "accepted" | "rejected"
+    }),
+};
 export const AdminMembershipAPI = {
   fetchAll: () => request("/admin/membership-requests"),
   approve: (requestId) => request(`/admin/membership-requests/${requestId}/approve`, { method: "POST" }),
   reject: (requestId) => request(`/admin/membership-requests/${requestId}/reject`, { method: "POST" }),
 };
+/* ======================
+   NOTIFICATIONS API
+====================== */
+export const NotificationsAPI = {
+  // Fetch paginated notifications
+  getAll: ({ page = 1, limit = 10 } = {}) =>
+    request(`/notifications?page=${page}&limit=${limit}`),
 
+  // Get unread count only (for bell badge)
+  getUnreadCount: () =>
+    request("/notifications/unread-count"),
+
+  // Mark a single notification as read
+  markAsRead: (id) =>
+    request(`/notifications/${id}/read`, { method: "PATCH" }),
+
+  // Mark all notifications as read
+  markAllAsRead: () =>
+    request("/notifications/read-all", { method: "PATCH" }),
+};
 /* ======================
    ADMIN DASHBOARD API
 ====================== */

@@ -192,7 +192,17 @@ a {
 .logout-btn {
   @apply btn btn-secondary;
 }
+.dashboard-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
 /* ---------------- SIDEBAR ---------------- */
 .sidebar {
   position: fixed;
