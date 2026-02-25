@@ -78,7 +78,6 @@ export default function Dashboard() {
   const [successMessage, setSuccessMessage] = useState("");
   const [membershipError, setMembershipError] = useState("");
 
-  const [notifications, setNotifications] = useState([]);
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
   const [sabbathTimer, setSabbathTimer] = useState(null);
@@ -126,7 +125,6 @@ export default function Dashboard() {
           upcoming,
           anns,
           membership,
-          notificationsData,
         ] = await Promise.all([
           getDailyVerse(),
           churchId ? ChurchAPI.getById(churchId) : null,
@@ -135,7 +133,6 @@ export default function Dashboard() {
           !isGuest ? getUpcomingBirthdays(churchId, 30) : [],
           !isGuest ? AnnouncementsAPI.fetch(churchId, 5) : [],
           isGuest ? MembershipAPI.myRequests() : null,
-          isGuest ? MembershipAPI.getNotifications() : [],
         ]);
 
         if (!alive) return;
@@ -150,7 +147,6 @@ export default function Dashboard() {
           setMembershipStatus(
             membership?.request?.membership_request_status || null
           );
-          setNotifications(notificationsData || []);
           setBirthday(null);
           return;
         }
@@ -185,42 +181,7 @@ export default function Dashboard() {
     return () => (alive = false);
   }, [user, churchId, isGuest]);
 
-  /* ================= INVITE ACTIONS ================= */
-
-  const handleAccept = async (id) => {
-    try {
-      setActionLoadingId(id);
-      await MembershipAPI.acceptInvite(id);
-
-      const res = await MembershipAPI.myRequests();
-      setMembershipStatus(res?.request?.membership_request_status || null);
-
-      const updated = await MembershipAPI.getNotifications();
-      setNotifications(updated || []);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
-  const handleReject = async (id) => {
-    try {
-      setActionLoadingId(id);
-      await MembershipAPI.rejectInvite(id);
-
-      const updated = await MembershipAPI.getNotifications();
-      setNotifications(updated || []);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
-  if (authLoading || loading)
-    return <Loader message="Preparing your dashboard…" />;
-
+ 
   /* ================= UI ================= */
 
   return (
@@ -240,54 +201,6 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* NOTIFICATIONS (NON MEMBERS ONLY) */}
-      {isGuest && notifications.length > 0 && (
-        <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <Megaphone size={18} /> Notifications
-          </div>
-
-          <div className="card">
-            {notifications.map((n) => (
-              <div key={n.id} className="notification-card">
-                <p>
-                  <strong>{n.title}</strong>
-                </p>
-                <p>{n.message}</p>
-
-                {n.type === "membership_invite" && (
-                  <div
-                    style={{
-                      marginTop: "0.5rem",
-                      display: "flex",
-                      gap: "0.5rem",
-                    }}
-                  >
-                    <button
-                      className="btn btn-primary"
-                      disabled={actionLoadingId === n.related_id}
-                      onClick={() => handleAccept(n.related_id)}
-                    >
-                      {actionLoadingId === n.related_id
-                        ? "Accepting..."
-                        : "Accept"}
-                    </button>
-
-                    <button
-                      className="btn btn-outline"
-                      disabled={actionLoadingId === n.related_id}
-                      onClick={() => handleReject(n.related_id)}
-                    >
-                      Reject
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* MEMBERSHIP REQUEST SECTION */}
       {isGuest && (
         <section className="dashboard-section">
@@ -296,11 +209,11 @@ export default function Dashboard() {
           </div>
           <div className="card">
             <p>
-              {membershipStatus === "approved"
+              {membershipStatus === "accepted"
                 ? "Your membership has been approved 🎉"
                 : membershipStatus === "rejected"
                 ? "Your membership request was rejected."
-                : membershipStatus === "pending"
+                : membershipStatus === "requested"
                 ? "Your membership request is pending review."
                 : "Request membership to access ministries and announcements."}
             </p>

@@ -77,7 +77,7 @@ export default function NonMembers() {
                     </span>
                   </td>
                   <td>
-  {p.membership_request_status === "pending" ? (
+  {p.membership_request_status === "requested" ? (
     <span className="status-label status-warning">
       Request Pending
     </span>

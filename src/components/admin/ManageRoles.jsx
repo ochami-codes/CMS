@@ -307,17 +307,17 @@ export default function ManageRoles() {
                       onClick={() => inviteNonMember(p.profile_id)}
                       disabled={
                         processingId === p.profile_id ||
-                        p.membership_request_status === "pending"
+                        p.membership_request_status === "requested"
                       }
                       title={
-                        p.membership_request_status === "pending"
+                        p.membership_request_status === "requested"
                           ? "Request pending"
                           : "Send invite"
                       }
                     >
                       <UserPlus size={16} />
                       <span>
-                        {p.membership_request_status === "pending"
+                        {p.membership_request_status === "requested"
                           ? "Pending"
                           : "Send Invite"}
                       </span>

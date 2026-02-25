@@ -45,7 +45,7 @@ export default function Sidebar({ open, onClose }) {
             <span className="sidebar-church-name">{churchName}</span>
             {!isMember && (
               <span className="sidebar-status">
-                {user.membership_status === "pending" ? "Pending approval" : "Guest"}
+                {user.membership_status === "requested" ? "Pending approval" : "Guest"}
               </span>
             )}
           </div>
