@@ -15,6 +15,7 @@ export default function NotificationBell() {
   const loadUnread = async () => {
     try {
       const res = await NotificationsAPI.getUnreadCount();
+      console.log("UNREAD RESPONSE:", res);
       setUnread(res.unread || 0);
     } catch (err) {
       console.error("Failed to load unread count", err);
