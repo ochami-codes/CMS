@@ -82,34 +82,22 @@ export const AuthProvider = ({ children }) => {
   /* -------------------------------
      Auth initialization (ONCE)
   ------------------------------- */
-  useEffect(() => {
-    let mounted = true;
+useEffect(() => {
+  const token = localStorage.getItem("access_token");
 
-    const initAuth = async () => {
-      const token = localStorage.getItem("access_token");
+  //  No token → don't wait for anything
+  if (!token) {
+    setUser(null);
+    setLoading(false);
+    return;
+  }
 
-      if (!token) {
-        if (mounted) {
-          setUser(null);
-          setLoading(false);
-        }
-        return;
-      }
+  //  Stop blocking UI immediately
+  setLoading(false);
 
-      await fetchMe();
-
-      if (mounted) {
-        setLoading(false);
-      }
-    };
-
-    initAuth();
-
-    return () => {
-      mounted = false;
-    };
-  }, [fetchMe]);
-
+  // Verify token in background
+  fetchMe();
+}, [fetchMe]);
   return (
     <AuthContext.Provider
       value={{
