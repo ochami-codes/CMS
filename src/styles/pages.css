@@ -707,11 +707,18 @@
    Notification Card
 -------------------------- */
 .notification-card {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: min(320px, 90vw);   /* 🔥 prevents overflow */
+  max-width: 95vw;
+  z-index: 100;
   background: white;
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
   border: 1px solid #e5e7eb;
-  overflow: hidden;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 .notification-header {
@@ -780,4 +787,10 @@
 .reject-btn {
   background: #ef4444;
   color: white;
+}
+@media (max-width: 480px) {
+  .notification-card {
+    right: 50%;
+    transform: translateX(50%);
+  }
 }
