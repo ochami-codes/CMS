@@ -27,7 +27,7 @@ import TreasuryDashboard from "./pages/treasury/TreasuryDashboard";
 import PastorDashboard from "./pages/pastor/PastorDashboard";
 import CommunicationDashboard from "./pages/communication/CommunicationDashboard";
 
-// Settings
+// Setting
 import ProfilePage from "./pages/settings/profiles/ProfilePage";
 import ChangePassword from "./pages/settings/ChangePassword";
 import MyRoleRequests from "./components/members/MyRoleRequests";
