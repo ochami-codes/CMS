@@ -27,16 +27,16 @@ export default function NonMembers() {
     loadNonMembers();
   }, []);
 
-  const handleInvite = async (id) => {
-    setActionLoading((prev) => ({ ...prev, [id]: true }));
+  const handleInvite = async (profile_id) => {
+    setActionLoading((prev) => ({ ...prev, [profile_id]: true }));
 
     try {
-      await AdminAPI.sendInvite(id);
+      await AdminAPI.sendInvite(profile_id);
       await loadNonMembers(); // refresh list
     } catch (err) {
       alert(err.message || "Failed to send invite");
     } finally {
-      setActionLoading((prev) => ({ ...prev, [id]: false }));
+      setActionLoading((prev) => ({ ...prev, [profile_id]: false }));
     }
   };
 
@@ -84,8 +84,8 @@ export default function NonMembers() {
   ) : (
     <button
       className="btn btn-primary btn-role-request"
-      disabled={actionLoading[p.id]}
-      onClick={() => handleInvite(p.id)}
+      disabled={actionLoading[p.profile_id]}
+      onClick={() => handleInvite(p.profile_id)}
     >
       {actionLoading[p.profile_id] ? "Inviting…" : "Invite"}
     </button>
