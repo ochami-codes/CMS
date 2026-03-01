@@ -73,7 +73,7 @@ export default function NotificationsDropdown({ onClose, refreshUnread }) {
   };
 
   return (
-    <div className="notification-dropdown">
+    <div className="notification-card">
       <div className="notification-header">
         <h4>Notifications</h4>
         <button onClick={markAll}>Mark all</button>

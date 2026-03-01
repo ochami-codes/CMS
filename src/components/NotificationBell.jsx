@@ -1,5 +1,6 @@
 // src/components/NotificationBell.jsx
 import { useEffect, useState, useRef } from "react";
+import { Bell } from "lucide-react";
 import NotificationsDropdown from "./NotificationsDropdown";
 import { NotificationsAPI } from "../utils/api";
 import "../styles/pages.css";
@@ -9,16 +10,12 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const bellRef = useRef(null);
 
-  /* -----------------------------
-     Fetch unread count
-  ----------------------------- */
   const loadUnread = async () => {
     try {
       const res = await NotificationsAPI.getUnreadCount();
-      console.log("UNREAD RESPONSE:", res);
       setUnread(res.unread || 0);
     } catch (err) {
-      console.error("Failed to load unread count", err);
+      console.error(err);
     }
   };
 
@@ -26,9 +23,6 @@ export default function NotificationBell() {
     loadUnread();
   }, []);
 
-  /* -----------------------------
-     Close dropdown on outside click
-  ----------------------------- */
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (bellRef.current && !bellRef.current.contains(e.target)) {
@@ -43,10 +37,10 @@ export default function NotificationBell() {
   return (
     <div className="notification-wrapper" ref={bellRef}>
       <button
-        className="notification-bell"
+        className={`notification-bell ${unread > 0 ? "has-unread" : ""}`}
         onClick={() => setOpen((prev) => !prev)}
       >
-        🔔
+        <Bell size={20} />
         {unread > 0 && (
           <span className="notification-badge">
             {unread > 99 ? "99+" : unread}
@@ -54,12 +48,14 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {open && (
-        <NotificationsDropdown
-          onClose={() => setOpen(false)}
-          refreshUnread={loadUnread}
-        />
-      )}
+      <div className={`dropdown-container ${open ? "open" : ""}`}>
+        {open && (
+          <NotificationsDropdown
+            onClose={() => setOpen(false)}
+            refreshUnread={loadUnread}
+          />
+        )}
+      </div>
     </div>
   );
 }
