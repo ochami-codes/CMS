@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { AdminAPI, AdminMembershipAPI } from "../../utils/api";
+import { AdminAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import { Check, X, RefreshCw, UserPlus } from "lucide-react";
 import "../../styles/pages.css";
@@ -17,12 +17,9 @@ const ROLES = [
 export default function ManageRoles() {
   const { user, setUser, loading: authLoading } = useAuth();
   const [members, setMembers] = useState([]);
-  const [nonMembers, setNonMembers] = useState([]);
   const [roleRequests, setRoleRequests] = useState([]);
-  const [membershipRequests, setMembershipRequests] = useState([]);
 
   const [loadingMembers, setLoadingMembers] = useState(true);
-  const [loadingNonMembers, setLoadingNonMembers] = useState(true);
   const [loadingRoleRequests, setLoadingRoleRequests] = useState(true);
   const [loadingMembershipRequests, setLoadingMembershipRequests] = useState(true);
 
@@ -45,17 +42,6 @@ export default function ManageRoles() {
     }
   }, [user, search]);
 
-  const fetchNonMembers = useCallback(async () => {
-    if (!user?.church_id) return;
-    setLoadingNonMembers(true);
-    try {
-      const data = await AdminAPI.fetchNonMembers();
-      setNonMembers(data.non_members ?? []);
-    } finally {
-      setLoadingNonMembers(false);
-    }
-  }, [user]);
-
   const fetchRoleRequests = useCallback(async () => {
     if (!user?.church_id) return;
     setLoadingRoleRequests(true);
@@ -67,32 +53,17 @@ export default function ManageRoles() {
     }
   }, [user]);
 
-  const fetchMembershipRequests = useCallback(async () => {
-    if (!user?.church_id) return;
-    setLoadingMembershipRequests(true);
-    try {
-      const data = await AdminMembershipAPI.fetchAll();
-      setMembershipRequests(data.requests ?? []);
-    } finally {
-      setLoadingMembershipRequests(false);
-    }
-  }, [user]);
-
   /* ------------------ Effects ------------------ */
   useEffect(() => {
     if (!authLoading && user?.church_id) {
       fetchMembers();
-      fetchNonMembers();
       fetchRoleRequests();
-      fetchMembershipRequests();
     }
   }, [
     authLoading,
     user,
     fetchMembers,
-    fetchNonMembers,
     fetchRoleRequests,
-    fetchMembershipRequests,
   ]);
 
   /* ------------------ Member Actions ------------------ */
@@ -143,35 +114,6 @@ export default function ManageRoles() {
     await AdminAPI.rejectRoleRequest(id);
     await fetchRoleRequests();
     setRequestProcessingId(null);
-  };
-
-  /* ------------------ Membership Requests ------------------ */
-  const approveMembership = async (id) => {
-    setRequestProcessingId(id);
-    await AdminMembershipAPI.approve(id);
-    await fetchNonMembers();
-    await fetchMembershipRequests();
-    setRequestProcessingId(null);
-  };
-
-  const rejectMembership = async (id) => {
-    setRequestProcessingId(id);
-    await AdminMembershipAPI.reject(id);
-    await fetchMembershipRequests();
-    setRequestProcessingId(null);
-  };
-
-  /* ------------------ Invite Non-Member ------------------ */
-  const inviteNonMember = async (id) => {
-    if (!confirm("Send membership request to this profile?")) return;
-    setProcessingId(id);
-    try {
-      await AdminAPI.sendInvite(id);
-      await fetchNonMembers();
-      await fetchMembershipRequests();
-    } finally {
-      setProcessingId(null);
-    }
   };
 
   if (authLoading) return <div className="dashboard-content">Checking permissions…</div>;
@@ -262,69 +204,6 @@ export default function ManageRoles() {
                   </tr>
                 ))
               )}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* Non Members Table */}
-      <div className="card">
-        <h3 className="card-title">Profiles Not Yet Members</h3>
-        {loadingNonMembers ? (
-          <div>Loading…</div>
-        ) : nonMembers.length === 0 ? (
-          <div>No profiles found</div>
-        ) : (
-          <table className="members-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Request Status</th>
-                <th>Requested At</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {nonMembers.map((p) => (
-                <tr key={p.profile_id}>
-                  <td>{p.full_name}</td>
-                  <td>{p.email || "-"}</td>
-                  <td>
-                    {p.membership_request_status
-                      ? p.membership_request_status.charAt(0).toUpperCase() +
-                        p.membership_request_status.slice(1)
-                      : "None"}
-                  </td>
-                  <td>
-                    {p.membership_requested_at
-                      ? new Date(p.membership_requested_at).toLocaleString()
-                      : "-"}
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-primary action-btn"
-                      onClick={() => inviteNonMember(p.profile_id)}
-                      disabled={
-                        processingId === p.profile_id ||
-                        p.membership_request_status === "requested"
-                      }
-                      title={
-                        p.membership_request_status === "requested"
-                          ? "Request pending"
-                          : "Send invite"
-                      }
-                    >
-                      <UserPlus size={16} />
-                      <span>
-                        {p.membership_request_status === "requested"
-                          ? "Pending"
-                          : "Send Invite"}
-                      </span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
             </tbody>
           </table>
         )}

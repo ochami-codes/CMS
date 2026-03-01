@@ -67,7 +67,7 @@ export default function NonMembers() {
             </thead>
             <tbody>
               {data.map((p) => (
-                <tr key={p.id}>
+                <tr key={p.profile_id}>
                   <td>{p.full_name || "-"}</td>
                   <td>{p.email || "-"}</td>
                   <td>{p.phone || "-"}</td>
@@ -87,7 +87,7 @@ export default function NonMembers() {
       disabled={actionLoading[p.id]}
       onClick={() => handleInvite(p.id)}
     >
-      {actionLoading[p.id] ? "Inviting…" : "Invite"}
+      {actionLoading[p.profile_id] ? "Inviting…" : "Invite"}
     </button>
   )}
 </td>
