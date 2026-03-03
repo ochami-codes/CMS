@@ -64,7 +64,6 @@ export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
 
   const [loading, setLoading] = useState(true);
-  if (authLoading || loading) return <Loader />;
   const [verse, setVerse] = useState(null);
   const [birthday, setBirthday] = useState(null);
   const [todayBirthdays, setTodayBirthdays] = useState([]);
