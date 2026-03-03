@@ -76,7 +76,7 @@ export default function MembershipRequests() {
       default:
         return (
           <span className="status-label">
-            {status}
+            {membership_status}
           </span>
         );
     }
@@ -102,14 +102,14 @@ export default function MembershipRequests() {
             <tbody>
               {requests.map((r) => {
                 const id = r.membership_request_id;
-                const isPending = r.status === "requested";
+                const isPending = r.membership_status === "requested";
 
                 return (
                   <tr key={id}>
                     <td>{r.full_name || "-"}</td>
                     <td>{r.email || "-"}</td>
 
-                    <td>{renderStatusBadge(r.status)}</td>
+                    <td>{renderStatusBadge(r.membership_status)}</td>
 
                     <td>
                       {r.membership_requested_at
