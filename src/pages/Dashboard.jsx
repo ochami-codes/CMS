@@ -64,7 +64,7 @@ export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
 
   const [loading, setLoading] = useState(true);
-
+  if (authLoading || loading) return <Loader />;
   const [verse, setVerse] = useState(null);
   const [birthday, setBirthday] = useState(null);
   const [todayBirthdays, setTodayBirthdays] = useState([]);
@@ -202,71 +202,78 @@ export default function Dashboard() {
       </section>
 
       {/* MEMBERSHIP REQUEST SECTION */}
-      {isGuest && (
-        <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <UserPlus size={18} /> Join Your Church
-          </div>
-          <div className="card">
-            <p>
-              {membershipStatus === "accepted"
-                ? "Your membership has been approved 🎉"
-                : membershipStatus === "rejected"
-                ? "Your membership request was rejected."
-                : membershipStatus === "requested"
-                ? "Your membership request is pending review."
-                : "Request membership to access ministries and announcements."}
-            </p>
+{isGuest && (
+  <section className="dashboard-section">
+    <div className="dashboard-section-header">
+      <UserPlus size={18} /> Join Your Church
+    </div>
 
-            {!membershipStatus && (
-              <button
-                className="btn btn-primary"
-                disabled={loadingMembershipRequest}
-                onClick={async () => {
-                  try {
-                    setLoadingMembershipRequest(true);
-                    setMembershipError("");
-                    setSuccessMessage("");
+    <div className="card">
+      {/* MESSAGE LOGIC */}
+      <p>
+        {membershipStatus?.source === "user_request" &&
+        membershipStatus?.status === "requested"
+          ? "Your membership request is pending review."
+          : membershipStatus?.source === "user_request" &&
+            membershipStatus?.status === "approved"
+          ? "Your membership has been approved 🎉"
+          : membershipStatus?.source === "user_request" &&
+            membershipStatus?.status === "rejected"
+          ? "Your membership request was rejected."
+          : membershipStatus?.source === "admin_invite" &&
+            membershipStatus?.status === "invited"
+          ? "You have been invited to join this church."
+          : "Request membership to access ministries and announcements."}
+      </p>
 
-                    await MembershipAPI.submit({});
-                    setMembershipStatus("pending");
-                    setSuccessMessage("Membership request submitted 🙏");
-                  } catch (e) {
-                    const message =
-                      e.response?.data?.message || "Request failed";
-                    setMembershipError(message);
-                  } finally {
-                    setLoadingMembershipRequest(false);
-                  }
-                }}
-              >
-                {loadingMembershipRequest
-                  ? "Sending request..."
-                  : "Request Membership"}
-              </button>
-            )}
+      {/* USER REQUEST BUTTON */}
+      {!membershipStatus && (
+        <button
+          className="btn btn-primary"
+          disabled={loadingMembershipRequest}
+          onClick={async () => {
+            try {
+              setLoadingMembershipRequest(true);
+              setMembershipError("");
+              setSuccessMessage("");
 
-            {successMessage && (
-              <div
-                className="message-success"
-                style={{ marginTop: "0.5rem" }}
-              >
-                {successMessage}
-              </div>
-            )}
+              await MembershipAPI.submit({});
+              setMembershipStatus({
+                status: "requested",
+                source: "user_request",
+              });
 
-            {membershipError && (
-              <div
-                className="message-error"
-                style={{ marginTop: "0.5rem" }}
-              >
-                {membershipError}
-              </div>
-            )}
-          </div>
-        </section>
+              setSuccessMessage("Membership request submitted 🙏");
+            } catch (e) {
+              const message =
+                e.response?.data?.message || "Request failed";
+              setMembershipError(message);
+            } finally {
+              setLoadingMembershipRequest(false);
+            }
+          }}
+        >
+          {loadingMembershipRequest
+            ? "Sending request..."
+            : "Request Membership"}
+        </button>
       )}
 
+      {/* SUCCESS / ERROR */}
+      {successMessage && (
+        <div className="message-success" style={{ marginTop: "0.5rem" }}>
+          {successMessage}
+        </div>
+      )}
+
+      {membershipError && (
+        <div className="message-error" style={{ marginTop: "0.5rem" }}>
+          {membershipError}
+        </div>
+      )}
+    </div>
+  </section>
+)}
       {/* REST OF DASHBOARD UNCHANGED */}
       {!isGuest && (
         <>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AdminDashboardAPI, AdminAPI } from "../../utils/api";
+import { AdminAPI } from "../../utils/api";
 import Loader from "../../components/Loader";
 import "../../styles/pages.css";
 
@@ -11,11 +11,8 @@ export default function NonMembers() {
   const loadNonMembers = async () => {
     try {
       setLoading(true);
-
-      // Call the dedicated backend route
       const res = await AdminAPI.fetchNonMembers();
       setData(res.non_members || []);
-
     } catch (err) {
       console.error("Failed to load non-members:", err);
     } finally {
@@ -32,7 +29,7 @@ export default function NonMembers() {
 
     try {
       await AdminAPI.sendInvite(profile_id);
-      await loadNonMembers(); // refresh list
+      await loadNonMembers();
     } catch (err) {
       alert(err.message || "Failed to send invite");
     } finally {
@@ -42,18 +39,51 @@ export default function NonMembers() {
 
   if (loading) return <Loader message="Loading non-members…" />;
 
-  if (!data.length)
+  if (!data.length) {
     return (
       <div className="page-card">
         <h3 className="card-title">Non-Members</h3>
         <p className="text-muted">No non-members found 🎉</p>
       </div>
     );
+  }
+
+  const renderActionCell = (p) => {
+    // User already requested membership
+    if (p.source === "user_request" && p.status === "requested") {
+      return (
+        <span className="status-label status-warning">
+          Request Pending
+        </span>
+      );
+    }
+
+    // Admin already invited
+    if (p.source === "admin_invite" && p.status === "invited") {
+      return (
+        <span className="status-label status-info">
+          Invite Sent
+        </span>
+      );
+    }
+
+    // Otherwise allow invite
+    return (
+      <button
+        className="btn btn-primary btn-role-request"
+        disabled={actionLoading[p.profile_id]}
+        onClick={() => handleInvite(p.profile_id)}
+      >
+        {actionLoading[p.profile_id] ? "Inviting…" : "Invite"}
+      </button>
+    );
+  };
 
   return (
     <div className="page-container">
       <div className="page-card">
         <h3 className="card-title">Non-Members</h3>
+
         <div className="table-responsive">
           <table className="members-table">
             <thead>
@@ -61,36 +91,25 @@ export default function NonMembers() {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>
-                <th>Status</th>
+                <th>Membership</th>
                 <th>Action</th>
               </tr>
             </thead>
+
             <tbody>
               {data.map((p) => (
                 <tr key={p.profile_id}>
                   <td>{p.full_name || "-"}</td>
                   <td>{p.email || "-"}</td>
                   <td>{p.phone || "-"}</td>
+
                   <td>
                     <span className="status-label status-nonmember">
                       Not a member
                     </span>
                   </td>
-                  <td>
-  {p.membership_request_status === "requested" ? (
-    <span className="status-label status-warning">
-      Request Pending
-    </span>
-  ) : (
-    <button
-      className="btn btn-primary btn-role-request"
-      disabled={actionLoading[p.profile_id]}
-      onClick={() => handleInvite(p.profile_id)}
-    >
-      {actionLoading[p.profile_id] ? "Inviting…" : "Invite"}
-    </button>
-  )}
-</td>
+
+                  <td>{renderActionCell(p)}</td>
                 </tr>
               ))}
             </tbody>

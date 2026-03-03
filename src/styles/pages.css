@@ -685,7 +685,7 @@
   width: min(320px, 90vw);   /* 🔥 prevents overflow */
   max-width: 95vw;
   z-index: 100;
-}}
+}
 
 .dropdown-container.open {
   animation: dropdownFade 0.2s ease forwards;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AdminMembershipAPI } from "../../utils/api";
+import Loader from "../../components/Loader";
 import "../../styles/pages.css";
 
 export default function MembershipRequests() {
@@ -29,9 +30,7 @@ export default function MembershipRequests() {
     try {
       if (action === "approve") {
         await AdminMembershipAPI.approve(id);
-      }
-
-      if (action === "reject") {
+      } else if (action === "reject") {
         await AdminMembershipAPI.reject(id);
       }
 
@@ -43,24 +42,51 @@ export default function MembershipRequests() {
     }
   };
 
-  if (loading)
-    return (
-      <div className="page-card">
-        <p>Loading membership requests…</p>
-      </div>
-    );
+  if (loading) return <Loader message="Loading membership requests…" />;
 
-  if (!requests.length)
+  if (!requests.length) {
     return (
       <div className="page-card">
+        <h2 className="card-title">Membership Requests</h2>
         <p>No pending requests 🙏</p>
       </div>
     );
+  }
+
+  const renderStatusBadge = (status) => {
+    switch (status) {
+      case "requested":
+        return (
+          <span className="status-label status-warning">
+            Pending
+          </span>
+        );
+      case "approved":
+        return (
+          <span className="status-label status-success">
+            Approved
+          </span>
+        );
+      case "rejected":
+        return (
+          <span className="status-label status-danger">
+            Rejected
+          </span>
+        );
+      default:
+        return (
+          <span className="status-label">
+            {status}
+          </span>
+        );
+    }
+  };
 
   return (
     <div className="page-container">
       <div className="page-card">
         <h2 className="card-title">Membership Requests</h2>
+
         <div className="table-responsive">
           <table className="members-table">
             <thead>
@@ -72,43 +98,59 @@ export default function MembershipRequests() {
                 <th>Actions</th>
               </tr>
             </thead>
+
             <tbody>
               {requests.map((r) => {
                 const id = r.membership_request_id;
+                const isPending = r.status === "requested";
 
                 return (
                   <tr key={id}>
                     <td>{r.full_name || "-"}</td>
                     <td>{r.email || "-"}</td>
 
-                    <td>
-                      <span className="status-label status-pending">
-                        {r.membership_request_status}
-                      </span>
-                    </td>
+                    <td>{renderStatusBadge(r.status)}</td>
 
                     <td>
                       {r.membership_requested_at
-                        ? new Date(r.membership_requested_at).toLocaleString()
+                        ? new Date(
+                            r.membership_requested_at
+                          ).toLocaleString()
                         : "-"}
                     </td>
 
                     <td className="actions">
-                      <button
-                        className="btn btn-primary btn-role-request"
-                        disabled={actionLoading[id]}
-                        onClick={() => handleAction(id, "approve")}
-                      >
-                        {actionLoading[id] ? "…" : "Approve"}
-                      </button>
+                      {isPending ? (
+                        <>
+                          <button
+                            className="btn btn-primary btn-role-request"
+                            disabled={actionLoading[id]}
+                            onClick={() =>
+                              handleAction(id, "approve")
+                            }
+                          >
+                            {actionLoading[id]
+                              ? "Approving…"
+                              : "Approve"}
+                          </button>
 
-                      <button
-                        className="btn btn-secondary btn-role-request"
-                        disabled={actionLoading[id]}
-                        onClick={() => handleAction(id, "reject")}
-                      >
-                        {actionLoading[id] ? "…" : "Reject"}
-                      </button>
+                          <button
+                            className="btn btn-secondary btn-role-request"
+                            disabled={actionLoading[id]}
+                            onClick={() =>
+                              handleAction(id, "reject")
+                            }
+                          >
+                            {actionLoading[id]
+                              ? "Rejecting…"
+                              : "Reject"}
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-muted">
+                          No action
+                        </span>
+                      )}
                     </td>
                   </tr>
                 );
