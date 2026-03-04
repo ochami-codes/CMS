@@ -111,11 +111,11 @@ export default function MyRoleRequests() {
                 className="flex flex-col sm:flex-row sm:justify-between py-1"
               >
                 <span>
-                  {r.requested_role} – <strong>{r.status}</strong>
+                  {r.requested_role} – <strong>{r.role_request_status}</strong>
                 </span>
                 <span className="text-gray-500 text-sm">
-                  {r.created_at
-                    ? new Date(r.created_at).toLocaleString()
+                  {r.role_requested_at
+                    ? new Date(r.role_requested_at).toLocaleString()
                     : "-"}
                 </span>
               </li>

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { AdminAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
-import { Check, X, RefreshCw, UserPlus } from "lucide-react";
+import { Check, X, RefreshCw } from "lucide-react";
 import "../../styles/pages.css";
 
 const ROLES = [
@@ -16,34 +16,41 @@ const ROLES = [
 
 export default function ManageRoles() {
   const { user, setUser, loading: authLoading } = useAuth();
+
   const [members, setMembers] = useState([]);
   const [roleRequests, setRoleRequests] = useState([]);
 
   const [loadingMembers, setLoadingMembers] = useState(true);
   const [loadingRoleRequests, setLoadingRoleRequests] = useState(true);
-  const [loadingMembershipRequests, setLoadingMembershipRequests] = useState(true);
 
   const [processingId, setProcessingId] = useState(null);
   const [requestProcessingId, setRequestProcessingId] = useState(null);
   const [search, setSearch] = useState("");
 
-  /* ------------------ Fetch Functions ------------------ */
+  /* ------------------ Fetch Members ------------------ */
   const fetchMembers = useCallback(async () => {
     if (!user?.church_id) return;
+
     setLoadingMembers(true);
     try {
       const params = new URLSearchParams({ search }).toString();
       const data = await AdminAPI.fetchMembers(params);
+
       setMembers(
-        (data.members ?? []).map((m) => ({ ...m, selectedRole: m.role_name }))
+        (data.members ?? []).map((m) => ({
+          ...m,
+          selectedRole: m.role_name,
+        }))
       );
     } finally {
       setLoadingMembers(false);
     }
-  }, [user, search]);
+  }, [user?.church_id, search]);
 
+  /* ------------------ Fetch Role Requests ------------------ */
   const fetchRoleRequests = useCallback(async () => {
     if (!user?.church_id) return;
+
     setLoadingRoleRequests(true);
     try {
       const data = await AdminAPI.fetchRoleRequests();
@@ -51,77 +58,111 @@ export default function ManageRoles() {
     } finally {
       setLoadingRoleRequests(false);
     }
-  }, [user]);
+  }, [user?.church_id]);
 
-  /* ------------------ Effects ------------------ */
+  /* ------------------ Initial Load (No Polling) ------------------ */
   useEffect(() => {
     if (!authLoading && user?.church_id) {
       fetchMembers();
       fetchRoleRequests();
     }
-  }, [
-    authLoading,
-    user,
-    fetchMembers,
-    fetchRoleRequests,
-  ]);
+  }, [authLoading, user?.church_id, fetchMembers, fetchRoleRequests]);
 
   /* ------------------ Member Actions ------------------ */
   const updateRole = async (member) => {
     if (member.selectedRole === member.role_name) return;
+
     setProcessingId(member.id);
+
     try {
       await AdminAPI.updateMemberRole(member.id, member.selectedRole);
+
+      // Optimistic update
       setMembers((prev) =>
         prev.map((m) =>
-          m.id === member.id ? { ...m, role_name: member.selectedRole } : m
+          m.id === member.id
+            ? { ...m, role_name: member.selectedRole }
+            : m
         )
       );
+
+      // If admin updates own role
       if (member.id === user.id) {
         setUser((u) => ({ ...u, role_name: member.selectedRole }));
       }
+
     } finally {
       setProcessingId(null);
     }
   };
 
   const toggleMember = async (id, active) => {
-    if (!confirm(active ? "Deactivate this member?" : "Activate this member?")) return;
+    if (!window.confirm(active ? "Deactivate this member?" : "Activate this member?"))
+      return;
+
     setProcessingId(id);
+
     try {
       active
         ? await AdminAPI.deactivateMember(id)
         : await AdminAPI.activateMember(id);
+
+      // Optimistic update
       setMembers((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, active: !active } : m))
+        prev.map((m) =>
+          m.id === id ? { ...m, active: !active } : m
+        )
       );
+
     } finally {
       setProcessingId(null);
     }
   };
 
-  /* ------------------ Role Requests ------------------ */
+  /* ------------------ Role Request Actions ------------------ */
   const approveRole = async (id) => {
     setRequestProcessingId(id);
-    await AdminAPI.approveRoleRequest(id);
-    await fetchMembers();
-    await fetchRoleRequests();
-    setRequestProcessingId(null);
+
+    try {
+      await AdminAPI.approveRoleRequest(id);
+
+      // Remove from pending list instantly
+      setRoleRequests((prev) =>
+        prev.filter((r) => r.id !== id)
+      );
+
+      // Update member role without refetch
+      await fetchMembers();
+
+    } finally {
+      setRequestProcessingId(null);
+    }
   };
 
   const rejectRole = async (id) => {
     setRequestProcessingId(id);
-    await AdminAPI.rejectRoleRequest(id);
-    await fetchRoleRequests();
-    setRequestProcessingId(null);
+
+    try {
+      await AdminAPI.rejectRoleRequest(id);
+
+      // Remove from pending list instantly
+      setRoleRequests((prev) =>
+        prev.filter((r) => r.id !== id)
+      );
+
+    } finally {
+      setRequestProcessingId(null);
+    }
   };
 
-  if (authLoading) return <div className="dashboard-content">Checking permissions…</div>;
-  if (!user) return <div className="dashboard-content">Loading profile…</div>;
+  if (authLoading)
+    return <div className="dashboard-content">Checking permissions…</div>;
+
+  if (!user)
+    return <div className="dashboard-content">Loading profile…</div>;
 
   return (
     <>
-      {/* Page Title */}
       <div className="card">
         <h2 className="card-title">Admin Members & Roles</h2>
         <input
@@ -132,9 +173,9 @@ export default function ManageRoles() {
         />
       </div>
 
-      {/* Members Table */}
       <div className="card">
         <h3 className="card-title">Manage Members</h3>
+
         {loadingMembers ? (
           <div>Loading members…</div>
         ) : (
@@ -149,6 +190,7 @@ export default function ManageRoles() {
                 <th>Actions</th>
               </tr>
             </thead>
+
             <tbody>
               {members.length === 0 ? (
                 <tr>
@@ -187,7 +229,6 @@ export default function ManageRoles() {
                         className="btn btn-warning action-btn"
                         disabled={processingId === m.id || !m.active}
                         onClick={() => updateRole(m)}
-                        title="Update Role"
                       >
                         <RefreshCw size={16} /> <span>Update</span>
                       </button>
@@ -196,9 +237,18 @@ export default function ManageRoles() {
                         className={`btn ${m.active ? "btn-danger" : "btn-success"} action-btn`}
                         disabled={processingId === m.id}
                         onClick={() => toggleMember(m.id, m.active)}
-                        title={m.active ? "Deactivate" : "Activate"}
                       >
-                        {m.active ? <><X size={16} /><span>Deactivate</span></> : <><Check size={16} /><span>Activate</span></>}
+                        {m.active ? (
+                          <>
+                            <X size={16} />
+                            <span>Deactivate</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check size={16} />
+                            <span>Activate</span>
+                          </>
+                        )}
                       </button>
                     </td>
                   </tr>
