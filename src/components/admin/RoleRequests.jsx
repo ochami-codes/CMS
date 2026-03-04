@@ -31,26 +31,11 @@ export default function RoleRequests() {
     }
   }, [user]);
 
-  /* ------------------ Polling ------------------ */
-  useEffect(() => {
-    if (authLoading || !user?.church_id) return;
-
-    let isMounted = true;
-
-    const fetchLoop = async () => {
-      while (isMounted) {
-        await fetchRequests();
-        await new Promise((r) => setTimeout(r, 50000));
-      }
-    };
-
-    fetchLoop();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [authLoading, user, fetchRequests]);
-
+useEffect(() => {
+  if (!authLoading && user?.church_id) {
+    fetchRequests();
+  }
+}, [authLoading, user?.church_id, fetchRequests]);
   /* ------------------ Actions ------------------ */
   const approve = async (id) => {
     setProcessingId(id);
@@ -110,35 +95,39 @@ export default function RoleRequests() {
             </tr>
           </thead>
 
-          <tbody>
-            {requests.map((req) => (
-              <tr key={req.role_request_id}>
-                <td>{req.target_user?.full_name || "—"}</td>
-                <td>{req.target_user?.role_name || "—"}</td>
-                <td>
-                  <strong>{req.target_user?.role_name}</strong>
-                </td>
-                <td>{req.requester?.role_requested_by_name || "System"}</td>
-                <td className="dashboard-actions">
-                  <button
-                    className="btn btn-primary"
-                    disabled={processingId === req.role_request_id}
-                    onClick={() => approve(req.role_request_id)}
-                  >
-                    Approve
-                  </button>
+<tbody>
+  {requests.map((req) => (
+    <tr key={req.id}>
+      <td>{req.target_user?.full_name || "—"}</td>
 
-                  <button
-                    className="btn btn-secondary"
-                    disabled={processingId === req.role_request_id}
-                    onClick={() => reject(req.role_request_id)}
-                  >
-                    Reject
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+      <td>{req.target_user?.role || "—"}</td>
+
+      <td>
+        <strong>{req.requested_role}</strong>
+      </td>
+
+      <td>{req.requester?.full_name || "System"}</td>
+
+      <td className="dashboard-actions">
+        <button
+          className="btn btn-primary"
+          disabled={processingId === req.id}
+          onClick={() => approve(req.id)}
+        >
+          Approve
+        </button>
+
+        <button
+          className="btn btn-secondary"
+          disabled={processingId === req.id}
+          onClick={() => reject(req.id)}
+        >
+          Reject
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
         </table>
       )}
     </div>
