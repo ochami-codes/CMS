@@ -99,7 +99,7 @@ function App() {
                 <Route
                   path="/dashboard/pastor"
                   element={
-                    <RequirePermission permission="manage_departments">
+                    <RequirePermission permission="access_pastor_dashboard">
                       <PastorDashboard />
                     </RequirePermission>
                   }
@@ -125,7 +125,7 @@ function App() {
                 <Route
                   path="/dashboard/admin"
                   element={
-                    <RequirePermission role={"Admin", "Pastor"}>
+                    <RequirePermission role="Admin">
                       <AdminDashboard />
                     </RequirePermission>
                   }
@@ -134,7 +134,7 @@ function App() {
                 <Route
                   path="/manage-roles"
                   element={
-                    <RequirePermission role={"Admin", "Pastor"}>
+                    <RequirePermission role="Admin">
                       <ManageRoles />
                     </RequirePermission>
                   }

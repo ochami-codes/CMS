@@ -14,10 +14,8 @@ export const ROLE_PERMISSIONS = {
   ],
 
   Pastor: [
-    "access_admin_dashboard",
+    "access_pastor_dashboard",
     "view_members",
-    "edit_members",
-    "manage_departments",
     "manage_announcements",
   ],
 

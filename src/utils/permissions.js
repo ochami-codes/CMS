@@ -1,7 +1,7 @@
 // src/utils/permissions.js
 import { ROLE_PERMISSIONS } from "../config/roles";
 
-const ADMIN_LIKE_ROLES = ["Admin", "Pastor"];
+const ADMIN_LIKE_ROLES = ["Admin"];
 
 export function canUser(role, permission) {
   if (!role) return false;
