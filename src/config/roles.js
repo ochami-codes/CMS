@@ -15,7 +15,6 @@ export const ROLE_PERMISSIONS = {
 
   Pastor: [
     "access_pastor_dashboard",
-    "view_members",
     "manage_announcements",
   ],
 
@@ -27,13 +26,11 @@ export const ROLE_PERMISSIONS = {
 
   Youth_leader: [
     "access_youth_dashboard",
-    "view_members",
     "manage_youth",
   ],
 
   Children_leader: [
     "access_children_dashboard",
-    "view_members",
     "manage_children",
   ],
 
