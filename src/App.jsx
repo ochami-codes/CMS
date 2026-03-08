@@ -72,7 +72,7 @@ function App() {
                 <Route
                   path="/dashboard/youth"
                   element={
-                    <RequirePermission permission="manage_youth">
+                    <RequirePermission permission="access_youth_dashboard">
                       <YouthDashboard />
                     </RequirePermission>
                   }
@@ -81,7 +81,7 @@ function App() {
                 <Route
                   path="/dashboard/children"
                   element={
-                    <RequirePermission permission="manage_children">
+                    <RequirePermission permission="access_children_dashboard">
                       <ChildrenDashboard />
                     </RequirePermission>
                   }
@@ -90,7 +90,7 @@ function App() {
                 <Route
                   path="/dashboard/treasury"
                   element={
-                    <RequirePermission permission="view_finances">
+                    <RequirePermission permission="access_treasury_dashboard">
                       <TreasuryDashboard />
                     </RequirePermission>
                   }
@@ -108,7 +108,7 @@ function App() {
                 <Route
                   path="/dashboard/communication"
                   element={
-                    <RequirePermission permission="manage_announcements">
+                    <RequirePermission permission="access_media_dashboard">
                       <CommunicationDashboard />
                     </RequirePermission>
                   }
@@ -125,7 +125,7 @@ function App() {
                 <Route
                   path="/dashboard/admin"
                   element={
-                    <RequirePermission role="Admin">
+                    <RequirePermission permission="access_admin_dashboard">
                       <AdminDashboard />
                     </RequirePermission>
                   }
@@ -134,7 +134,7 @@ function App() {
                 <Route
                   path="/manage-roles"
                   element={
-                    <RequirePermission role="Admin">
+                    <RequirePermission permission="access_admin_dashboard">
                       <ManageRoles />
                     </RequirePermission>
                   }

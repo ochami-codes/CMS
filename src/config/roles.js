@@ -3,25 +3,20 @@
 export const ROLE_PERMISSIONS = {
   Admin: [
     "access_admin_dashboard",
-    "manage_users",
-    "view_members",
-    "edit_members",
-    "view_finances",
-    "edit_finances",
-    "manage_departments",
-    "manage_announcements",
-    "manage_media",
+    "access_pastor_dashboard",
+    "access_youth_dashboard",
+    "access_children_dashboard",
+    "access_treasury_dashboard",
+    "access_media_dashboard",
   ],
 
   Pastor: [
     "access_pastor_dashboard",
-    "manage_announcements",
+    "access_media_dashboard",
   ],
 
   Treasurer: [
     "access_treasury_dashboard",
-    "view_finances",
-    "edit_finances",
   ],
 
   Youth_leader: [
@@ -36,8 +31,6 @@ export const ROLE_PERMISSIONS = {
 
   Communication_leader: [
     "access_media_dashboard",
-    "manage_announcements",
-    "manage_media",
   ],
 
   Member: [

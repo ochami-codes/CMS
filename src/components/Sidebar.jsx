@@ -18,12 +18,12 @@ import {
 
 const SIDEBAR_ITEMS = [
   { label: "Home", path: "/dashboard", icon: LayoutDashboard, permission: null },
-  { label: "Youth", path: "/dashboard/youth", icon: Users, permission: "manage_youth" },
-  { label: "Children", path: "/dashboard/children", icon: Baby, permission: "manage_children" },
-  { label: "Treasury", path: "/dashboard/treasury", icon: Wallet, permission: "view_finances" },
-  { label: "Pastor", path: "/dashboard/pastor", icon: Church, permission: "manage_departments" },
-  { label: "Communication", path: "/dashboard/communication", icon: Megaphone, permission: "manage_announcements" },
-  { label: "Admin", path: "/dashboard/admin", icon: Shield, permission: "manage_users" },
+  { label: "Youth", path: "/dashboard/youth", icon: Users, permission: "access_youth_dashboard" },
+  { label: "Children", path: "/dashboard/children", icon: Baby, permission: "access_children_dashboard" },
+  { label: "Treasury", path: "/dashboard/treasury", icon: Wallet, permission: "access_treasury_dashboard" },
+  { label: "Pastor", path: "/dashboard/pastor", icon: Church, permission: "access_pastor_dashboard" },
+  { label: "Communication", path: "/dashboard/communication", icon: Megaphone, permission: "access_media_dashboard" },
+  { label: "Admin", path: "/dashboard/admin", icon: Shield, permission: "access_admin_dashboard" },
   { label: "Profile", path: "/dashboard/profiles", icon: User, permission: null },
 ];
 
