@@ -34,7 +34,6 @@ import MyRoleRequests from "./components/members/MyRoleRequests";
 
 // Admin
 import AdminDashboard from "./components/admin/AdminDashboard";
-import InviteUser from "./auth/InviteUser";
 import ManageRoles from "./components/admin/ManageRoles";
 
 function App() {
@@ -126,17 +125,8 @@ function App() {
                 <Route
                   path="/dashboard/admin"
                   element={
-                    <RequirePermission role="Admin">
+                    <RequirePermission role={"Admin", "Pastor"}>
                       <AdminDashboard />
-                    </RequirePermission>
-                  }
-                />
-
-                <Route
-                  path="/invite-user"
-                  element={
-                    <RequirePermission role="Admin">
-                      <InviteUser />
                     </RequirePermission>
                   }
                 />
@@ -144,7 +134,7 @@ function App() {
                 <Route
                   path="/manage-roles"
                   element={
-                    <RequirePermission role="Admin">
+                    <RequirePermission role={"Admin", "Pastor"}>
                       <ManageRoles />
                     </RequirePermission>
                   }
