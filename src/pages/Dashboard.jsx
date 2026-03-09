@@ -160,16 +160,19 @@ const showQuickLinks = quickLinkPermissions.some(p => canUser(role, p));
 
 if (myBirthdayData?.birthday?.birthday) {
   const dob = new Date(myBirthdayData.birthday.birthday);
+
   if (!isNaN(dob)) {
     const today = new Date();
+
     let nextBirthday = new Date(
       today.getFullYear(),
       dob.getMonth(),
       dob.getDate()
     );
 
-    if (nextBirthday < today)
+    if (nextBirthday < today) {
       nextBirthday.setFullYear(today.getFullYear() + 1);
+    }
 
     setBirthday({
       birthday: myBirthdayData.birthday.birthday,
@@ -178,20 +181,23 @@ if (myBirthdayData?.birthday?.birthday) {
         (nextBirthday - today) / (1000 * 60 * 60 * 24)
       ),
     });
+  } else {
+    setBirthday(null);
   }
 } else {
   setBirthday(null);
-}   
-finally {
-        alive && setLoading(false);
-      }
-    };
+}
 
-    fetchDashboard();
-    return () => (alive = false);
-  }, [user, churchId, isGuest]);
+} finally {
+  if (alive) setLoading(false);
+}
+};
 
- 
+fetchDashboard();
+return () => {
+  alive = false;
+};
+}, [user, churchId, isGuest]); 
   /* ================= UI ================= */
 
   return (
