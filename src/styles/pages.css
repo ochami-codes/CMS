@@ -705,12 +705,13 @@
 }
 @media (max-width: 768px) {
   .dropdown-container {
-    right: 10px;
-    left: 10px;
+    position: fixed;       
+    top: 60px;
+    left: 12px;
+    right: 12px;
     width: auto;
-    max-width: calc(100vw - 20px);
-    padding: 12px;
-    transform: none;
+    max-width: none;
+    padding: 0;
   }
 }
 .btn-spinner {
@@ -808,4 +809,13 @@
 .reject-btn {
   background: #ef4444;
   color: white;
+}
+@media (max-width: 768px) {
+
+  .notification-card {
+    width: 100%;
+    max-height: 65vh;
+    border-radius: 12px;
+  }
+
 }
