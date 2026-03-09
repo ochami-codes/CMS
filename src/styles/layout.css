@@ -391,11 +391,23 @@ a {
 /* ---------------- DESKTOP SIDEBAR ---------------- */
 @media (min-width: 769px) {
   .sidebar {
-    transform: translateX(0);
+    transform: none;
+    position: fixed;
+    width: 250px;
   }
 
   .dashboard-content {
     margin-left: 250px;
+  }
+}
+@media (min-width: 769px) {
+  .close-btn {
+    display: none;
+  }
+}
+@media (min-width: 769px) {
+  .sidebar-overlay {
+    display: none;
   }
 }
 /* ==========================
