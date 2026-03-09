@@ -2,35 +2,28 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import { useToast } from "../../../components/ToastProvider";
 import { ProfileAPI, AuthAPI } from "../../../utils/api";
 import ProfileForm from "./ProfileForm";
 import SummaryChart from "./SummaryChart";
 import { User, Mail, Phone, Edit3, Lock } from "lucide-react";
 
-/* =========================
-Message Component
-========================= */
-const Message = ({ type = "success", children }) => (
-
-  <div className={`card ${type === "success" ? "message-success" : "message-error"}`}>  
-    <p>{children}</p>  
-  </div>  
-);  /* =========================
+  /* =========================
 useProfile Hook
 ========================= */
 const useProfile = () => {
-const navigate = useNavigate();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
 
-const [profile, setProfile] = useState(null);
-const [contributions, setContributions] = useState(null);
-const [loading, setLoading] = useState(true);
-const [message, setMessage] = useState("");
+  const [profile, setProfile] = useState(null);
+  const [contributions, setContributions] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-const [showChangePw, setShowChangePw] = useState(false);
-const [newPassword, setNewPassword] = useState("");
-const [confirmPassword, setConfirmPassword] = useState("");
-const [pwLoading, setPwLoading] = useState(false);
-const [pwError, setPwError] = useState("");
+  const [showChangePw, setShowChangePw] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState("");
 const { user } = useAuth();
 const isGuest = user?.role_name === "Guest";
 const normalizeContributions = (list = []) => {
@@ -69,7 +62,7 @@ setContributions(
 res?.contributions ? normalizeContributions(res.contributions) : null
 );
 } catch (err) {
-setMessage(err?.message || "Failed to load profile");
+showToast(err?.message || "Failed to load profile", "error");
 } finally {
 setLoading(false);
 }
@@ -81,9 +74,9 @@ setLoading(true);
 setMessage("");
 await ProfileAPI.update(updates);
 setProfile((prev) => ({ ...prev, ...updates }));
-setMessage("Profile updated successfully");
+showToast("Profile updated successfully", "success");
 } catch (err) {
-setMessage(err?.message || "Profile update failed");
+showToast(err?.message || "Profile update failed", "error");
 } finally {
 setLoading(false);
 }
@@ -94,13 +87,16 @@ e.preventDefault();
 setPwError("");
 
 if (!newPassword || !confirmPassword) {  
-  return setPwError("Both fields are required");  
+  showToast("Both fields are required", "error");
+return;
 }  
 if (newPassword !== confirmPassword) {  
-  return setPwError("Passwords do not match");  
+  showToast("Passwords do not match", "error");
+return;  
 }  
 if (newPassword.length < 6) {  
-  return setPwError("Password must be at least 6 characters");  
+  showToast("Password must be at least 6 characters", "error");
+return;  
 }  
 
 try {  
@@ -108,7 +104,7 @@ try {
   await AuthAPI.changePassword({ newPassword });  
   navigate("/profile/change-password-success", { state: { fromProfile: true } });  
 } catch (err) {  
-  setPwError(err?.message || "Failed to update password");  
+  showToast(err?.message || "Failed to update password", "error");  
 } finally {  
   setPwLoading(false);  
 }
@@ -232,15 +228,6 @@ return (
       <Edit3 /> Update Profile  
     </h2>  
     <p className="text-muted">Update your personal details below.</p>  
-
-    {message && (  
-      <Message  
-        type={message.toLowerCase().includes("success") ? "success" : "error"}  
-      >  
-        {message}  
-      </Message>  
-    )}  
-
     <ProfileForm profile={profile} onUpdate={updateProfile} loading={loading} />  
   </section>  
 

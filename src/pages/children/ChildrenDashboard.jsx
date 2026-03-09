@@ -1,25 +1,27 @@
 // src/pages/departments/ChildrenDashboard.jsx
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 import ChildrenList from "../../components/children/ChildrenList";
 import { ChildrenAPI } from "../../utils/api";
 import "../../styles/pages.css";
 import RequirePermission from "../../components/RequirePermission";
 
 export default function ChildrenDashboard() {
+  const { showToast } = useToast();
+
   const [children, setChildren] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshToggle, setRefreshToggle] = useState(false);
 
-  // Fetch children from API
   const loadChildren = async () => {
     setLoading(true);
+
     try {
       const data = await ChildrenAPI.fetchAll();
       setChildren(data || []);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to load children");
+      showToast("Failed to load children", "error");
       setChildren([]);
     } finally {
       setLoading(false);
@@ -30,7 +32,10 @@ export default function ChildrenDashboard() {
     loadChildren();
   }, [refreshToggle]);
 
-  const refreshChildren = () => setRefreshToggle((prev) => !prev);
+  const refreshChildren = () => {
+    setRefreshToggle((prev) => !prev);
+    showToast("Children list refreshed", "success");
+  };
 
   return (
     <RequirePermission permission="manage_children">

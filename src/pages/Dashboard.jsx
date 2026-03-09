@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { canUser } from "../utils/permissions";
 import Loader from "../components/Loader";
 import "../styles/pages.css";
 
@@ -84,7 +85,14 @@ export default function Dashboard() {
   const isMember = user?.is_member === true;
   const isGuest = user?.role_name === "Guest";
   const churchId = user?.church_id;
+  const role = user?.role_name;
+  const quickLinkPermissions = [
+  "access_treasury_dashboard",
+  "manage_youth",
+  "access_admin_dashboard",
+];
 
+const showQuickLinks = quickLinkPermissions.some(p => canUser(role, p));
   /* ================= GREETING ================= */
 
   const greeting = useMemo(() => {
@@ -277,53 +285,42 @@ export default function Dashboard() {
       {!isGuest && (
         <>
           {/* QUICK LINKS */}
-          <section className="dashboard-section">
-            <div className="dashboard-section-header">
-              <Coffee size={18} /> Quick Links
-            </div>
-            <div className="dashboard-actions">
-              {hasRole(user.role_name, ["Treasurer", "Admin", "Pastor"]) && (
-                <Link
-                  to="/dashboard/treasury"
-                  className="dashboard-action-card"
-                >
-                  <h3>
-                    <Coffee size={18} /> Treasury
-                  </h3>
-                  <p>Church finances</p>
-                </Link>
-              )}
+         {showQuickLinks && (
+  <section className="dashboard-section">
+    <div className="dashboard-section-header">
+      <Coffee size={18} /> Quick Links
+    </div>
 
-              {hasRole(user.role_name, [
-                "Youth_leader",
-                "Admin",
-                "Pastor",
-              ]) && (
-                <Link
-                  to="/dashboard/youth"
-                  className="dashboard-action-card"
-                >
-                  <h3>
-                    <Users size={18} /> Youth Ministry
-                  </h3>
-                  <p>Activities & attendance</p>
-                </Link>
-              )}
+    <div className="dashboard-actions">
+      {canUser(role, "access_treasury_dashboard") && (
+        <Link to="/dashboard/treasury" className="dashboard-action-card">
+          <h3>
+            <Coffee size={18} /> Treasury
+          </h3>
+          <p>Church finances</p>
+        </Link>
+      )}
 
-              {isAdmin(user.role_name) && (
-                <Link
-                  to="/dashboard/admin"
-                  className="dashboard-action-card"
-                >
-                  <h3>
-                    <UserPlus size={18} /> Administration
-                  </h3>
-                  <p>Members & roles</p>
-                </Link>
-              )}
-            </div>
-          </section>
+      {canUser(role, "manage_youth") && (
+        <Link to="/dashboard/youth" className="dashboard-action-card">
+          <h3>
+            <Users size={18} /> Youth Ministry
+          </h3>
+          <p>Activities & attendance</p>
+        </Link>
+      )}
 
+      {canUser(role, "access_admin_dashboard") && (
+        <Link to="/dashboard/admin" className="dashboard-action-card">
+          <h3>
+            <UserPlus size={18} /> Administration
+          </h3>
+          <p>Members & roles</p>
+        </Link>
+      )}
+    </div>
+  </section>
+)}
           {/* ANNOUNCEMENTS */}
           <section className="dashboard-section">
             <div className="dashboard-section-header">

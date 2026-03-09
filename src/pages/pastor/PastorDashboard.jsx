@@ -1,22 +1,25 @@
 // src/pages/pastor/PastorDashboard.jsx
 import { useEffect, useState } from "react";
+import { useToast } from "../../components/ToastProvider";
 import "../../styles/pages.css";
 import { OverviewAPI } from "../../utils/api";
-import toast from "react-hot-toast";
 
 export default function PastorDashboard() {
+  const { showToast } = useToast();
+
   const [overview, setOverview] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // Load overview using OverviewAPI
+  /* ---------------- Load overview ---------------- */
   const loadOverview = async () => {
     setLoading(true);
+
     try {
       const data = await OverviewAPI.fetchPastorOverview();
       setOverview(data ?? {});
     } catch (err) {
       console.error("Pastor dashboard load error:", err);
-      toast.error(err.message || "Failed to load dashboard");
+      showToast(err.message || "Failed to load dashboard", "error", 4000);
       setOverview({});
     } finally {
       setLoading(false);
@@ -69,6 +72,7 @@ export default function PastorDashboard() {
           <p>Generate overall church reports and attendance summaries.</p>
         </div>
       </div>
+
     </div>
   );
 }

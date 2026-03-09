@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { AdminAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../components/ToastProvider";
 import { Check, X, RefreshCw } from "lucide-react";
 import "../../styles/pages.css";
 
@@ -16,6 +17,7 @@ const ROLES = [
 
 export default function ManageRoles() {
   const { user, setUser, loading: authLoading } = useAuth();
+  const { showToast } = useToast();
 
   const [members, setMembers] = useState([]);
   const [roleRequests, setRoleRequests] = useState([]);
@@ -42,10 +44,12 @@ export default function ManageRoles() {
           selectedRole: m.role_name,
         }))
       );
+    } catch (err) {
+      showToast("Failed to load members", "error");
     } finally {
       setLoadingMembers(false);
     }
-  }, [user?.church_id, search]);
+  }, [user?.church_id, search, showToast]);
 
   /* ------------------ Fetch Role Requests ------------------ */
   const fetchRoleRequests = useCallback(async () => {
@@ -55,12 +59,14 @@ export default function ManageRoles() {
     try {
       const data = await AdminAPI.fetchRoleRequests();
       setRoleRequests(data.requests ?? []);
+    } catch (err) {
+      showToast("Failed to load role requests", "error");
     } finally {
       setLoadingRoleRequests(false);
     }
-  }, [user?.church_id]);
+  }, [user?.church_id, showToast]);
 
-  /* ------------------ Initial Load (No Polling) ------------------ */
+  /* ------------------ Initial Load ------------------ */
   useEffect(() => {
     if (!authLoading && user?.church_id) {
       fetchMembers();
@@ -77,7 +83,6 @@ export default function ManageRoles() {
     try {
       await AdminAPI.updateMemberRole(member.id, member.selectedRole);
 
-      // Optimistic update
       setMembers((prev) =>
         prev.map((m) =>
           m.id === member.id
@@ -86,11 +91,13 @@ export default function ManageRoles() {
         )
       );
 
-      // If admin updates own role
       if (member.id === user.id) {
         setUser((u) => ({ ...u, role_name: member.selectedRole }));
       }
 
+      showToast("Role updated successfully");
+    } catch (err) {
+      showToast("Failed to update role", "error");
     } finally {
       setProcessingId(null);
     }
@@ -107,13 +114,15 @@ export default function ManageRoles() {
         ? await AdminAPI.deactivateMember(id)
         : await AdminAPI.activateMember(id);
 
-      // Optimistic update
       setMembers((prev) =>
         prev.map((m) =>
           m.id === id ? { ...m, active: !active } : m
         )
       );
 
+      showToast(active ? "Member deactivated" : "Member activated");
+    } catch (err) {
+      showToast("Action failed", "error");
     } finally {
       setProcessingId(null);
     }
@@ -126,14 +135,15 @@ export default function ManageRoles() {
     try {
       await AdminAPI.approveRoleRequest(id);
 
-      // Remove from pending list instantly
       setRoleRequests((prev) =>
         prev.filter((r) => r.id !== id)
       );
 
-      // Update member role without refetch
       await fetchMembers();
 
+      showToast("Role request approved");
+    } catch (err) {
+      showToast("Failed to approve request", "error");
     } finally {
       setRequestProcessingId(null);
     }
@@ -145,11 +155,13 @@ export default function ManageRoles() {
     try {
       await AdminAPI.rejectRoleRequest(id);
 
-      // Remove from pending list instantly
       setRoleRequests((prev) =>
         prev.filter((r) => r.id !== id)
       );
 
+      showToast("Role request rejected");
+    } catch (err) {
+      showToast("Failed to reject request", "error");
     } finally {
       setRequestProcessingId(null);
     }
@@ -205,6 +217,7 @@ export default function ManageRoles() {
                     <td>{m.department || "-"}</td>
                     <td>{m.active ? "Active" : "Inactive"}</td>
                     <td>{m.role_name}</td>
+
                     <td>
                       <select
                         value={m.selectedRole}
@@ -224,6 +237,7 @@ export default function ManageRoles() {
                         ))}
                       </select>
                     </td>
+
                     <td className="dashboard-actions">
                       <button
                         className="btn btn-warning action-btn"

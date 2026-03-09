@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { AdminAPI } from "../../utils/api";
+import { useToast } from "../../components/ToastProvider";
 import Loader from "../../components/Loader";
 import "../../styles/pages.css";
 
 export default function NonMembers() {
+  const { showToast } = useToast();
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
 
+  /* ------------------ Load Non-Members ------------------ */
   const loadNonMembers = async () => {
     try {
       setLoading(true);
@@ -15,6 +19,7 @@ export default function NonMembers() {
       setData(res.non_members || []);
     } catch (err) {
       console.error("Failed to load non-members:", err);
+      showToast("Failed to load non-members", "error");
     } finally {
       setLoading(false);
     }
@@ -24,50 +29,32 @@ export default function NonMembers() {
     loadNonMembers();
   }, []);
 
+  /* ------------------ Invite Action ------------------ */
   const handleInvite = async (profile_id) => {
     setActionLoading((prev) => ({ ...prev, [profile_id]: true }));
 
     try {
       await AdminAPI.sendInvite(profile_id);
+      showToast("Invite sent successfully");
       await loadNonMembers();
     } catch (err) {
-      alert(err.message || "Failed to send invite");
+      console.error("Failed to send invite:", err);
+      showToast(err.message || "Failed to send invite", "error");
     } finally {
       setActionLoading((prev) => ({ ...prev, [profile_id]: false }));
     }
   };
 
-  if (loading) return <Loader message="Loading non-members…" />;
-
-  if (!data.length) {
-    return (
-      <div className="page-card">
-        <h3 className="card-title">Non-Members</h3>
-        <p className="text-muted">No non-members found 🎉</p>
-      </div>
-    );
-  }
-
+  /* ------------------ Render Action Cell ------------------ */
   const renderActionCell = (p) => {
-    // User already requested membership
     if (p.source === "user_request" && p.status === "requested") {
-      return (
-        <span className="status-label status-warning">
-          Request Pending
-        </span>
-      );
+      return <span className="status-label status-warning">Request Pending</span>;
     }
 
-    // Admin already invited
     if (p.source === "admin_invite" && p.status === "invited") {
-      return (
-        <span className="status-label status-info">
-          Invite Sent
-        </span>
-      );
+      return <span className="status-label status-info">Invite Sent</span>;
     }
 
-    // Otherwise allow invite
     return (
       <button
         className="btn btn-primary btn-role-request"
@@ -79,6 +66,19 @@ export default function NonMembers() {
     );
   };
 
+  /* ------------------ Loading & Empty States ------------------ */
+  if (loading) return <Loader message="Loading non-members…" />;
+
+  if (!data.length) {
+    return (
+      <div className="page-card">
+        <h3 className="card-title">Non-Members</h3>
+        <p className="text-muted">No non-members found 🎉</p>
+      </div>
+    );
+  }
+
+  /* ------------------ Main Table ------------------ */
   return (
     <div className="page-container">
       <div className="page-card">

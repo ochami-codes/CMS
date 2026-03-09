@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { AdminAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
-import toast from "react-hot-toast"; // optional toast notifications
+import { useToast } from "../../components/ToastProvider";
 import "../../styles/pages.css";
 
 export default function RoleRequests() {
-  const { user, loading: authLoading } = useAuth(); // updated
+  const { user, loading: authLoading } = useAuth();
+  const { showToast } = useToast();
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,26 +27,28 @@ export default function RoleRequests() {
       console.error("Failed to fetch role requests:", err);
       setRequests([]);
       setError(err.message || "Failed to load role requests");
+      showToast(err.message || "Failed to load role requests", "error");
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user?.church_id, showToast]);
 
-useEffect(() => {
-  if (!authLoading && user?.church_id) {
-    fetchRequests();
-  }
-}, [authLoading, user?.church_id, fetchRequests]);
+  useEffect(() => {
+    if (!authLoading && user?.church_id) {
+      fetchRequests();
+    }
+  }, [authLoading, user?.church_id, fetchRequests]);
+
   /* ------------------ Actions ------------------ */
   const approve = async (id) => {
     setProcessingId(id);
     try {
       await AdminAPI.approveRoleRequest(id);
       setRequests((prev) => prev.filter((r) => r.id !== id));
-      toast.success("Request approved");
+      showToast("Request approved");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to approve request");
+      showToast("Failed to approve request", "error");
     } finally {
       setProcessingId(null);
     }
@@ -56,10 +59,10 @@ useEffect(() => {
     try {
       await AdminAPI.rejectRoleRequest(id);
       setRequests((prev) => prev.filter((r) => r.id !== id));
-      toast.success("Request rejected");
+      showToast("Request rejected");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to reject request");
+      showToast("Failed to reject request", "error");
     } finally {
       setProcessingId(null);
     }
@@ -75,6 +78,7 @@ useEffect(() => {
   if (loading)
     return <div className="dashboard-content">Loading role requests…</div>;
 
+  /* ------------------ Main Table ------------------ */
   return (
     <div className="card">
       <h2 className="card-title">Role Change Requests</h2>
@@ -95,39 +99,35 @@ useEffect(() => {
             </tr>
           </thead>
 
-<tbody>
-  {requests.map((req) => (
-    <tr key={req.id}>
-      <td>{req.target_user?.full_name || "—"}</td>
+          <tbody>
+            {requests.map((req) => (
+              <tr key={req.id}>
+                <td>{req.target_user?.full_name || "—"}</td>
+                <td>{req.target_user?.role || "—"}</td>
+                <td>
+                  <strong>{req.requested_role}</strong>
+                </td>
+                <td>{req.requester?.full_name || "System"}</td>
+                <td className="dashboard-actions">
+                  <button
+                    className="btn btn-primary"
+                    disabled={processingId === req.id}
+                    onClick={() => approve(req.id)}
+                  >
+                    Approve
+                  </button>
 
-      <td>{req.target_user?.role || "—"}</td>
-
-      <td>
-        <strong>{req.requested_role}</strong>
-      </td>
-
-      <td>{req.requester?.full_name || "System"}</td>
-
-      <td className="dashboard-actions">
-        <button
-          className="btn btn-primary"
-          disabled={processingId === req.id}
-          onClick={() => approve(req.id)}
-        >
-          Approve
-        </button>
-
-        <button
-          className="btn btn-secondary"
-          disabled={processingId === req.id}
-          onClick={() => reject(req.id)}
-        >
-          Reject
-        </button>
-      </td>
-    </tr>
-  ))}
-</tbody>
+                  <button
+                    className="btn btn-secondary"
+                    disabled={processingId === req.id}
+                    onClick={() => reject(req.id)}
+                  >
+                    Reject
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       )}
     </div>

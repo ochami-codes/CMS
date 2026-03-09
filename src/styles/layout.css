@@ -388,6 +388,16 @@ a {
     width: 220px;
   }
 }
+/* ---------------- DESKTOP SIDEBAR ---------------- */
+@media (min-width: 769px) {
+  .sidebar {
+    transform: translateX(0);
+  }
+
+  .dashboard-content {
+    margin-left: 250px;
+  }
+}
 /* ==========================
    TOAST
 ========================== */

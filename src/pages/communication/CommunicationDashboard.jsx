@@ -1,15 +1,17 @@
 // src/pages/communication/CommunicationDashboard.jsx
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../components/ToastProvider";
 import { AnnouncementsAPI } from "../../utils/api";
 import RequirePermission from "../../components/RequirePermission";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
-import toast from "react-hot-toast";
 import "../../styles/pages.css";
 
 export default function CommunicationDashboard() {
-  const { user } = useAuth(); // use normalized user
+  const { user } = useAuth();
+  const { showToast } = useToast();
+
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +28,8 @@ export default function CommunicationDashboard() {
       const data = await AnnouncementsAPI.fetch(user.church_id, 20);
       setAnnouncements(data || []);
     } catch (err) {
-      toast.error(err.message || "Failed to load announcements");
+      console.error(err);
+      showToast(err.message || "Failed to load announcements", "error", 4000);
     } finally {
       setLoading(false);
     }
@@ -41,24 +44,28 @@ export default function CommunicationDashboard() {
     e.preventDefault();
 
     if (!title.trim() || !message.trim()) {
-      toast.error("Title and message are required");
+      showToast("Title and message are required", "error");
       return;
     }
 
     try {
       setSubmitting(true);
+
       await AnnouncementsAPI.create({
         title,
         message,
         churchId: user.church_id,
       });
 
-      toast.success("Announcement added");
+      showToast("Announcement added", "success");
+
       setTitle("");
       setMessage("");
       loadAnnouncements();
+
     } catch (err) {
-      toast.error(err.message || "Failed to add announcement");
+      console.error(err);
+      showToast(err.message || "Failed to add announcement", "error");
     } finally {
       setSubmitting(false);
     }
@@ -70,10 +77,16 @@ export default function CommunicationDashboard() {
 
     try {
       await AnnouncementsAPI.remove(id);
-      toast.success("Announcement deleted");
-      setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+
+      showToast("Announcement deleted", "success");
+
+      setAnnouncements((prev) =>
+        prev.filter((a) => a.id !== id)
+      );
+
     } catch (err) {
-      toast.error(err.message || "Failed to delete announcement");
+      console.error(err);
+      showToast(err.message || "Failed to delete announcement", "error");
     }
   };
 
@@ -97,18 +110,21 @@ export default function CommunicationDashboard() {
         {/* Add Announcement */}
         <section className="page-card">
           <h2 className="card-title">Add Announcement</h2>
+
           <form onSubmit={handleAdd} className="form-stack">
             <Input
               label="Title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
+
             <Input
               label="Message"
               textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
+
             <Button type="submit" disabled={submitting}>
               {submitting ? "Saving…" : "Add"}
             </Button>
@@ -131,10 +147,12 @@ export default function CommunicationDashboard() {
                   <div>
                     <strong>{a.title}</strong>
                     <p>{a.message}</p>
+
                     <small className="text-muted">
                       {new Date(a.created_at).toLocaleString()}
                     </small>
                   </div>
+
                   <Button
                     type="button"
                     className="btn-danger"

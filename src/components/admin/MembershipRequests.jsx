@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { AdminMembershipAPI } from "../../utils/api";
+import { useToast } from "../../components/ToastProvider";
 import Loader from "../../components/Loader";
 import "../../styles/pages.css";
 
 export default function MembershipRequests() {
+  const { showToast } = useToast();
+
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
@@ -15,6 +18,7 @@ export default function MembershipRequests() {
       setRequests(res.requests || []);
     } catch (err) {
       console.error("Failed to load membership requests:", err);
+      showToast("Failed to load membership requests", "error");
     } finally {
       setLoading(false);
     }
@@ -30,13 +34,16 @@ export default function MembershipRequests() {
     try {
       if (action === "approve") {
         await AdminMembershipAPI.approve(id);
+        showToast("Membership approved");
       } else if (action === "reject") {
         await AdminMembershipAPI.reject(id);
+        showToast("Membership request rejected");
       }
 
       await loadRequests();
     } catch (err) {
-      alert(err.message || "Action failed");
+      console.error("Membership action failed:", err);
+      showToast(err.message || "Action failed", "error");
     } finally {
       setActionLoading((prev) => ({ ...prev, [id]: false }));
     }
@@ -76,7 +83,7 @@ export default function MembershipRequests() {
       default:
         return (
           <span className="status-label">
-            {membership_status}
+            {status}
           </span>
         );
     }

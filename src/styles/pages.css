@@ -703,8 +703,11 @@
 }
 @media (max-width: 480px) {
   .dropdown-container {
-    right: 50%;
-    transform: translateX(50%);
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+    transform: none;
   }
 }
 .btn-spinner {
@@ -731,7 +734,7 @@
   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
   border: 1px solid #e5e7eb;
   overflow: hidden;
-  max-height: 70vh;
+  max-height: 75vh;
   overflow-y: auto;
 }
 
