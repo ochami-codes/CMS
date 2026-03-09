@@ -158,28 +158,31 @@ const showQuickLinks = quickLinkPermissions.some(p => canUser(role, p));
           return;
         }
 
-        if (myBirthdayData?.birthday?.date) {
-          const dob = new Date(myBirthdayData.birthday.date);
-          if (!isNaN(dob)) {
-            const today = new Date();
-            let nextBirthday = new Date(
-              today.getFullYear(),
-              dob.getMonth(),
-              dob.getDate()
-            );
-            if (nextBirthday < today)
-              nextBirthday.setFullYear(today.getFullYear() + 1);
+if (myBirthdayData?.birthday?.birthday) {
+  const dob = new Date(myBirthdayData.birthday.birthday);
+  if (!isNaN(dob)) {
+    const today = new Date();
+    let nextBirthday = new Date(
+      today.getFullYear(),
+      dob.getMonth(),
+      dob.getDate()
+    );
 
-            setBirthday({
-              birthday: myBirthdayData.birthday.date,
-              isBirthday: myBirthdayData.isBirthday,
-              daysLeft: Math.ceil(
-                (nextBirthday - today) / (1000 * 60 * 60 * 24)
-              ),
-            });
-          }
-        } else setBirthday(null);
-      } finally {
+    if (nextBirthday < today)
+      nextBirthday.setFullYear(today.getFullYear() + 1);
+
+    setBirthday({
+      birthday: myBirthdayData.birthday.birthday,
+      isBirthday: myBirthdayData.isBirthday,
+      daysLeft: Math.ceil(
+        (nextBirthday - today) / (1000 * 60 * 60 * 24)
+      ),
+    });
+  }
+} else {
+  setBirthday(null);
+}   
+finally {
         alive && setLoading(false);
       }
     };
