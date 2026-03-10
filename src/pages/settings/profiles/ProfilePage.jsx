@@ -128,7 +128,6 @@ pwError,
 loadProfile,
 updateProfile,
 changePassword,
-setMessage,
 };
 };
 
