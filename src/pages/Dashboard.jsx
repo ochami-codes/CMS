@@ -27,6 +27,21 @@ import {
 } from "lucide-react";
 
 /* ================= HELPERS ================= */
+const getNextBirthday = (dob) => {
+  const today = new Date();
+
+  let next = new Date(
+    today.getFullYear(),
+    dob.getMonth(),
+    dob.getDate()
+  );
+
+  if (next < today) {
+    next.setFullYear(today.getFullYear() + 1);
+  }
+
+  return next;
+};
 
 const isSabbathNow = () => {
   const now = new Date();
@@ -48,9 +63,10 @@ const nextSabbathStart = () => {
   return start;
 };
 
-const timeDiff = (target) => {
-  const diff = target - new Date();
+const timeDiff = (target, now) => {
+  const diff = target - now;
   if (diff <= 0) return null;
+
   return {
     d: Math.floor(diff / (1000 * 60 * 60 * 24)),
     h: Math.floor(diff / (1000 * 60 * 60)) % 24,
@@ -80,7 +96,7 @@ export default function Dashboard() {
 
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
-  const [sabbathTimer, setSabbathTimer] = useState(null);
+  const [now, setNow] = useState(new Date());
 
   const isMember = user?.is_member === true;
   const isGuest = user?.role_name === "Guest";
@@ -104,18 +120,30 @@ const showQuickLinks = quickLinkPermissions.some(p => canUser(role, p));
     return `Good evening, ${name}!`;
   }, [user]);
 
-  /* ================= SABBATH TIMER ================= */
+// Dashboard Timer
+useEffect(() => {
+  const timer = setInterval(() => {
+    setNow(new Date());
+  }, 1000);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSabbathTimer(
-        isSabbathNow() ? null : timeDiff(nextSabbathStart())
-      );
-    }, 1000);
+  return () => clearInterval(timer);
+}, []);
 
-    return () => clearInterval(timer);
-  }, []);
+// Sabbath Timer
+const sabbathTimer = useMemo(() => {
+  if (isSabbathNow()) return null;
+  return timeDiff(nextSabbathStart(), now);
+}, [now]);
 
+// Birthday Timer
+const birthdayTimer = useMemo(() => {
+  if (!birthday?.birthday) return null;
+
+  const dob = new Date(birthday.birthday);
+  const nextBirthday = getNextBirthday(dob);
+
+  return timeDiff(nextBirthday, now);
+}, [birthday, now]);
   /* ================= DATA FETCH ================= */
 
   useEffect(() => {
@@ -377,21 +405,21 @@ return () => {
             <div className="card">
               <div className="birthdays-grid">
                 <div className="birthday-card my-birthday-card">
-                  {birthday ? (
-                    birthday.isBirthday ? (
-                      <>🎉 Happy Birthday, {user.full_name}! 🎉</>
-                    ) : (
-                      <>
-                        Your birthday is on{" "}
-                        {new Date(
-                          birthday.birthday
-                        ).toLocaleDateString()} –{" "}
-                        {birthday.daysLeft} days left
-                      </>
-                    )
-                  ) : (
-                    <p>Your birthday is not set yet.</p>
-                  )}
+                 {birthday ? (
+  birthday.isBirthday ? (
+    <>🎉 Happy Birthday, {user.full_name}! May God's face shine on you! 🎉</>
+  ) : birthdayTimer ? (
+    <>
+      Your birthday is on{" "}
+      {new Date(birthday.birthday).toLocaleDateString()} —{" "}
+      <strong>
+        {birthdayTimer.d}d {birthdayTimer.h}h {birthdayTimer.m}m {birthdayTimer.s}s
+      </strong>
+    </>
+  ) : null
+) : (
+  <p>Your birthday is not set yet.</p>
+)}
                 </div>
 
                 {todayBirthdays.map((b) => (
@@ -399,7 +427,7 @@ return () => {
                     key={b.id}
                     className="birthday-card birthday-today"
                   >
-                    🎉 {b.full_name}
+                    🎉 Let's celebrate {b.full_name}, it's their birthday!
                   </div>
                 ))}
 
