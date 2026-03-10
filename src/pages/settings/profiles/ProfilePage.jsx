@@ -55,7 +55,6 @@ return totals;
 const loadProfile = async () => {
 try {
 setLoading(true);
-setMessage("");
 const res = await ProfileAPI.get();
 setProfile(res?.profile || null);
 setContributions(
@@ -71,7 +70,6 @@ setLoading(false);
 const updateProfile = async (updates) => {
 try {
 setLoading(true);
-setMessage("");
 await ProfileAPI.update(updates);
 setProfile((prev) => ({ ...prev, ...updates }));
 showToast("Profile updated successfully", "success");
@@ -119,7 +117,6 @@ return {
 profile,
 contributions,
 loading,
-message,
 showChangePw,
 setShowChangePw,
 newPassword,
@@ -147,7 +144,6 @@ const {
 profile,
 contributions,
 loading,
-message,
 showChangePw,
 setShowChangePw,
 newPassword,
@@ -158,7 +154,6 @@ pwLoading,
 pwError,
 updateProfile,
 changePassword,
-setMessage,
 } = useProfile();
 
 if (loading || !profile) {
