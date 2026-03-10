@@ -410,11 +410,10 @@ return () => {
     <>🎉 Happy Birthday, {user.full_name}! May God's face shine on you! 🎉</>
   ) : birthdayTimer ? (
     <>
-      Your birthday is on{" "}
-      {new Date(birthday.birthday).toLocaleDateString()} —{" "}
+      Your birthday is in:
       <strong>
         {birthdayTimer.d}d {birthdayTimer.h}h {birthdayTimer.m}m {birthdayTimer.s}s
-      </strong>
+      </strong> May God keep you till then!
     </>
   ) : null
 ) : (
