@@ -819,3 +819,21 @@
   }
 
 }
+/* Add member dropdown */
+.search-dropdown {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-top: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+}
+
+.search-item {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.search-item:hover {
+  background: #f3f4f6;
+}

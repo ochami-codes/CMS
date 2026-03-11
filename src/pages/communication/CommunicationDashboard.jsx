@@ -98,7 +98,7 @@ export default function CommunicationDashboard() {
     );
 
   return (
-    <RequirePermission permission="manage_announcements">
+    <RequirePermission permission="access_media_dashboard">
       <main className="page-container space-y-6">
 
         {/* Page Header */}
