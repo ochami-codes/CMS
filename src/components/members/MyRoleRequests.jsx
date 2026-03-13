@@ -2,17 +2,7 @@ import { useState, useEffect } from "react";
 import { RoleRequestsAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/pages.css";
-
-const ROLES = [
-  "Admin",
-  "Pastor",
-  "Treasurer",
-  "Children_leader",
-  "Youth_leader",
-  "Communication_leader",
-  "Member",
-];
-
+import { ROLES, getRoleLabel } from "../../config/roles";
 export default function MyRoleRequests() {
   const { user } = useAuth(); // <- updated to new AuthContext
   const [requests, setRequests] = useState([]);
@@ -78,16 +68,18 @@ export default function MyRoleRequests() {
 
         <div className="form-group flex-row">
           <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="input flex-1"
-          >
-            {ROLES.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </select>
+  value={role}
+  onChange={(e) => setRole(e.target.value)}
+  className="input flex-1"
+>
+ {Object.entries(ROLES)
+  .filter(([key]) => key !== "Admin")
+  .map(([dbKey, roleData]) => (
+    <option key={dbKey} value={dbKey}>
+      {roleData.label}
+    </option>
+))}
+</select>
           <button
             onClick={submitRequest}
             disabled={submitting}
@@ -111,8 +103,8 @@ export default function MyRoleRequests() {
                 className="flex flex-col sm:flex-row sm:justify-between py-1"
               >
                 <span>
-                  {r.requested_role} – <strong>{r.role_request_status}</strong>
-                </span>
+  {getRoleLabel(r.requested_role)} – <strong>{r.role_request_status}</strong>
+</span>
                 <span className="text-gray-500 text-sm">
                   {r.role_requested_at
                     ? new Date(r.role_requested_at).toLocaleString()

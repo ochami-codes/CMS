@@ -143,6 +143,9 @@ export const AdminAPI = {
       body: JSON.stringify({ updates: { role_name: roleName } }),
     }),
 
+  searchProfiles: (query) =>
+    request(`/admin/members/profiles/search?q=${encodeURIComponent(query)}`),
+
   deactivateMember: (memberId) =>
     request(`/admin/users/${memberId}/deactivate`, { method: "POST" }),
 

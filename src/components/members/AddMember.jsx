@@ -1,7 +1,7 @@
 // src/components/members/AddMember.jsx
 import { useState, useMemo, useEffect } from "react";
 import { memberFields } from "../../utils/memberFields.js";
-import { MembersAPI } from "../../utils/api";
+import { MembersAPI, DepartmentsAPI, AdminAPI } from "../../utils/api";
 import { useToast } from "../ToastProvider";
 import "../../styles/pages.css";
 
@@ -50,7 +50,7 @@ useEffect(() => {
   const search = async () => {
     try {
       setSearching(true);
-      const res = await ProfilesAPI.search(query);
+      const res = await AdminAPI.searchProfiles(query);
       setResults(res ?? []);
     } catch (err) {
       console.error(err);
@@ -126,11 +126,23 @@ useEffect(() => {
   /* ---------------- UI ---------------- */
   return (
     <>
-      <h2 className="card-title">
-        Add Member
-        <span className="card-title-muted"> – {department}</span>
-      </h2>
+<h2 className="card-title">
+  Add Member
+  <span className="card-title-muted"> – {department}</span>
 
+  {dept?.type === "age" && (
+    <span className="badge badge-warning ml-2">Age Department</span>
+  )}
+
+  {dept?.type === "ministry" && (
+    <span className="badge badge-info ml-2">Ministry</span>
+  )}
+</h2>
+{dept?.type === "age" && (
+  <p className="card-subtitle text-warning">
+    A member can belong to only one age department (e.g. Youth OR Children).
+  </p>
+)}
       <p className="card-subtitle">
         Add a system user or register a non-system member.
       </p>

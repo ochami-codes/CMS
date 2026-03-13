@@ -4,16 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../components/ToastProvider";
 import { Check, X, RefreshCw } from "lucide-react";
 import "../../styles/pages.css";
-
-const ROLES = [
-  "Admin",
-  "Pastor",
-  "Treasurer",
-  "Children_leader",
-  "Youth_leader",
-  "Communication_leader",
-  "Member",
-];
+import { ROLES, getRoleLabel } from "../../config/roles";
 
 export default function ManageRoles() {
   const { user, setUser, loading: authLoading } = useAuth();
@@ -214,9 +205,9 @@ export default function ManageRoles() {
                 members.map((m) => (
                   <tr key={m.id} style={!m.active ? { opacity: 0.6 } : {}}>
                     <td>{m.full_name}</td>
-                    <td>{m.department || "-"}</td>
+                    <td>{m.departments?.join(", ") || "-"}</td>
                     <td>{m.active ? "Active" : "Inactive"}</td>
-                    <td>{m.role_name}</td>
+                    <td>{getRoleLabel(m.role_name)}</td>
 
                     <td>
                       <select
@@ -232,9 +223,13 @@ export default function ManageRoles() {
                           )
                         }
                       >
-                        {ROLES.map((r) => (
-                          <option key={r} value={r}>{r}</option>
-                        ))}
+                        {Object.entries(ROLES)
+  .filter(([key]) => key !== "Admin" || user.role_name === "Admin")
+  .map(([dbKey, roleData]) => (
+    <option key={dbKey} value={dbKey}>
+      {roleData.label}
+    </option>
+))}
                       </select>
                     </td>
 
