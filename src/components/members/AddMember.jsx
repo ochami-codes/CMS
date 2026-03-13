@@ -51,7 +51,7 @@ useEffect(() => {
     try {
       setSearching(true);
       const res = await AdminAPI.searchProfiles(query);
-      setResults(res ?? []);
+      setResults(res?.profiles ?? []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -59,9 +59,8 @@ useEffect(() => {
     }
   };
 
-  const delay = setTimeout(search, 300); // debounce
+  const delay = setTimeout(search, 300);
   return () => clearTimeout(delay);
-
 }, [query]);
 
   /* ---------------- CHANGE ---------------- */
@@ -166,7 +165,9 @@ useEffect(() => {
        {memberType === "system" && (
   <div className="form-group">
     <label className="label">Search User</label>
-
+    <p className="text-muted">
+  Type at least 2 letters to search church members
+</p>
     <input
       type="text"
       className="input-field"
@@ -181,7 +182,9 @@ useEffect(() => {
     {searching && (
       <p className="text-muted">Searching...</p>
     )}
-
+    {!searching && query.length >= 2 && results.length === 0 && (
+  <p className="text-muted">No users found</p>
+)}
     {results.length > 0 && !selectedProfile && (
       <div className="search-dropdown">
         {results.map(p => (
