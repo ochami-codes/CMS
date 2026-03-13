@@ -87,7 +87,7 @@ useEffect(() => {
 
         payload = {
           department,
-          profile_id: selectedProfile,
+          profile_id: selectedProfile.id,
           is_system_user: true
         };
       } else {

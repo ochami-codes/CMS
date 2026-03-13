@@ -144,7 +144,7 @@ export const AdminAPI = {
     }),
 
   searchProfiles: (query) =>
-    request(`/admin/members/profiles/search?q=${encodeURIComponent(query)}`),
+    request(`/members/profiles/search?q=${encodeURIComponent(query)}`),
 
   deactivateMember: (memberId) =>
     request(`/admin/users/${memberId}/deactivate`, { method: "POST" }),
