@@ -130,15 +130,15 @@ useEffect(() => {
   Add Member
   <span className="card-title-muted"> – {department}</span>
 
-  {dept?.type === "age" && (
+  {config?.type === "age" && (
     <span className="badge badge-warning ml-2">Age Department</span>
   )}
 
-  {dept?.type === "ministry" && (
+  {config?.type === "ministry" && (
     <span className="badge badge-info ml-2">Ministry</span>
   )}
 </h2>
-{dept?.type === "age" && (
+{config?.type === "age" && (
   <p className="card-subtitle text-warning">
     A member can belong to only one age department (e.g. Youth OR Children).
   </p>
