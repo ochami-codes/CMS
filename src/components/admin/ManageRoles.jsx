@@ -205,14 +205,14 @@ export default function ManageRoles() {
                 members.map((m) => (
                   <tr key={m.id} style={!m.active ? { opacity: 0.6 } : {}}>
                     <td>{m.full_name}</td>
-                    <td>{m.departments?.join(", ") || "-"}</td>
+                    <td>{m.department?.join(", ") || "-"}</td>
                     <td>{m.active ? "Active" : "Inactive"}</td>
                     <td>{getRoleLabel(m.role_name)}</td>
 
                     <td>
                       <select
                         value={m.selectedRole}
-                        disabled={!m.active}
+                        disabled={!m.active || !m.is_system_user}
                         onChange={(e) =>
                           setMembers((prev) =>
                             prev.map((x) =>
@@ -242,23 +242,25 @@ export default function ManageRoles() {
                         <RefreshCw size={16} /> <span>Update</span>
                       </button>
 
-                      <button
-                        className={`btn ${m.active ? "btn-danger" : "btn-success"} action-btn`}
-                        disabled={processingId === m.id}
-                        onClick={() => toggleMember(m.id, m.active)}
-                      >
-                        {m.active ? (
-                          <>
-                            <X size={16} />
-                            <span>Deactivate</span>
-                          </>
-                        ) : (
-                          <>
-                            <Check size={16} />
-                            <span>Activate</span>
-                          </>
-                        )}
-                      </button>
+{m.is_system_user && (
+  <button
+    className={`btn ${m.active ? "btn-danger" : "btn-success"} action-btn`}
+    disabled={processingId === m.id}
+    onClick={() => toggleMember(m.id, m.active)}
+  >
+    {m.active ? (
+      <>
+        <X size={16} />
+        <span>Deactivate</span>
+      </>
+    ) : (
+      <>
+        <Check size={16} />
+        <span>Activate</span>
+      </>
+    )}
+  </button>
+)}
                     </td>
                   </tr>
                 ))
