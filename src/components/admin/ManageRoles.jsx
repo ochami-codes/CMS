@@ -205,64 +205,75 @@ export default function ManageRoles() {
                 members.map((m) => (
                   <tr key={m.id} style={!m.active ? { opacity: 0.6 } : {}}>
                     <td>{m.full_name}</td>
-                    <td>{m.department?.join(", ") || "-"}</td>
+                    <td>
+  {Array.isArray(m.department)
+    ? m.department.join(", ")
+    : m.department || "-"}
+</td>
                     <td>{m.active ? "Active" : "Inactive"}</td>
                     <td>{getRoleLabel(m.role_name)}</td>
 
-                    <td>
-                      <select
-                        value={m.selectedRole}
-                        disabled={!m.active || !m.is_system_user}
-                        onChange={(e) =>
-                          setMembers((prev) =>
-                            prev.map((x) =>
-                              x.id === m.id
-                                ? { ...x, selectedRole: e.target.value }
-                                : x
-                            )
-                          )
-                        }
-                      >
-                        {Object.entries(ROLES)
-  .filter(([key]) => key !== "Admin" || user.role_name === "Admin")
-  .map(([dbKey, roleData]) => (
-    <option key={dbKey} value={dbKey}>
-      {roleData.label}
-    </option>
-))}
-                      </select>
-                    </td>
+<td>
+  {m.is_system_user ? (
+    <select
+      value={m.selectedRole}
+      disabled={!m.active}
+      onChange={(e) =>
+        setMembers((prev) =>
+          prev.map((x) =>
+            x.id === m.id
+              ? { ...x, selectedRole: e.target.value }
+              : x
+          )
+        )
+      }
+    >
+      {Object.entries(ROLES)
+        .filter(([key]) => key !== "Admin" || user.role_name === "Admin")
+        .map(([dbKey, roleData]) => (
+          <option key={dbKey} value={dbKey}>
+            {roleData.label}
+          </option>
+        ))}
+    </select>
+  ) : (
+    <span style={{ opacity: 0.6 }}>—</span>
+  )}
+</td>
+<td className="dashboard-actions">
 
-                    <td className="dashboard-actions">
-                      <button
-                        className="btn btn-warning action-btn"
-                        disabled={processingId === m.id || !m.active}
-                        onClick={() => updateRole(m)}
-                      >
-                        <RefreshCw size={16} /> <span>Update</span>
-                      </button>
+  {/* Only system users can be modified */}
+  {m.is_system_user && (
+    <>
+      <button
+        className="btn btn-warning action-btn"
+        disabled={processingId === m.id || !m.active}
+        onClick={() => updateRole(m)}
+      >
+        <RefreshCw size={16} /> <span>Update</span>
+      </button>
 
-{m.is_system_user && (
-  <button
-    className={`btn ${m.active ? "btn-danger" : "btn-success"} action-btn`}
-    disabled={processingId === m.id}
-    onClick={() => toggleMember(m.id, m.active)}
-  >
-    {m.active ? (
-      <>
-        <X size={16} />
-        <span>Deactivate</span>
-      </>
-    ) : (
-      <>
-        <Check size={16} />
-        <span>Activate</span>
-      </>
-    )}
-  </button>
-)}
-                    </td>
-                  </tr>
+      <button
+        className={`btn ${m.active ? "btn-danger" : "btn-success"} action-btn`}
+        disabled={processingId === m.id}
+        onClick={() => toggleMember(m.id, m.active)}
+      >
+        {m.active ? (
+          <>
+            <X size={16} />
+            <span>Deactivate</span>
+          </>
+        ) : (
+          <>
+            <Check size={16} />
+            <span>Activate</span>
+          </>
+        )}
+      </button>
+    </>
+  )}
+
+</td>                  </tr>
                 ))
               )}
             </tbody>
