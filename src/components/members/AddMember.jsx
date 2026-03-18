@@ -69,59 +69,66 @@ useEffect(() => {
   };
 
   /* ---------------- SUBMIT ---------------- */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-    setLoading(true);
+  try {
+    let payload;
 
-    try {
-      let payload;
+    if (memberType === "system") {
+      if (!selectedProfile) {
+        showToast("Please select a user", "error");
+        setLoading(false);
+        return;
+      }
 
-      if (memberType === "system") {
-        if (!selectedProfile) {
-          showToast("Please select a user", "error");
+      payload = {
+        department,
+        profile_id: selectedProfile.id,
+        is_system_user: true,
+      };
+    } else {
+      // Validate required fields
+      for (const field of fields) {
+        if (field.required && !formData[field.name]) {
+          showToast(`${field.label} is required`, "error");
           setLoading(false);
           return;
         }
-
-        payload = {
-          department,
-          profile_id: selectedProfile.id,
-          is_system_user: true
-        };
-      } else {
-        for (const field of fields) {
-          if (field.required && !formData[field.name]) {
-            showToast(`${field.label} is required`, "error");
-            setLoading(false);
-            return;
-          }
-        }
-
-        payload = {
-          ...formData,
-          department,
-          is_system_user: false
-        };
       }
 
-      const result = await MembersAPI.add(payload);
-
-      if (!result?.member) throw new Error("Failed to add member");
-
-      setFormData(initialState);
-      setSelectedProfile("");
-
-      showToast("Member added successfully", "success");
-      onMemberAdded?.(result.member);
-    } catch (err) {
-      console.error(err);
-      showToast(err.message || "Failed to add member", "error");
-    } finally {
-      setLoading(false);
+      payload = {
+        ...formData,
+        department,
+        is_system_user: false,
+      };
     }
-  };
 
+    // Call API
+    const result = await MembersAPI.add(payload);
+
+    // Safely extract the member
+    const member = result?.member || result?.data?.member;
+    if (!member) {
+      console.warn("Unexpected API response:", result);
+      throw new Error("Failed to add member");
+    }
+
+    // Reset form
+    setFormData(initialState);
+    setSelectedProfile(null);
+
+    // Success toast and callback
+    showToast("Member added successfully", "success");
+    onMemberAdded?.(member);
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || "Failed to add member", "error");
+  } finally {
+    setLoading(false);
+  }
+};
   /* ---------------- UI ---------------- */
   return (
     <>
