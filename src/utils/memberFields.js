@@ -5,7 +5,6 @@ export const memberFields = {
     fields: [
       { name: "full_name", label: "Full Name", type: "text", required: true },
       { name: "phone", label: "Phone Number", type: "text", required: true },
-      { name: "date_of_birth", label: "Date of Birth", type: "date", required: true },
       {
         name: "gender",
         label: "Gender",
