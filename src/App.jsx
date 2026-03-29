@@ -38,7 +38,17 @@ import MyRoleRequests from "./components/members/MyRoleRequests";
 // Admin
 import AdminDashboard from "./components/admin/AdminDashboard";
 import ManageRoles from "./components/admin/ManageRoles";
-
+const departmentRoutes = [
+  { path: "youth", component: YouthDashboard, permission: "access_youth_dashboard" },
+  { path: "children", component: ChildrenDashboard, permission: "access_children_dashboard" },
+  { path: "choir", component: ChoirDashboard, permission: "access_choir_dashboard" },
+  { path: "deaconry", component: DeaconryDashboard, permission: "access_deaconry_dashboard" },
+  { path: "alo", component: AloDashboard, permission: "access_alo_dashboard" },
+  { path: "amo", component: AmoDashboard, permission: "access_amo_dashboard" },
+  { path: "treasury", component: TreasuryDashboard, permission: "access_treasury_dashboard" },
+  { path: "pastor", component: PastorDashboard, permission: "access_pastor_dashboard" },
+  { path: "communication", component: CommunicationDashboard, permission: "access_media_dashboard" },
+];
 function App() {
   const withPermission = (Component, permission) => (
     <RequirePermission permission={permission}>
