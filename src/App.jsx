@@ -26,7 +26,10 @@ import ChildrenDashboard from "./pages/children/ChildrenDashboard";
 import TreasuryDashboard from "./pages/treasury/TreasuryDashboard";
 import PastorDashboard from "./pages/pastor/PastorDashboard";
 import CommunicationDashboard from "./pages/communication/CommunicationDashboard";
-
+import ChoirDashboard from "./pages/choir/ChoirDashboard";
+import DeaconryDashboard from "./pages/deaconry/DeaconryDashboard";
+import AloDashboard from "./pages/alo/AloDashboard";
+import AmoDashboard from "./pages/amo/AmoDashboard";
 // Setting
 import ProfilePage from "./pages/settings/profiles/ProfilePage";
 import ChangePassword from "./pages/settings/ChangePassword";
@@ -37,6 +40,12 @@ import AdminDashboard from "./components/admin/AdminDashboard";
 import ManageRoles from "./components/admin/ManageRoles";
 
 function App() {
+  const withPermission = (Component, permission) => (
+    <RequirePermission permission={permission}>
+      <Component />
+    </RequirePermission>
+  );
+
   return (
     <ToastProvider>
       <Router>
@@ -44,7 +53,7 @@ function App() {
           <Toaster position="top-right" reverseOrder={false} />
 
           <Routes>
-            {/* ============== PUBLIC ============== */}
+            {/* ========== PUBLIC ========== */}
             <Route element={<PublicLayout />}>
               <Route index element={<Home />} />
               <Route path="/login" element={<Login />} />
@@ -61,58 +70,21 @@ function App() {
               />
             </Route>
 
-            {/* ============== PROTECTED ============== */}
+            {/* ========== PROTECTED ========== */}
             <Route element={<ProtectedRoute />}>
               <Route element={<DashboardLayout />}>
                 {/* Main */}
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/myrolerequest" element={<MyRoleRequests />} />
 
-                {/* Departments */}
-                <Route
-                  path="/dashboard/youth"
-                  element={
-                    <RequirePermission permission="access_youth_dashboard">
-                      <YouthDashboard />
-                    </RequirePermission>
-                  }
-                />
-
-                <Route
-                  path="/dashboard/children"
-                  element={
-                    <RequirePermission permission="access_children_dashboard">
-                      <ChildrenDashboard />
-                    </RequirePermission>
-                  }
-                />
-
-                <Route
-                  path="/dashboard/treasury"
-                  element={
-                    <RequirePermission permission="access_treasury_dashboard">
-                      <TreasuryDashboard />
-                    </RequirePermission>
-                  }
-                />
-
-                <Route
-                  path="/dashboard/pastor"
-                  element={
-                    <RequirePermission permission="access_pastor_dashboard">
-                      <PastorDashboard />
-                    </RequirePermission>
-                  }
-                />
-
-                <Route
-                  path="/dashboard/communication"
-                  element={
-                    <RequirePermission permission="access_media_dashboard">
-                      <CommunicationDashboard />
-                    </RequirePermission>
-                  }
-                />
+                {/* Departments (Dynamic) */}
+                {departmentRoutes.map(({ path, component, permission }) => (
+                  <Route
+                    key={path}
+                    path={`/dashboard/${path}`}
+                    element={withPermission(component, permission)}
+                  />
+                ))}
 
                 {/* Settings */}
                 <Route path="/dashboard/profiles" element={<ProfilePage />} />
@@ -124,20 +96,17 @@ function App() {
                 {/* Admin */}
                 <Route
                   path="/dashboard/admin"
-                  element={
-                    <RequirePermission permission="access_admin_dashboard">
-                      <AdminDashboard />
-                    </RequirePermission>
-                  }
+                  element={withPermission(
+                    AdminDashboard,
+                    "access_admin_dashboard"
+                  )}
                 />
-
                 <Route
                   path="/manage-roles"
-                  element={
-                    <RequirePermission permission="access_admin_dashboard">
-                      <ManageRoles />
-                    </RequirePermission>
-                  }
+                  element={withPermission(
+                    ManageRoles,
+                    "access_admin_dashboard"
+                  )}
                 />
               </Route>
             </Route>

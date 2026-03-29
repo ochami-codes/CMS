@@ -67,11 +67,11 @@ export default function YouthDashboard() {
         />
       </section>
 
-      {/* Attendance */}
+/*      {/* Attendance */}
       <section className="page-card">
         <Attendance department="youth" />
       </section>
-
+*/
     </main>
   );
 }

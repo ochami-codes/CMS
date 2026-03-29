@@ -7,6 +7,10 @@ export const ROLE_PERMISSIONS = {
     "access_youth_dashboard",
     "access_children_dashboard",
     "access_treasury_dashboard",
+    "access_deaconry_dashboard",
+    "access_choir_dashboard",
+    "access_amo_dashboard",
+    "access_alo_dashboard",
     "access_media_dashboard",
   ],
 

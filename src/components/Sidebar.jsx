@@ -14,17 +14,32 @@ import {
   Shield,
   User,
   X,
+  Music,
+  BookOpen,
+  HeartHandshake,
+  HandHelping,
 } from "lucide-react";
 
 const SIDEBAR_ITEMS = [
+  // 🔹 CORE
   { label: "Home", path: "/dashboard", icon: LayoutDashboard, permission: null },
+  { label: "Profile", path: "/dashboard/profiles", icon: User, permission: null },
+
+  // 🔹 LEADERSHIP / KEY DEPARTMENTS
+  { label: "Pastor", path: "/dashboard/pastor", icon: Church, permission: "access_pastor_dashboard" },
+  { label: "Treasury", path: "/dashboard/treasury", icon: Wallet, permission: "access_treasury_dashboard" },
+  { label: "Communication", path: "/dashboard/communication", icon: Megaphone, permission: "access_media_dashboard" },
+
+  // 🔹 MINISTRIES
+  { label: "Choir", path: "/dashboard/choir", icon: Music, permission: "access_choir_dashboard" },
   { label: "Youth", path: "/dashboard/youth", icon: Users, permission: "access_youth_dashboard" },
   { label: "Children", path: "/dashboard/children", icon: Baby, permission: "access_children_dashboard" },
-  { label: "Treasury", path: "/dashboard/treasury", icon: Wallet, permission: "access_treasury_dashboard" },
-  { label: "Pastor", path: "/dashboard/pastor", icon: Church, permission: "access_pastor_dashboard" },
-  { label: "Communication", path: "/dashboard/communication", icon: Megaphone, permission: "access_media_dashboard" },
+  { label: "ALO", path: "/dashboard/alo", icon: BookOpen, permission: "access_alo_dashboard" },
+  { label: "AMO", path: "/dashboard/amo", icon: HeartHandshake, permission: "access_amo_dashboard" },
+  { label: "Deaconry", path: "/dashboard/deaconry", icon: HandHelping, permission: "access_deaconry_dashboard" },
+
+  // 🔹 SYSTEM
   { label: "Admin", path: "/dashboard/admin", icon: Shield, permission: "access_admin_dashboard" },
-  { label: "Profile", path: "/dashboard/profiles", icon: User, permission: null },
 ];
 
 export default function Sidebar({ open, onClose }) {
