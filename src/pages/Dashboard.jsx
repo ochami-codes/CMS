@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { canUser } from "../utils/permissions";
-import Loader from "../components/Loader";
 import "../styles/pages.css";
 
 import {
@@ -15,7 +14,6 @@ import {
   MembershipAPI,
 } from "../utils/api";
 
-import { hasRole, isAdmin } from "../utils/permissions";
 import {
   Home,
   Coffee,
@@ -24,24 +22,10 @@ import {
   Calendar,
   Gift,
   Megaphone,
+  MessageCircle,
 } from "lucide-react";
 
 /* ================= HELPERS ================= */
-const getNextBirthday = (dob) => {
-  const today = new Date();
-
-  let next = new Date(
-    today.getFullYear(),
-    dob.getMonth(),
-    dob.getDate()
-  );
-
-  if (next < today) {
-    next.setFullYear(today.getFullYear() + 1);
-  }
-
-  return next;
-};
 
 const isSabbathNow = () => {
   const now = new Date();
@@ -57,7 +41,8 @@ const nextSabbathStart = () => {
   const hour = now.getHours();
 
   if (day < 5) start.setDate(now.getDate() + (5 - day));
-  else if (!(day === 5 && hour < 18)) start.setDate(now.getDate() + (12 - day));
+  else if (!(day === 5 && hour < 18))
+    start.setDate(now.getDate() + (12 - day));
 
   start.setHours(18, 0, 0, 0);
   return start;
@@ -78,154 +63,137 @@ const timeDiff = (target, now) => {
 /* ================= DASHBOARD ================= */
 
 export default function Dashboard() {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [verse, setVerse] = useState(null);
+  const [churchName, setChurchName] = useState("Your Church");
+
+  const [announcements, setAnnouncements] = useState([]);
   const [birthday, setBirthday] = useState(null);
   const [todayBirthdays, setTodayBirthdays] = useState([]);
   const [upcomingBirthdays, setUpcomingBirthdays] = useState([]);
-  const [announcements, setAnnouncements] = useState([]);
-  const [churchName, setChurchName] = useState("Your Church");
 
   const [membershipStatus, setMembershipStatus] = useState(null);
-  const [loadingMembershipRequest, setLoadingMembershipRequest] =
-    useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [membershipError, setMembershipError] = useState("");
-
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
   const [now, setNow] = useState(new Date());
 
-  const isMember = user?.is_member === true;
   const isGuest = user?.role_name === "Guest";
-  const churchId = user?.church_id;
   const role = user?.role_name;
-  const quickLinkPermissions = [
-  "access_treasury_dashboard",
-  "manage_youth",
-  "access_admin_dashboard",
-];
+  const churchId = user?.church_id;
 
-const showQuickLinks = quickLinkPermissions.some(p => canUser(role, p));
   /* ================= GREETING ================= */
 
   const greeting = useMemo(() => {
     const name = user?.full_name || "Child of God";
     const hour = new Date().getHours();
+
     if (isSabbathNow()) return `Happy Sabbath, ${name}!`;
     if (hour < 12) return `Good morning, ${name}!`;
     if (hour < 18) return `Good afternoon, ${name}!`;
     return `Good evening, ${name}!`;
   }, [user]);
 
-// Dashboard Timer
-useEffect(() => {
-  const timer = setInterval(() => {
-    setNow(new Date());
-  }, 1000);
+  /* ================= TIMERS ================= */
 
-  return () => clearInterval(timer);
-}, []);
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
-// Sabbath Timer
-const sabbathTimer = useMemo(() => {
-  if (isSabbathNow()) return null;
-  return timeDiff(nextSabbathStart(), now);
-}, [now]);
+  const sabbathTimer = useMemo(() => {
+    if (isSabbathNow()) return null;
+    return timeDiff(nextSabbathStart(), now);
+  }, [now]);
 
-// Birthday Timer
-const birthdayTimer = useMemo(() => {
-  if (!birthday?.birthday) return null;
-
-  const dob = new Date(birthday.birthday);
-  const nextBirthday = getNextBirthday(dob);
-
-  return timeDiff(nextBirthday, now);
-}, [birthday, now]);
-  /* ================= DATA FETCH ================= */
+  /* ================= DATA ================= */
 
   useEffect(() => {
     if (!user) return;
-    let alive = true;
 
-    const fetchDashboard = async () => {
+    const fetchData = async () => {
       try {
         const [
           dailyVerse,
           church,
-          myBirthdayData,
+          anns,
+          myBirthday,
           todays,
           upcoming,
-          anns,
           membership,
         ] = await Promise.all([
           getDailyVerse(),
           churchId ? ChurchAPI.getById(churchId) : null,
+          AnnouncementsAPI.fetch(churchId, 10),
           !isGuest ? getMyBirthday() : null,
           !isGuest ? getTodaysBirthdays(churchId) : [],
           !isGuest ? getUpcomingBirthdays(churchId, 30) : [],
-          !isGuest ? AnnouncementsAPI.fetch(churchId, 5) : [],
           isGuest ? MembershipAPI.myRequests() : null,
         ]);
 
-        if (!alive) return;
-
         setVerse(dailyVerse);
-        setChurchName(church?.name || user.church_name || "Your Church");
+        setChurchName(church?.name || "Your Church");
+        setAnnouncements(anns || []);
         setTodayBirthdays(todays || []);
         setUpcomingBirthdays(upcoming || []);
-        setAnnouncements(anns || []);
+        setBirthday(myBirthday?.birthday || null);
 
         if (isGuest) {
           setMembershipStatus(
             membership?.request?.membership_request_status || null
           );
-          setBirthday(null);
-          return;
         }
+      } finally {
+        setLoading(false);
+      }
+    };
 
-if (myBirthdayData?.birthday?.birthday) {
-  const dob = new Date(myBirthdayData.birthday.birthday);
+    fetchData();
+  }, [user, churchId, isGuest]);
 
-  if (!isNaN(dob)) {
-    const today = new Date();
+  /* ================= ACTION HANDLER ================= */
 
-    let nextBirthday = new Date(
-      today.getFullYear(),
-      dob.getMonth(),
-      dob.getDate()
-    );
+  const handleAction = async (type) => {
+    try {
+      setActionLoadingId(type);
 
-    if (nextBirthday < today) {
-      nextBirthday.setFullYear(today.getFullYear() + 1);
+      switch (type) {
+        case "request_role":
+          alert("Open role request modal");
+          break;
+
+        case "transfer":
+          alert("Request transfer");
+          break;
+
+        case "lesson":
+          alert("Subscribe lesson");
+          break;
+
+        case "admin":
+        case "pastor":
+        case "leader":
+          alert("Open messaging modal");
+          break;
+
+        default:
+          break;
+      }
+    } finally {
+      setActionLoadingId(null);
     }
+  };
 
-    setBirthday({
-      birthday: myBirthdayData.birthday.birthday,
-      isBirthday: myBirthdayData.isBirthday,
-      daysLeft: Math.ceil(
-        (nextBirthday - today) / (1000 * 60 * 60 * 24)
-      ),
-    });
-  } else {
-    setBirthday(null);
-  }
-} else {
-  setBirthday(null);
-}
+  /* ================= FILTER ANNOUNCEMENTS ================= */
 
-} finally {
-  if (alive) setLoading(false);
-}
-};
+  const filteredAnnouncements = announcements.filter((a) => {
+    if (a.target === "all") return true;
+    if (a.target === role) return true;
+    if (a.target === user?.department_name) return true;
+    return false;
+  });
 
-fetchDashboard();
-return () => {
-  alive = false;
-};
-}, [user, churchId, isGuest]); 
   /* ================= UI ================= */
 
   return (
@@ -233,172 +201,114 @@ return () => {
       {/* HEADER */}
       <section className="dashboard-section">
         <div className="card">
-          <h2 className="card-title">
+          <h2>
             <Home size={18} /> {churchName}
           </h2>
-          <p className="card-subtitle">{greeting}</p>
+          <p>{greeting}</p>
           {verse && (
-            <p className="dashboard-verse">
-              <strong>{verse.reference}:</strong> {verse.text}
+            <p>
+              <strong>{verse.reference}</strong>: {verse.text}
             </p>
           )}
         </div>
       </section>
 
-      {/* MEMBERSHIP REQUEST SECTION */}
-{isGuest && (
-  <section className="dashboard-section">
-    <div className="dashboard-section-header">
-      <UserPlus size={18} /> Join Your Church
-    </div>
-
-    <div className="card">
-      {/* MESSAGE LOGIC */}
-      <p>
-        {membershipStatus?.source === "user_request" &&
-        membershipStatus?.status === "requested"
-          ? "Your membership request is pending review."
-          : membershipStatus?.source === "user_request" &&
-            membershipStatus?.status === "approved"
-          ? "Your membership has been approved 🎉"
-          : membershipStatus?.source === "user_request" &&
-            membershipStatus?.status === "rejected"
-          ? "Your membership request was rejected."
-          : membershipStatus?.source === "admin_invite" &&
-            membershipStatus?.status === "invited"
-          ? "You have been invited to join this church."
-          : "Request membership to access ministries and announcements."}
-      </p>
-
-      {/* USER REQUEST BUTTON */}
-      {!membershipStatus && (
-        <button
-          className="btn btn-primary"
-          disabled={loadingMembershipRequest}
-          onClick={async () => {
-            try {
-              setLoadingMembershipRequest(true);
-              setMembershipError("");
-              setSuccessMessage("");
-
-              await MembershipAPI.submit({});
-              setMembershipStatus({
-                status: "requested",
-                source: "user_request",
-              });
-
-              setSuccessMessage("Membership request submitted 🙏");
-            } catch (e) {
-              const message =
-                e.response?.data?.message || "Request failed";
-              setMembershipError(message);
-            } finally {
-              setLoadingMembershipRequest(false);
-            }
-          }}
-        >
-          {loadingMembershipRequest
-            ? "Sending request..."
-            : "Request Membership"}
-        </button>
-      )}
-
-      {/* SUCCESS / ERROR */}
-      {successMessage && (
-        <div className="message-success" style={{ marginTop: "0.5rem" }}>
-          {successMessage}
-        </div>
-      )}
-
-      {membershipError && (
-        <div className="message-error" style={{ marginTop: "0.5rem" }}>
-          {membershipError}
-        </div>
-      )}
-    </div>
-  </section>
-)}
-      {/* REST OF DASHBOARD UNCHANGED */}
+      {/* QUICK ACTIONS */}
       {!isGuest && (
-        <>
-          {/* QUICK LINKS */}
-         {showQuickLinks && (
-  <section className="dashboard-section">
-    <div className="dashboard-section-header">
-      <Coffee size={18} /> Quick Links
-    </div>
+        <section className="dashboard-section">
+          <div className="dashboard-section-header">
+            <Coffee size={18} /> Quick Actions
+          </div>
 
-    <div className="dashboard-actions">
-      {canUser(role, "access_treasury_dashboard") && (
-        <Link to="/dashboard/treasury" className="dashboard-action-card">
-          <h3>
-            <Coffee size={18} /> Treasury
-          </h3>
-          <p>Church finances</p>
-        </Link>
+          <div className="dashboard-actions">
+            {[
+              ["request_role", "Request Role"],
+              ["transfer", "Membership Transfer"],
+              ["lesson", "Lesson Subscription"],
+              ["admin", "Message Admin"],
+              ["pastor", "Message Pastor"],
+              ["leader", "Message Leaders"],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                className="dashboard-action-card"
+                onClick={() => handleAction(key)}
+                disabled={actionLoadingId === key}
+              >
+                <h3>{label}</h3>
+              </button>
+            ))}
+          </div>
+        </section>
       )}
 
-      {canUser(role, "manage_youth") && (
-        <Link to="/dashboard/youth" className="dashboard-action-card">
-          <h3>
-            <Users size={18} /> Youth Ministry
-          </h3>
-          <p>Activities & attendance</p>
-        </Link>
-      )}
+      {/* ROLE-BASED TOOLS */}
+      <section className="dashboard-section">
+        <div className="dashboard-section-header">
+          <Users size={18} /> Tools
+        </div>
 
-      {canUser(role, "access_admin_dashboard") && (
-        <Link to="/dashboard/admin" className="dashboard-action-card">
-          <h3>
-            <UserPlus size={18} /> Administration
-          </h3>
-          <p>Members & roles</p>
-        </Link>
-      )}
-    </div>
-  </section>
-)}
-          {/* ANNOUNCEMENTS */}
-          <section className="dashboard-section">
-            <div className="dashboard-section-header">
-              <Megaphone size={18} /> Announcements
-            </div>
-            <div className="card">
-              {announcements.length ? (
-                announcements.map((a) => (
-                  <div key={a.id} className="announcement-card">
-                    <h4>{a.title}</h4>
-                    <p>{a.message}</p>
-                  </div>
-                ))
-              ) : (
-                <p>No announcements yet.</p>
-              )}
-            </div>
-          </section>
+        <div className="dashboard-actions">
+          {canUser(role, "access_treasury_dashboard") && (
+            <Link to="/dashboard/treasury" className="dashboard-action-card">
+              Treasury
+            </Link>
+          )}
 
-          {/* SABBATH TRACKER */}
-          <section className="dashboard-section">
-            <div className="dashboard-section-header">
-              <Calendar size={18} /> Sabbath Tracker
-            </div>
-            <div className="card sabbath-card">
-              {sabbathTimer ? (
-                <p>
-                  Sabbath begins in{" "}
-                  <strong>
-                    {sabbathTimer.d}d {sabbathTimer.h}h{" "}
-                    {sabbathTimer.m}m {sabbathTimer.s}s
-                  </strong>
-                </p>
-              ) : (
-                <p>Sabbath is ongoing. Enjoy your rest!</p>
-              )}
-            </div>
-          </section>
+          {canUser(role, "manage_youth") && (
+            <Link to="/dashboard/youth" className="dashboard-action-card">
+              Youth
+            </Link>
+          )}
 
-          {/* BIRTHDAY CORNER */}
-          <section className="dashboard-section">
+          {canUser(role, "access_admin_dashboard") && (
+            <Link to="/dashboard/admin" className="dashboard-action-card">
+              Admin
+            </Link>
+          )}
+        </div>
+      </section>
+
+      {/* ANNOUNCEMENTS */}
+      <section className="dashboard-section">
+        <div className="dashboard-section-header">
+          <Megaphone size={18} /> Announcements
+        </div>
+
+        <div className="card">
+          {filteredAnnouncements.length ? (
+            filteredAnnouncements.map((a) => (
+              <div key={a.id} className="announcement-card">
+                <h4>{a.title}</h4>
+                <p>{a.message}</p>
+              </div>
+            ))
+          ) : (
+            <p>No announcements</p>
+          )}
+        </div>
+      </section>
+
+      {/* SABBATH */}
+      <section className="dashboard-section">
+        <div className="dashboard-section-header">
+          <Calendar size={18} /> Sabbath
+        </div>
+
+        <div className="card">
+          {sabbathTimer ? (
+            <p>
+              Starts in {sabbathTimer.d}d {sabbathTimer.h}h{" "}
+              {sabbathTimer.m}m {sabbathTimer.s}s
+            </p>
+          ) : (
+            <p>Sabbath ongoing</p>
+          )}
+        </div>
+      </section>
+
+      {/* BIRTHDAYS */}
+           <section className="dashboard-section">
             <div className="dashboard-section-header">
               <Gift size={18} /> Birthday Corner
             </div>
@@ -441,8 +351,6 @@ return () => {
               </div>
             </div>
           </section>
-        </>
-      )}
-    </div>
+   </div>
   );
 }
