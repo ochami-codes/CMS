@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Loader from "../components/Loader";
 import { canUser } from "../utils/permissions";
 import "../styles/pages.css";
 
