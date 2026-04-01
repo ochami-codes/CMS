@@ -27,6 +27,19 @@ import {
 
 /* ================= HELPERS ================= */
 
+const getNextBirthday = (dob) => {
+const today = new Date();
+let next = new Date(
+today.getFullYear(),
+dob.getMonth(),
+dob.getDate()
+);
+if (next < today) {
+next.setFullYear(today.getFullYear() + 1);
+}
+return next;
+};
+
 const isSabbathNow = () => {
   const now = new Date();
   const day = now.getDay();
