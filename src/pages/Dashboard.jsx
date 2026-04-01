@@ -192,6 +192,7 @@ const actions = [
 
       switch (type) {
         case "request_role":
+          if (isGuest || isAdmin) return;
           navigate("/myrolerequest");
           break;
 
@@ -254,7 +255,7 @@ const actions = [
 
           <div className="dashboard-actions">
   {actions
-  .filter((a) => !(a.hideForAdmin && isAdmin(role)))
+  .filter((a) => !(a.hideForAdmin && isAdmin))
   .map((a) => (
     <button
       key={a.key}
