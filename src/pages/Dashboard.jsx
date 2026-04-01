@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { canUser } from "../utils/permissions";
 import "../styles/pages.css";
 
@@ -77,7 +78,7 @@ const timeDiff = (target, now) => {
 
 export default function Dashboard() {
   const { user } = useAuth();
-
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [verse, setVerse] = useState(null);
   const [churchName, setChurchName] = useState("Your Church");
@@ -94,7 +95,7 @@ export default function Dashboard() {
 
   const isGuest = user?.role_name === "Guest";
   const role = user?.role_name;
-  const churchId = user?.church_id;
+  const churchId = user?.church_id;  
 
   /* ================= GREETING ================= */
 
@@ -173,6 +174,16 @@ return timeDiff(nextBirthday, now);
   }, [user, churchId, isGuest]);
 
   /* ================= ACTION HANDLER ================= */
+// Actions
+const actions = [
+  { key: "request_role", label: "Request Role", hideForAdmin: true },
+  { key: "transfer", label: "Membership Transfer" },
+  { key: "lesson", label: "Lesson Subscription" },
+  { key: "admin", label: "Message Admin" },
+  { key: "pastor", label: "Message Pastor" },
+  { key: "leader", label: "Message Leaders" },
+];
+
 
   const handleAction = async (type) => {
     try {
@@ -180,7 +191,7 @@ return timeDiff(nextBirthday, now);
 
       switch (type) {
         case "request_role":
-          alert("Open role request modal");
+          navigate("/myrolerequest");
           break;
 
         case "transfer":
@@ -241,23 +252,18 @@ return timeDiff(nextBirthday, now);
           </div>
 
           <div className="dashboard-actions">
-            {[
-              ["request_role", "Request Role"],
-              ["transfer", "Membership Transfer"],
-              ["lesson", "Lesson Subscription"],
-              ["admin", "Message Admin"],
-              ["pastor", "Message Pastor"],
-              ["leader", "Message Leaders"],
-            ].map(([key, label]) => (
-              <button
-                key={key}
-                className="dashboard-action-card"
-                onClick={() => handleAction(key)}
-                disabled={actionLoadingId === key}
-              >
-                <h3>{label}</h3>
-              </button>
-            ))}
+  {actions
+  .filter((a) => !(a.hideForAdmin && isAdmin(role)))
+  .map((a) => (
+    <button
+      key={a.key}
+      className="dashboard-action-card"
+      onClick={() => handleAction(a.key)}
+      disabled={actionLoadingId === a.key}
+    >
+      <h3>{a.label}</h3>
+    </button>
+))}
           </div>
         </section>
       )}

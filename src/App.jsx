@@ -28,6 +28,8 @@ import PastorDashboard from "./pages/pastor/PastorDashboard";
 import CommunicationDashboard from "./pages/communication/CommunicationDashboard";
 import ChoirDashboard from "./pages/choir/ChoirDashboard";
 import DeaconryDashboard from "./pages/deaconry/DeaconryDashboard";
+import ClerkDashboard from "./pages/clerk/ClerkDashboard";
+import SabbathSchoolDashboard from "./pages/s_school/SabbathSchoolDashboard";
 import AloDashboard from "./pages/alo/AloDashboard";
 import AmoDashboard from "./pages/amo/AmoDashboard";
 // Setting
@@ -45,6 +47,8 @@ const departmentRoutes = [
   { path: "deaconry", component: DeaconryDashboard, permission: "access_deaconry_dashboard" },
   { path: "alo", component: AloDashboard, permission: "access_alo_dashboard" },
   { path: "amo", component: AmoDashboard, permission: "access_amo_dashboard" },
+  { path: "s-school", component: SabbathSchoolDashboard, permission: "access_s_school_dashboard" },
+  { path: "clerk", component: ClerkDashboard, permission: "access_clerk_dashboard" },
   { path: "treasury", component: TreasuryDashboard, permission: "access_treasury_dashboard" },
   { path: "pastor", component: PastorDashboard, permission: "access_pastor_dashboard" },
   { path: "communication", component: CommunicationDashboard, permission: "access_media_dashboard" },

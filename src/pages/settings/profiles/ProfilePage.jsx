@@ -173,29 +173,6 @@ const profileFields = [
 
 return (
 <main className="page-container">
-{/* ROLE REQUEST (Hidden for Guests) */}
-{canRequestRole && (
-  <section className="page-card">
-    <h2 className="card-title">Role Requests</h2>
-
-    <p className="text-muted">
-      Click the button below to view or request for a role.
-    </p>
-
-    <Link
-      to="/myrolerequest"
-      className="btn btn-primary"
-      style={{
-        marginTop: "0.75rem",
-        width: "fit-content",
-        padding: "0.75rem 1.75rem",
-        fontSize: "0.95rem",
-      }}
-    >
-      View / Request Role
-    </Link>
-  </section>
-)}
 {/* MY ACCOUNT */}  
   <section className="page-card">
     <h2 className="card-title">  

@@ -18,6 +18,7 @@ import {
   BookOpen,
   HeartHandshake,
   HandHelping,
+  ClipboardList,
 } from "lucide-react";
 
 const SIDEBAR_ITEMS = [
@@ -36,6 +37,8 @@ const SIDEBAR_ITEMS = [
   { label: "Children", path: "/dashboard/children", icon: Baby, permission: "access_children_dashboard" },
   { label: "ALO", path: "/dashboard/alo", icon: BookOpen, permission: "access_alo_dashboard" },
   { label: "AMO", path: "/dashboard/amo", icon: HeartHandshake, permission: "access_amo_dashboard" },
+  { label: "Church Clerk", path: "/dashboard/clerk", icon: CliboardList, permission: "access_clerk_dashboard" },
+  { label: "Sabbath School", path: "/dashboard/s-school", icon: BookOpen, permission: "access_s_school_dashboard" },
   { label: "Deaconry", path: "/dashboard/deaconry", icon: HandHelping, permission: "access_deaconry_dashboard" },
 
   // 🔹 SYSTEM

@@ -11,6 +11,8 @@ export const ROLE_PERMISSIONS = {
     "access_choir_dashboard",
     "access_amo_dashboard",
     "access_alo_dashboard",
+    "access_clerk_dashboard",
+    "access_s_school_dashboard",
     "access_media_dashboard",
   ],
 
@@ -40,6 +42,12 @@ export const ROLE_PERMISSIONS = {
 "access_choir_dashboard",
 ],
 
+S_school_leader: [
+"access_s_school_dashboard"
+],
+clerk: [
+"access_clerk_dashboard"
+],
 Amo_leader: [
 "access_amo_dashboard",
 ],
@@ -108,6 +116,16 @@ export const ROLES = {
     key: "deaconryLeader",
     label: "Deaconry Leader",
   },
+
+clerk: {
+key: "clerk",
+label: "Church Clerk",
+},
+
+S_school_leader: {
+key:" sSchoolLeader",
+label: "Sabbath School Leader",
+},
 
   Member: {
     key: "member",
