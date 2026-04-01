@@ -107,15 +107,13 @@ export default function Dashboard() {
     return timeDiff(nextSabbathStart(), now);
   }, [now]);
 
-‎// Birthday Timer
-‎const birthdayTimer = useMemo(() => {
- if (!birthday?.birthday) return null;
-‎
-‎ const dob = new Date(birthday.birthday);
- const nextBirthday = getNextBirthday(dob);
-‎
-‎return timeDiff(nextBirthday, now);
-‎}, [birthday, now]);
+// Birthday Timer
+const birthdayTimer = useMemo(() => {
+if (!birthday?.birthday) return null;
+const dob = new Date(birthday.birthday);
+const nextBirthday = getNextBirthday(dob);
+return timeDiff(nextBirthday, now);
+}, [birthday, now]);
   /* ================= DATA ================= */
 
   useEffect(() => {
