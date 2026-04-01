@@ -174,6 +174,10 @@ return timeDiff(nextBirthday, now);
     fetchData();
   }, [user, churchId, isGuest]);
 
+// Loader
+if (loading || !user) {
+  return <Loader message="Loading dashboard..." />;
+}
   /* ================= ACTION HANDLER ================= */
 // Actions
 const actions = [
