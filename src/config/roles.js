@@ -45,7 +45,7 @@ export const ROLE_PERMISSIONS = {
 S_school_leader: [
 "access_s_school_dashboard"
 ],
-clerk: [
+Clerk: [
 "access_clerk_dashboard"
 ],
 Amo_leader: [
@@ -117,13 +117,13 @@ export const ROLES = {
     label: "Deaconry Leader",
   },
 
-clerk: {
+Clerk: {
 key: "clerk",
 label: "Church Clerk",
 },
 
 S_school_leader: {
-key:" sSchoolLeader",
+key:"sSchoolLeader",
 label: "Sabbath School Leader",
 },
 

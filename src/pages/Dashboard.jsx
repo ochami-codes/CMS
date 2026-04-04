@@ -14,6 +14,7 @@ import {
   AnnouncementsAPI,
   ChurchAPI,
   MembershipAPI,
+  MessagesAPI,
 } from "../utils/api";
 
 import {
@@ -83,7 +84,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [verse, setVerse] = useState(null);
   const [churchName, setChurchName] = useState("Your Church");
-
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const [announcements, setAnnouncements] = useState([]);
   const [birthday, setBirthday] = useState(null);
   const [todayBirthdays, setTodayBirthdays] = useState([]);
@@ -175,6 +176,22 @@ return timeDiff(nextBirthday, now);
     fetchData();
   }, [user, churchId, isGuest]);
 
+useEffect(() => {
+  // fetch unread messages count
+  const fetchUnread = async () => {
+    try {
+      const res = await MessagesAPI.getUnreadCount();
+      setUnreadMessages(res.count || 0);
+    } catch (err) {
+      console.error("Failed to fetch unread messages:", err);
+    }
+  };
+
+  fetchUnread();
+const interval = setInterval(fetchUnread, 60000);
+  return () => clearInterval(interval);
+}, []);
+
 // Loader
 if (loading || !user) {
   return <Loader message="Loading dashboard..." />;
@@ -185,44 +202,38 @@ const actions = [
   { key: "request_role", label: "Request Role", hideForAdmin: true },
   { key: "transfer", label: "Membership Transfer" },
   { key: "lesson", label: "Lesson Subscription" },
-  { key: "admin", label: "Message Admin" },
-  { key: "pastor", label: "Message Pastor" },
-  { key: "leader", label: "Message Leaders" },
+  { key: "message", label: "Messages" }, // messages button
 ];
 
+const handleAction = async (type) => {
+  try {
+    setActionLoadingId(type);
 
-  const handleAction = async (type) => {
-    try {
-      setActionLoadingId(type);
+    switch (type) {
+      case "request_role":
+        if (isGuest || isAdmin) return;
+        navigate("/myrolerequest");
+        break;
 
-      switch (type) {
-        case "request_role":
-          if (isGuest || isAdmin) return;
-          navigate("/myrolerequest");
-          break;
+      case "transfer":
+        alert("Request transfer");
+        break;
 
-        case "transfer":
-          alert("Request transfer");
-          break;
+      case "lesson":
+        alert("Subscribe lesson");
+        break;
 
-        case "lesson":
-          alert("Subscribe lesson");
-          break;
+      case "message":
+        navigate("/dashboard/messages");
+        break;
 
-        case "admin":
-        case "pastor":
-        case "leader":
-          alert("Open messaging modal");
-          break;
-
-        default:
-          break;
-      }
-    } finally {
-      setActionLoadingId(null);
+      default:
+        break;
     }
-  };
-
+  } finally {
+    setActionLoadingId(null);
+  }
+};
   /* ================= FILTER ANNOUNCEMENTS ================= */
 
   const filteredAnnouncements = announcements.filter((a) => {
@@ -258,20 +269,30 @@ const actions = [
             <Coffee size={18} /> Quick Actions
           </div>
 
-          <div className="dashboard-actions">
+  <div className="dashboard-actions">
   {actions
-  .filter((a) => !(a.hideForAdmin && isAdmin))
-  .map((a) => (
-    <button
-      key={a.key}
-      className="dashboard-action-card"
-      onClick={() => handleAction(a.key)}
-      disabled={actionLoadingId === a.key}
-    >
-      <h3>{a.label}</h3>
-    </button>
-))}
+    .filter((a) => !(a.hideForAdmin && isAdmin))
+    .map((a) => (
+      <button
+        key={a.key}
+        className="dashboard-action-card"
+        onClick={() => handleAction(a.key)}
+        disabled={actionLoadingId === a.key}
+      >
+        {a.key === "message" ? (
+          <div className="icon-wrapper">
+            <MessageCircle size={24} />
+            {unreadMessages > 0 && (
+              <span className="badge unread">{unreadMessages}</span>
+            )}
           </div>
+        ) : (
+          <Coffee size={24} />
+        )}
+        <h3>{a.label}</h3>
+      </button>
+    ))}
+</div>
         </section>
       )}
 

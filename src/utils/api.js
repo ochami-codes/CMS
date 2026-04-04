@@ -230,6 +230,44 @@ export const NotificationsAPI = {
     request("/notifications/read-all", { method: "PATCH" }),
 };
 /* ======================
+   MESSAGES API
+====================== */
+export const MessagesAPI = {
+  // 📥 Get inbox (list of conversations)
+  getInbox: () =>
+    request("/messages/inbox"),
+
+  // 💬 Get a single conversation/thread
+  getConversation: (threadId) =>
+    request(`/messages/conversation/${threadId}`),
+
+  // ✉️ Send message (role-based or reply)
+  send: ({
+    content,
+    target_role_id = null,
+    recipient_profile_id = null,
+    parent_message_id = null,
+  }) =>
+    request("/messages", {
+      method: "POST",
+      body: JSON.stringify({
+        content,
+        target_role_id,
+        recipient_profile_id,
+        parent_message_id,
+      }),
+    }),
+
+  // 👁️ Mark thread as read
+  markAsRead: (threadId) =>
+    request("/messages/read", {
+      method: "POST",
+      body: JSON.stringify({
+        thread_id: threadId,
+      }),
+    }),
+};
+/* ======================
    ADMIN DASHBOARD API
 ====================== */
 export const AdminDashboardAPI = {

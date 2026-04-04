@@ -31,6 +31,7 @@ import DeaconryDashboard from "./pages/deaconry/DeaconryDashboard";
 import ClerkDashboard from "./pages/clerk/ClerkDashboard";
 import SabbathSchoolDashboard from "./pages/s_school/SabbathSchoolDashboard";
 import AloDashboard from "./pages/alo/AloDashboard";
+import MessagesPage from "./pages/messages/MessagesPage";
 import AmoDashboard from "./pages/amo/AmoDashboard";
 // Setting
 import ProfilePage from "./pages/settings/profiles/ProfilePage";
@@ -50,7 +51,8 @@ const departmentRoutes = [
   { path: "s-school", component: SabbathSchoolDashboard, permission: "access_s_school_dashboard" },
   { path: "clerk", component: ClerkDashboard, permission: "access_clerk_dashboard" },
   { path: "treasury", component: TreasuryDashboard, permission: "access_treasury_dashboard" },
-  { path: "pastor", component: PastorDashboard, permission: "access_pastor_dashboard" },
+  { path: "messages", component: MessagesPage, permission: null },  
+{ path: "pastor", component: PastorDashboard, permission: "access_pastor_dashboard" },
   { path: "communication", component: CommunicationDashboard, permission: "access_media_dashboard" },
 ];
 function App() {
