@@ -6,13 +6,13 @@ import "../../styles/messages.css";
 
 export default function MessagesPage() {
   const [selectedThread, setSelectedThread] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null); // 👈 NEW
+  const [selectedRecipient, setSelectedRecipient] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  // When user selects a leader (person)
-  const handleUserSelect = (user) => {
-    setSelectedUser(user);      // { id, name }
-    setSelectedThread(null);    // new conversation
+  // When user selects a leader/person from modal
+  const handleRecipientSelect = (user) => {
+    setSelectedRecipient(user);   // { id, name }
+    setSelectedThread(null);      // new conversation
     setShowModal(false);
   };
 
@@ -22,11 +22,7 @@ export default function MessagesPage() {
       <div className="messages-sidebar">
         <div className="messages-header">
           <h3>Messages</h3>
-
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowModal(true)}
-          >
+          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
             + New
           </button>
         </div>
@@ -34,7 +30,7 @@ export default function MessagesPage() {
         <InboxList
           onSelect={(threadId) => {
             setSelectedThread(threadId);
-            setSelectedUser(null); // existing thread overrides new user
+            setSelectedRecipient(null); // existing thread overrides new recipient
           }}
           activeThreadId={selectedThread}
         />
@@ -44,14 +40,14 @@ export default function MessagesPage() {
       <div className="messages-content">
         <ChatWindow
           threadId={selectedThread}
-          recipient={selectedUser} // 👈 CHANGED
+          recipient={selectedRecipient}
         />
       </div>
 
       {/* Modal */}
       {showModal && (
         <NewMessageModal
-          onSelect={handleUserSelect} // 👈 CHANGED
+          onSelect={handleRecipientSelect}
           onClose={() => setShowModal(false)}
         />
       )}

@@ -1,8 +1,7 @@
-// src/pages/messages/ChatWindow.jsx
 import { useEffect, useState, useRef } from "react";
 import { MessagesAPI } from "../../utils/api";
 
-export default function ChatWindow({ threadId, targetRole }) {
+export default function ChatWindow({ threadId, recipient }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -10,17 +9,12 @@ export default function ChatWindow({ threadId, targetRole }) {
 
   const bottomRef = useRef(null);
 
-  // ------------------------
-  // Load messages for thread or role
-  // ------------------------
+  // Load existing conversation
   const loadMessages = async () => {
-    if (!threadId && !targetRole) return;
-
+    if (!threadId) return;
     try {
       setLoading(true);
-      const res = threadId
-        ? await MessagesAPI.getConversation(threadId)
-        : await MessagesAPI.getConversationByRole(targetRole); // new API for role-based
+      const res = await MessagesAPI.getConversation(threadId);
       setMessages(Array.isArray(res.messages) ? res.messages : []);
     } catch (err) {
       console.error("Failed to load messages:", err);
@@ -29,16 +23,12 @@ export default function ChatWindow({ threadId, targetRole }) {
     }
   };
 
-  // ------------------------
-  // Send message
-  // ------------------------
   const sendMessage = async () => {
     const trimmed = text.trim();
-    if (!trimmed || sending || (!threadId && !targetRole)) return;
+    if (!trimmed || sending || (!threadId && !recipient)) return;
 
     setSending(true);
 
-    // Optimistic message
     const tempMessage = {
       id: `temp-${Date.now()}`,
       content: trimmed,
@@ -54,50 +44,48 @@ export default function ChatWindow({ threadId, targetRole }) {
       await MessagesAPI.send({
         content: trimmed,
         parent_message_id: threadId || null,
-        target_role_id: targetRole || null,
+        recipient_profile_id: recipient?.id || null,
       });
 
-      // Reload messages to sync with backend
-      await loadMessages();
+      // If new conversation, reload inbox will generate a new thread next time
+      if (threadId) {
+        await loadMessages();
+      }
     } catch (err) {
       console.error("Failed to send message:", err);
-
-      // Rollback optimistic message
-      setMessages((prev) =>
-        prev.filter((m) => m.id !== tempMessage.id)
-      );
+      setMessages((prev) => prev.filter((m) => m.id !== tempMessage.id));
     } finally {
       setSending(false);
     }
   };
 
-  // ------------------------
-  // Auto-scroll to bottom
-  // ------------------------
+  // Auto scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Load when thread or role changes
+  // Load messages when thread changes
   useEffect(() => {
-    loadMessages();
-  }, [threadId, targetRole]);
+    if (threadId) {
+      loadMessages();
+    } else {
+      setMessages([]); // new conversation starts empty
+    }
+  }, [threadId, recipient]);
 
   // Polling for real-time feel
   useEffect(() => {
-    if (!threadId && !targetRole) return;
-
+    if (!threadId) return;
     const interval = setInterval(() => {
       loadMessages();
     }, 5000);
-
     return () => clearInterval(interval);
-  }, [threadId, targetRole]);
+  }, [threadId]);
 
-  if (!threadId && !targetRole) {
+  if (!threadId && !recipient) {
     return (
       <div className="chat-window empty">
-        <p>Select a conversation or role to start chatting</p>
+        <p>Select a conversation or start a new chat</p>
       </div>
     );
   }
@@ -109,29 +97,17 @@ export default function ChatWindow({ threadId, targetRole }) {
         {loading ? (
           <p className="chat-info">Loading messages...</p>
         ) : messages.length === 0 ? (
-          <p className="chat-info">No messages yet</p>
+          <p className="chat-info">
+            {recipient ? `Start a chat with ${recipient.name}` : "No messages yet"}
+          </p>
         ) : (
           messages.map((m) => {
             const isMe = m.is_me || m.sender_name === "You";
-
             return (
-              <div
-                key={m.id}
-                className={`chat-bubble ${isMe ? "me" : "other"}`}
-              >
-                {!isMe && (
-                  <span className="chat-sender">
-                    {m.sender_name || m.other_user_name || "Unknown"}
-                  </span>
-                )}
-
+              <div key={m.id} className={`chat-bubble ${isMe ? "me" : "other"}`}>
+                {!isMe && <span className="chat-sender">{m.sender_name || "Unknown"}</span>}
                 <p>{m.content}</p>
-
-                {m.created_at && (
-                  <span className="chat-time">
-                    {new Date(m.created_at).toLocaleTimeString()}
-                  </span>
-                )}
+                {m.created_at && <span className="chat-time">{new Date(m.created_at).toLocaleTimeString()}</span>}
               </div>
             );
           })
@@ -153,11 +129,7 @@ export default function ChatWindow({ threadId, targetRole }) {
             }
           }}
         />
-
-        <button
-          onClick={sendMessage}
-          disabled={sending || !text.trim()}
-        >
+        <button onClick={sendMessage} disabled={sending || !text.trim()}>
           {sending ? "Sending..." : "Send"}
         </button>
       </div>
