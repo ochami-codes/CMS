@@ -178,3 +178,27 @@
     height: 60%;
   }
 }
+.role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.role-item {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.role-item:hover {
+  background-color: #f0f0f0;
+  border-color: #007bff;
+}
+
+.modal-info {
+  margin-top: 1rem;
+  text-align: center;
+  color: #555;
+}

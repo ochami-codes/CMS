@@ -1,16 +1,8 @@
 // src/pages/messages/NewMessageModal.jsx
-import { useState } from "react";
 import { ROLES, getRoleLabel } from "../../config/roles";
 import "../../styles/messages.css";
 
 export default function NewMessageModal({ onSelect, onClose }) {
-  const [selectedRole, setSelectedRole] = useState(null);
-
-  const handleConfirm = () => {
-    if (!selectedRole) return;
-    onSelect(selectedRole);
-  };
-
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
@@ -18,29 +10,23 @@ export default function NewMessageModal({ onSelect, onClose }) {
 
         <div className="role-list">
           {Object.values(ROLES)
-            .filter((r) => r.key !== "member") // optional: skip generic members
+            .filter((r) => r.key !== "member") // skip generic members
             .map((role) => (
               <div
                 key={role.key}
-                className={`role-item ${selectedRole === role.key ? "selected" : ""}`}
-                onClick={() => setSelectedRole(role.key)}
+                className="role-item"
+                onClick={() => {
+                  onSelect(role.key); // select role immediately
+                  onClose();          // close modal
+                }}
               >
-                {getRoleLabel(role.key)}
+                {getRoleLabel(role.label)}
               </div>
             ))}
         </div>
 
-        <div className="modal-actions">
-          <button className="btn btn-secondary" onClick={onClose}>
-            Cancel
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={handleConfirm}
-            disabled={!selectedRole}
-          >
-            Start Chat
-          </button>
+        <div className="modal-info">
+          <small>Click a role to start a chat</small>
         </div>
       </div>
     </div>
