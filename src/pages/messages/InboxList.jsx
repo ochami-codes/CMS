@@ -18,6 +18,17 @@ export default function InboxList({ onSelect, activeThreadId }) {
     }
   };
 
+const formatTime = (date) => {
+  const d = new Date(date);
+  const now = new Date();
+
+  const isToday = d.toDateString() === now.toDateString();
+
+  if (isToday) return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  return d.toLocaleDateString();
+};
+
   // 🔁 Initial load
   useEffect(() => {
     loadInbox();
@@ -25,12 +36,14 @@ export default function InboxList({ onSelect, activeThreadId }) {
 
   // 🔄 Optional: auto refresh every 10s (feels real-time)
   useEffect(() => {
-    const interval = setInterval(() => {
+  const interval = setInterval(() => {
+    if (document.visibilityState === "visible") {
       loadInbox();
-    }, 10000);
+    }
+  }, 10000);
 
-    return () => clearInterval(interval);
-  }, []);
+  return () => clearInterval(interval);
+}, []);
 
   const unreadCount = inbox.filter((msg) => !msg.is_read).length;
 
@@ -63,14 +76,24 @@ export default function InboxList({ onSelect, activeThreadId }) {
                 className={`inbox-item ${isActive ? "active" : ""} ${
                   !msg.is_read ? "unread" : ""
                 }`}
-                onClick={() => onSelect(msg.message_id)}
+                onClick={async () => {
+  onSelect(msg.message_id);
+
+  if (!msg.is_read) {
+    try {
+      await MessagesAPI.markAsRead(msg.message_id);
+      loadInbox(); // refresh UI
+    } catch (err) {
+      console.error("Failed to mark as read:", err);
+    }
+  }
+}}
               >
                 {/* Top row */}
                 <div className="inbox-top">
-                  <strong className="sender">
-                    {msg.sender_name || "Unknown"}
-                  </strong>
-
+<strong className="sender">
+  {msg.is_from_me ? "You" : msg.other_user_name}
+</strong>
                   {!msg.is_read && (
                     <span className="badge">New</span>
                   )}
@@ -87,9 +110,9 @@ export default function InboxList({ onSelect, activeThreadId }) {
 
                 {/* Timestamp (if available) */}
                 {msg.created_at && (
-                  <span className="time">
-                    {new Date(msg.created_at).toLocaleTimeString()}
-                  </span>
+       <span className="time">
+  {formatTime(msg.created_at)}
+</span>
                 )}
               </div>
             );

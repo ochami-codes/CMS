@@ -1,4 +1,3 @@
-// src/pages/messages/MessagesPage.jsx
 import { useState } from "react";
 import InboxList from "./InboxList";
 import ChatWindow from "./ChatWindow";
@@ -7,13 +6,13 @@ import "../../styles/messages.css";
 
 export default function MessagesPage() {
   const [selectedThread, setSelectedThread] = useState(null);
-  const [selectedRole, setSelectedRole] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null); // 👈 NEW
   const [showModal, setShowModal] = useState(false);
 
-  // When user selects a role to message
-  const handleRoleSelect = (roleKey) => {
-    setSelectedRole(roleKey);
-    setSelectedThread(null); // new conversation
+  // When user selects a leader (person)
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);      // { id, name }
+    setSelectedThread(null);    // new conversation
     setShowModal(false);
   };
 
@@ -35,7 +34,7 @@ export default function MessagesPage() {
         <InboxList
           onSelect={(threadId) => {
             setSelectedThread(threadId);
-            setSelectedRole(null); // existing thread overrides role
+            setSelectedUser(null); // existing thread overrides new user
           }}
           activeThreadId={selectedThread}
         />
@@ -45,14 +44,14 @@ export default function MessagesPage() {
       <div className="messages-content">
         <ChatWindow
           threadId={selectedThread}
-          targetRole={selectedRole} // 👈 NEW
+          recipient={selectedUser} // 👈 CHANGED
         />
       </div>
 
-      {/* Role Selection Modal */}
+      {/* Modal */}
       {showModal && (
         <NewMessageModal
-          onSelect={handleRoleSelect}
+          onSelect={handleUserSelect} // 👈 CHANGED
           onClose={() => setShowModal(false)}
         />
       )}

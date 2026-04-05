@@ -241,7 +241,11 @@ export const MessagesAPI = {
   getConversation: (threadId) =>
     request(`/messages/conversation/${threadId}`),
 
-  // ✉️ Send message (role-based or reply)
+  // 👥 Get leaders grouped by role (NEW)
+  getLeaders: () =>
+    request("/messages/leaders"),
+
+  // ✉️ Send message (role-based or direct)
   send: ({
     content,
     target_role_id = null,

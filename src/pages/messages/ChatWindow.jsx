@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { MessagesAPI } from "../../utils/api";
 
-export default function ChatWindow({ threadId }) {
+export default function ChatWindow({ threadId, targetRole }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -10,12 +10,17 @@ export default function ChatWindow({ threadId }) {
 
   const bottomRef = useRef(null);
 
+  // ------------------------
+  // Load messages for thread or role
+  // ------------------------
   const loadMessages = async () => {
-    if (!threadId) return;
+    if (!threadId && !targetRole) return;
 
     try {
       setLoading(true);
-      const res = await MessagesAPI.getConversation(threadId);
+      const res = threadId
+        ? await MessagesAPI.getConversation(threadId)
+        : await MessagesAPI.getConversationByRole(targetRole); // new API for role-based
       setMessages(Array.isArray(res.messages) ? res.messages : []);
     } catch (err) {
       console.error("Failed to load messages:", err);
@@ -24,13 +29,16 @@ export default function ChatWindow({ threadId }) {
     }
   };
 
+  // ------------------------
+  // Send message
+  // ------------------------
   const sendMessage = async () => {
     const trimmed = text.trim();
-    if (!trimmed || !threadId || sending) return;
+    if (!trimmed || sending || (!threadId && !targetRole)) return;
 
     setSending(true);
 
-    // 🟢 optimistic message
+    // Optimistic message
     const tempMessage = {
       id: `temp-${Date.now()}`,
       content: trimmed,
@@ -45,15 +53,16 @@ export default function ChatWindow({ threadId }) {
     try {
       await MessagesAPI.send({
         content: trimmed,
-        parent_message_id: threadId,
+        parent_message_id: threadId || null,
+        target_role_id: targetRole || null,
       });
 
-      // 🔄 sync with backend
+      // Reload messages to sync with backend
       await loadMessages();
     } catch (err) {
       console.error("Failed to send message:", err);
 
-      // ❌ rollback optimistic message
+      // Rollback optimistic message
       setMessages((prev) =>
         prev.filter((m) => m.id !== tempMessage.id)
       );
@@ -62,31 +71,33 @@ export default function ChatWindow({ threadId }) {
     }
   };
 
-  // ⬇️ Auto scroll
+  // ------------------------
+  // Auto-scroll to bottom
+  // ------------------------
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 🔁 Load on thread change
+  // Load when thread or role changes
   useEffect(() => {
     loadMessages();
-  }, [threadId]);
+  }, [threadId, targetRole]);
 
-  // 🔄 Polling (optional real-time feel)
+  // Polling for real-time feel
   useEffect(() => {
-    if (!threadId) return;
+    if (!threadId && !targetRole) return;
 
     const interval = setInterval(() => {
       loadMessages();
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [threadId]);
+  }, [threadId, targetRole]);
 
-  if (!threadId) {
+  if (!threadId && !targetRole) {
     return (
       <div className="chat-window empty">
-        <p>Select a conversation</p>
+        <p>Select a conversation or role to start chatting</p>
       </div>
     );
   }
@@ -101,8 +112,7 @@ export default function ChatWindow({ threadId }) {
           <p className="chat-info">No messages yet</p>
         ) : (
           messages.map((m) => {
-            const isMe =
-              m.is_me || m.sender_name === "You";
+            const isMe = m.is_me || m.sender_name === "You";
 
             return (
               <div
@@ -111,7 +121,7 @@ export default function ChatWindow({ threadId }) {
               >
                 {!isMe && (
                   <span className="chat-sender">
-                    {m.sender_name || "Unknown"}
+                    {m.sender_name || m.other_user_name || "Unknown"}
                   </span>
                 )}
 
