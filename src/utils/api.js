@@ -240,7 +240,9 @@ export const MessagesAPI = {
   // 💬 Get a single conversation/thread
   getConversation: (threadId) =>
     request(`/messages/conversation/${threadId}`),
-
+// get badge counts
+getUnreadCount: () =>
+  request("/messages/unread-count"),
   // 👥 Get leaders grouped by role (NEW)
   getLeaders: () =>
     request("/messages/leaders"),
