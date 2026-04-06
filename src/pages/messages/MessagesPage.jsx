@@ -16,6 +16,12 @@ export default function MessagesPage() {
     setShowModal(false);
   };
 
+  // When ChatWindow creates a new thread, update state
+  const handleNewThread = (threadId) => {
+    setSelectedThread(threadId);  // assign new thread
+    setSelectedRecipient(null);   // now this is an existing thread
+  };
+
   return (
     <div className="messages-container">
       {/* Sidebar */}
@@ -41,6 +47,7 @@ export default function MessagesPage() {
         <ChatWindow
           threadId={selectedThread}
           recipient={selectedRecipient}
+          onThreadCreated={handleNewThread} // 👈 pass callback for new chats
         />
       </div>
 

@@ -1,19 +1,17 @@
 import { useEffect, useState, useRef } from "react";
 import { MessagesAPI } from "../../utils/api";
 
-export default function ChatWindow({ threadId, recipient }) {
+export default function ChatWindow({ threadId, recipient, onThreadCreated }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
-
   const bottomRef = useRef(null);
 
-  // Load existing conversation
   const loadMessages = async () => {
     if (!threadId) return;
+    setLoading(true);
     try {
-      setLoading(true);
       const res = await MessagesAPI.getConversation(threadId);
       setMessages(Array.isArray(res.messages) ? res.messages : []);
     } catch (err) {
@@ -41,14 +39,19 @@ export default function ChatWindow({ threadId, recipient }) {
     setText("");
 
     try {
-      await MessagesAPI.send({
+      const res = await MessagesAPI.send({
         content: trimmed,
         parent_message_id: threadId || null,
         recipient_profile_id: recipient?.id || null,
       });
 
-      // If new conversation, reload inbox will generate a new thread next time
-      if (threadId) {
+      // If it's a new conversation, notify parent about new thread ID
+      if (!threadId && res.message_id) {
+        onThreadCreated?.(res.message_id); // 👈 parent sets threadId
+      }
+
+      // reload messages if thread exists
+      if (threadId || res.message_id) {
         await loadMessages();
       }
     } catch (err) {
@@ -69,16 +72,14 @@ export default function ChatWindow({ threadId, recipient }) {
     if (threadId) {
       loadMessages();
     } else {
-      setMessages([]); // new conversation starts empty
+      setMessages([]); // empty for new conversation
     }
   }, [threadId, recipient]);
 
-  // Polling for real-time feel
+  // Polling
   useEffect(() => {
     if (!threadId) return;
-    const interval = setInterval(() => {
-      loadMessages();
-    }, 5000);
+    const interval = setInterval(() => loadMessages(), 5000);
     return () => clearInterval(interval);
   }, [threadId]);
 
@@ -92,7 +93,6 @@ export default function ChatWindow({ threadId, recipient }) {
 
   return (
     <div className="chat-window">
-      {/* MESSAGES */}
       <div className="chat-messages">
         {loading ? (
           <p className="chat-info">Loading messages...</p>
@@ -115,7 +115,6 @@ export default function ChatWindow({ threadId, recipient }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* INPUT */}
       <div className="chat-input">
         <input
           value={text}
