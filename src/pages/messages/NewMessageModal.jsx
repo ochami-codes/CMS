@@ -1,32 +1,78 @@
-// src/pages/messages/NewMessageModal.jsx
-import { ROLES, getRoleLabel } from "../../config/roles";
+import { useEffect, useState } from "react";
+import { MessagesAPI } from "../../utils/api";
+import { getRoleLabel } from "../../config/roles";
 import "../../styles/messages.css";
 
 export default function NewMessageModal({ onSelect, onClose }) {
+  const [leaders, setLeaders] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const loadLeaders = async () => {
+    try {
+      setLoading(true);
+      const res = await MessagesAPI.getLeaders();
+
+      // Safety: ensure it's always an array
+      setLeaders(Array.isArray(res.roles) ? res.roles : []);
+    } catch (err) {
+      console.error("Failed to load leaders:", err);
+      setLeaders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadLeaders();
+  }, []);
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <h3>Select Role to Message</h3>
-
-        <div className="role-list">
-          {Object.values(ROLES)
-            .filter((r) => r.key !== "member") // skip generic members
-            .map((role) => (
-              <div
-                key={role.key}
-                className="role-item"
-                onClick={() => {
-                  onSelect(role.key); // select role immediately
-                  onClose();          // close modal
-                }}
-              >
-                {getRoleLabel(role.label)}
-              </div>
-            ))}
+        <div className="modal-header">
+          <h3>Select Leader</h3>
         </div>
 
-        <div className="modal-info">
-          <small>Click a role to start a chat</small>
+        {/* STATES */}
+        {loading ? (
+          <p className="modal-info">Loading leaders...</p>
+        ) : leaders.length === 0 ? (
+          <p className="modal-info">No leaders available</p>
+        ) : (
+          <div className="role-group-list">
+            {leaders.map((group) => (
+              <div key={group.role} className="role-group">
+                {/* ✅ Use label helper */}
+                <h4 className="role-title">
+                  {getRoleLabel(group.role)}
+                </h4>
+
+                <div className="role-users">
+                  {(group.users || []).map((user) => (
+                    <div
+                      key={user.id}
+                      className="role-user"
+                      onClick={() => {
+                        onSelect(user); // { id, name }
+                        onClose();
+                      }}
+                    >
+                      <span className="user-name">
+                        {user.name || "Unknown"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* FOOTER */}
+        <div className="modal-actions">
+          <button className="btn btn-secondary" onClick={onClose}>
+            Close
+          </button>
         </div>
       </div>
     </div>
