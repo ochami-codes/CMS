@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
         id: data.user.id,
         email: data.user.email,
         full_name: data.user.full_name ?? "Guest",
-        role_name: data.user.role_name ?? "guest",
+        role_name: (data.user.role_name ?? "guest").toLowerCase(), // ✅ FIX
         church_id: data.user.church_id ?? null,
         church_name: data.user.church_name ?? null,
         is_member: data.user.is_member ?? false,
@@ -82,22 +82,19 @@ export const AuthProvider = ({ children }) => {
   /* -------------------------------
      Auth initialization (ONCE)
   ------------------------------- */
-useEffect(() => {
-  const token = localStorage.getItem("access_token");
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
 
-  //  No token → don't wait for anything
-  if (!token) {
-    setUser(null);
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(false);
-    return;
-  }
+    fetchMe();
+  }, [fetchMe]);
 
-  //  Stop blocking UI immediately
-  setLoading(false);
-
-  // Verify token in background
-  fetchMe();
-}, [fetchMe]);
   return (
     <AuthContext.Provider
       value={{

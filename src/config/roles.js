@@ -1,6 +1,8 @@
 // src/config/roles.js
 
 export const ROLE_PERMISSIONS = {
+  guest: [], // ✅ explicit (no permissions)
+
   admin: [
     "access_admin_dashboard",
     "access_pastor_dashboard",
@@ -72,6 +74,8 @@ export const ROLE_PERMISSIONS = {
 
 // ✅ Roles config (keys MUST match DB exactly)
 export const ROLES = {
+  guest: { label: "Guest" }, // ✅ added
+
   admin: { label: "Admin" },
   pastor: { label: "Pastor" },
   treasurer: { label: "Treasurer" },
