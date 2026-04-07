@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { MessagesAPI } from "../../utils/api";
-
+import "../../styles/messages.css";
 export default function ChatWindow({ threadId, recipient, onThreadCreated }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -8,27 +8,37 @@ export default function ChatWindow({ threadId, recipient, onThreadCreated }) {
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
 
-  const loadMessages = async () => {
+  // -----------------------------
+  // Load messages
+  // -----------------------------
+  const loadMessages = async (silent = false) => {
     if (!threadId) return;
-    setLoading(true);
+
     try {
+      if (!silent) setLoading(true);
+
       const res = await MessagesAPI.getConversation(threadId);
       setMessages(Array.isArray(res.messages) ? res.messages : []);
     } catch (err) {
       console.error("Failed to load messages:", err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
+  // -----------------------------
+  // Send message
+  // -----------------------------
   const sendMessage = async () => {
     const trimmed = text.trim();
     if (!trimmed || sending || (!threadId && !recipient)) return;
 
     setSending(true);
 
+    const tempId = `temp-${Date.now()}`;
+
     const tempMessage = {
-      id: `temp-${Date.now()}`,
+      id: tempId,
       content: trimmed,
       sender_name: "You",
       is_me: true,
@@ -42,47 +52,66 @@ export default function ChatWindow({ threadId, recipient, onThreadCreated }) {
       const res = await MessagesAPI.send({
         content: trimmed,
         parent_message_id: threadId || null,
-        recipient_profile_id: recipient?.id || null,
+        recipient_profile_id: threadId ? null : recipient?.id, // ✅ KEY FIX
       });
 
-      // If it's a new conversation, notify parent about new thread ID
+      // 👉 New conversation
       if (!threadId && res.message_id) {
-        onThreadCreated?.(res.message_id); // 👈 parent sets threadId
+        onThreadCreated?.(res.message_id);
       }
 
-      // reload messages if thread exists
-      if (threadId || res.message_id) {
-        await loadMessages();
+      // Refresh messages (silent)
+      if (threadId) {
+        loadMessages(true);
       }
     } catch (err) {
       console.error("Failed to send message:", err);
-      setMessages((prev) => prev.filter((m) => m.id !== tempMessage.id));
+
+      // rollback UI
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
     } finally {
       setSending(false);
     }
   };
 
+  // -----------------------------
   // Auto scroll
+  // -----------------------------
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Load messages when thread changes
+  // -----------------------------
+  // Load on thread change
+  // -----------------------------
   useEffect(() => {
     if (threadId) {
       loadMessages();
     } else {
-      setMessages([]); // empty for new conversation
+      setMessages([]);
     }
   }, [threadId, recipient]);
 
-  // Polling
+  // -----------------------------
+  // Smart refresh (no polling)
+  // -----------------------------
   useEffect(() => {
-    if (!threadId) return;
-    const interval = setInterval(() => loadMessages(), 5000);
-    return () => clearInterval(interval);
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        loadMessages(true);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, [threadId]);
 
+  // -----------------------------
+  // Empty state
+  // -----------------------------
   if (!threadId && !recipient) {
     return (
       <div className="chat-window empty">
@@ -91,30 +120,55 @@ export default function ChatWindow({ threadId, recipient, onThreadCreated }) {
     );
   }
 
+  // -----------------------------
+  // UI
+  // -----------------------------
   return (
     <div className="chat-window">
+      {/* Messages */}
       <div className="chat-messages">
         {loading ? (
           <p className="chat-info">Loading messages...</p>
         ) : messages.length === 0 ? (
           <p className="chat-info">
-            {recipient ? `Start a chat with ${recipient.name}` : "No messages yet"}
+            {recipient
+              ? `Start a chat with ${recipient.name}`
+              : "No messages yet"}
           </p>
         ) : (
           messages.map((m) => {
             const isMe = m.is_me || m.sender_name === "You";
+
             return (
-              <div key={m.id} className={`chat-bubble ${isMe ? "me" : "other"}`}>
-                {!isMe && <span className="chat-sender">{m.sender_name || "Unknown"}</span>}
+              <div
+                key={m.id}
+                className={`chat-bubble ${isMe ? "me" : "other"}`}
+              >
+                {!isMe && (
+                  <span className="chat-sender">
+                    {m.sender_name || "Unknown"}
+                  </span>
+                )}
+
                 <p>{m.content}</p>
-                {m.created_at && <span className="chat-time">{new Date(m.created_at).toLocaleTimeString()}</span>}
+
+                {m.created_at && (
+                  <span className="chat-time">
+                    {new Date(m.created_at).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                )}
               </div>
             );
           })
         )}
+
         <div ref={bottomRef} />
       </div>
 
+      {/* Input */}
       <div className="chat-input">
         <input
           value={text}
@@ -128,6 +182,7 @@ export default function ChatWindow({ threadId, recipient, onThreadCreated }) {
             }
           }}
         />
+
         <button onClick={sendMessage} disabled={sending || !text.trim()}>
           {sending ? "Sending..." : "Send"}
         </button>
