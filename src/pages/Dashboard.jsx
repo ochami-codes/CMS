@@ -91,13 +91,17 @@ export default function Dashboard() {
   const [upcomingBirthdays, setUpcomingBirthdays] = useState([]);
 
   const [membershipStatus, setMembershipStatus] = useState(null);
-  const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [loadingMembershipRequest, setLoadingMembershipRequest] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [membershipError, setMembershipError] = useState("");  
+const [actionLoadingId, setActionLoadingId] = useState(null);
 
   const [now, setNow] = useState(new Date());
 
-  const isGuest = user?.role_name === "guest";
-  const isAdmin = user?.role_name ==="admin";
-  const role = user?.role_name;
+  
+  const role = user?.role_name?.toLowerCase() || "guest";
+  const isGuest = role === "guest";
+  const isAdmin = role === "admin";
   const churchId = user?.church_id;  
 
   /* ================= GREETING ================= */
@@ -262,6 +266,79 @@ const handleAction = async (type) => {
         </div>
       </section>
 
+{/* MEMBERSHIP REQUEST SECTION */}
+{isGuest && (
+  <section className="dashboard-section">
+    <div className="dashboard-section-header">
+      <UserPlus size={18} /> Join Your Church
+    </div>
+
+    <div className="card">
+      {/* MESSAGE LOGIC */}
+      <p>
+        {membershipStatus?.source === "user_request" &&
+        membershipStatus?.status === "requested"
+          ? "Your membership request is pending review."
+          : membershipStatus?.source === "user_request" &&
+            membershipStatus?.status === "approved"
+          ? "Your membership has been approved 🎉"
+          : membershipStatus?.source === "user_request" &&
+            membershipStatus?.status === "rejected"
+          ? "Your membership request was rejected."
+          : membershipStatus?.source === "admin_invite" &&
+            membershipStatus?.status === "invited"
+          ? "You have been invited to join this church."
+          : "Request membership to access ministries and announcements."}
+      </p>
+
+      {/* USER REQUEST BUTTON */}
+      {!membershipStatus && (
+        <button
+          className="btn btn-primary"
+          disabled={loadingMembershipRequest}
+          onClick={async () => {
+            try {
+              setLoadingMembershipRequest(true);
+              setMembershipError("");
+              setSuccessMessage("");
+
+              await MembershipAPI.submit({});
+              setMembershipStatus({
+                status: "requested",
+                source: "user_request",
+              });
+
+              setSuccessMessage("Membership request submitted 🙏");
+            } catch (e) {
+              const message =
+                e.response?.data?.message || "Request failed";
+              setMembershipError(message);
+            } finally {
+              setLoadingMembershipRequest(false);
+            }
+          }}
+        >
+          {loadingMembershipRequest
+            ? "Sending request..."
+            : "Request Membership"}
+        </button>
+      )}
+
+      {/* SUCCESS / ERROR */}
+      {successMessage && (
+        <div className="message-success" style={{ marginTop: "0.5rem" }}>
+          {successMessage}
+        </div>
+      )}
+
+      {membershipError && (
+        <div className="message-error" style={{ marginTop: "0.5rem" }}>
+          {membershipError}
+        </div>
+      )}
+    </div>
+  </section>
+)}
       {/* QUICK ACTIONS */}
       {!isGuest && (
         <section className="dashboard-section">
