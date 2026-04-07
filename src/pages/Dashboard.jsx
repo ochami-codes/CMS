@@ -79,9 +79,6 @@ const timeDiff = (target, now) => {
 /* ================= DASHBOARD ================= */
 
 export default function Dashboard() {
-console.log("USER:", user);
-console.log("ROLE:", role);
-console.log("IS GUEST:", isGuest);
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -92,7 +89,9 @@ console.log("IS GUEST:", isGuest);
   const [birthday, setBirthday] = useState(null);
   const [todayBirthdays, setTodayBirthdays] = useState([]);
   const [upcomingBirthdays, setUpcomingBirthdays] = useState([]);
-
+console.log("USER:", user);
+console.log("ROLE:", role);
+console.log("IS GUEST:", isGuest);
   const [membershipStatus, setMembershipStatus] = useState(null);
   const [loadingMembershipRequest, setLoadingMembershipRequest] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
