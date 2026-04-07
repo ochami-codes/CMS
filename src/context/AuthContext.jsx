@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
         id: data.user.id,
         email: data.user.email,
         full_name: data.user.full_name ?? "Guest",
-        role_name: data.user.role_name ?? "Guest",
+        role_name: data.user.role_name ?? "guest",
         church_id: data.user.church_id ?? null,
         church_name: data.user.church_name ?? null,
         is_member: data.user.is_member ?? false,

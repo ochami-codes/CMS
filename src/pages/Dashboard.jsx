@@ -95,8 +95,8 @@ export default function Dashboard() {
 
   const [now, setNow] = useState(new Date());
 
-  const isGuest = user?.role_name === "Guest";
-  const isAdmin = user?.role_name ==="Admin";
+  const isGuest = user?.role_name === "guest";
+  const isAdmin = user?.role_name ==="admin";
   const role = user?.role_name;
   const churchId = user?.church_id;  
 
