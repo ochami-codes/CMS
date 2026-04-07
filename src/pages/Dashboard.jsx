@@ -79,6 +79,9 @@ const timeDiff = (target, now) => {
 /* ================= DASHBOARD ================= */
 
 export default function Dashboard() {
+console.log("USER:", user);
+console.log("ROLE:", role);
+console.log("IS GUEST:", isGuest);
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
