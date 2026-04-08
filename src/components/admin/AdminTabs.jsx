@@ -9,8 +9,11 @@ export default function AdminTabs({ activeTab, setActiveTab }) {
   const [rolePending, setRolePending] = useState(0);
   const [membershipPending, setMembershipPending] = useState(0);
 
+  // Normalize role safely (handles null, undefined, casing, spaces)
+  const role = user?.role_name?.toLowerCase().trim();
+
   useEffect(() => {
-    if (user?.role_name !== "Admin") return;
+    if (role !== "admin") return;
 
     const fetchCounts = async () => {
       try {
@@ -26,9 +29,9 @@ export default function AdminTabs({ activeTab, setActiveTab }) {
     fetchCounts();
     const interval = setInterval(fetchCounts, 10000);
     return () => clearInterval(interval);
-  }, [user]);
+  }, [role]);
 
-  if (user?.role_name !== "Admin") return null;
+  if (role !== "admin") return null;
 
   return (
     <div className="admin-tabs">
