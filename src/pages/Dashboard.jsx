@@ -89,9 +89,6 @@ export default function Dashboard() {
   const [birthday, setBirthday] = useState(null);
   const [todayBirthdays, setTodayBirthdays] = useState([]);
   const [upcomingBirthdays, setUpcomingBirthdays] = useState([]);
-console.log("USER:", user);
-console.log("ROLE:", role);
-console.log("IS GUEST:", isGuest);
   const [membershipStatus, setMembershipStatus] = useState(null);
   const [loadingMembershipRequest, setLoadingMembershipRequest] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
