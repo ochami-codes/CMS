@@ -338,8 +338,10 @@ const handleAction = async (type) => {
     </div>
   </section>
 )}
+
+{!isGuest && (
+  <>
       {/* QUICK ACTIONS */}
-      {!isGuest && (
         <section className="dashboard-section">
           <div className="dashboard-section-header">
             <Coffee size={18} /> Quick Actions
@@ -370,7 +372,7 @@ const handleAction = async (type) => {
     ))}
 </div>
         </section>
-      )}
+      
 
       {/* ROLE-BASED TOOLS */}
       <section className="dashboard-section">
@@ -481,6 +483,8 @@ const handleAction = async (type) => {
               </div>
             </div>
           </section>
+</>
+)}
    </div>
   );
 }
