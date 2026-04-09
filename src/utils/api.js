@@ -286,7 +286,12 @@ export const AdminDashboardAPI = {
 export const ChurchAPI = {
   getById: (id) => request(`/churches/${id}`),
 };
-
+/* ======================
+   ROLES API
+====================== */
+export const RolesAPI = {
+  getAll: () => request("/roles"),
+};
 /* ======================
    LEGACY / HELPERS
 ====================== */

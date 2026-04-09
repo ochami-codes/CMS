@@ -1,13 +1,13 @@
+// src/pages/admin/ManageRoles.jsx
 import { useEffect, useState, useCallback } from "react";
 import { AdminAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../components/ToastProvider";
 import { Check, X, RefreshCw } from "lucide-react";
 import "../../styles/pages.css";
-import { ROLES, getRoleLabel } from "../../config/roles";
 
 export default function ManageRoles() {
-  const { user, setUser, loading: authLoading } = useAuth();
+  const { user, setUser, loading: authLoading, rolesData, getRoleLabel } = useAuth();
   const { showToast } = useToast();
 
   const [members, setMembers] = useState([]);
@@ -49,7 +49,12 @@ export default function ManageRoles() {
     setLoadingRoleRequests(true);
     try {
       const data = await AdminAPI.fetchRoleRequests();
-      setRoleRequests(data.requests ?? []);
+      setRoleRequests(
+        (data.requests ?? []).map(r => ({
+          ...r,
+          selectedRole: r.role_name
+        }))
+      );
     } catch (err) {
       showToast("Failed to load role requests", "error");
     } finally {
@@ -70,15 +75,12 @@ export default function ManageRoles() {
     if (member.selectedRole === member.role_name) return;
 
     setProcessingId(member.id);
-
     try {
       await AdminAPI.updateMemberRole(member.id, member.selectedRole);
 
       setMembers((prev) =>
         prev.map((m) =>
-          m.id === member.id
-            ? { ...m, role_name: member.selectedRole }
-            : m
+          m.id === member.id ? { ...m, role_name: member.selectedRole } : m
         )
       );
 
@@ -99,7 +101,6 @@ export default function ManageRoles() {
       return;
 
     setProcessingId(id);
-
     try {
       active
         ? await AdminAPI.deactivateMember(id)
@@ -120,19 +121,18 @@ export default function ManageRoles() {
   };
 
   /* ------------------ Role Request Actions ------------------ */
-  const approveRole = async (id) => {
-    setRequestProcessingId(id);
-
+  const approveRole = async (request) => {
+    setRequestProcessingId(request.id);
     try {
-      await AdminAPI.approveRoleRequest(id);
+      await AdminAPI.approveRoleRequest(request.id);
 
       setRoleRequests((prev) =>
-        prev.filter((r) => r.id !== id)
+        prev.filter((r) => r.id !== request.id)
       );
 
       await fetchMembers();
 
-      showToast("Role request approved");
+      showToast(`Approved role request for ${request.user_full_name}`);
     } catch (err) {
       showToast("Failed to approve request", "error");
     } finally {
@@ -140,17 +140,16 @@ export default function ManageRoles() {
     }
   };
 
-  const rejectRole = async (id) => {
-    setRequestProcessingId(id);
-
+  const rejectRole = async (request) => {
+    setRequestProcessingId(request.id);
     try {
-      await AdminAPI.rejectRoleRequest(id);
+      await AdminAPI.rejectRoleRequest(request.id);
 
       setRoleRequests((prev) =>
-        prev.filter((r) => r.id !== id)
+        prev.filter((r) => r.id !== request.id)
       );
 
-      showToast("Role request rejected");
+      showToast(`Rejected role request for ${request.user_full_name}`);
     } catch (err) {
       showToast("Failed to reject request", "error");
     } finally {
@@ -158,14 +157,12 @@ export default function ManageRoles() {
     }
   };
 
-  if (authLoading)
-    return <div className="dashboard-content">Checking permissions…</div>;
-
-  if (!user)
-    return <div className="dashboard-content">Loading profile…</div>;
+  if (authLoading) return <div className="dashboard-content">Checking permissions…</div>;
+  if (!user) return <div className="dashboard-content">Loading profile…</div>;
 
   return (
     <>
+      {/* ------------------ Search & Members ------------------ */}
       <div className="card">
         <h2 className="card-title">Admin Members & Roles</h2>
         <input
@@ -206,74 +203,124 @@ export default function ManageRoles() {
                   <tr key={m.id} style={!m.active ? { opacity: 0.6 } : {}}>
                     <td>{m.full_name}</td>
                     <td>
-  {Array.isArray(m.department)
-    ? m.department.join(", ")
-    : m.department || "-"}
-</td>
+                      {Array.isArray(m.department)
+                        ? m.department.join(", ")
+                        : m.department || "-"}
+                    </td>
                     <td>{m.active ? "Active" : "Inactive"}</td>
                     <td>{getRoleLabel(m.role_name)}</td>
 
-<td>
-  {m.is_system_user ? (
-    <select
-      value={m.selectedRole}
-      disabled={!m.active}
-      onChange={(e) =>
-        setMembers((prev) =>
-          prev.map((x) =>
-            x.id === m.id
-              ? { ...x, selectedRole: e.target.value }
-              : x
-          )
-        )
-      }
-    >
-      {Object.entries(ROLES)
-        .filter(([key]) => key !== "Admin" || user.role_name === "Admin")
-        .map(([dbKey, roleData]) => (
-          <option key={dbKey} value={dbKey}>
-            {roleData.label}
-          </option>
-        ))}
-    </select>
-  ) : (
-    <span style={{ opacity: 0.6 }}>—</span>
-  )}
-</td>
-<td className="dashboard-actions">
+                    <td>
+                      {m.is_system_user ? (
+                        <select
+                          value={m.selectedRole}
+                          disabled={!m.active}
+                          onChange={(e) =>
+                            setMembers((prev) =>
+                              prev.map((x) =>
+                                x.id === m.id
+                                  ? { ...x, selectedRole: e.target.value }
+                                  : x
+                              )
+                            )
+                          }
+                        >
+                          {rolesData.roles
+                            .filter(r => r.name !== "admin" || user.roles.includes("admin"))
+                            .map(r => (
+                              <option key={r.name} value={r.name}>
+                                {r.label}
+                              </option>
+                            ))}
+                        </select>
+                      ) : (
+                        <span style={{ opacity: 0.6 }}>—</span>
+                      )}
+                    </td>
 
-  {/* Only system users can be modified */}
-  {m.is_system_user && (
-    <>
-      <button
-        className="btn btn-warning action-btn"
-        disabled={processingId === m.id || !m.active}
-        onClick={() => updateRole(m)}
-      >
-        <RefreshCw size={16} /> <span>Update</span>
-      </button>
+                    <td className="dashboard-actions">
+                      {m.is_system_user && (
+                        <>
+                          <button
+                            className="btn btn-warning action-btn"
+                            disabled={processingId === m.id || !m.active}
+                            onClick={() => updateRole(m)}
+                          >
+                            <RefreshCw size={16} /> <span>Update</span>
+                          </button>
 
-      <button
-        className={`btn ${m.active ? "btn-danger" : "btn-success"} action-btn`}
-        disabled={processingId === m.id}
-        onClick={() => toggleMember(m.id, m.active)}
-      >
-        {m.active ? (
-          <>
-            <X size={16} />
-            <span>Deactivate</span>
-          </>
-        ) : (
-          <>
-            <Check size={16} />
-            <span>Activate</span>
-          </>
+                          <button
+                            className={`btn ${m.active ? "btn-danger" : "btn-success"} action-btn`}
+                            disabled={processingId === m.id}
+                            onClick={() => toggleMember(m.id, m.active)}
+                          >
+                            {m.active ? (
+                              <>
+                                <X size={16} /> <span>Deactivate</span>
+                              </>
+                            ) : (
+                              <>
+                                <Check size={16} /> <span>Activate</span>
+                              </>
+                            )}
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         )}
-      </button>
-    </>
-  )}
+      </div>
 
-</td>                  </tr>
+      {/* ------------------ Role Requests ------------------ */}
+      <div className="card">
+        <h3 className="card-title">Pending Role Requests</h3>
+
+        {loadingRoleRequests ? (
+          <div>Loading role requests…</div>
+        ) : (
+          <table className="members-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Requested Role</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {roleRequests.length === 0 ? (
+                <tr>
+                  <td colSpan="3" style={{ textAlign: "center" }}>
+                    No role requests
+                  </td>
+                </tr>
+              ) : (
+                roleRequests.map((r) => (
+                  <tr key={r.id}>
+                    <td>{r.user_full_name}</td>
+                    <td>{getRoleLabel(r.role_name)}</td>
+                    <td className="dashboard-actions">
+                      <button
+                        className="btn btn-success action-btn"
+                        disabled={requestProcessingId === r.id}
+                        onClick={() => approveRole(r)}
+                      >
+                        <Check size={16} /> <span>Approve</span>
+                      </button>
+
+                      <button
+                        className="btn btn-danger action-btn"
+                        disabled={requestProcessingId === r.id}
+                        onClick={() => rejectRole(r)}
+                      >
+                        <X size={16} /> <span>Reject</span>
+                      </button>
+                    </td>
+                  </tr>
                 ))
               )}
             </tbody>

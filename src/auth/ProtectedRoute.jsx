@@ -3,23 +3,26 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute({
-  allowedRoles,
-  requireMember = false,
+  requiredPermission = null,  // New: backend permission to check
+  requireMember = false,      // Keep old member check
 }) {
   const { user } = useAuth();
 
-  //  Not logged in → instant redirect
+  // Not logged in → redirect to login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  //  Block non-members if required
+  // Block non-members if required
   if (requireMember && !user.is_member) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  //  Role restriction
-  if (allowedRoles && !allowedRoles.includes(user.role_name)) {
+  // Permission check
+  if (
+    requiredPermission &&
+    !user.permissions?.includes(requiredPermission)
+  ) {
     return <Navigate to="/dashboard" replace />;
   }
 

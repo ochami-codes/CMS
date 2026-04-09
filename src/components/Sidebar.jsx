@@ -1,7 +1,6 @@
 // src/components/Sidebar.jsx
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { canUser } from "../utils/permissions";
 import sdaLogo from "../assets/sda-logo.png";
 import "../styles/layout.css";
 import {
@@ -78,9 +77,9 @@ export default function Sidebar({ open, onClose }) {
       <nav className="sidebar-links">
         {SIDEBAR_ITEMS
           .filter(item => {
-            if (!item.permission) return true; // public to all users
-            if (!isMember) return false;      // guests cannot see restricted links
-            return canUser(user.role_name, item.permission);
+            if (!item.permission) return true;       // public to all users
+            if (!isMember) return false;            // guests cannot see restricted links
+            return user.permissions?.includes(item.permission); // permission-driven
           })
           .map(item => {
             const Icon = item.icon;

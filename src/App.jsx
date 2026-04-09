@@ -10,7 +10,6 @@ import DashboardLayout from "./layouts/DashboardLayout";
 
 // Auth
 import ProtectedRoute from "./auth/ProtectedRoute";
-import RequirePermission from "./components/RequirePermission";
 import Login from "./auth/Login";
 import Register from "./auth/Register";
 import ResetPassword from "./auth/ResetPassword";
@@ -56,6 +55,7 @@ const departmentRoutes = [
   { path: "communication", component: CommunicationDashboard, permission: "access_media_dashboard" },
 ];
 function App() {
+  // Just wrap the component with RequirePermission
   const withPermission = (Component, permission) => (
     <RequirePermission permission={permission}>
       <Component />
@@ -132,5 +132,4 @@ function App() {
     </ToastProvider>
   );
 }
-
 export default App;

@@ -1,6 +1,7 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { AuthAPI } from "../utils/api";
+import { AuthAPI, RolesAPI } from "../utils/api";
+import { normalizeRole } from "../config/roles.js";
 
 const AuthContext = createContext(null);
 
@@ -9,8 +10,51 @@ export const AuthProvider = ({ children }) => {
      Core auth state
   ------------------------------- */
   const [user, setUser] = useState(null);
+  const [rolesData, setRolesData] = useState({
+    roles: [],           // array of role objects for dropdowns
+    roleLabels: {},      // map role name => label
+    requestableRoles: [],// roles users can request
+    allRoles: [],        // all roles
+    allPermissions: [],  // all permissions
+  });
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+
+  /* -------------------------------
+     Fetch /roles from backend
+  ------------------------------- */
+  const fetchRoles = useCallback(async () => {
+    try {
+      const data = await RolesAPI.getAll();
+
+      const roles = (data.roles || []).map(r => ({
+        name: normalizeRole(r.name),
+        label: r.label || r.name,
+        requestable: r.requestable ?? false,
+        permissions: r.permissions || [],
+      }));
+
+      const roleLabels = roles.reduce((acc, r) => {
+        acc[r.name] = r.label;
+        return acc;
+      }, {});
+
+      const allPermissions = [...new Set(roles.flatMap(r => r.permissions))];
+      const requestableRoles = (data.requestable_roles || []).map(normalizeRole);
+      const allRoles = (data.all_roles || []).map(normalizeRole);
+
+      setRolesData({
+        roles,
+        roleLabels,
+        requestableRoles,
+        allRoles,
+        allPermissions,
+      });
+
+    } catch (err) {
+      console.error("Failed to load roles:", err);
+    }
+  }, []);
 
   /* -------------------------------
      Fetch /auth/me
@@ -26,18 +70,15 @@ export const AuthProvider = ({ children }) => {
       }
 
       const normalizedUser = {
-        id: data.user.id,
-        email: data.user.email,
-        full_name: data.user.full_name ?? "Guest",
-        role_name: (data.user.role_name ?? "guest").toLowerCase(), // ✅ FIX
-        church_id: data.user.church_id ?? null,
-        church_name: data.user.church_name ?? null,
-        is_member: data.user.is_member ?? false,
-        membership_status: data.user.membership_status ?? "none",
+        ...data.user,
+        roles: (data.user.roles || []).map(normalizeRole),
+        permissions: data.user.permissions || [],
+        role_name: normalizeRole(data.user.role_name || "guest"),
       };
 
       setUser(normalizedUser);
       return normalizedUser;
+
     } catch (err) {
       console.error("fetchMe failed:", err);
       localStorage.removeItem("access_token");
@@ -59,7 +100,8 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem("access_token", data.access_token);
 
-      await fetchMe();
+      // Fetch both roles and user info
+      await Promise.all([fetchRoles(), fetchMe()]);
     } catch (err) {
       setAuthError(err.message || "Login failed");
       throw err;
@@ -80,30 +122,54 @@ export const AuthProvider = ({ children }) => {
   };
 
   /* -------------------------------
-     Auth initialization (ONCE)
+     Auth + roles initialization (ONCE)
   ------------------------------- */
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-
     if (!token) {
       setUser(null);
       setLoading(false);
       return;
     }
 
-    setLoading(false);
-    fetchMe();
-  }, [fetchMe]);
+    // Load both roles and user data
+    setLoading(true);
+    Promise.all([fetchRoles(), fetchMe()]).finally(() => setLoading(false));
+  }, [fetchMe, fetchRoles]);
+
+  /* -------------------------------
+     Permission & role helpers
+  ------------------------------- */
+  const canUser = (permission) => {
+    if (!user) return false;
+    if (!permission) return true;
+
+    // Admin override
+    if (user.roles.includes("admin")) return true;
+
+    return user.permissions.includes(permission);
+  };
+
+  const isAdmin = () => user?.roles.includes("admin") ?? false;
+
+  const hasRole = (role) => user?.roles.includes(normalizeRole(role)) ?? false;
+
+  const getRoleLabel = (role) => rolesData.roleLabels[normalizeRole(role)] || role;
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        rolesData,
         loading,
         authError,
         login,
         logout,
         refetchUser: fetchMe,
+        canUser,
+        isAdmin,
+        hasRole,
+        getRoleLabel,
       }}
     >
       {children}

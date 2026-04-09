@@ -1,9 +1,11 @@
+// src/components/messages/NewMessageModal.jsx
 import { useEffect, useState } from "react";
 import { MessagesAPI } from "../../utils/api";
-import { getRoleLabel } from "../../config/roles";
+import { useAuth } from "../../context/AuthContext";
 import "../../styles/messages.css";
 
 export default function NewMessageModal({ onSelect, onClose }) {
+  const { getRoleLabel } = useAuth(); // use backend-driven helper
   const [leaders, setLeaders] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -42,7 +44,7 @@ export default function NewMessageModal({ onSelect, onClose }) {
           <div className="role-group-list">
             {leaders.map((group) => (
               <div key={group.role} className="role-group">
-                {/* ✅ Use label helper */}
+                {/* ✅ Use backend-driven label */}
                 <h4 className="role-title">
                   {getRoleLabel(group.role)}
                 </h4>

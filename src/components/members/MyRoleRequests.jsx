@@ -1,17 +1,19 @@
+// src/components/members/MyRoleRequests.jsx
 import { useState, useEffect } from "react";
 import { RoleRequestsAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/pages.css";
-import { ROLES, getRoleLabel } from "../../config/roles";
+
 export default function MyRoleRequests() {
-  const { user } = useAuth(); // <- updated to new AuthContext
+  const { user, rolesData, getRoleLabel } = useAuth();
   const [requests, setRequests] = useState([]);
-  const [role, setRole] = useState("Member");
+  const [role, setRole] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  /* ------------------ Load my role requests ------------------ */
   const loadRequests = async () => {
-    if (!user?.id) return; // use user instead of profile
+    if (!user?.id) return;
     try {
       setLoading(true);
       const data = await RoleRequestsAPI.fetchMyRequests();
@@ -24,6 +26,7 @@ export default function MyRoleRequests() {
     }
   };
 
+  /* ------------------ Submit new role request ------------------ */
   const submitRequest = async () => {
     if (!role) return;
 
@@ -31,7 +34,7 @@ export default function MyRoleRequests() {
       setSubmitting(true);
       await RoleRequestsAPI.submit(role);
       alert("Role request submitted!");
-      setRole("Member");
+      setRole(""); // reset selection
       loadRequests();
     } catch (err) {
       alert(err.message || "Failed to submit request");
@@ -68,21 +71,23 @@ export default function MyRoleRequests() {
 
         <div className="form-group flex-row">
           <select
-  value={role}
-  onChange={(e) => setRole(e.target.value)}
-  className="input flex-1"
->
- {Object.entries(ROLES)
-  .filter(([key]) => key !== "Admin")
-  .map(([dbKey, roleData]) => (
-    <option key={dbKey} value={dbKey}>
-      {roleData.label}
-    </option>
-))}
-</select>
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="input flex-1"
+          >
+            <option value="">Select a role…</option>
+            {rolesData.roles
+              .filter(r => r.name !== "admin") // exclude admin
+              .map(r => (
+                <option key={r.name} value={r.name}>
+                  {r.label}
+                </option>
+              ))}
+          </select>
+
           <button
             onClick={submitRequest}
-            disabled={submitting}
+            disabled={submitting || !role}
             className="btn btn-primary ml-2"
           >
             {submitting ? "Submitting…" : "Submit Request"}
@@ -103,8 +108,8 @@ export default function MyRoleRequests() {
                 className="flex flex-col sm:flex-row sm:justify-between py-1"
               >
                 <span>
-  {getRoleLabel(r.requested_role)} – <strong>{r.role_request_status}</strong>
-</span>
+                  {getRoleLabel(r.requested_role)} – <strong>{r.role_request_status}</strong>
+                </span>
                 <span className="text-gray-500 text-sm">
                   {r.role_requested_at
                     ? new Date(r.role_requested_at).toLocaleString()

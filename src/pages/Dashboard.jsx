@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
-import { canUser } from "../utils/permissions";
 import "../styles/pages.css";
 
 import {
@@ -341,65 +340,80 @@ const handleAction = async (type) => {
 
 {!isGuest && (
   <>
-      {/* QUICK ACTIONS */}
-        <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <Coffee size={18} /> Quick Actions
-          </div>
+     {/* QUICK ACTIONS */}
+<section className="dashboard-section">
+  <div className="dashboard-section-header">
+    <Coffee size={18} /> Quick Actions
+  </div>
 
   <div className="dashboard-actions">
-  {actions
-    .filter((a) => !(a.hideForAdmin && isAdmin))
-    .map((a) => (
-      <button
-        key={a.key}
-        className="dashboard-action-card"
-        onClick={() => handleAction(a.key)}
-        disabled={actionLoadingId === a.key}
-      >
-        {a.key === "message" ? (
-          <div className="icon-wrapper">
-            <MessageCircle size={24} />
-            {unreadMessages > 0 && (
-              <span className="badge unread">{unreadMessages}</span>
-            )}
-          </div>
-        ) : (
-          <Coffee size={24} />
-        )}
-        <h3>{a.label}</h3>
-      </button>
-    ))}
-</div>
-        </section>
+    {actions
+      .filter((a) => {
+        // hide admin-only actions for guests if needed
+        if (a.hideForAdmin && isAdmin) return false;
+
+        // permission check: optional mapping if actions require permission
+        if (a.permission) {
+          return isAdmin || user.permissions?.includes(a.permission);
+        }
+
+        return true; // no permission required
+      })
+      .map((a) => (
+        <button
+          key={a.key}
+          className="dashboard-action-card"
+          onClick={() => handleAction(a.key)}
+          disabled={actionLoadingId === a.key}
+        >
+          {a.key === "message" ? (
+            <div className="icon-wrapper">
+              <MessageCircle size={24} />
+              {unreadMessages > 0 && (
+                <span className="badge unread">{unreadMessages}</span>
+              )}
+            </div>
+          ) : (
+            <Coffee size={24} />
+          )}
+          <h3>{a.label}</h3>
+        </button>
+      ))}
+  </div>
+</section>
       
 
-      {/* ROLE-BASED TOOLS */}
-      <section className="dashboard-section">
-        <div className="dashboard-section-header">
-          <Users size={18} /> Tools
-        </div>
+    {/* ROLE-BASED TOOLS */}
+<section className="dashboard-section">
+  <div className="dashboard-section-header">
+    <Users size={18} /> Tools
+  </div>
 
-        <div className="dashboard-actions">
-          {canUser(role, "access_treasury_dashboard") && (
-            <Link to="/dashboard/treasury" className="dashboard-action-card">
-              Treasury
-            </Link>
-          )}
+  <div className="dashboard-actions">
+    {/* Treasury */}
+    {(isAdmin || user.permissions?.includes("access_treasury_dashboard")) && (
+      <Link to="/dashboard/treasury" className="dashboard-action-card">
+        Treasury
+      </Link>
+    )}
 
-          {canUser(role, "manage_youth") && (
-            <Link to="/dashboard/youth" className="dashboard-action-card">
-              Youth
-            </Link>
-          )}
+    {/* Youth */}
+    {(isAdmin || user.permissions?.includes("access_youth_dashboard")) && (
+      <Link to="/dashboard/youth" className="dashboard-action-card">
+        Youth
+      </Link>
+    )}
 
-          {canUser(role, "access_admin_dashboard") && (
-            <Link to="/dashboard/admin" className="dashboard-action-card">
-              Admin
-            </Link>
-          )}
-        </div>
-      </section>
+    {/* Admin */}
+    {(isAdmin || user.permissions?.includes("access_admin_dashboard")) && (
+      <Link to="/dashboard/admin" className="dashboard-action-card">
+        Admin
+      </Link>
+    )}
+
+    {/* Add more tools here following same pattern */}
+  </div>
+</section>
 
       {/* ANNOUNCEMENTS */}
       <section className="dashboard-section">
