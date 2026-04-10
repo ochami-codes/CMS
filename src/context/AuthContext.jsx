@@ -87,40 +87,55 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  /* -------------------------------
-     Login
-  ------------------------------- */
-  const login = async ({ email, password }) => {
-    setAuthError(null);
-    setLoading(true);
+/* -------------------------------
+   Login
+-------------------------------- */
+const login = async ({ email, password }) => {
+  setAuthError(null);
+  setLoading(true);
 
-    try {
-      const data = await AuthAPI.login({ email, password });
-      if (!data?.access_token) throw new Error("Login failed");
+  try {
+    const data = await AuthAPI.login({ email, password });
+    if (!data?.access_token) throw new Error("Login failed");
 
-      localStorage.setItem("access_token", data.access_token);
+    localStorage.setItem("access_token", data.access_token);
 
-      // Fetch both roles and user info
-      await Promise.all([fetchRoles(), fetchMe()]);
-    } catch (err) {
-      setAuthError(err.message || "Login failed");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+    // ✅ Critical: resolve user FIRST
+    await fetchMe();
 
-  /* -------------------------------
-     Logout
-  ------------------------------- */
-  const logout = async () => {
-    try {
-      await AuthAPI.logout();
-    } catch {}
-    localStorage.removeItem("access_token");
-    setUser(null);
-  };
+    // 🚀 Non-blocking: load roles in background
+    fetchRoles();
 
+  } catch (err) {
+    setAuthError(err.message || "Login failed");
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+};
+
+/* -------------------------------
+   Logout
+-------------------------------- */
+const logout = async () => {
+  try {
+    await AuthAPI.logout();
+  } catch {}
+
+  localStorage.removeItem("access_token");
+
+  // ✅ Clear everything immediately
+  setUser(null);
+
+  // Optional: reset roles (prevents stale UI)
+  setRolesData({
+    roles: [],
+    roleLabels: {},
+    requestableRoles: [],
+    allRoles: [],
+    allPermissions: [],
+  });
+};
   /* -------------------------------
      Auth + roles initialization (ONCE)
   ------------------------------- */
