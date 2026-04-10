@@ -134,7 +134,11 @@ export const AuthProvider = ({ children }) => {
 
     // Load both roles and user data
     setLoading(true);
-    Promise.all([fetchRoles(), fetchMe()]).finally(() => setLoading(false));
+    fetchMe()
+  .finally(() => setLoading(false));
+
+// Load roles in background (non-blocking)
+fetchRoles();
   }, [fetchMe, fetchRoles]);
 
   /* -------------------------------
