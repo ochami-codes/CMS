@@ -275,58 +275,6 @@ export default function ManageRoles() {
         )}
       </div>
 
-      {/* ------------------ Role Requests ------------------ */}
-      <div className="card">
-        <h3 className="card-title">Pending Role Requests</h3>
-
-        {loadingRoleRequests ? (
-          <div>Loading role requests…</div>
-        ) : (
-          <table className="members-table">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Requested Role</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {roleRequests.length === 0 ? (
-                <tr>
-                  <td colSpan="3" style={{ textAlign: "center" }}>
-                    No role requests
-                  </td>
-                </tr>
-              ) : (
-                roleRequests.map((r) => (
-                  <tr key={r.id}>
-                    <td>{r.user_full_name}</td>
-                    <td>{getRoleLabel(r.role_name)}</td>
-                    <td className="dashboard-actions">
-                      <button
-                        className="btn btn-success action-btn"
-                        disabled={requestProcessingId === r.id}
-                        onClick={() => approveRole(r)}
-                      >
-                        <Check size={16} /> <span>Approve</span>
-                      </button>
-
-                      <button
-                        className="btn btn-danger action-btn"
-                        disabled={requestProcessingId === r.id}
-                        onClick={() => rejectRole(r)}
-                      >
-                        <X size={16} /> <span>Reject</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
     </>
   );
 }

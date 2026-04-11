@@ -138,10 +138,10 @@ export const AdminAPI = {
   fetchMembers: (params = "") => request(`/members?${params}`),
 
   updateMemberRole: async (memberId, roleName) =>
-    request(`/members/${memberId}`, {
-      method: "PUT",
-      body: JSON.stringify({ updates: { role_name: roleName } }),
-    }),
+  request(`/admin/role-requests/members/${memberId}/role`, {
+    method: "PUT",
+    body: JSON.stringify({ role_name: roleName }),
+  }),
 
   searchProfiles: (query) =>
     request(`/members/profiles/search?q=${encodeURIComponent(query)}`),
