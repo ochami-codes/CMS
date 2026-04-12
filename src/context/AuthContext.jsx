@@ -100,21 +100,14 @@ const login = async ({ email, password }) => {
 
     localStorage.setItem("access_token", data.access_token);
 
-    // ✅ TEMP USER (optimistic UI)
-    setUser({
-      email,
-      roles: [],
-      permissions: [],
-      role_name: "guest",
-    });
+    // ✅ Fetch real user BEFORE setting anything
+    const realUser = await fetchMe();
 
+    if (!realUser) {
+      throw new Error("Failed to load user");
+    }
 
-    //  Load real user in background
-    fetchMe().then((realUser) => {
-      if (realUser) setUser(realUser);
-    });
-
-    // Load roles in background
+    // ✅ Load roles in background (non-blocking)
     fetchRoles();
 
   } catch (err) {
