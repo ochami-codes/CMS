@@ -100,10 +100,21 @@ const login = async ({ email, password }) => {
 
     localStorage.setItem("access_token", data.access_token);
 
-    // ✅ Critical: resolve user FIRST
-    await fetchMe();
+    // ✅ TEMP USER (optimistic UI)
+    setUser({
+      email,
+      roles: [],
+      permissions: [],
+      role_name: "guest",
+    });
 
-    // 🚀 Non-blocking: load roles in background
+
+    //  Load real user in background
+    fetchMe().then((realUser) => {
+      if (realUser) setUser(realUser);
+    });
+
+    // Load roles in background
     fetchRoles();
 
   } catch (err) {
@@ -113,7 +124,6 @@ const login = async ({ email, password }) => {
     setLoading(false);
   }
 };
-
 /* -------------------------------
    Logout
 -------------------------------- */
