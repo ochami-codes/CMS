@@ -2,7 +2,12 @@ import { useEffect, useState, useRef } from "react";
 import { MessagesAPI } from "../../utils/api";
 import "../../styles/messages.css";
 
-export default function ChatWindow({ threadId, recipient, currentProfileId, onThreadCreated }) {
+export default function ChatWindow({
+  threadId,
+  recipient,
+  currentProfileId,
+  onThreadCreated,
+}) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,9 +24,15 @@ export default function ChatWindow({ threadId, recipient, currentProfileId, onTh
       if (!silent) setLoading(true);
 
       const res = await MessagesAPI.getConversation(threadId);
-      setMessages(Array.isArray(res.messages) 
-        ? res.messages.map(m => ({ ...m, is_me: m.sender_id === currentProfileId }))
-        : []);
+
+      setMessages(
+        Array.isArray(res.messages)
+          ? res.messages.map((m) => ({
+              ...m,
+              is_me: m.sender_id === currentProfileId,
+            }))
+          : []
+      );
     } catch (err) {
       console.error("Failed to load messages:", err);
     } finally {
@@ -37,8 +48,8 @@ export default function ChatWindow({ threadId, recipient, currentProfileId, onTh
     if (!trimmed || sending || (!threadId && !recipient)) return;
 
     setSending(true);
-    const tempId = `temp-${Date.now()}`;
 
+    const tempId = `temp-${Date.now()}`;
     const tempMessage = {
       id: tempId,
       content: trimmed,
@@ -46,7 +57,9 @@ export default function ChatWindow({ threadId, recipient, currentProfileId, onTh
       is_me: true,
       created_at: new Date().toISOString(),
     };
-    setMessages(prev => [...prev, tempMessage]);
+
+    // optimistic update
+    setMessages((prev) => [...prev, tempMessage]);
     setText("");
 
     try {
@@ -56,31 +69,34 @@ export default function ChatWindow({ threadId, recipient, currentProfileId, onTh
         recipient_profile_id: threadId ? null : recipient?.id,
       });
 
-      // If it's a new conversation, notify parent
+      // new thread case
       if (!threadId && res.message_id) {
         onThreadCreated?.(res.message_id);
       }
 
-      // Refresh messages silently
-      if (threadId || res.message_id) loadMessages(true);
+      // refresh silently
+      if (threadId || res.message_id) {
+        loadMessages(true);
+      }
     } catch (err) {
       console.error("Failed to send message:", err);
-      // Rollback temp message
-      setMessages(prev => prev.filter(m => m.id !== tempId));
+
+      // rollback
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
     } finally {
       setSending(false);
     }
   };
 
   // -----------------------------
-  // Auto scroll to bottom
+  // Auto scroll
   // -----------------------------
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   // -----------------------------
-  // Load messages when thread changes
+  // Load on thread change
   // -----------------------------
   useEffect(() => {
     if (threadId) {
@@ -91,14 +107,18 @@ export default function ChatWindow({ threadId, recipient, currentProfileId, onTh
   }, [threadId, recipient]);
 
   // -----------------------------
-  // Smart refresh on visibility
+  // Refresh on tab focus
   // -----------------------------
   useEffect(() => {
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") loadMessages(true);
+      if (document.visibilityState === "visible") {
+        loadMessages(true);
+      }
     };
+
     document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
   }, [threadId]);
 
   // -----------------------------
@@ -117,45 +137,67 @@ export default function ChatWindow({ threadId, recipient, currentProfileId, onTh
   // -----------------------------
   return (
     <div className="chat-window">
+      {/* Header */}
+      <div className="chat-header">
+        <div className="chat-header-left">
+          <div className="chat-header-avatar">
+            {recipient?.name?.charAt(0)?.toUpperCase() || "U"}
+          </div>
+
+          <div className="chat-header-info">
+            <span className="chat-header-name">
+              {recipient?.name || "Conversation"}
+            </span>
+            <span className="chat-header-status">Online</span>
+          </div>
+        </div>
+
+        <div className="chat-header-actions">
+          {/* future actions */}
+        </div>
+      </div>
+
+      {/* Messages */}
       <div className="chat-messages">
         {loading ? (
           <p className="chat-info">Loading messages...</p>
         ) : messages.length === 0 ? (
           <p className="chat-info">
-            {recipient ? `Start a chat with ${recipient.name}` : "No messages yet"}
+            {recipient
+              ? `Start a chat with ${recipient.name}`
+              : "No messages yet"}
           </p>
         ) : (
-          messages.map(m => {
-            const isMe = m.is_me;
-            return (
-              <div key={m.id} className={`chat-bubble ${isMe ? "me" : "other"}`}>
-                {!isMe && <span className="chat-sender">{m.sender?.full_name || "Unknown"}</span>}
-                <p>{m.content}</p>
-                {m.created_at && (
-                  <span className="chat-time">
-                    {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                )}
+          messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`chat-message ${msg.is_me ? "me" : "other"}`}
+            >
+              <div className="chat-bubble">
+                <p>{msg.content}</p>
               </div>
-            );
-          })
+            </div>
+          ))
         )}
+
         <div ref={bottomRef} />
       </div>
 
+      {/* Input */}
       <div className="chat-input">
         <input
           value={text}
-          onChange={e => setText(e.target.value)}
+          onChange={(e) => setText(e.target.value)}
           placeholder="Type message..."
           disabled={sending}
-          onKeyDown={e => {
+          onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
               sendMessage();
             }
           }}
         />
+
         <button onClick={sendMessage} disabled={sending || !text.trim()}>
           {sending ? "Sending..." : "Send"}
         </button>

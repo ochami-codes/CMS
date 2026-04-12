@@ -1,6 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { MessagesAPI } from "../../utils/api";
 import "../../styles/messages.css";
+
 export default function InboxList({ onSelect, activeThreadId }) {
   const [inbox, setInbox] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,31 +27,34 @@ export default function InboxList({ onSelect, activeThreadId }) {
     const isToday = d.toDateString() === now.toDateString();
 
     if (isToday) {
-      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      return d.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     }
 
     return d.toLocaleDateString();
   };
 
-  // 🔁 Initial load
+  // Initial load
   useEffect(() => {
     loadInbox();
   }, []);
 
-  // 🧠 Smart background refresh (NOT annoying)
+  // Smart background refresh
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       if (document.visibilityState === "visible") {
-        loadInbox(true); // silent refresh
+        loadInbox(true);
       }
-    }, 15000); // slower = less annoying
+    }, 15000);
 
     return () => clearInterval(intervalRef.current);
   }, []);
 
-  const unreadCount = inbox.reduce(
-    (sum, msg) => sum + (msg.unread_count || 0),
-    0
+  const unreadCount = useMemo(
+    () => inbox.reduce((sum, msg) => sum + (msg.unread_count || 0), 0),
+    [inbox]
   );
 
   return (
@@ -80,14 +84,11 @@ export default function InboxList({ onSelect, activeThreadId }) {
             return (
               <div
                 key={msg.thread_id}
-                className={`inbox-item ${isActive ? "active" : ""} ${
-                  isUnread ? "unread" : ""
-                }`}
+                className={`inbox-item ${isActive ? "active" : ""}`}
                 onClick={async () => {
                   onSelect(msg.thread_id);
 
                   if (isUnread) {
-                    // ⚡ instant UI update (no waiting)
                     setInbox((prev) =>
                       prev.map((item) =>
                         item.thread_id === msg.thread_id
@@ -104,30 +105,36 @@ export default function InboxList({ onSelect, activeThreadId }) {
                   }
                 }}
               >
-                {/* Top row */}
-                <div className="inbox-top">
-                  <strong className="sender">
-                    {msg.other_user_name || "Unknown"}
-                  </strong>
-
-                  {isUnread && (
-                    <span className="badge">{msg.unread_count}</span>
-                  )}
+                {/* Avatar */}
+                <div className="avatar">
+                  {msg.other_user_name?.charAt(0)?.toUpperCase() || "U"}
                 </div>
 
-                {/* Preview */}
-                <p className="preview">
-                  {msg.last_message?.length > 60
-                    ? msg.last_message.slice(0, 60) + "..."
-                    : msg.last_message || "No content"}
-                </p>
+                {/* Content */}
+                <div className="inbox-content">
+                  <div className="inbox-top">
+                    <strong className="sender">
+                      {msg.other_user_name || "Unknown"}
+                    </strong>
 
-                {/* Time */}
-                {msg.last_message_at && (
-                  <span className="time">
-                    {formatTime(msg.last_message_at)}
-                  </span>
-                )}
+                    <span className="time">
+                      {msg.last_message_at &&
+                        formatTime(msg.last_message_at)}
+                    </span>
+                  </div>
+
+                  <div className="inbox-bottom">
+                    <p className="preview">
+                      {msg.last_message?.length > 60
+                        ? msg.last_message.slice(0, 60) + "..."
+                        : msg.last_message || "No content"}
+                    </p>
+
+                    {isUnread && (
+                      <span className="badge">{msg.unread_count}</span>
+                    )}
+                  </div>
+                </div>
               </div>
             );
           })}
