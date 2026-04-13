@@ -25,14 +25,19 @@ export default function ChatWindow({
 
       const res = await MessagesAPI.getConversation(threadId);
 
-      setMessages(
-        Array.isArray(res.messages)
-          ? res.messages.map((m) => ({
+      const normalized = Array.isArray(res.messages)
+        ? res.messages
+            .map((m) => ({
               ...m,
               is_me: m.sender_id === currentProfileId,
             }))
-          : []
-      );
+            .sort(
+              (a, b) =>
+                new Date(a.created_at) - new Date(b.created_at)
+            )
+        : [];
+
+      setMessages(normalized);
     } catch (err) {
       console.error("Failed to load messages:", err);
     } finally {
@@ -50,15 +55,20 @@ export default function ChatWindow({
     setSending(true);
 
     const tempId = `temp-${Date.now()}`;
+
+    // ✅ FIXED: match backend shape
     const tempMessage = {
       id: tempId,
       content: trimmed,
-      sender_name: "You",
+      sender_id: currentProfileId,
+      sender: {
+        full_name: "You",
+      },
       is_me: true,
       created_at: new Date().toISOString(),
     };
 
-    // optimistic update
+    // optimistic UI
     setMessages((prev) => [...prev, tempMessage]);
     setText("");
 
@@ -69,20 +79,23 @@ export default function ChatWindow({
         recipient_profile_id: threadId ? null : recipient?.id,
       });
 
-      // new thread case
+      // ✅ FIXED: prevent premature reload
       if (!threadId && res.message_id) {
         onThreadCreated?.(res.message_id);
+        return;
       }
 
       // refresh silently
-      if (threadId || res.message_id) {
+      if (threadId) {
         loadMessages(true);
       }
     } catch (err) {
       console.error("Failed to send message:", err);
 
-      // rollback
+      // rollback optimistic message
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
+
+      alert("Failed to send message");
     } finally {
       setSending(false);
     }
@@ -104,7 +117,7 @@ export default function ChatWindow({
     } else {
       setMessages([]);
     }
-  }, [threadId, recipient]);
+  }, [threadId]);
 
   // -----------------------------
   // Refresh on tab focus
@@ -119,6 +132,19 @@ export default function ChatWindow({
     document.addEventListener("visibilitychange", handleVisibility);
     return () =>
       document.removeEventListener("visibilitychange", handleVisibility);
+  }, [threadId]);
+
+  // -----------------------------
+  // Optional: polling (basic realtime)
+  // -----------------------------
+  useEffect(() => {
+    if (!threadId) return;
+
+    const interval = setInterval(() => {
+      loadMessages(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [threadId]);
 
   // -----------------------------
@@ -141,19 +167,15 @@ export default function ChatWindow({
       <div className="chat-header">
         <div className="chat-header-left">
           <div className="chat-header-avatar">
-            {recipient?.name?.charAt(0)?.toUpperCase() || "U"}
+            {recipient?.full_name?.charAt(0)?.toUpperCase() || "U"}
           </div>
 
           <div className="chat-header-info">
             <span className="chat-header-name">
-              {recipient?.name || "Conversation"}
+              {recipient?.full_name || "Conversation"}
             </span>
             <span className="chat-header-status">Online</span>
           </div>
-        </div>
-
-        <div className="chat-header-actions">
-          {/* future actions */}
         </div>
       </div>
 
@@ -164,7 +186,7 @@ export default function ChatWindow({
         ) : messages.length === 0 ? (
           <p className="chat-info">
             {recipient
-              ? `Start a chat with ${recipient.name}`
+              ? `Start a chat with ${recipient.full_name}`
               : "No messages yet"}
           </p>
         ) : (
@@ -174,6 +196,11 @@ export default function ChatWindow({
               className={`chat-message ${msg.is_me ? "me" : "other"}`}
             >
               <div className="chat-bubble">
+                {!msg.is_me && (
+                  <span className="chat-sender">
+                    {msg.sender?.full_name}
+                  </span>
+                )}
                 <p>{msg.content}</p>
               </div>
             </div>
