@@ -12,7 +12,28 @@ export default function ChatWindow({
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+
   const bottomRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // -----------------------------
+  // Helpers
+  // -----------------------------
+  const formatTime = (date) =>
+    new Date(date).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  const getStatus = (msg) => {
+    if (!msg.is_me) return null;
+    return msg.recipients?.[0]?.is_read ? "✓✓" : "✓";
+  };
+
+  const otherUserName =
+    recipient?.full_name ||
+    messages.find((m) => !m.is_me)?.sender?.full_name ||
+    "Conversation";
 
   // -----------------------------
   // Load messages
@@ -56,19 +77,16 @@ export default function ChatWindow({
 
     const tempId = `temp-${Date.now()}`;
 
-    // ✅ FIXED: match backend shape
     const tempMessage = {
       id: tempId,
       content: trimmed,
       sender_id: currentProfileId,
-      sender: {
-        full_name: "You",
-      },
+      sender: { full_name: "You" },
       is_me: true,
       created_at: new Date().toISOString(),
+      recipients: [{ is_read: false }],
     };
 
-    // optimistic UI
     setMessages((prev) => [...prev, tempMessage]);
     setText("");
 
@@ -79,38 +97,31 @@ export default function ChatWindow({
         recipient_profile_id: threadId ? null : recipient?.id,
       });
 
-      // ✅ FIXED: prevent premature reload
       if (!threadId && res.message_id) {
         onThreadCreated?.(res.message_id);
         return;
       }
 
-      // refresh silently
       if (threadId) {
         loadMessages(true);
       }
     } catch (err) {
       console.error("Failed to send message:", err);
-
-      // rollback optimistic message
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
-
       alert("Failed to send message");
     } finally {
       setSending(false);
+      inputRef.current?.focus(); // ✅ UX fix
     }
   };
 
   // -----------------------------
-  // Auto scroll
+  // Effects
   // -----------------------------
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // -----------------------------
-  // Load on thread change
-  // -----------------------------
   useEffect(() => {
     if (threadId) {
       loadMessages();
@@ -119,9 +130,6 @@ export default function ChatWindow({
     }
   }, [threadId]);
 
-  // -----------------------------
-  // Refresh on tab focus
-  // -----------------------------
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -134,15 +142,12 @@ export default function ChatWindow({
       document.removeEventListener("visibilitychange", handleVisibility);
   }, [threadId]);
 
-  // -----------------------------
-  // Optional: polling (basic realtime)
-  // -----------------------------
   useEffect(() => {
     if (!threadId) return;
 
     const interval = setInterval(() => {
       loadMessages(true);
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [threadId]);
@@ -167,12 +172,12 @@ export default function ChatWindow({
       <div className="chat-header">
         <div className="chat-header-left">
           <div className="chat-header-avatar">
-            {recipient?.full_name?.charAt(0)?.toUpperCase() || "U"}
+            {otherUserName.charAt(0).toUpperCase()}
           </div>
 
           <div className="chat-header-info">
             <span className="chat-header-name">
-              {recipient?.full_name || "Conversation"}
+              {otherUserName}
             </span>
             <span className="chat-header-status">Online</span>
           </div>
@@ -201,7 +206,20 @@ export default function ChatWindow({
                     {msg.sender?.full_name}
                   </span>
                 )}
+
                 <p>{msg.content}</p>
+
+                <div className="chat-meta">
+                  <span className="time">
+                    {formatTime(msg.created_at)}
+                  </span>
+
+                  {msg.is_me && (
+                    <span className="status">
+                      {getStatus(msg)}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           ))
@@ -213,6 +231,7 @@ export default function ChatWindow({
       {/* Input */}
       <div className="chat-input">
         <input
+          ref={inputRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Type message..."
