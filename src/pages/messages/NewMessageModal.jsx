@@ -36,6 +36,9 @@ const loadLeaders = async () => {
     setLoading(false);
   }
 };
+useEffect(() => {
+  loadLeaders();
+}, []);
   // -----------------------------
   // Filter leaders
   // -----------------------------
@@ -46,7 +49,7 @@ const loadLeaders = async () => {
       .map((group) => ({
         ...group,
         users: (group.users || []).filter((user) =>
-          user.full_name?.toLowerCase().includes(q)
+          (user.full_name || "").toLowerCase().includes(q)
         ),
       }))
       .filter((group) => group.users.length > 0);
