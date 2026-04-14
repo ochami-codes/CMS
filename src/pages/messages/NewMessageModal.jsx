@@ -13,23 +13,29 @@ export default function NewMessageModal({ onSelect, onClose }) {
   // -----------------------------
   // Load leaders
   // -----------------------------
-  const loadLeaders = async () => {
-    try {
-      setLoading(true);
-      const res = await MessagesAPI.getLeaders();
-      setLeaders(Array.isArray(res.roles) ? res.roles : []);
-    } catch (err) {
-      console.error("Failed to load leaders:", err);
-      setLeaders([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+const loadLeaders = async () => {
+  try {
+    setLoading(true);
+    const res = await MessagesAPI.getLeaders();
 
-  useEffect(() => {
-    loadLeaders();
-  }, []);
+    const normalized = Array.isArray(res.roles)
+      ? res.roles.map((group) => ({
+          ...group,
+          users: (group.users || []).map((user) => ({
+            ...user,
+            full_name: user.full_name || user.name, // ✅ FIX
+          })),
+        }))
+      : [];
 
+    setLeaders(normalized);
+  } catch (err) {
+    console.error("Failed to load leaders:", err);
+    setLeaders([]);
+  } finally {
+    setLoading(false);
+  }
+};
   // -----------------------------
   // Filter leaders
   // -----------------------------
