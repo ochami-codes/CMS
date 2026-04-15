@@ -67,56 +67,66 @@ export default function ChatWindow({
   // -----------------------------
   // Send message
   // -----------------------------
-  const sendMessage = async () => {
-    const trimmed = text.trim();
-    if (!trimmed || sending || (!threadId && !recipient)) return;
+const sendMessage = async () => {
+  const trimmed = text.trim();
+  if (!trimmed || sending) return;
 
-    setSending(true);
+  const isReply = !!threadId;
+  const recipientId = recipient?.id;
 
-    const tempId = `temp-${Date.now()}`;
+  // HARD RULE CHECK
+  if (!isReply && !recipientId) {
+    alert("No recipient selected");
+    return;
+  }
 
-    const tempMessage = {
-      id: tempId,
-      content: trimmed,
-      sender_id: currentProfileId,
-      sender: { full_name: "You" },
-      is_me: true,
-      created_at: new Date().toISOString(),
-    };
+  setSending(true);
 
-    // optimistic UI
-    setMessages((prev) => [...prev, tempMessage]);
-    setText("");
+  const tempId = `temp-${Date.now()}`;
 
-    try {
-      const res = await MessagesAPI.send({
-        content: trimmed,
-        thread_id: threadId || null,
-        recipient_profile_id: threadId ? null : recipient?.id,
-      });
-
-      // New thread created
-      if (!threadId && res.thread_id) {
-        onThreadCreated?.(res.thread_id);
-        return;
-      }
-
-      // Existing thread → refresh silently
-      if (threadId) {
-        loadMessages(true);
-      }
-    } catch (err) {
-      console.error("Failed to send message:", err);
-
-      // rollback optimistic message
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      alert("Failed to send message");
-    } finally {
-      setSending(false);
-      inputRef.current?.focus();
-    }
+  const tempMessage = {
+    id: tempId,
+    content: trimmed,
+    sender_id: currentProfileId,
+    sender: { full_name: "You" },
+    is_me: true,
+    created_at: new Date().toISOString(),
   };
 
+  setMessages((prev) => [...prev, tempMessage]);
+  setText("");
+
+  try {
+    const payload = isReply
+      ? {
+          content: trimmed,
+          thread_id: threadId,
+        }
+      : {
+          content: trimmed,
+          recipient_profile_id: recipientId,
+        };
+
+    const res = await MessagesAPI.send(payload);
+
+    // If new thread created → notify parent immediately
+    if (!isReply && res.thread_id) {
+      onThreadCreated?.(res.thread_id);
+    }
+
+    // refresh messages
+    if (isReply || res.thread_id) {
+      loadMessages(true);
+    }
+  } catch (err) {
+    console.error("Failed to send message:", err);
+    setMessages((prev) => prev.filter((m) => m.id !== tempId));
+    alert(err?.response?.data?.error || "Failed to send message");
+  } finally {
+    setSending(false);
+    inputRef.current?.focus();
+  }
+};
   // -----------------------------
   // Effects
   // -----------------------------
