@@ -25,12 +25,10 @@ export default function ChatWindow({
       minute: "2-digit",
     });
 
-  const getStatus = (msg) => {
-    if (!msg.is_me) return null;
-    return msg.recipients?.[0]?.is_read ? "✓✓" : "✓";
-  };
+  const getStatus = (msg) => (msg.is_me ? "✓" : null);
 
   const otherUserName =
+    recipient?.other_user_name ||
     recipient?.full_name ||
     messages.find((m) => !m.is_me)?.sender?.full_name ||
     "Conversation";
@@ -84,44 +82,51 @@ export default function ChatWindow({
       sender: { full_name: "You" },
       is_me: true,
       created_at: new Date().toISOString(),
-      recipients: [{ is_read: false }],
     };
 
+    // optimistic UI
     setMessages((prev) => [...prev, tempMessage]);
     setText("");
 
     try {
       const res = await MessagesAPI.send({
         content: trimmed,
-        parent_message_id: threadId || null,
+        thread_id: threadId || null,
         recipient_profile_id: threadId ? null : recipient?.id,
       });
 
-      if (!threadId && res.message_id) {
-        onThreadCreated?.(res.message_id);
+      // New thread created
+      if (!threadId && res.thread_id) {
+        onThreadCreated?.(res.thread_id);
         return;
       }
 
+      // Existing thread → refresh silently
       if (threadId) {
         loadMessages(true);
       }
     } catch (err) {
       console.error("Failed to send message:", err);
+
+      // rollback optimistic message
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       alert("Failed to send message");
     } finally {
       setSending(false);
-      inputRef.current?.focus(); // ✅ UX fix
+      inputRef.current?.focus();
     }
   };
 
   // -----------------------------
   // Effects
   // -----------------------------
+
+  // auto scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // load messages on thread change
   useEffect(() => {
     if (threadId) {
       loadMessages();
@@ -130,6 +135,13 @@ export default function ChatWindow({
     }
   }, [threadId]);
 
+  // mark as read
+  useEffect(() => {
+    if (!threadId) return;
+    MessagesAPI.markAsRead(threadId).catch(() => {});
+  }, [threadId]);
+
+  // reload when tab becomes active
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -142,6 +154,7 @@ export default function ChatWindow({
       document.removeEventListener("visibilitychange", handleVisibility);
   }, [threadId]);
 
+  // polling (temporary until realtime)
   useEffect(() => {
     if (!threadId) return;
 
@@ -244,7 +257,10 @@ export default function ChatWindow({
           }}
         />
 
-        <button onClick={sendMessage} disabled={sending || !text.trim()}>
+        <button
+          onClick={sendMessage}
+          disabled={sending || !text.trim()}
+        >
           {sending ? "Sending..." : "Send"}
         </button>
       </div>

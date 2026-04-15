@@ -37,10 +37,7 @@ export default function MessagesPage({ currentProfileId }) {
   // Select existing thread
   const handleSelectThread = async (thread) => {
     setActiveThreadId(thread.thread_id);
-    setActiveRecipient({
-      full_name: thread.other_user_name,
-    });
-
+setActiveRecipient(thread);
     // Handle unread
     if (thread.unread_count > 0) {
       // optimistic update

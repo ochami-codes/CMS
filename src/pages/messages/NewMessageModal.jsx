@@ -23,7 +23,7 @@ const loadLeaders = async () => {
           ...group,
           users: (group.users || []).map((user) => ({
             ...user,
-            full_name: user.full_name || user.name, // ✅ FIX
+            full_name: user.full_name ?? user.name ?? "Unknown"
           })),
         }))
       : [];
