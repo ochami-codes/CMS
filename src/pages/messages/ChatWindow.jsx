@@ -1,13 +1,19 @@
 import { useEffect, useState, useRef } from "react";
 import { MessagesAPI } from "../../utils/api";
 import "../../styles/messages.css";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ChatWindow({
   threadId,
   recipient,
-  currentProfileId,
   onThreadCreated,
 }) {
+  // -----------------------------
+  // Auth
+  // -----------------------------
+  const { user } = useAuth();
+  const currentProfileId = user?.id;
+
   // -----------------------------
   // State & Refs
   // -----------------------------
@@ -37,14 +43,13 @@ export default function ChatWindow({
   };
 
   const renderStatus = (msg) => {
-    if (!msg.is_me) return null;
-
     const status = getMessageStatus(msg);
 
     if (status === "sent") return "✓";
     if (status === "delivered") return "✓✓";
-    if (status === "read")
+    if (status === "read") {
       return <span style={{ color: "blue" }}>✓✓</span>;
+    }
 
     return "✓";
   };
@@ -59,32 +64,26 @@ export default function ChatWindow({
   // Load Messages
   // -----------------------------
   const loadMessages = async (silent = false) => {
-    if (!threadId) return;
+    if (!threadId || !currentProfileId) return;
 
     try {
       if (!silent) setLoading(true);
 
       const res = await MessagesAPI.getConversation(threadId);
 
-const normalized = Array.isArray(res.messages)
-  ? res.messages
-      .map((m) => {
-        console.log({
-          sender_id: m.sender_id,
-         current:currentProfileId,
-          equal: m.sender_id === currentProfileId,
-        });
+      const normalized = Array.isArray(res.messages)
+        ? res.messages
+            .map((m) => ({
+              ...m,
+              is_me:
+                String(m.sender_id) === String(currentProfileId),
+            }))
+            .sort(
+              (a, b) =>
+                new Date(a.created_at) - new Date(b.created_at)
+            )
+        : [];
 
-        return {
-          ...m,
-          is_me: m.sender_id === currentProfileId,
-        };
-      })
-      .sort(
-        (a, b) =>
-          new Date(a.created_at) - new Date(b.created_at)
-      )
-  : [];
       setMessages(normalized);
     } catch (err) {
       console.error("Failed to load messages:", err);
@@ -137,7 +136,6 @@ const normalized = Array.isArray(res.messages)
 
       const res = await MessagesAPI.send(payload);
 
-      // Handle new thread creation
       if (!isReply && res.thread_id) {
         setLocalThreadId(res.thread_id);
         onThreadCreated?.(res.thread_id);
@@ -148,8 +146,13 @@ const normalized = Array.isArray(res.messages)
       }
     } catch (err) {
       console.error("Failed to send message:", err);
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      alert(err?.response?.data?.error || "Failed to send message");
+      setMessages((prev) =>
+        prev.filter((m) => m.id !== tempId)
+      );
+      alert(
+        err?.response?.data?.error ||
+          "Failed to send message"
+      );
     } finally {
       setSending(false);
       inputRef.current?.focus();
@@ -159,13 +162,12 @@ const normalized = Array.isArray(res.messages)
   // -----------------------------
   // Effects
   // -----------------------------
-
-  // Auto-scroll
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
   }, [messages]);
 
-  // Load messages on thread change
   useEffect(() => {
     if (threadId) {
       loadMessages();
@@ -174,18 +176,15 @@ const normalized = Array.isArray(res.messages)
     }
   }, [threadId]);
 
-  // Sync local thread
   useEffect(() => {
     setLocalThreadId(threadId);
   }, [threadId]);
 
-  // Mark as read
   useEffect(() => {
     if (!threadId) return;
     MessagesAPI.markAsRead(threadId).catch(() => {});
   }, [threadId]);
 
-  // Reload on tab focus
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -193,7 +192,11 @@ const normalized = Array.isArray(res.messages)
       }
     };
 
-    document.addEventListener("visibilitychange", handleVisibility);
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibility
+    );
+
     return () =>
       document.removeEventListener(
         "visibilitychange",
@@ -201,7 +204,6 @@ const normalized = Array.isArray(res.messages)
       );
   }, [threadId]);
 
-  // Polling (temporary)
   useEffect(() => {
     if (!threadId) return;
 
@@ -213,15 +215,18 @@ const normalized = Array.isArray(res.messages)
   }, [threadId]);
 
   // -----------------------------
-  // Empty State
+  // Empty state
   // -----------------------------
   if (!threadId && !recipient) {
     return (
       <div className="chat-window empty">
-        <p>Select a conversation or start a new chat</p>
+        <p>
+          Select a conversation or start a new chat
+        </p>
       </div>
     );
   }
+
   // -----------------------------
   // UI
   // -----------------------------
@@ -238,7 +243,9 @@ const normalized = Array.isArray(res.messages)
             <span className="chat-header-name">
               {otherUserName}
             </span>
-            <span className="chat-header-status">Online</span>
+            <span className="chat-header-status">
+              Online
+            </span>
           </div>
         </div>
       </div>
@@ -246,7 +253,9 @@ const normalized = Array.isArray(res.messages)
       {/* Messages */}
       <div className="chat-messages">
         {loading ? (
-          <p className="chat-info">Loading messages...</p>
+          <p className="chat-info">
+            Loading messages...
+          </p>
         ) : messages.length === 0 ? (
           <p className="chat-info">
             {recipient
@@ -254,8 +263,7 @@ const normalized = Array.isArray(res.messages)
               : "No messages yet"}
           </p>
         ) : (
-          messages.map((msg) => { console.log(msg.content, msg.is_me); 
-return(
+          messages.map((msg) => (
             <div
               key={msg.id}
               className={`chat-message ${
@@ -284,8 +292,7 @@ return(
                 </div>
               </div>
             </div>
-          )
-})
+          ))
         )}
 
         <div ref={bottomRef} />
@@ -300,7 +307,10 @@ return(
           placeholder="Type message..."
           disabled={sending}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
+            if (
+              e.key === "Enter" &&
+              !e.shiftKey
+            ) {
               e.preventDefault();
               sendMessage();
             }
@@ -309,7 +319,9 @@ return(
 
         <button
           onClick={sendMessage}
-          disabled={sending || !text.trim()}
+          disabled={
+            sending || !text.trim()
+          }
         >
           {sending ? "Sending..." : "Send"}
         </button>

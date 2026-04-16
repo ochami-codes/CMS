@@ -4,8 +4,15 @@ import ChatWindow from "./ChatWindow";
 import NewMessageModal from "./NewMessageModal";
 import { MessagesAPI } from "../../utils/api";
 import "../../styles/messages.css";
+import { useAuth } from "../../context/AuthContext";
 
-export default function MessagesPage({ currentProfileId }) {
+export default function MessagesPage() {
+  // -----------------------------
+  // Auth
+  // -----------------------------
+  const { user } = useAuth();
+  const currentProfileId = user?.id;
+
   // -----------------------------
   // State
   // -----------------------------
@@ -34,16 +41,15 @@ export default function MessagesPage({ currentProfileId }) {
   // Handlers
   // -----------------------------
 
-  // Select existing thread
   const handleSelectThread = async (thread) => {
     setActiveThreadId(thread.thread_id);
-setActiveRecipient({
-  id: thread.other_user_id,
-  full_name: thread.other_user_name,
-});
-    // Handle unread
+
+    setActiveRecipient({
+      id: thread.other_user_id,
+      full_name: thread.other_user_name,
+    });
+
     if (thread.unread_count > 0) {
-      // optimistic update
       setInbox((prev) =>
         prev.map((item) =>
           item.thread_id === thread.thread_id
@@ -56,12 +62,11 @@ setActiveRecipient({
         await MessagesAPI.markAsRead(thread.thread_id);
       } catch (err) {
         console.error("Failed to mark as read:", err);
-        loadInbox(); // fallback sync
+        loadInbox();
       }
     }
   };
 
-  // Select new recipient (start new chat)
   const handleRecipientSelect = (user) => {
     setActiveRecipient({
       id: user.id,
@@ -72,14 +77,12 @@ setActiveRecipient({
     setShowModal(false);
   };
 
-  // After first message creates a thread
   const handleThreadCreated = (threadId) => {
     setActiveThreadId(threadId);
     setActiveRecipient(null);
-    loadInbox(); // refresh inbox
+    loadInbox();
   };
 
-  // Open modal
   const openNewMessageModal = () => {
     setActiveThreadId(null);
     setActiveRecipient(null);
@@ -116,7 +119,6 @@ setActiveRecipient({
         <ChatWindow
           threadId={activeThreadId}
           recipient={activeRecipient}
-          currentProfileId={currentProfileId}
           onThreadCreated={handleThreadCreated}
           onMessageSent={loadInbox}
         />
