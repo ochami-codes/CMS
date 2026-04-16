@@ -71,7 +71,7 @@ const normalized = Array.isArray(res.messages)
       .map((m) => {
         console.log({
           sender_id: m.sender_id,
-          currentProfileId,
+         current:currentProfileId,
           equal: m.sender_id === currentProfileId,
         });
 
