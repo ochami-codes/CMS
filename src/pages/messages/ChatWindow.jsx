@@ -66,22 +66,25 @@ export default function ChatWindow({
 
       const res = await MessagesAPI.getConversation(threadId);
 
-      const normalized = Array.isArray(res.messages)
-        ? res.messages
-            .map((m) => (console.log({
-  sender_id: m.sender_id,
-  currentProfileId,
-  equal: m.sender_id === currentProfileId,
-});{
-              ...m,
-              is_me: m.sender_id === currentProfileId,
-            }))
-            .sort(
-              (a, b) =>
-                new Date(a.created_at) - new Date(b.created_at)
-            )
-        : [];
+const normalized = Array.isArray(res.messages)
+  ? res.messages
+      .map((m) => {
+        console.log({
+          sender_id: m.sender_id,
+          currentProfileId,
+          equal: m.sender_id === currentProfileId,
+        });
 
+        return {
+          ...m,
+          is_me: m.sender_id === currentProfileId,
+        };
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.created_at) - new Date(b.created_at)
+      )
+  : [];
       setMessages(normalized);
     } catch (err) {
       console.error("Failed to load messages:", err);
