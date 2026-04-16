@@ -8,11 +8,15 @@ export default function ChatWindow({
   currentProfileId,
   onThreadCreated,
 }) {
+  // -----------------------------
+  // State & Refs
+  // -----------------------------
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [localThreadId, setLocalThreadId] = useState(threadId);
+
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -25,7 +29,25 @@ export default function ChatWindow({
       minute: "2-digit",
     });
 
-  const getStatus = (msg) => (msg.is_me ? "✓" : null);
+  const getMessageStatus = (msg) => {
+    if (!msg.is_me) return null;
+    if (!msg.delivered) return "sent";
+    if (msg.is_read) return "read";
+    return "delivered";
+  };
+
+  const renderStatus = (msg) => {
+    if (!msg.is_me) return null;
+
+    const status = getMessageStatus(msg);
+
+    if (status === "sent") return "✓";
+    if (status === "delivered") return "✓✓";
+    if (status === "read")
+      return <span style={{ color: "blue" }}>✓✓</span>;
+
+    return "✓";
+  };
 
   const otherUserName =
     recipient?.other_user_name ||
@@ -34,7 +56,7 @@ export default function ChatWindow({
     "Conversation";
 
   // -----------------------------
-  // Load messages
+  // Load Messages
   // -----------------------------
   const loadMessages = async (silent = false) => {
     if (!threadId) return;
@@ -65,85 +87,78 @@ export default function ChatWindow({
   };
 
   // -----------------------------
-  // Send message
+  // Send Message
   // -----------------------------
-const sendMessage = async () => {
-  const trimmed = text.trim();
-  if (!trimmed || sending) return;
+  const sendMessage = async () => {
+    const trimmed = text.trim();
+    if (!trimmed || sending) return;
 
-  const isReply = !!localThreadId;
-  const recipientId = recipient?.id;
+    const isReply = !!localThreadId;
+    const recipientId = recipient?.id;
 
-  // HARD RULE CHECK
-  if (!isReply && !recipientId) {
-    alert("No recipient selected");
-    return;
-  }
+    if (!isReply && !recipientId) {
+      alert("No recipient selected");
+      return;
+    }
 
-  setSending(true);
+    setSending(true);
 
-  const tempId = `temp-${Date.now()}`;
+    const tempId = `temp-${Date.now()}`;
 
-  const tempMessage = {
-    id: tempId,
-    content: trimmed,
-    sender_id: currentProfileId,
-    sender: { full_name: "You" },
-    is_me: true,
-    created_at: new Date().toISOString(),
+    const tempMessage = {
+      id: tempId,
+      content: trimmed,
+      sender_id: currentProfileId,
+      sender: { full_name: "You" },
+      is_me: true,
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, tempMessage]);
+    setText("");
+
+    try {
+      const payload = isReply
+        ? {
+            content: trimmed,
+            thread_id: localThreadId,
+          }
+        : {
+            content: trimmed,
+            recipient_profile_id: recipientId,
+          };
+
+      const res = await MessagesAPI.send(payload);
+
+      // Handle new thread creation
+      if (!isReply && res.thread_id) {
+        setLocalThreadId(res.thread_id);
+        onThreadCreated?.(res.thread_id);
+      }
+
+      if (isReply || res.thread_id) {
+        loadMessages(true);
+      }
+    } catch (err) {
+      console.error("Failed to send message:", err);
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      alert(err?.response?.data?.error || "Failed to send message");
+    } finally {
+      setSending(false);
+      inputRef.current?.focus();
+    }
   };
 
-  setMessages((prev) => [...prev, tempMessage]);
-  setText("");
-console.log("DEBUG SEND:", {
-  threadId,
-  localThreadId,
-  recipient,
-  isReply,
-  recipientId,
-});
-  try {
-    const payload = isReply
-      ? {
-          content: trimmed,
-          thread_id: localThreadId,
-        }
-      : {
-          content: trimmed,
-          recipient_profile_id: recipientId,
-        };
-
-    const res = await MessagesAPI.send(payload);
-
-    // If new thread created → notify parent immediately
-    if (!isReply && res.thread_id) {
-  setLocalThreadId(res.thread_id);
-  onThreadCreated?.(res.thread_id);
-}
-
-    // refresh messages
-    if (isReply || res.thread_id) {
-      loadMessages(true);
-    }
-  } catch (err) {
-    console.error("Failed to send message:", err);
-    setMessages((prev) => prev.filter((m) => m.id !== tempId));
-    alert(err?.response?.data?.error || "Failed to send message");
-  } finally {
-    setSending(false);
-    inputRef.current?.focus();
-  }
-};
   // -----------------------------
   // Effects
   // -----------------------------
 
-  // auto scroll
+  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // load messages on thread change
+  // Load messages on thread change
   useEffect(() => {
     if (threadId) {
       loadMessages();
@@ -152,13 +167,18 @@ console.log("DEBUG SEND:", {
     }
   }, [threadId]);
 
-  // mark as read
+  // Sync local thread
+  useEffect(() => {
+    setLocalThreadId(threadId);
+  }, [threadId]);
+
+  // Mark as read
   useEffect(() => {
     if (!threadId) return;
     MessagesAPI.markAsRead(threadId).catch(() => {});
   }, [threadId]);
 
-  // reload when tab becomes active
+  // Reload on tab focus
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -168,10 +188,13 @@ console.log("DEBUG SEND:", {
 
     document.addEventListener("visibilitychange", handleVisibility);
     return () =>
-      document.removeEventListener("visibilitychange", handleVisibility);
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibility
+      );
   }, [threadId]);
 
-  // polling (temporary until realtime)
+  // Polling (temporary)
   useEffect(() => {
     if (!threadId) return;
 
@@ -182,11 +205,8 @@ console.log("DEBUG SEND:", {
     return () => clearInterval(interval);
   }, [threadId]);
 
-useEffect(() => {
-  setLocalThreadId(threadId);
-}, [threadId]);
   // -----------------------------
-  // Empty state
+  // Empty State
   // -----------------------------
   if (!threadId && !recipient) {
     return (
@@ -231,7 +251,9 @@ useEffect(() => {
           messages.map((msg) => (
             <div
               key={msg.id}
-              className={`chat-message ${msg.is_me ? "me" : "other"}`}
+              className={`chat-message ${
+                msg.is_me ? "me" : "other"
+              }`}
             >
               <div className="chat-bubble">
                 {!msg.is_me && (
@@ -249,7 +271,7 @@ useEffect(() => {
 
                   {msg.is_me && (
                     <span className="status">
-                      {getStatus(msg)}
+                      {renderStatus(msg)}
                     </span>
                   )}
                 </div>
