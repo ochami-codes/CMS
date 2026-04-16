@@ -235,13 +235,14 @@ export default function ChatWindow({
     <div className="chat-window">
       {/* Header */}
       <div className="chat-header">
+          <button className="back-btn" onClick={onBack}>
+  ←
+</button>
         <div className="chat-header-left">
           <div className="chat-header-avatar">
             {otherUserName.charAt(0).toUpperCase()}
           </div>
-          <button className="back-btn" onClick={onBack}>
-  ←
-</button>
+
           <div className="chat-header-info">
             <span className="chat-header-name">
               {otherUserName}

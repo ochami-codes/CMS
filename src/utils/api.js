@@ -244,8 +244,8 @@ export const MessagesAPI = {
 getUnreadCount: () =>
   request("/messages/unread-count"),
   // 👥 Get leaders grouped by role (NEW)
-  getLeaders: () =>
-    request("/messages/leaders"),
+  getUsers: () =>
+    request("/messages/users"),
 
 send: ({ content, thread_id, recipient_profile_id }) => {
   if (!thread_id && !recipient_profile_id) {

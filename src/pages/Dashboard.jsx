@@ -201,10 +201,10 @@ if (loading || !user) {
   /* ================= ACTION HANDLER ================= */
 // Actions
 const actions = [
+  { key: "message", label: "Messages" },
   { key: "request_role", label: "Request Role", hideForAdmin: true },
   { key: "transfer", label: "Membership Transfer" },
   { key: "lesson", label: "Lesson Subscription" },
-  { key: "message", label: "Messages" }, // messages button
 ];
 
 const handleAction = async (type) => {
@@ -360,24 +360,33 @@ const handleAction = async (type) => {
         return true; // no permission required
       })
       .map((a) => (
-        <button
-          key={a.key}
-          className="dashboard-action-card"
-          onClick={() => handleAction(a.key)}
-          disabled={actionLoadingId === a.key}
-        >
+<button
+  key={a.key}
+  className={`dashboard-action-card ${
+    a.key === "message" ? "message" : ""
+  }`}
+  onClick={() => handleAction(a.key)}
+>
           {a.key === "message" ? (
             <div className="icon-wrapper">
-              <MessageCircle size={24} />
-              {unreadMessages > 0 && (
-                <span className="badge unread">{unreadMessages}</span>
-              )}
-            </div>
+  <MessageCircle size={24} />
+
+  {unreadMessages > 0 && (
+    <span className="badge unread">
+      {unreadMessages}
+    </span>
+  )}
+</div>
           ) : (
             <Coffee size={24} />
           )}
           <h3>{a.label}</h3>
-        </button>
+         {a.key === "message" && unreadMessages > 0 && (
+  <small className="action-hint">
+    {unreadMessages} new message{unreadMessages > 1 && "s"}
+  </small>
+)} 
+       </button>
       ))}
   </div>
 </section>
