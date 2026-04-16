@@ -215,7 +215,6 @@ export default function ChatWindow({
       </div>
     );
   }
-console.log(msg.content, msg.is_me);
   // -----------------------------
   // UI
   // -----------------------------
@@ -248,7 +247,8 @@ console.log(msg.content, msg.is_me);
               : "No messages yet"}
           </p>
         ) : (
-          messages.map((msg) => (
+          messages.map((msg) => { console.log(msg.content, msg.is_me); 
+return(
             <div
               key={msg.id}
               className={`chat-message ${
@@ -277,7 +277,8 @@ console.log(msg.content, msg.is_me);
                 </div>
               </div>
             </div>
-          ))
+          )
+})
         )}
 
         <div ref={bottomRef} />
