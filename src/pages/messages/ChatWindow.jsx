@@ -95,7 +95,13 @@ const sendMessage = async () => {
 
   setMessages((prev) => [...prev, tempMessage]);
   setText("");
-
+console.log("DEBUG SEND:", {
+  threadId,
+  localThreadId,
+  recipient,
+  isReply,
+  recipientId,
+});
   try {
     const payload = isReply
       ? {
