@@ -215,7 +215,7 @@ export default function ChatWindow({
       </div>
     );
   }
-
+console.log(msg.content, msg.is_me);
   // -----------------------------
   // UI
   // -----------------------------
