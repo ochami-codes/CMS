@@ -435,3 +435,21 @@
   max-width: 70%;
   width: fit-content;
 }
+@media (max-width: 768px) {
+  .messages-container {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .messages-sidebar,
+  .messages-content {
+    width: 100%;
+    height: 100vh;
+  }
+
+  .chat-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+}

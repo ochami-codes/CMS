@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 export default function ChatWindow({
   threadId,
   recipient,
+  onBack,
   onThreadCreated,
 }) {
   // -----------------------------
@@ -238,7 +239,9 @@ export default function ChatWindow({
           <div className="chat-header-avatar">
             {otherUserName.charAt(0).toUpperCase()}
           </div>
-
+          <button className="back-btn" onClick={onBack}>
+  ←
+</button>
           <div className="chat-header-info">
             <span className="chat-header-name">
               {otherUserName}
