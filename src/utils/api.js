@@ -247,23 +247,20 @@ getUnreadCount: () =>
   getLeaders: () =>
     request("/messages/leaders"),
 
-  // ✉️ Send message (role-based or direct)
-  send: ({
-    content,
-    target_role_id = null,
-    recipient_profile_id = null,
-    parent_message_id = null,
-  }) =>
-    request("/messages", {
-      method: "POST",
-      body: JSON.stringify({
-        content,
-        target_role_id,
-        recipient_profile_id,
-        parent_message_id,
-      }),
-    }),
+send: ({ content, thread_id, recipient_profile_id }) => {
+  if (!thread_id && !recipient_profile_id) {
+    throw new Error("Invalid message payload");
+  }
 
+  return request("/messages", {
+    method: "POST",
+    body: JSON.stringify({
+      content,
+      thread_id,
+      recipient_profile_id,
+    }),
+  });
+},
   // 👁️ Mark thread as read
   markAsRead: (threadId) =>
     request("/messages/read", {
