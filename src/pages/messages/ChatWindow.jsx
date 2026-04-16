@@ -12,7 +12,7 @@ export default function ChatWindow({
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
-
+  const [localThreadId, setLocalThreadId] = useState(threadId);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -71,7 +71,7 @@ const sendMessage = async () => {
   const trimmed = text.trim();
   if (!trimmed || sending) return;
 
-  const isReply = !!threadId;
+  const isReply = !!localThreadId;
   const recipientId = recipient?.id;
 
   // HARD RULE CHECK
@@ -100,7 +100,7 @@ const sendMessage = async () => {
     const payload = isReply
       ? {
           content: trimmed,
-          thread_id: threadId,
+          thread_id: localThreadId,
         }
       : {
           content: trimmed,
@@ -111,8 +111,9 @@ const sendMessage = async () => {
 
     // If new thread created → notify parent immediately
     if (!isReply && res.thread_id) {
-      onThreadCreated?.(res.thread_id);
-    }
+  setLocalThreadId(res.thread_id);
+  onThreadCreated?.(res.thread_id);
+}
 
     // refresh messages
     if (isReply || res.thread_id) {
@@ -175,6 +176,9 @@ const sendMessage = async () => {
     return () => clearInterval(interval);
   }, [threadId]);
 
+useEffect(() => {
+  setLocalThreadId(threadId);
+}, [threadId]);
   // -----------------------------
   // Empty state
   // -----------------------------
