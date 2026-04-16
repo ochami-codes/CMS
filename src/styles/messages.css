@@ -417,3 +417,21 @@
   font-size: 0.9rem;
   color: #111827;
 }
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-bubble {
+  max-width: 70%;
+  width: fit-content;
+}
