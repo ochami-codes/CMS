@@ -247,7 +247,12 @@ export default function ChatWindow({
               : "No messages yet"}
           </p>
         ) : (
-          messages.map((msg) => { console.log(msg.content, msg.is_me); 
+          messages.map((msg) => { console.log(msg.content, msg.is_me);
+console.log({
+  sender_id: m.sender_id,
+  currentProfileId,
+  equal: m.sender_id === currentProfileId,
+}); 
 return(
             <div
               key={msg.id}
