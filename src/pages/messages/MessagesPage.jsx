@@ -115,7 +115,7 @@ export default function MessagesPage() {
             transition={{ duration: 0.25 }}
           >
             <div className="messages-header">
-              <h3>Message your leaders</h3>
+              <h3>Message your leaders and other church members</h3>
 
               <button
                 className="btn btn-primary"
