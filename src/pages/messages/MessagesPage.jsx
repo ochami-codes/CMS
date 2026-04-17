@@ -76,17 +76,31 @@ export default function MessagesPage() {
     setView("inbox");
   };
 
-  const handleRecipientSelect = (user) => {
+const handleRecipientSelect = async (user) => {
+  try {
+    //  check if thread already exists
+    const res = await MessagesAPI.getThreadWith(user.id);
+
     setActiveRecipient({
       id: user.id,
       full_name: user.full_name,
     });
 
-    setActiveThreadId(null);
+    if (res.thread_id) {
+      //  EXISTING CHAT
+      setActiveThreadId(res.thread_id);
+    } else {
+      //  NEW CHAT
+      setActiveThreadId(null);
+    }
+
     setShowModal(false);
     setView("chat");
-  };
 
+  } catch (err) {
+    console.error("Failed to check thread:", err);
+  }
+};
   const handleThreadCreated = (threadId) => {
     setActiveThreadId(threadId);
     setActiveRecipient(null);

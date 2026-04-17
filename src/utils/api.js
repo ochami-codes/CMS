@@ -233,35 +233,42 @@ export const NotificationsAPI = {
    MESSAGES API
 ====================== */
 export const MessagesAPI = {
-  // 📥 Get inbox (list of conversations)
-  getInbox: () =>
-    request("/messages/inbox"),
+  //  Get inbox (list of conversations)
+  getInbox: () => request("/messages/inbox"),
 
-  // 💬 Get a single conversation/thread
+  //  Get a single conversation/thread
   getConversation: (threadId) =>
     request(`/messages/conversation/${threadId}`),
-// get badge counts
-getUnreadCount: () =>
-  request("/messages/unread-count"),
-  // 👥 Get leaders grouped by role (NEW)
+
+  //  Check if a thread already exists between two users
+  getThreadWith: (userId) =>
+    request(`/messages/thread-with/${userId}`),
+
+  //  Badge counts
+  getUnreadCount: () =>
+    request("/messages/unread-count"),
+
+  //  Get users (leaders + members)
   getUsers: () =>
     request("/messages/users"),
 
-send: ({ content, thread_id, recipient_profile_id }) => {
-  if (!thread_id && !recipient_profile_id) {
-    throw new Error("Invalid message payload");
-  }
+  //  Send message
+  send: ({ content, thread_id, recipient_profile_id }) => {
+    if (!thread_id && !recipient_profile_id) {
+      throw new Error("Invalid message payload");
+    }
 
-  return request("/messages", {
-    method: "POST",
-    body: JSON.stringify({
-      content,
-      thread_id,
-      recipient_profile_id,
-    }),
-  });
-},
-  // 👁️ Mark thread as read
+    return request("/messages", {
+      method: "POST",
+      body: JSON.stringify({
+        content,
+        thread_id,
+        recipient_profile_id,
+      }),
+    });
+  },
+
+  //  Mark thread as read
   markAsRead: (threadId) =>
     request("/messages/read", {
       method: "POST",
