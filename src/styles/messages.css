@@ -467,9 +467,6 @@
     border-radius: 16px 16px 0 0;
   }
 }
-.back-btn {
-  display: none;
-}
 
 @media (max-width: 768px) {
   .back-btn {
