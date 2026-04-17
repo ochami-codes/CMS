@@ -157,12 +157,14 @@ export default function MessagesPage() {
       </AnimatePresence>
 
       {/* ================= MODAL ================= */}
-      {showModal && (
-        <NewMessageModal
-          onSelect={handleRecipientSelect}
-          onClose={() => setShowModal(false)}
-        />
-      )}
-    </div>
+      <AnimatePresence>
+  {showModal && (
+    <NewMessageModal
+      onSelect={handleRecipientSelect}
+      onClose={() => setShowModal(false)}
+    />
+  )}
+</AnimatePresence>
+  </div>
   );
 }

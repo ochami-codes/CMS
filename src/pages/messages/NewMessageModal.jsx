@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { MessagesAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
+import { motion } from "framer-motion";
 import "../../styles/messages.css";
 
 export default function NewMessageModal({ onSelect, onClose }) {
@@ -11,7 +12,7 @@ export default function NewMessageModal({ onSelect, onClose }) {
   const [search, setSearch] = useState("");
 
   // -----------------------------
-  // Load users (leaders + members)
+  // Load users
   // -----------------------------
   const loadUsers = async () => {
     try {
@@ -63,14 +64,28 @@ export default function NewMessageModal({ onSelect, onClose }) {
   // UI
   // -----------------------------
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
+    <motion.div
+      className="modal-overlay"
+      onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <motion.div
         className="modal-card"
         onClick={(e) => e.stopPropagation()}
+        initial={{ scale: 0.95, y: 40, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.95, y: 40, opacity: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
       >
         {/* Header */}
         <div className="modal-header">
-          <h3>Church members</h3>
+          <h3>Start a conversation</h3>
+          <p className="modal-subtitle">
+            Select a member or leader to begin chatting
+          </p>
         </div>
 
         {/* Search */}
@@ -79,18 +94,14 @@ export default function NewMessageModal({ onSelect, onClose }) {
             type="text"
             placeholder="Search people..."
             value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
         {/* Body */}
         <div className="modal-body">
           {loading ? (
-            <p className="modal-info">
-              Loading users...
-            </p>
+            <p className="modal-info">Loading users...</p>
           ) : filteredGroups.length === 0 ? (
             <p className="modal-info">
               {search
@@ -112,14 +123,29 @@ export default function NewMessageModal({ onSelect, onClose }) {
                   </h4>
 
                   {/* Users */}
-                  <div className="role-users">
+                  <motion.div
+                    className="role-users"
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      hidden: {},
+                      visible: {
+                        transition: {
+                          staggerChildren: 0.04,
+                        },
+                      },
+                    }}
+                  >
                     {group.users.map((user) => (
-                      <div
+                      <motion.div
                         key={user.id}
                         className="role-user"
-                        onClick={() =>
-                          onSelect(user)
-                        }
+                        onClick={() => onSelect(user)}
+                        variants={{
+                          hidden: { opacity: 0, y: 10 },
+                          visible: { opacity: 1, y: 0 },
+                        }}
+                        whileTap={{ scale: 0.97 }}
                       >
                         <div className="avatar">
                           {user.full_name
@@ -132,9 +158,9 @@ export default function NewMessageModal({ onSelect, onClose }) {
                             {user.full_name}
                           </span>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
-                  </div>
+                  </motion.div>
                 </div>
               ))}
             </div>
@@ -147,10 +173,10 @@ export default function NewMessageModal({ onSelect, onClose }) {
             className="btn btn-secondary"
             onClick={onClose}
           >
-            Close
+            Cancel
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

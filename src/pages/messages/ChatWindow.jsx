@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { MessagesAPI } from "../../utils/api";
 import "../../styles/messages.css";
 import { useAuth } from "../../context/AuthContext";
+import { ArrowLeft } from "lucide-react";
 
 export default function ChatWindow({
   threadId,
@@ -234,26 +235,27 @@ export default function ChatWindow({
   return (
     <div className="chat-window">
       {/* Header */}
-      <div className="chat-header">
-          <button className="back-btn" onClick={onBack}>
-  ←
+<div className="chat-header">
+  <div className="chat-header-left">
+    
+    <button className="back-btn" onClick={onBack}>
+  <ArrowLeft size={20} />
 </button>
-        <div className="chat-header-left">
-          <div className="chat-header-avatar">
-            {otherUserName.charAt(0).toUpperCase()}
-          </div>
+    <div className="chat-header-avatar">
+      {otherUserName.charAt(0).toUpperCase()}
+    </div>
 
-          <div className="chat-header-info">
-            <span className="chat-header-name">
-              {otherUserName}
-            </span>
-            <span className="chat-header-status">
-              Online
-            </span>
-          </div>
-        </div>
-      </div>
+    <div className="chat-header-info">
+      <span className="chat-header-name">
+        {otherUserName}
+      </span>
+      <span className="chat-header-status">
+        Online
+      </span>
+    </div>
 
+  </div>
+</div>
       {/* Messages */}
       <div className="chat-messages">
         {loading ? (
