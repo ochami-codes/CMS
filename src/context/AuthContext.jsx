@@ -69,13 +69,14 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
 
-      const normalizedUser = {
-        ...data.user,
-        roles: (data.user.roles || []).map(normalizeRole),
-        permissions: data.user.permissions || [],
-        role_name: normalizeRole(data.user.role_name || "guest"),
-      };
-
+const normalizedUser = {
+  ...data.user,
+  roles: (data.user.roles || []).map(normalizeRole),
+  permissions: data.user.permissions || [],
+  role_name: normalizeRole(
+    data.user.role_name || data.user.roles?.[0] || "guest"
+  ),
+};
       setUser(normalizedUser);
       return normalizedUser;
 
