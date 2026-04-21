@@ -28,27 +28,32 @@ export default function MembershipRequests() {
     loadRequests();
   }, []);
 
-  const handleAction = async (id, action) => {
-    setActionLoading((prev) => ({ ...prev, [id]: true }));
-
-    try {
-      if (action === "approve") {
-        await AdminMembershipAPI.approve(id);
-        showToast("Membership approved");
-      } else if (action === "reject") {
-        await AdminMembershipAPI.reject(id);
-        showToast("Membership request rejected");
-      }
-
-      await loadRequests();
-    } catch (err) {
-      console.error("Membership action failed:", err);
-      showToast(err.message || "Action failed", "error");
-    } finally {
-      setActionLoading((prev) => ({ ...prev, [id]: false }));
-    }
+const handleAction = async (id, action) => {
+  const map = {
+    approve: "approved",
+    reject: "rejected",
   };
 
+  setActionLoading((p) => ({ ...p, [id]: true }));
+
+  try {
+    const normalized = map[action];
+
+    await AdminMembershipAPI.review(id, normalized);
+
+    showToast(
+      normalized === "approved"
+        ? "Membership approved"
+        : "Membership rejected"
+    );
+
+    await loadRequests();
+  } catch (err) {
+    showToast(err.message || "Action failed", "error");
+  } finally {
+    setActionLoading((p) => ({ ...p, [id]: false }));
+  }
+};
   if (loading) return <Loader message="Loading membership requests…" />;
 
   if (!requests.length) {

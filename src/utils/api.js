@@ -186,15 +186,14 @@ export const RoleRequestsAPI = {
    MEMBERSHIP API
 ====================== */
 export const MembershipAPI = {
-  // Submit membership request (guest → church)
-  submit: (payload) =>
+  // Submit membership request (user → church)
+  submit: () =>
     request("/membership-requests", {
       method: "POST",
-      body: JSON.stringify(payload),
     }),
 
-  // Get my membership request status
-  myRequests: () =>
+  // Get my latest membership request
+  myRequest: () =>
     request("/membership-requests/me"),
 
   // Respond to an invite (accept / reject)
@@ -204,10 +203,28 @@ export const MembershipAPI = {
       body: JSON.stringify({ action }), // "accepted" | "rejected"
     }),
 };
+
+
+/* ======================
+   ADMIN MEMBERSHIP API
+====================== */
 export const AdminMembershipAPI = {
-  fetchAll: () => request("/admin/membership-requests"),
-  approve: (requestId) => request(`/admin/membership-requests/${requestId}/approve`, { method: "POST" }),
-  reject: (requestId) => request(`/admin/membership-requests/${requestId}/reject`, { method: "POST" }),
+  // Get all pending user requests
+  fetchAll: () =>
+    request("/admin/membership-requests"),
+
+  // Review (approve / reject) request
+  review: (requestId, action) =>
+    request(`/admin/membership-requests/${requestId}/review`, {
+      method: "POST",
+      body: JSON.stringify({ action }), // "approved" | "rejected"
+    }),
+
+  // Invite user to church
+  invite: (profileId) =>
+    request(`/admin/membership-requests/invite/${profileId}`, {
+      method: "POST",
+    }),
 };
 /* ======================
    NOTIFICATIONS API
