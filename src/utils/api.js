@@ -153,10 +153,11 @@ export const AdminAPI = {
     request(`/admin/users/${memberId}/activate`, { method: "POST" }),
 
   fetchRoleRequests: () => request("/admin/role-requests"),
-  approveRoleRequest: (id) =>
-    request(`/admin/role-requests/${id}/approve`, { method: "POST" }),
-  rejectRoleRequest: (id) =>
-    request(`/admin/role-requests/${id}/reject`, { method: "POST" }),
+  reviewRoleRequest: (id, action) =>
+  request(`/admin/role-requests/${id}/review`, {
+    method: "POST",
+    body: JSON.stringify({ action }), // "approved" | "rejected"
+  }),
 
   /* -------- NEW: Non-members API -------- */
   fetchNonMembers: () => request("/admin/membership-requests/non-members"),

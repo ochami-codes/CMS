@@ -120,43 +120,6 @@ export default function ManageRoles() {
     }
   };
 
-  /* ------------------ Role Request Actions ------------------ */
-  const approveRole = async (request) => {
-    setRequestProcessingId(request.id);
-    try {
-      await AdminAPI.approveRoleRequest(request.id);
-
-      setRoleRequests((prev) =>
-        prev.filter((r) => r.id !== request.id)
-      );
-
-      await fetchMembers();
-
-      showToast(`Approved role request for ${request.user_full_name}`);
-    } catch (err) {
-      showToast("Failed to approve request", "error");
-    } finally {
-      setRequestProcessingId(null);
-    }
-  };
-
-  const rejectRole = async (request) => {
-    setRequestProcessingId(request.id);
-    try {
-      await AdminAPI.rejectRoleRequest(request.id);
-
-      setRoleRequests((prev) =>
-        prev.filter((r) => r.id !== request.id)
-      );
-
-      showToast(`Rejected role request for ${request.user_full_name}`);
-    } catch (err) {
-      showToast("Failed to reject request", "error");
-    } finally {
-      setRequestProcessingId(null);
-    }
-  };
-
   if (authLoading) return <div className="dashboard-content">Checking permissions…</div>;
   if (!user) return <div className="dashboard-content">Loading profile…</div>;
 

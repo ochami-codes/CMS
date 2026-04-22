@@ -34,15 +34,15 @@ const handleAction = async (id, action) => {
     reject: "rejected",
   };
 
-  setActionLoading((p) => ({ ...p, [id]: true }));
+  const key = `${id}-${action}`;
+
+  setActionLoading((p) => ({ ...p, [key]: true }));
 
   try {
-    const normalized = map[action];
-
-    await AdminMembershipAPI.review(id, normalized);
+    await AdminMembershipAPI.review(id, map[action]);
 
     showToast(
-      normalized === "approved"
+      map[action] === "approved"
         ? "Membership approved"
         : "Membership rejected"
     );
@@ -51,7 +51,7 @@ const handleAction = async (id, action) => {
   } catch (err) {
     showToast(err.message || "Action failed", "error");
   } finally {
-    setActionLoading((p) => ({ ...p, [id]: false }));
+    setActionLoading((p) => ({ ...p, [key]: false }));
   }
 };
   if (loading) return <Loader message="Loading membership requests…" />;
@@ -136,26 +136,22 @@ const handleAction = async (id, action) => {
                         <>
                           <button
                             className="btn btn-primary btn-role-request"
-                            disabled={actionLoading[id]}
+                            disabled={actionLoading[`${id}-approve`]}
                             onClick={() =>
                               handleAction(id, "approve")
                             }
                           >
-                            {actionLoading[id]
-                              ? "Approving…"
-                              : "Approve"}
+                            {actionLoading[`${id}-approve`] ? "Approving…" : "Approve"}
                           </button>
 
                           <button
                             className="btn btn-secondary btn-role-request"
-                            disabled={actionLoading[id]}
+                            disabled={actionLoading[`${id}-reject`]}
                             onClick={() =>
                               handleAction(id, "reject")
                             }
                           >
-                            {actionLoading[id]
-                              ? "Rejecting…"
-                              : "Reject"}
+                            {actionLoading[`${id}-reject`] ? "Rejecting…" : "Reject"}
                           </button>
                         </>
                       ) : (

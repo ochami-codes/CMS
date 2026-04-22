@@ -39,35 +39,38 @@ export default function RoleRequests() {
     }
   }, [authLoading, user?.church_id, fetchRequests]);
 
-  /* ------------------ Actions ------------------ */
-  const approve = async (id) => {
-    setProcessingId(id);
-    try {
-      await AdminAPI.approveRoleRequest(id);
-      setRequests((prev) => prev.filter((r) => r.id !== id));
-      showToast("Request approved");
-    } catch (err) {
-      console.error(err);
-      showToast("Failed to approve request", "error");
-    } finally {
-      setProcessingId(null);
-    }
-  };
+/* ------------------ Role Request Actions ------------------ */
+const handleRoleRequest = async (request, action) => {
+  setRequestProcessingId(request.id);
 
-  const reject = async (id) => {
-    setProcessingId(id);
-    try {
-      await AdminAPI.rejectRoleRequest(id);
-      setRequests((prev) => prev.filter((r) => r.id !== id));
-      showToast("Request rejected");
-    } catch (err) {
-      console.error(err);
-      showToast("Failed to reject request", "error");
-    } finally {
-      setProcessingId(null);
-    }
-  };
+  try {
+    await AdminAPI.reviewRoleRequest(request.id, action);
 
+    setRoleRequests((prev) =>
+      prev.filter((r) => r.id !== request.id)
+    );
+
+    if (action === "approved") {
+      await fetchMembers();
+    }
+
+    showToast(
+      action === "approved"
+        ? `Approved role request for ${request.user_full_name}`
+        : `Rejected role request for ${request.user_full_name}`
+    );
+
+  } catch (err) {
+    showToast(
+      action === "approved"
+        ? "Failed to approve request"
+        : "Failed to reject request",
+      "error"
+    );
+  } finally {
+    setRequestProcessingId(null);
+  }
+};
   /* ------------------ Render Guards ------------------ */
   if (authLoading)
     return <div className="dashboard-content">Checking admin permissions…</div>;
@@ -112,7 +115,7 @@ export default function RoleRequests() {
                   <button
                     className="btn btn-primary"
                     disabled={processingId === req.id}
-                    onClick={() => approve(req.id)}
+                    onClick={() => handleRoleRequest(request, "approved")}
                   >
                     Approve
                   </button>
@@ -120,7 +123,7 @@ export default function RoleRequests() {
                   <button
                     className="btn btn-secondary"
                     disabled={processingId === req.id}
-                    onClick={() => reject(req.id)}
+                    onClick={() => handleRoleRequest(request, "rejected")}
                   >
                     Reject
                   </button>
