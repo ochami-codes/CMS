@@ -143,22 +143,25 @@ const logout = async () => {
   /* -------------------------------
      Auth + roles initialization (ONCE)
   ------------------------------- */
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
+useEffect(() => {
+  const token = localStorage.getItem("access_token");
 
-    // Load both roles and user data
-    setLoading(true);
-    fetchMe()
-  .finally(() => setLoading(false));
+  // No token → decide immediately
+  if (!token) {
+    setUser(null);
+    setLoading(false);
+    return;
+  }
 
-// Load roles in background (non-blocking)
-fetchRoles();
-  }, [fetchMe, fetchRoles]);
+  // ⚡ Don't block UI
+  setLoading(false);
+
+  // Validate token in background
+  fetchMe();
+
+  // Load roles in background
+  fetchRoles();
+}, [fetchMe, fetchRoles]);
 
   /* -------------------------------
      Permission & role helpers

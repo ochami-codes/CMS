@@ -93,9 +93,8 @@ export default function Dashboard() {
   const [successMessage, setSuccessMessage] = useState("");
   const [membershipError, setMembershipError] = useState("");  
 const [actionLoadingId, setActionLoadingId] = useState(null);
-
-  const [now, setNow] = useState(new Date());
-
+ const [now, setNow] = useState(new Date());
+const [initialized, setInitialized] = useState(false);
   
   const role = user?.role_name?.toLowerCase() || "guest";
   const isGuest = role === "guest";
@@ -135,48 +134,87 @@ return timeDiff(nextBirthday, now);
 }, [birthday, now]);
   /* ================= DATA ================= */
 
-  useEffect(() => {
-    if (!user) return;
+ useEffect(() => {
+  if (!user || initialized) return;
 
-    const fetchData = async () => {
-      try {
-        const [
-          dailyVerse,
-          church,
-          anns,
-          myBirthday,
-          todays,
-          upcoming,
-          membership,
-        ] = await Promise.all([
-          getDailyVerse(),
-          churchId ? ChurchAPI.getById(churchId) : null,
-          AnnouncementsAPI.fetch(churchId, 10),
-          !isGuest ? getMyBirthday() : null,
-          !isGuest ? getTodaysBirthdays(churchId) : [],
-          !isGuest ? getUpcomingBirthdays(churchId, 30) : [],
-          isGuest ? MembershipAPI.myRequests() : null,
-        ]);
+  const cached = sessionStorage.getItem("dashboardData");
 
-        setVerse(dailyVerse);
-        setChurchName(church?.name || "Your Church");
-        setAnnouncements(anns || []);
-        setTodayBirthdays(todays || []);
-        setUpcomingBirthdays(upcoming || []);
-        setBirthday(myBirthday?.birthday || null);
+  // 🔥 1. Load from cache instantly
+  if (cached) {
+    try {
+      const data = JSON.parse(cached);
 
-        if (isGuest) {
-          setMembershipStatus(
-            membership?.request?.membership_request_status || null
-          );
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+      setVerse(data.verse || null);
+      setChurchName(data.churchName || "Your Church");
+      setAnnouncements(data.announcements || []);
+      setTodayBirthdays(data.todayBirthdays || []);
+      setUpcomingBirthdays(data.upcomingBirthdays || []);
+      setBirthday(data.birthday || null);
+      setMembershipStatus(data.membershipStatus || null);
 
-    fetchData();
-  }, [user, churchId, isGuest]);
+      setLoading(false);      // ⚡ no loader
+      setInitialized(true);   // ⚡ skip blocking
+
+    } catch (e) {
+      console.warn("Cache parse failed:", e);
+    }
+  }
+
+  // 🔄 2. Always fetch fresh data (but silently)
+  const fetchData = async () => {
+    try {
+      const [
+        dailyVerse,
+        church,
+        anns,
+        myBirthday,
+        todays,
+        upcoming,
+        membership,
+      ] = await Promise.all([
+        getDailyVerse(),
+        churchId ? ChurchAPI.getById(churchId) : null,
+        AnnouncementsAPI.fetch(churchId, 10),
+        !isGuest ? getMyBirthday() : null,
+        !isGuest ? getTodaysBirthdays(churchId) : [],
+        !isGuest ? getUpcomingBirthdays(churchId, 30) : [],
+        isGuest ? MembershipAPI.myRequests() : null,
+      ]);
+
+      const newData = {
+        verse: dailyVerse,
+        churchName: church?.name || "Your Church",
+        announcements: anns || [],
+        todayBirthdays: todays || [],
+        upcomingBirthdays: upcoming || [],
+        birthday: myBirthday?.birthday || null,
+        membershipStatus: isGuest
+          ? membership?.request?.membership_request_status || null
+          : null,
+      };
+
+      // ✅ Update UI
+      setVerse(newData.verse);
+      setChurchName(newData.churchName);
+      setAnnouncements(newData.announcements);
+      setTodayBirthdays(newData.todayBirthdays);
+      setUpcomingBirthdays(newData.upcomingBirthdays);
+      setBirthday(newData.birthday);
+      if (isGuest) setMembershipStatus(newData.membershipStatus);
+
+      // 💾 Save cache
+      sessionStorage.setItem("dashboardData", JSON.stringify(newData));
+
+    } catch (err) {
+      console.error("Dashboard fetch failed:", err);
+    } finally {
+      setLoading(false);
+      setInitialized(true);
+    }
+  };
+
+  fetchData();
+}, [user, churchId, isGuest, initialized]);
 
 useEffect(() => {
   // fetch unread messages count
@@ -195,7 +233,10 @@ const interval = setInterval(fetchUnread, 60000);
 }, []);
 
 // Loader
-if (loading || !user) {
+
+if (!user) return null;
+
+if (loading && !initialized) {
   return <Loader message="Loading dashboard..." />;
 }
   /* ================= ACTION HANDLER ================= */
