@@ -29,13 +29,15 @@ export default function ManageRoles() {
       const params = new URLSearchParams({ search }).toString();
       const data = await AdminAPI.fetchMembers(params);
 
-      setMembers(
-        (data.members ?? []).map((m) => ({
-          ...m,
-          selectedRole: m.role_name,
-        }))
-      );
-    } catch (err) {
+setMembers(
+  (data.members ?? []).map((m) => ({
+    ...m,
+    role_name: m.primary_role,          // normalize
+    department: m.departments ?? [],    // normalize
+    selectedRole: m.primary_role,
+  }))
+);
+ } catch (err) {
       showToast("Failed to load members", "error");
     } finally {
       setLoadingMembers(false);
@@ -166,9 +168,9 @@ export default function ManageRoles() {
                   <tr key={m.id} style={!m.active ? { opacity: 0.6 } : {}}>
                     <td>{m.full_name}</td>
                     <td>
-                      {Array.isArray(m.department)
-                        ? m.department.join(", ")
-                        : m.department || "-"}
+                      {m.department.length > 0
+  ? m.department.join(", ")
+  : "-"}
                     </td>
                     <td>{m.active ? "Active" : "Inactive"}</td>
                     <td>{getRoleLabel(m.role_name)}</td>
