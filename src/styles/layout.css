@@ -587,6 +587,39 @@ a {
   font-size: 0.75rem;
   color: #374151;
 }
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 40px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 38px; /* adjust based on your label spacing */
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.password-strength {
+  margin-top: 4px;
+}
+
+.strength-bar {
+  height: 6px;
+  width: 100%;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
 /* ==========================
    ENCOURAGEMENT REDIRECT
 ========================== */

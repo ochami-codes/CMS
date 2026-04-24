@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
+import PasswordInput from "../components/PasswordInput";
 import Button from "../components/Button";
 import EncouragementRedirect from "../components/EncouragementRedirect";
 import { AuthAPI } from "../utils/api";
@@ -279,20 +280,23 @@ export default function Register() {
             )}
           </div>
 
-          <Input
+          <PasswordInput
             label="Password"
             name="password"
-            type="password"
             value={form.password}
             onChange={handleChange}
+            showStrength
+            required
           />
 
-          <Input
+          <PasswordInput
             label="Confirm Password"
             name="confirmPassword"
             type="password"
             value={form.confirmPassword}
             onChange={handleChange}
+            showStrength
+            required
           />
 
           <Button

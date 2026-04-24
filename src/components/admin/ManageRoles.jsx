@@ -7,7 +7,7 @@ import { Check, X, RefreshCw } from "lucide-react";
 import "../../styles/pages.css";
 
 export default function ManageRoles() {
-  const { user, setUser, loading: authLoading, rolesData, getRoleLabel } = useAuth();
+  const { user, setUser,  rolesData, getRoleLabel } = useAuth();
   const { showToast } = useToast();
 
   const [members, setMembers] = useState([]);
@@ -66,11 +66,11 @@ setMembers(
 
   /* ------------------ Initial Load ------------------ */
   useEffect(() => {
-    if (!authLoading && user?.church_id) {
+    if ( user?.church_id) {
       fetchMembers();
       fetchRoleRequests();
     }
-  }, [authLoading, user?.church_id, fetchMembers, fetchRoleRequests]);
+  }, [user?.church_id, fetchMembers, fetchRoleRequests]);
 
   /* ------------------ Member Actions ------------------ */
   const updateRole = async (member) => {
@@ -121,8 +121,6 @@ setMembers(
       setProcessingId(null);
     }
   };
-
-  if (authLoading) return <div className="dashboard-content">Checking permissions…</div>;
   if (!user) return <div className="dashboard-content">Loading profile…</div>;
 
   return (

@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
      Core auth state
   ------------------------------- */
   const [user, setUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
   const [rolesData, setRolesData] = useState({
     roles: [],           // array of role objects for dropdowns
     roleLabels: {},      // map role name => label
@@ -17,7 +18,6 @@ export const AuthProvider = ({ children }) => {
     allRoles: [],        // all roles
     allPermissions: [],  // all permissions
   });
-  const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
   /* -------------------------------
@@ -93,7 +93,7 @@ const normalizedUser = {
 -------------------------------- */
 const login = async ({ email, password }) => {
   setAuthError(null);
-  setLoading(true);
+  setAuthReady(false); // auth is resolving
 
   try {
     const data = await AuthAPI.login({ email, password });
@@ -101,21 +101,16 @@ const login = async ({ email, password }) => {
 
     localStorage.setItem("access_token", data.access_token);
 
-    // ✅ Fetch real user BEFORE setting anything
     const realUser = await fetchMe();
+    if (!realUser) throw new Error("Failed to load user");
 
-    if (!realUser) {
-      throw new Error("Failed to load user");
-    }
-
-    // ✅ Load roles in background (non-blocking)
     fetchRoles();
 
   } catch (err) {
     setAuthError(err.message || "Login failed");
     throw err;
   } finally {
-    setLoading(false);
+    setAuthReady(true); // done deciding auth
   }
 };
 /* -------------------------------
@@ -146,20 +141,13 @@ const logout = async () => {
 useEffect(() => {
   const token = localStorage.getItem("access_token");
 
-  // No token → decide immediately
   if (!token) {
     setUser(null);
-    setLoading(false);
+    setAuthReady(true);
     return;
   }
 
-  // ⚡ Don't block UI
-  setLoading(false);
-
-  // Validate token in background
-  fetchMe();
-
-  // Load roles in background
+  fetchMe().finally(() => setAuthReady(true));
   fetchRoles();
 }, [fetchMe, fetchRoles]);
 
@@ -187,7 +175,7 @@ useEffect(() => {
       value={{
         user,
         rolesData,
-        loading,
+        authReady,
         authError,
         login,
         logout,

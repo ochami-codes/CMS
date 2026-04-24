@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import PasswordInput from "../components/PasswordInput";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import Loader from "../components/Loader";
@@ -12,7 +13,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { user, login, loading: authLoading } = useAuth();
+  const { user, login, authReady } = useAuth();
   const verified = location.state?.verified;
 
   const [email, setEmail] = useState("");
@@ -25,8 +26,10 @@ export default function Login() {
      Redirect once authenticated
   -------------------------------------------------- */
   useEffect(() => {
-    if (user) navigate("/dashboard", { replace: true });
-  }, [user, navigate]);
+  if (authReady && user) {
+    navigate("/dashboard", { replace: true });
+  }
+}, [authReady, user, navigate]);
 
   /* --------------------------------------------------
      Submit login
@@ -64,11 +67,6 @@ export default function Login() {
   };
 
   /* --------------------------------------------------
-     Global auth loader
-  -------------------------------------------------- */
-  if (authLoading) return <Loader message="Checking session… God loves you!" />;
-
-  /* --------------------------------------------------
      UI
   -------------------------------------------------- */
   return (
@@ -100,8 +98,7 @@ export default function Login() {
             required
           />
 
-          <Input
-            type="password"
+          <PasswordInput
             label="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

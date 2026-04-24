@@ -5,11 +5,10 @@ import { useToast } from "../../components/ToastProvider";
 import "../../styles/pages.css";
 
 export default function RoleRequests() {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const { showToast } = useToast();
 
   const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [processingId, setProcessingId] = useState(null);
 
@@ -17,7 +16,6 @@ export default function RoleRequests() {
   const fetchRequests = useCallback(async () => {
     if (!user?.church_id) return;
 
-    setLoading(true);
     setError("");
 
     try {
@@ -29,15 +27,14 @@ export default function RoleRequests() {
       setError(err.message || "Failed to load role requests");
       showToast(err.message || "Failed to load role requests", "error");
     } finally {
-      setLoading(false);
     }
   }, [user?.church_id, showToast]);
 
   useEffect(() => {
-    if (!authLoading && user?.church_id) {
+    if ( user?.church_id) {
       fetchRequests();
     }
-  }, [authLoading, user?.church_id, fetchRequests]);
+  }, [user?.church_id, fetchRequests]);
 
 /* ------------------ Role Request Actions ------------------ */
 const handleRoleRequest = async (request, action) => {
@@ -72,14 +69,8 @@ const handleRoleRequest = async (request, action) => {
   }
 };
   /* ------------------ Render Guards ------------------ */
-  if (authLoading)
-    return <div className="dashboard-content">Checking admin permissions…</div>;
-
   if (!user)
     return <div className="dashboard-content">Loading admin profile…</div>;
-
-  if (loading)
-    return <div className="dashboard-content">Loading role requests…</div>;
 
   /* ------------------ Main Table ------------------ */
   return (
