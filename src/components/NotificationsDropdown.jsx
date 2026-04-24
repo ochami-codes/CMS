@@ -5,7 +5,7 @@ import "../styles/pages.css";
 export default function NotificationsDropdown({ onClose, refreshUnread }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState({}); // { [notificationId]: "accepted" | "rejected" }
+  const [actionLoading, setActionLoading] = useState({}); // { [id]: "accepted" | "rejected" | null }
 
   /* -----------------------------------
      Load Notifications
@@ -62,7 +62,6 @@ export default function NotificationsDropdown({ onClose, refreshUnread }) {
         action
       );
 
-      // Mark as read after successful action
       await markAsRead(notifId);
     } catch (err) {
       console.error("Invite response failed:", err);
@@ -93,65 +92,61 @@ export default function NotificationsDropdown({ onClose, refreshUnread }) {
 
   return (
     <div className="notification-card">
-<div className="notification-header">
-  <h4>Notifications</h4>
+      {/* Header */}
+      <div className="notification-header">
+        <h4>Notifications</h4>
 
-  <div className="notification-header-actions">
-    {notifications.length > 0 && (
-      <button onClick={markAll}>Mark all</button>
-    )}
+        <div className="notification-header-actions">
+          {notifications.length > 0 && (
+            <button onClick={markAll}>Mark all</button>
+          )}
 
-    <button className="close-x" onClick={onClose}>
-      ✕
-    </button>
-  </div>
-</div>
+          <button className="close-x" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+      </div>
+
+      {/* States */}
       {loading && (
         <p className="notification-loading">Loading...</p>
       )}
 
       {!loading && notifications.length === 0 && (
-        <p className="notification-empty">
-          No notifications
-        </p>
+        <p className="notification-empty">No notifications</p>
       )}
-    
-     <div className="notification-body-list">
-      {!loading &&
-        notifications.map((n) => {
-          const isProcessing = !!actionLoading[n.id];
-     </div>
-          return (
-            <div
-              key={n.id}
-              className={`notification-item ${
-                n.is_read ? "read" : "unread"
-              }`}
-            >
-              <div
-                className="notification-body"
-                onClick={() =>
-                  !n.is_read && !isProcessing && markAsRead(n.id)
-                }
-              >
-                <p className="notification-title">
-                  {n.title}
-                </p>
-                <p className="notification-message">
-                  {n.message}
-                </p>
-              </div>
 
-              {/* Membership Invite Actions */}
-              {n.type === "membership_invite" &&
-                !n.is_read && (
+      {/* List */}
+      {!loading && notifications.length > 0 && (
+        <div className="notification-body-list">
+          {notifications.map((n) => {
+            const isProcessing = !!actionLoading[n.id];
+
+            return (
+              <div
+                key={n.id}
+                className={`notification-item ${
+                  n.is_read ? "read" : "unread"
+                }`}
+              >
+                {/* Body */}
+                <div
+                  className="notification-body"
+                  onClick={() =>
+                    !n.is_read && !isProcessing && markAsRead(n.id)
+                  }
+                >
+                  <p className="notification-title">{n.title}</p>
+                  <p className="notification-message">{n.message}</p>
+                </div>
+
+                {/* Membership Invite Actions */}
+                {n.type === "membership_invite" && !n.is_read && (
                   <div className="notification-actions">
                     <button
                       className="accept-btn"
                       disabled={isProcessing}
-                      onClick={() =>
-                        respondInvite(n, "accepted")
-                      }
+                      onClick={() => respondInvite(n, "accepted")}
                     >
                       {actionLoading[n.id] === "accepted" ? (
                         <span className="btn-spinner" />
@@ -163,9 +158,7 @@ export default function NotificationsDropdown({ onClose, refreshUnread }) {
                     <button
                       className="reject-btn"
                       disabled={isProcessing}
-                      onClick={() =>
-                        respondInvite(n, "rejected")
-                      }
+                      onClick={() => respondInvite(n, "rejected")}
                     >
                       {actionLoading[n.id] === "rejected" ? (
                         <span className="btn-spinner" />
@@ -175,9 +168,11 @@ export default function NotificationsDropdown({ onClose, refreshUnread }) {
                     </button>
                   </div>
                 )}
-            </div>
-          );
-        })}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
