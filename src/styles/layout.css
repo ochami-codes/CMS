@@ -134,6 +134,7 @@ a {
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
+  overflow: hidden;
 }
 
 .hamburger-btn {
@@ -160,6 +161,7 @@ a {
 .dashboard-content {
   flex: 1;
   display: flex;
+  overflow-y: auto;
   flex-direction: column;
   min-height: 100vh;
   padding: 1rem 2rem;
@@ -206,12 +208,16 @@ a {
 /* ---------------- SIDEBAR ---------------- */
 .sidebar {
   width: 250px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
   background-color: #ffffff;
   border-right: 1px solid #e5e7eb;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   padding: 1rem;
+  overflow-y: auto;
 }
 
 .sidebar.open {
@@ -240,6 +246,7 @@ a {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  overflow-y: auto;
   flex: 1;
 }
 
