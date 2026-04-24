@@ -3,6 +3,19 @@
 ========================== */
 
 /* ---------- Global Card ---------- */
+
+* {
+  box-sizing: border-box;
+}
+
+.page-container,
+.dashboard-content,
+.home-container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
 .card {
   background-color: #f3f4f6; /* subtle light gray instead of pure white */
   border-radius: 12px;
@@ -39,16 +52,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1rem;
-}
-
-.dashboard-action-card {
-  background-color: #4f46e5; /* vibrant indigo */
-  border-radius: 12px;
-  padding: 1rem;
-  text-decoration: none;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.2s ease;
 }
 
 .dashboard-action-card:hover {
@@ -141,6 +144,7 @@
 .dashboard-section {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   gap: 1rem;
   padding-bottom: 2rem;
   border-bottom: 1px dashed #e5e7eb;
@@ -376,7 +380,9 @@
 /* ---------- Members Table ---------- */
 .members-table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .members-table th,
@@ -384,6 +390,9 @@
   padding: 0.75rem;
   border-bottom: 1px solid #e5e7eb;
   text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .members-table th {
@@ -485,6 +494,7 @@
 }
 /* Responsive table wrapper */
 .table-responsive {
+  width: 100%;
   overflow-x: auto;
 }
 
@@ -548,11 +558,6 @@
   font-size: 0.85rem;
 }
 
-.dashboard-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
 
 /* Optional color upgrades */
 .btn-success {
@@ -917,4 +922,9 @@
   border-radius: 12px;
   background: white;
   text-align: center;
+}
+.page-card,
+.card {
+  width: 100%;
+  min-width: 0; /* IMPORTANT for flex/grid children */
 }
