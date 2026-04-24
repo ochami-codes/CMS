@@ -176,3 +176,8 @@
     text-align: center;
   }
 }
+.text-success { color: #16a34a; }
+.text-error { color: #dc2626; }
+.text-info { color: #2563eb; }
+.link-primary { color: #2563eb; }
+.link-primary:hover { text-decoration: underline; }

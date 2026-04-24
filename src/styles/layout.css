@@ -539,32 +539,27 @@ a {
   right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   background: none;
   border: none;
-  color: #6b7280;
   cursor: pointer;
+  color: #6b7280;
 }
 
 .password-toggle:hover {
   color: #374151;
 }
-
 /* Strength bar */
-.password-strength {
-  margin-top: 0.5rem;
-}
-
 .password-strength-bar {
   height: 6px;
   width: 100%;
   background-color: #e5e7eb;
   border-radius: 999px;
   overflow: hidden;
-}
-
-.password-strength-fill {
-  height: 100%;
-  border-radius: 999px;
 }
 
 .password-weak {
@@ -592,17 +587,10 @@ a {
 }
 
 .password-wrapper input {
-  padding-right: 40px;
+  width: 100%;
+  padding: 0.5rem 2.5rem 0.5rem 0.75rem; /* space for icon */
 }
 
-.password-toggle {
-  position: absolute;
-  right: 10px;
-  top: 38px; /* adjust based on your label spacing */
-  background: none;
-  border: none;
-  cursor: pointer;
-}
 
 .password-strength {
   margin-top: 4px;

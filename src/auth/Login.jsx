@@ -69,67 +69,72 @@ export default function Login() {
   /* --------------------------------------------------
      UI
   -------------------------------------------------- */
-  return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>Login</h2>
+return (
+  <div className="auth-container">
+    <div className="auth-card">
+      <h2>Login</h2>
 
-        {/* Verification / Error Messages */}
-        {verified && (
-          <p className="text-green-600 text-center text-sm">
-            Registration successful! Please log in.
-          </p>
-        )}
-        {error && (
-          <p className="text-red-600 text-center text-sm">{error}</p>
-        )}
-        {resendMessage && (
-          <p className="text-blue-600 text-center text-sm">{resendMessage}</p>
-        )}
+      {/* Messages */}
+      {verified && (
+        <p className="text-success text-center text-sm">
+          Registration successful! Please log in.
+        </p>
+      )}
 
-        {/* Login Form */}
-        <form onSubmit={handleSubmit}>
-          <Input
-            type="email"
-            label="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            required
-          />
+      {error && (
+        <p className="text-error text-center text-sm">{error}</p>
+      )}
 
-          <PasswordInput
-            label="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+      {resendMessage && (
+        <p className="text-info text-center text-sm">{resendMessage}</p>
+      )}
 
-          {error.toLowerCase().includes("verify") && (
-            <Button
-              type="button"
-              className="btn-primary w-full"
-              onClick={handleResendVerification}
-            >
-              Resend verification email
-            </Button>
-          )}
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="form-stack">
+        <Input
+          type="email"
+          label="Email"
+          name="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          required
+        />
 
-          <Button type="submit" disabled={submitting} className="btn-primary w-full">
-            {submitting ? "Logging in…" : "Login"}
-          </Button>
-        </form>
+        <PasswordInput
+          label="Password"
+          name="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
 
-        {/* Forgot Password */}
-        <div className="text-center mt-2">
-          <Link
-            to="/reset-password"
-            className="text-blue-600 hover:underline text-sm"
+        {error.toLowerCase().includes("verify") && (
+          <Button
+            type="button"
+            className="btn-primary w-full"
+            onClick={handleResendVerification}
           >
-            Forgot password?
-          </Link>
-        </div>
+            Resend verification email
+          </Button>
+        )}
+
+        <Button
+          type="submit"
+          disabled={submitting}
+          className="btn-primary w-full"
+        >
+          {submitting ? "Logging in…" : "Login"}
+        </Button>
+      </form>
+
+      {/* Forgot Password */}
+      <div className="text-center mt-2">
+        <Link to="/reset-password" className="link-primary text-sm">
+          Forgot password?
+        </Link>
       </div>
     </div>
-  );
+  </div>
+);
 }
