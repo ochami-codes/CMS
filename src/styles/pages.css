@@ -737,10 +737,11 @@
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
   border: 1px solid #e5e7eb;
-  overflow: hidden;
+
   max-height: 70vh;
-  overflow-y: auto;
-  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* important */
 }
 
 .notification-header {
@@ -760,8 +761,9 @@
 }
 
 .notification-item {
-  padding: 14px 16px;
-  cursor: pointer;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 6px;
   transition: background 0.15s ease;
 }
 
@@ -770,9 +772,9 @@
 }
 
 .notification-item.unread {
-  background: #f0f9ff;
+  background: #eff6ff;
+  border-left: 3px solid #3b82f6;
 }
-
 .notification-title {
   font-weight: 600;
   font-size: 14px;
@@ -783,7 +785,11 @@
   color: #64748b;
   margin-top: 4px;
 }
-
+.notification-body-list {
+  overflow-y: auto;
+  padding: 8px;
+  flex: 1;
+}
 /* Invite buttons */
 .notification-actions {
   display: flex;
@@ -818,6 +824,26 @@
     border-radius: 12px;
   }
 
+}
+.notification-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.close-x {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.close-x:hover {
+  background: #f3f4f6;
+  color: #111827;
 }
 /* Add member dropdown */
 .search-dropdown {

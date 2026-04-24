@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NotificationsAPI, MembershipAPI } from "../utils/api";
+import "../styles/pages.css";
 
 export default function NotificationsDropdown({ onClose, refreshUnread }) {
   const [notifications, setNotifications] = useState([]);
@@ -92,13 +93,19 @@ export default function NotificationsDropdown({ onClose, refreshUnread }) {
 
   return (
     <div className="notification-card">
-      <div className="notification-header">
-        <h4>Notifications</h4>
-        {notifications.length > 0 && (
-          <button onClick={markAll}>Mark all</button>
-        )}
-      </div>
+<div className="notification-header">
+  <h4>Notifications</h4>
 
+  <div className="notification-header-actions">
+    {notifications.length > 0 && (
+      <button onClick={markAll}>Mark all</button>
+    )}
+
+    <button className="close-x" onClick={onClose}>
+      ✕
+    </button>
+  </div>
+</div>
       {loading && (
         <p className="notification-loading">Loading...</p>
       )}
@@ -108,11 +115,12 @@ export default function NotificationsDropdown({ onClose, refreshUnread }) {
           No notifications
         </p>
       )}
-
+    
+     <div className="notification-body-list">
       {!loading &&
         notifications.map((n) => {
           const isProcessing = !!actionLoading[n.id];
-
+     </div>
           return (
             <div
               key={n.id}
