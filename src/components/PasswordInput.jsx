@@ -1,7 +1,5 @@
-// src/components/PasswordInput.jsx
 import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import Input from "./Input";
 import "../styles/layout.css";
 
 function getPasswordStrength(password) {
@@ -38,30 +36,32 @@ export default function PasswordInput({
   }, [value, showStrength]);
 
   return (
-    <div className="input-group password-group">
-      {/* Reuse your Input */}
+    <div className="input-group">
+      {label && <label htmlFor={name}>{label}</label>}
+
       <div className="password-wrapper">
-        <Input
-          label={label}
+        <input
+          id={name}
           type={showPassword ? "text" : "password"}
           name={name}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
           required={required}
-          error={error}
+          className={error ? "input-error" : ""}
         />
 
         <button
           type="button"
-          onClick={() => setShowPassword((prev) => !prev)}
+          onClick={() => setShowPassword((p) => !p)}
           className="password-toggle"
         >
           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
       </div>
 
-      {/* Strength meter */}
+      {error && <span className="error-text">{error}</span>}
+
       {showStrength && strength && (
         <div className="password-strength">
           <div className="strength-bar">
