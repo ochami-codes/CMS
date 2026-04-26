@@ -48,23 +48,29 @@
 }
 
 /* ---------- Dashboard Action Cards ---------- */
-.dashboard-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dashboard-action-card {
+  background-color: #f3f4f6;
+  color: #374151;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 100px;
 }
 
 .dashboard-action-card:hover {
   transform: translateY(-3px);
-  background-color: #6366f1;
-}
-
-.dashboard-action-card h3 {
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
+  background-color: #e5e7eb;
 }
 
 /* ---------- Info / Birthday Cards ---------- */
@@ -540,11 +546,6 @@
   display: inline-block;
 }
 
-/* Responsive table wrapper */
-.table-responsive {
-  overflow-x: auto;
-}
-
 /* Action buttons spacing */
 .members-table td button {
   margin-right: 0.5rem;
@@ -575,20 +576,6 @@
   color: white;
 }
 /* ---------- Harmonized Quick Links (Fully Aligned) ---------- */
-.dashboard-action-card {
-  background-color: #f3f4f6;   /* match global card background */
-  color: #374151;              /* neutral dark text */
-  border-radius: 12px;
-  padding: 1rem 1.25rem;
-  text-decoration: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;               /* same gap as info/birthday cards */
-  min-height: 100px;          /* ensures uniform card height */
-}
-
 .dashboard-action-card h3 {
   font-size: 1rem;
   font-weight: 600;
@@ -622,15 +609,6 @@
   .dashboard-actions {
     flex-direction: column;
   }
-}
-.message-error {
-  color: #dc2626; /* red */
-  font-size: 0.9rem;
-}
-
-.message-success {
-  color: #16a34a; /* green */
-  font-size: 0.9rem;
 }
 /* -------------------------
    Notification Bell
@@ -916,12 +894,6 @@
   font-size: 11px;
   color: #ef4444;
   margin-top: 2px;
-}
-.dashboard-action-card {
-  padding: 12px 8px;
-  border-radius: 12px;
-  background: white;
-  text-align: center;
 }
 .page-card,
 .card {

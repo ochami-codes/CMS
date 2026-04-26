@@ -142,6 +142,7 @@ setMembers(
         {loadingMembers ? (
           <div>Loading members…</div>
         ) : (
+        <div className="table-responsive">
           <table className="members-table">
             <thead>
               <tr>
@@ -201,7 +202,7 @@ setMembers(
                       )}
                     </td>
 
-                    <td className="dashboard-actions">
+                    <td className="actions">
                       {m.is_system_user && (
                         <>
                           <button
@@ -235,6 +236,7 @@ setMembers(
               )}
             </tbody>
           </table>
+       </div>
         )}
       </div>
 
