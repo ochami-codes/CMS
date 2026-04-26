@@ -387,7 +387,8 @@
 .members-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
+  min-width: 700px;
 }
 
 .members-table th,
@@ -395,9 +396,18 @@
   padding: 0.75rem;
   border-bottom: 1px solid #e5e7eb;
   text-align: left;
+}
+
+/* Only truncate TEXT columns */
+.members-table td:not(.actions) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Allow buttons to wrap */
+.members-table td.actions {
+  white-space: normal;
 }
 
 .members-table th {
