@@ -386,7 +386,6 @@
 /* ---------- Members Table ---------- */
 .members-table {
   width: 100%;
-  min-width: 600px;
   border-collapse: collapse;
   table-layout: fixed;
 }
