@@ -946,3 +946,15 @@
   flex-wrap: wrap;
   margin-top: 0.5rem;
 }
+.members-table th:nth-child(1) { width: 18%; } /* Name */
+.members-table th:nth-child(2) { width: 22%; } /* Department */
+.members-table th:nth-child(3) { width: 10%; } /* Status */
+.members-table th:nth-child(4) { width: 15%; } /* Role */
+.members-table th:nth-child(5) { width: 15%; } /* New Role */
+.members-table th:nth-child(6) { width: 20%; } /* Actions */
+.members-table td:nth-child(2) {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
