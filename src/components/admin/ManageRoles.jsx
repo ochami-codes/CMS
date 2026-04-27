@@ -146,6 +146,7 @@ setMembers(
     <>
       {/* ---------------- DESKTOP TABLE ---------------- */}
       <div className="desktop-table">
+      <div className="table-scroll">
         <table className="members-table">
           <thead>
             <tr>
@@ -244,6 +245,7 @@ setMembers(
             ))}
           </tbody>
         </table>
+      </div>
       </div>
 
       {/* ---------------- MOBILE CARDS ---------------- */}

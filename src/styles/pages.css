@@ -972,3 +972,7 @@
 .members-table td:nth-child(6) {
   width: 200px; /* Actions */
 }
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
