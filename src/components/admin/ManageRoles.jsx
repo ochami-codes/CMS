@@ -135,111 +135,208 @@ setMembers(
           className="input"
         />
       </div>
+<div className="card">
+  <h3 className="card-title">Manage Members</h3>
 
-      <div className="card">
-        <h3 className="card-title">Manage Members</h3>
+  {loadingMembers ? (
+    <div>Loading members…</div>
+  ) : members.length === 0 ? (
+    <div style={{ textAlign: "center" }}>No members found</div>
+  ) : (
+    <>
+      {/* ---------------- DESKTOP TABLE ---------------- */}
+      <div className="desktop-table">
+        <table className="members-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Department</th>
+              <th>Status</th>
+              <th>Role</th>
+              <th>New Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
 
-        {loadingMembers ? (
-          <div>Loading members…</div>
-        ) : (
-        <div className="table-responsive">
-          <table className="members-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Department</th>
-                <th>Status</th>
-                <th>Role</th>
-                <th>New Role</th>
-                <th>Actions</th>
+          <tbody>
+            {members.map((m) => (
+              <tr key={m.id} style={!m.active ? { opacity: 0.6 } : {}}>
+                <td>{m.full_name}</td>
+
+                <td>
+                  {m.department.length > 0
+                    ? m.department.join(", ")
+                    : "-"}
+                </td>
+
+                <td>{m.active ? "Active" : "Inactive"}</td>
+
+                <td>{getRoleLabel(m.role_name)}</td>
+
+                <td>
+                  {m.is_system_user ? (
+                    <select
+                      value={m.selectedRole}
+                      disabled={!m.active}
+                      onChange={(e) =>
+                        setMembers((prev) =>
+                          prev.map((x) =>
+                            x.id === m.id
+                              ? { ...x, selectedRole: e.target.value }
+                              : x
+                          )
+                        )
+                      }
+                    >
+                      {rolesData.roles
+                        .filter(
+                          (r) =>
+                            r.name !== "admin" ||
+                            user.roles.includes("admin")
+                        )
+                        .map((r) => (
+                          <option key={r.name} value={r.name}>
+                            {r.label}
+                          </option>
+                        ))}
+                    </select>
+                  ) : (
+                    <span style={{ opacity: 0.6 }}>—</span>
+                  )}
+                </td>
+
+                <td className="actions">
+                  {m.is_system_user && (
+                    <>
+                      <button
+                        className="btn btn-warning action-btn"
+                        disabled={
+                          processingId === m.id || !m.active
+                        }
+                        onClick={() => updateRole(m)}
+                      >
+                        <RefreshCw size={16} /> <span>Update</span>
+                      </button>
+
+                      <button
+                        className={`btn ${
+                          m.active ? "btn-danger" : "btn-success"
+                        } action-btn`}
+                        disabled={processingId === m.id}
+                        onClick={() =>
+                          toggleMember(m.id, m.active)
+                        }
+                      >
+                        {m.active ? (
+                          <>
+                            <X size={16} /> <span>Deactivate</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check size={16} /> <span>Activate</span>
+                          </>
+                        )}
+                      </button>
+                    </>
+                  )}
+                </td>
               </tr>
-            </thead>
-
-            <tbody>
-              {members.length === 0 ? (
-                <tr>
-                  <td colSpan="6" style={{ textAlign: "center" }}>
-                    No members found
-                  </td>
-                </tr>
-              ) : (
-                members.map((m) => (
-                  <tr key={m.id} style={!m.active ? { opacity: 0.6 } : {}}>
-                    <td>{m.full_name}</td>
-                    <td>
-                      {m.department.length > 0
-  ? m.department.join(", ")
-  : "-"}
-                    </td>
-                    <td>{m.active ? "Active" : "Inactive"}</td>
-                    <td>{getRoleLabel(m.role_name)}</td>
-
-                    <td>
-                      {m.is_system_user ? (
-                        <select
-                          value={m.selectedRole}
-                          disabled={!m.active}
-                          onChange={(e) =>
-                            setMembers((prev) =>
-                              prev.map((x) =>
-                                x.id === m.id
-                                  ? { ...x, selectedRole: e.target.value }
-                                  : x
-                              )
-                            )
-                          }
-                        >
-                          {rolesData.roles
-                            .filter(r => r.name !== "admin" || user.roles.includes("admin"))
-                            .map(r => (
-                              <option key={r.name} value={r.name}>
-                                {r.label}
-                              </option>
-                            ))}
-                        </select>
-                      ) : (
-                        <span style={{ opacity: 0.6 }}>—</span>
-                      )}
-                    </td>
-
-                    <td className="actions">
-                      {m.is_system_user && (
-                        <>
-                          <button
-                            className="btn btn-warning action-btn"
-                            disabled={processingId === m.id || !m.active}
-                            onClick={() => updateRole(m)}
-                          >
-                            <RefreshCw size={16} /> <span>Update</span>
-                          </button>
-
-                          <button
-                            className={`btn ${m.active ? "btn-danger" : "btn-success"} action-btn`}
-                            disabled={processingId === m.id}
-                            onClick={() => toggleMember(m.id, m.active)}
-                          >
-                            {m.active ? (
-                              <>
-                                <X size={16} /> <span>Deactivate</span>
-                              </>
-                            ) : (
-                              <>
-                                <Check size={16} /> <span>Activate</span>
-                              </>
-                            )}
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-       </div>
-        )}
+            ))}
+          </tbody>
+        </table>
       </div>
 
+      {/* ---------------- MOBILE CARDS ---------------- */}
+      <div className="mobile-cards">
+        {members.map((m) => (
+          <div
+            key={m.id}
+            className="member-card"
+            style={!m.active ? { opacity: 0.6 } : {}}
+          >
+            <h3>{m.full_name}</h3>
+
+            <p>
+              <strong>Department:</strong>{" "}
+              {m.department.length > 0
+                ? m.department.join(", ")
+                : "-"}
+            </p>
+
+            <p>
+              <strong>Status:</strong>{" "}
+              {m.active ? "Active" : "Inactive"}
+            </p>
+
+            <p>
+              <strong>Role:</strong>{" "}
+              {getRoleLabel(m.role_name)}
+            </p>
+
+            {m.is_system_user && (
+              <select
+                value={m.selectedRole}
+                disabled={!m.active}
+                onChange={(e) =>
+                  setMembers((prev) =>
+                    prev.map((x) =>
+                      x.id === m.id
+                        ? {
+                            ...x,
+                            selectedRole: e.target.value,
+                          }
+                        : x
+                    )
+                  )
+                }
+              >
+                {rolesData.roles
+                  .filter(
+                    (r) =>
+                      r.name !== "admin" ||
+                      user.roles.includes("admin")
+                  )
+                  .map((r) => (
+                    <option key={r.name} value={r.name}>
+                      {r.label}
+                    </option>
+                  ))}
+              </select>
+            )}
+
+            <div className="card-actions">
+              {m.is_system_user && (
+                <>
+                  <button
+                    className="btn btn-warning"
+                    disabled={
+                      processingId === m.id || !m.active
+                    }
+                    onClick={() => updateRole(m)}
+                  >
+                    Update
+                  </button>
+
+                  <button
+                    className={`btn ${
+                      m.active ? "btn-danger" : "btn-success"
+                    }`}
+                    disabled={processingId === m.id}
+                    onClick={() =>
+                      toggleMember(m.id, m.active)
+                    }
+                  >
+                    {m.active ? "Deactivate" : "Activate"}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  )}
+</div>
     </>
   );
 }

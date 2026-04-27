@@ -900,3 +900,48 @@
   width: 100%;
   min-width: 0; /* IMPORTANT for flex/grid children */
 }
+/* Desktop only */
+.desktop-table {
+  display: block;
+}
+
+/* Mobile hidden by default */
+.mobile-cards {
+  display: none;
+}
+
+/* Mobile switch */
+@media (max-width: 768px) {
+  .desktop-table {
+    display: none;
+  }
+
+  .mobile-cards {
+    display: block;
+  }
+}
+
+/* Card UI */
+.member-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.member-card h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.member-card p {
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
