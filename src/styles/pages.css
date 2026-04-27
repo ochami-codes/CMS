@@ -382,31 +382,6 @@
   }
 }
 
-/* ---------- Members Table ---------- */
-.members-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: auto;
-}
-.members-table th,
-.members-table td {
-  padding: 0.6rem;
-  border-bottom: 1px solid #e5e7eb;
-  text-align: left;
-  white-space: normal;
-  word-break: break-word;
-}
-
-/* Allow buttons to wrap */
-.members-table td.actions {
-  white-space: normal;
-}
-
-.members-table th {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #374151;
-}
 
 /* ---------- Page Layout ---------- */
 .page-container {
@@ -953,28 +928,25 @@
   display: contents; /* flatten structure */
 }
 .members-table {
-  display: grid;
-  grid-template-columns: 
-    1.5fr   /* Name */
-    2fr     /* Department */
-    1fr     /* Status */
-    1.2fr   /* Role */
-    1.5fr   /* New Role */
-    2fr;    /* Actions */
-  gap: 0;
+  width: 1400px;
+  border-collapse: collapse;
+  table-layout: auto; /* IMPORTANT */
 }
+
 .members-table th,
 .members-table td {
-  padding: 0.75rem 1rem;
+  padding: 0.75rem;
   border-bottom: 1px solid #e5e7eb;
-  display: flex;
-  align-items: center;
+  text-align: left;
+  vertical-align: top;
 }
-.members-table th {
-  font-weight: 600;
-  color: #374151;
+.members-table td {
+  white-space: normal;
+  word-break: break-word;
+}
+.members-table td.actions {
+  min-width: 160px;
 }
 .members-table td:nth-child(2) {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: 220px;
 }
