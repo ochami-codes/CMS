@@ -922,15 +922,10 @@
   margin-top: 0.5rem;
 }
 
-.members-table thead,
-.members-table tbody,
-.members-table tr {
-  display: contents; /* flatten structure */
-}
 .members-table {
-  width: 1400px;
+  width: 100%;
   border-collapse: collapse;
-  table-layout: auto; /* IMPORTANT */
+  table-layout: fixed; /* KEY FIX */
 }
 
 .members-table th,
@@ -940,13 +935,40 @@
   text-align: left;
   vertical-align: top;
 }
+
+/* Wrap text properly */
 .members-table td {
-  white-space: normal;
   word-break: break-word;
+  overflow-wrap: anywhere;
 }
-.members-table td.actions {
-  min-width: 160px;
+
+/* Column control */
+.members-table th:nth-child(1),
+.members-table td:nth-child(1) {
+  width: 180px; /* Name */
 }
+
+.members-table th:nth-child(2),
 .members-table td:nth-child(2) {
-  max-width: 220px;
+  width: 220px; /* Department */
+}
+
+.members-table th:nth-child(3),
+.members-table td:nth-child(3) {
+  width: 100px; /* Status */
+}
+
+.members-table th:nth-child(4),
+.members-table td:nth-child(4) {
+  width: 140px; /* Role */
+}
+
+.members-table th:nth-child(5),
+.members-table td:nth-child(5) {
+  width: 180px; /* New Role */
+}
+
+.members-table th:nth-child(6),
+.members-table td:nth-child(6) {
+  width: 200px; /* Actions */
 }
