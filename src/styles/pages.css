@@ -946,15 +946,35 @@
   flex-wrap: wrap;
   margin-top: 0.5rem;
 }
-.members-table th:nth-child(1) { width: 16%; } /* Name */
-.members-table th:nth-child(2) { width: 21%; } /* Department */
-.members-table th:nth-child(3) { width: 15%; } /* Status */
-.members-table th:nth-child(4) { width: 13%; } /* Role */
-.members-table th:nth-child(5) { width: 15%; } /* New Role */
-.members-table th:nth-child(6) { width: 20%; } /* Actions */
+
+.members-table thead,
+.members-table tbody,
+.members-table tr {
+  display: contents; /* flatten structure */
+}
+.members-table {
+  display: grid;
+  grid-template-columns: 
+    1.5fr   /* Name */
+    2fr     /* Department */
+    1fr     /* Status */
+    1.2fr   /* Role */
+    1.5fr   /* New Role */
+    2fr;    /* Actions */
+  gap: 0;
+}
+.members-table th,
+.members-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+}
+.members-table th {
+  font-weight: 600;
+  color: #374151;
+}
 .members-table td:nth-child(2) {
-  max-width: 220px;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
