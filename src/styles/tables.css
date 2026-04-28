@@ -1,0 +1,132 @@
+/* ==========================
+   TABLE.CSS
+========================== */
+
+/* ---------- Responsive Switch ---------- */
+
+/* Desktop only */
+.desktop-table {
+  display: block;
+}
+
+/* Mobile hidden */
+.mobile-cards {
+  display: none;
+}
+
+/* Switch on small screens */
+@media (max-width: 768px) {
+  .desktop-table {
+    display: none;
+  }
+
+  .mobile-cards {
+    display: block;
+  }
+}
+
+/* ---------- Table Wrapper ---------- */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* ---------- Base Table ---------- */
+.members-table,
+.role-requests-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.members-table th,
+.members-table td,
+.role-requests-table th,
+.role-requests-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  vertical-align: top;
+}
+
+/* Text wrapping */
+.members-table td,
+.role-requests-table td {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Members Table Columns ---------- */
+.members-table th:nth-child(1),
+.members-table td:nth-child(1) { width: 180px; }
+
+.members-table th:nth-child(2),
+.members-table td:nth-child(2) { width: 220px; }
+
+.members-table th:nth-child(3),
+.members-table td:nth-child(3) { width: 100px; }
+
+.members-table th:nth-child(4),
+.members-table td:nth-child(4) { width: 140px; }
+
+.members-table th:nth-child(5),
+.members-table td:nth-child(5) { width: 180px; }
+
+.members-table th:nth-child(6),
+.members-table td:nth-child(6) { width: 200px; }
+
+/* ---------- Role Requests Table ---------- */
+.role-requests-table th:nth-child(1),
+.role-requests-table td:nth-child(1) { width: 180px; }
+
+.role-requests-table th:nth-child(2),
+.role-requests-table td:nth-child(2) { width: 140px; }
+
+.role-requests-table th:nth-child(3),
+.role-requests-table td:nth-child(3) { width: 160px; }
+
+.role-requests-table th:nth-child(4),
+.role-requests-table td:nth-child(4) { width: 180px; }
+
+.role-requests-table th:nth-child(5),
+.role-requests-table td:nth-child(5) { width: 200px; }
+
+/* ---------- Mobile Card UI ---------- */
+.member-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.member-card h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.member-card p {
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+/* ---------- Buttons inside tables/cards ---------- */
+.members-table td button {
+  margin-right: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}

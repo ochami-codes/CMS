@@ -3,6 +3,7 @@ import { AdminAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../components/ToastProvider";
 import "../../styles/pages.css";
+import "../../styles/tables.css";
 
 export default function RoleRequests() {
   const { user } = useAuth();
@@ -26,49 +27,47 @@ export default function RoleRequests() {
       setRequests([]);
       setError(err.message || "Failed to load role requests");
       showToast(err.message || "Failed to load role requests", "error");
-    } finally {
     }
   }, [user?.church_id, showToast]);
 
   useEffect(() => {
-    if ( user?.church_id) {
+    if (user?.church_id) {
       fetchRequests();
     }
   }, [user?.church_id, fetchRequests]);
 
-/* ------------------ Role Request Actions ------------------ */
-const handleRoleRequest = async (request, action) => {
-  setProcessingId(request.id);
+  /* ------------------ Actions ------------------ */
+  const handleRoleRequest = async (request, action) => {
+    setProcessingId(request.id);
 
-  try {
-    await AdminAPI.reviewRoleRequest(request.id, action);
+    try {
+      await AdminAPI.reviewRoleRequest(request.id, action);
 
-    setRequests((prev) =>
-      prev.filter((r) => r.id !== request.id)
-    );
+      setRequests((prev) =>
+        prev.filter((r) => r.id !== request.id)
+      );
 
-    showToast(
-      action === "approved"
-        ? `Approved role request for ${request.target_user?.full_name}`
-        : `Rejected role request for ${request.target_user?.full_name}`
-    );
+      showToast(
+        action === "approved"
+          ? `Approved role request for ${request.target_user?.full_name}`
+          : `Rejected role request for ${request.target_user?.full_name}`
+      );
+    } catch {
+      showToast(
+        action === "approved"
+          ? "Failed to approve request"
+          : "Failed to reject request",
+        "error"
+      );
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
-  } catch (err) {
-    showToast(
-      action === "approved"
-        ? "Failed to approve request"
-        : "Failed to reject request",
-      "error"
-    );
-  } finally {
-    setProcessingId(null);
-  }
-};
-  /* ------------------ Render Guards ------------------ */
-  if (!user)
+  if (!user) {
     return <div className="dashboard-content">Loading admin profile…</div>;
+  }
 
-  /* ------------------ Main Table ------------------ */
   return (
     <div className="card">
       <h2 className="card-title">Role Change Requests</h2>
@@ -78,27 +77,63 @@ const handleRoleRequest = async (request, action) => {
       {requests.length === 0 ? (
         <p style={{ color: "#6b7280" }}>No pending requests.</p>
       ) : (
-        <table className="members-table role-requests-table">
-          <thead>
-            <tr>
-              <th>Member</th>
-              <th>Current Role</th>
-              <th>Requested Role</th>
-              <th>Requested By</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+        <>
+          {/* ================= DESKTOP TABLE ================= */}
+          <div className="desktop-table">
+            <div className="table-scroll">
+              <table className="members-table role-requests-table">
+                <thead>
+                  <tr>
+                    <th>Member</th>
+                    <th>Current Role</th>
+                    <th>Requested Role</th>
+                    <th>Requested By</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
 
-          <tbody>
+                <tbody>
+                  {requests.map((req) => (
+                    <tr key={req.id}>
+                      <td>{req.target_user?.full_name || "—"}</td>
+                      <td>{req.target_user?.role || "—"}</td>
+                      <td><strong>{req.requested_role}</strong></td>
+                      <td>{req.requester?.full_name || "System"}</td>
+                      <td>
+                        <button
+                          className="btn btn-primary"
+                          disabled={processingId === req.id}
+                          onClick={() => handleRoleRequest(req, "approved")}
+                        >
+                          Approve
+                        </button>
+
+                        <button
+                          className="btn btn-secondary"
+                          disabled={processingId === req.id}
+                          onClick={() => handleRoleRequest(req, "rejected")}
+                        >
+                          Reject
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* ================= MOBILE CARDS ================= */}
+          <div className="mobile-cards">
             {requests.map((req) => (
-              <tr key={req.id}>
-                <td>{req.target_user?.full_name || "—"}</td>
-                <td>{req.target_user?.role || "—"}</td>
-                <td>
-                  <strong>{req.requested_role}</strong>
-                </td>
-                <td>{req.requester?.full_name || "System"}</td>
-                <td className="dashboard-actions">
+              <div key={req.id} className="member-card">
+                <h3>{req.target_user?.full_name || "—"}</h3>
+
+                <p><strong>Current:</strong> {req.target_user?.role || "—"}</p>
+                <p><strong>Requested:</strong> {req.requested_role}</p>
+                <p><strong>By:</strong> {req.requester?.full_name || "System"}</p>
+
+                <div className="card-actions">
                   <button
                     className="btn btn-primary"
                     disabled={processingId === req.id}
@@ -114,11 +149,11 @@ const handleRoleRequest = async (request, action) => {
                   >
                     Reject
                   </button>
-                </td>
-              </tr>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </>
       )}
     </div>
   );

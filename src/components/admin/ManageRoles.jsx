@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../components/ToastProvider";
 import { Check, X, RefreshCw } from "lucide-react";
 import "../../styles/pages.css";
+import "../../styles/tables.css";
 
 export default function ManageRoles() {
   const { user, setUser,  rolesData, getRoleLabel } = useAuth();
