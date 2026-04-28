@@ -976,3 +976,28 @@
   width: 100%;
   overflow-x: auto;
 }
+
+.role-requests-table th:nth-child(1),
+.role-requests-table td:nth-child(1) {
+  width: 180px;
+}
+
+.role-requests-table th:nth-child(2),
+.role-requests-table td:nth-child(2) {
+  width: 140px;
+}
+
+.role-requests-table th:nth-child(3),
+.role-requests-table td:nth-child(3) {
+  width: 160px;
+}
+
+.role-requests-table th:nth-child(4),
+.role-requests-table td:nth-child(4) {
+  width: 180px;
+}
+
+.role-requests-table th:nth-child(5),
+.role-requests-table td:nth-child(5) {
+  width: 200px;
+}

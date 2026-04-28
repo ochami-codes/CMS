@@ -38,23 +38,19 @@ export default function RoleRequests() {
 
 /* ------------------ Role Request Actions ------------------ */
 const handleRoleRequest = async (request, action) => {
-  setRequestProcessingId(request.id);
+  setProcessingId(request.id);
 
   try {
     await AdminAPI.reviewRoleRequest(request.id, action);
 
-    setRoleRequests((prev) =>
+    setRequests((prev) =>
       prev.filter((r) => r.id !== request.id)
     );
 
-    if (action === "approved") {
-      await fetchMembers();
-    }
-
     showToast(
       action === "approved"
-        ? `Approved role request for ${request.user_full_name}`
-        : `Rejected role request for ${request.user_full_name}`
+        ? `Approved role request for ${request.target_user?.full_name}`
+        : `Rejected role request for ${request.target_user?.full_name}`
     );
 
   } catch (err) {
@@ -65,7 +61,7 @@ const handleRoleRequest = async (request, action) => {
       "error"
     );
   } finally {
-    setRequestProcessingId(null);
+    setProcessingId(null);
   }
 };
   /* ------------------ Render Guards ------------------ */
@@ -82,7 +78,7 @@ const handleRoleRequest = async (request, action) => {
       {requests.length === 0 ? (
         <p style={{ color: "#6b7280" }}>No pending requests.</p>
       ) : (
-        <table className="members-table">
+        <table className="members-table role-requests-table">
           <thead>
             <tr>
               <th>Member</th>
@@ -106,7 +102,7 @@ const handleRoleRequest = async (request, action) => {
                   <button
                     className="btn btn-primary"
                     disabled={processingId === req.id}
-                    onClick={() => handleRoleRequest(request, "approved")}
+                    onClick={() => handleRoleRequest(req, "approved")}
                   >
                     Approve
                   </button>
@@ -114,7 +110,7 @@ const handleRoleRequest = async (request, action) => {
                   <button
                     className="btn btn-secondary"
                     disabled={processingId === req.id}
-                    onClick={() => handleRoleRequest(request, "rejected")}
+                    onClick={() => handleRoleRequest(req, "rejected")}
                   >
                     Reject
                   </button>
