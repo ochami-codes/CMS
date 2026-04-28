@@ -97,7 +97,7 @@ export default function RoleRequests() {
                     <tr key={req.id}>
                       <td>{req.target_user?.full_name || "—"}</td>
                       <td>{req.target_user?.role || "—"}</td>
-                      <td><strong>{req.requested_role}</strong></td>
+                      <td><strong>{req.requester?role}</strong></td>
                       <td>{req.requester?.full_name || "System"}</td>
                       <td>
                         <button
