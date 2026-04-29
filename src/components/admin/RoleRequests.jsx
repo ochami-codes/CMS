@@ -140,7 +140,7 @@ export default function RoleRequests() {
 
                 <p>
                   <strong>Current:</strong>{" "}
-                  {req.target_user?.role || "—"}
+                  {req.requester?.role || "—"}
                 </p>
 
                 <p>
