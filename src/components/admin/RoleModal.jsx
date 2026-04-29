@@ -28,26 +28,34 @@ export default function RoleModal({
         : [...prev, role];
 
       // auto-fix primary role if removed
-      if (!updated.includes(primaryRole)) {
-        setPrimaryRole(updated[0] || "");
-      }
+      if (updated.length === 0) {
+  setPrimaryRole("");
+} else if (!updated.includes(primaryRole)) {
+  setPrimaryRole(updated[0]);
+}
 
       return updated;
     });
   };
 
   const handleSave = () => {
+  try {
     if (!selectedRoles.includes(primaryRole)) {
       alert("Primary role must be selected");
       return;
     }
+
+    if (!member?.id) return;
 
     onSave({
       id: member.id,
       roles: selectedRoles,
       primary_role: primaryRole,
     });
-  };
+  } catch (err) {
+    console.error("RoleModal save error:", err);
+  }
+};
 
   return (
     <div className="modal-backdrop">
@@ -58,7 +66,7 @@ export default function RoleModal({
 
         {/* Roles */}
         <div className="roles-section">
-          {rolesData.roles.map((r) => (
+          {rolesData?.roles?.map((r) => (
             <label key={r.name} className="role-option">
               <input
                 type="checkbox"

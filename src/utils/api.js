@@ -137,10 +137,13 @@ export const OverviewAPI = {
 export const AdminAPI = {
   fetchMembers: (params = "") => request(`/members?${params}`),
 
-  updateMemberRole: async (memberId, roleName) =>
-  request(`/admin/role-requests/members/${memberId}/role`, {
+  updateMemberRoles: async (memberId, data) =>
+  request(`/admin/members/${memberId}/roles`, {
     method: "PUT",
-    body: JSON.stringify({ role_name: roleName }),
+    body: JSON.stringify({
+      roles: data.roles,
+      primary_role: data.primary_role,
+    }),
   }),
 
   searchProfiles: (query) =>
