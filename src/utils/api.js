@@ -138,7 +138,7 @@ export const AdminAPI = {
   fetchMembers: (params = "") => request(`/members?${params}`),
 
   updateMemberRoles: async (memberId, data) =>
-  request(`/admin/members/${memberId}/roles`, {
+  request(`/admin/role-requests/${memberId}/roles`, {
     method: "PUT",
     body: JSON.stringify({
       roles: data.roles,
