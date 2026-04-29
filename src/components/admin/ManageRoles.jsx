@@ -268,43 +268,48 @@ export default function ManageRoles() {
           rolesData={rolesData}
           getRoleLabel={getRoleLabel}
           onClose={() => setSelectedMember(null)}
-          onSave={async (data) => {
-            console.log("updates:", data);
-            try {
+onSave={async (data) => {
+  console.log("updates:", data);
 
-               const res = await AdminAPI.updateMemberRoles(
-                data.id,
-                data
-              );
-   console.log("response:", res);
-              // update local state instantly
-              setMembers((prev) =>
-                prev.map((m) =>
-                  m.id === data.id
-                    ? {
-                        ...m,
-                        roles: data.roles,
-                        primary_role: data.primary_role,
-                      }
-                    : m
-                )
-              );
+  try {
+    const res = await AdminAPI.updateMemberRoles(data.id, data);
 
-              // update self if needed
-              if (data.id === user.id) {
-                setUser((u) => ({
-                  ...u,
-                  roles: data.roles,
-                  primary_role: data.primary_role,
-                }));
-              }
+    console.log("response:", res);
 
-              showToast("Roles updated");
-              setSelectedMember(null);
-            } catch {
-              showToast("Failed to update roles", "error");
+    setMembers((prev) =>
+      prev.map((m) =>
+        m.id === data.id
+          ? {
+              ...m,
+              roles: data.roles,
+              primary_role: data.primary_role,
             }
-          }}
+          : m
+      )
+    );
+
+    if (data.id === user.id) {
+      setUser((u) => ({
+        ...u,
+        roles: data.roles,
+        primary_role: data.primary_role,
+      }));
+    }
+
+    showToast("Roles updated");
+    setSelectedMember(null);
+
+  } catch (err) {
+    console.error("Role update failed:", err);
+
+    // If backend sends useful error messages:
+    if (err?.response) {
+      console.error("Server response:", err.response.data);
+    }
+
+    showToast("Failed to update roles", "error");
+  }
+}}
         />
       )}
     </>
