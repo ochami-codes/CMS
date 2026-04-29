@@ -269,12 +269,14 @@ export default function ManageRoles() {
           getRoleLabel={getRoleLabel}
           onClose={() => setSelectedMember(null)}
           onSave={async (data) => {
+            console.log("updates:", data);
             try {
-              await AdminAPI.updateMemberRoles(
+
+               const res = await AdminAPI.updateMemberRoles(
                 data.id,
                 data
               );
-
+   console.log("response:", res);
               // update local state instantly
               setMembers((prev) =>
                 prev.map((m) =>
