@@ -174,3 +174,17 @@
   justify-content: space-between;
   margin-top: 20px;
 }
+.roles-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px; /* spacing between badges */
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+}

@@ -137,17 +137,15 @@ export default function ManageRoles() {
                           {m.active ? "Active" : "Inactive"}
                         </td>
 
-                        <td>
-                          {m.roles?.map((r) => (
-                            <span
-                              key={r}
-                              className="role-badge"
-                            >
-                              {getRoleLabel(r)}
-                            </span>
-                          ))}
-                        </td>
-
+<td>
+  <div className="roles-container">
+    {m.roles?.map((r) => (
+      <span key={r} className="role-badge">
+        {getRoleLabel(r)}
+      </span>
+    ))}
+  </div>
+</td>
                         <td className="actions">
                           {m.is_system_user && (
                             <>
@@ -215,15 +213,16 @@ export default function ManageRoles() {
                     {m.active ? "Active" : "Inactive"}
                   </p>
 
-                  <p>
-                    <strong>Roles:</strong>{" "}
-                    {m.roles?.map((r) => (
-                      <span key={r} className="role-badge">
-                        {getRoleLabel(r)}
-                      </span>
-                    ))}
-                  </p>
-
+     <p>
+  <strong>Roles:</strong>
+  <div className="roles-container">
+    {m.roles?.map((r) => (
+      <span key={r} className="role-badge">
+        {getRoleLabel(r)}
+      </span>
+    ))}
+  </div>
+</p>
                   <div className="card-actions">
                     {m.is_system_user && (
                       <>
