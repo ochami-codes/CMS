@@ -97,7 +97,7 @@ export default function RoleRequests() {
                   {requests.map((req) => (
                     <tr key={req.id}>
                       <td>{req.target_user?.full_name || "—"}</td>
-                      <td>{req.target_user?.role || "—"}</td>
+                      <td>{req.requester?.role || "—"}</td>
                       <td>
                         <strong>{req.requested_role || "—"}</strong>
                       </td>
