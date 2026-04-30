@@ -46,26 +46,37 @@ export default function NonMembers() {
   };
 
   /* ------------------ Render Action Cell ------------------ */
-  const renderActionCell = (p) => {
-    if (p.source === "user_request" && p.status === "requested") {
-      return <span className="status-label status-warning">Request Pending</span>;
-    }
+const renderActionCell = (p) => {
+  const status = p.membership_status;
 
-    if (p.source === "admin_invite" && p.status === "invited") {
-      return <span className="status-label status-info">Invite Sent</span>;
-    }
-
+  // Block actions for invited + requested
+  if (status === "invited") {
     return (
-      <button
-        className="btn btn-primary btn-role-request"
-        disabled={actionLoading[p.profile_id]}
-        onClick={() => handleInvite(p.profile_id)}
-      >
-        {actionLoading[p.profile_id] ? "Inviting…" : "Invite"}
-      </button>
+      <span className="status-label status-info">
+        Invite Sent
+      </span>
     );
-  };
+  }
 
+  if (status === "requested") {
+    return (
+      <span className="status-label status-warning">
+        Request Pending
+      </span>
+    );
+  }
+
+  // Default → allow invite
+  return (
+    <button
+      className="btn btn-primary btn-role-request"
+      disabled={actionLoading[p.profile_id]}
+      onClick={() => handleInvite(p.profile_id)}
+    >
+      {actionLoading[p.profile_id] ? "Inviting…" : "Invite"}
+    </button>
+  );
+};
   /* ------------------ Loading & Empty States ------------------ */
   if (loading) return <Loader message="Loading non-members…" />;
 
@@ -106,9 +117,19 @@ return (
                 <td>{p.phone || "-"}</td>
 
                 <td>
-                  <span className="status-label status-nonmember">
-                    Not a member
-                  </span>
+  <span
+  className={`status-label ${
+    ["invited", "requested"].includes(p.membership_status)
+      ? "status-info"
+      : "status-nonmember"
+  }`}
+>
+  {p.membership_status === "invited"
+    ? "Invite Sent"
+    : p.membership_status === "requested"
+    ? "Request Pending"
+    : "Not a member"}
+</span>
                 </td>
 
                 <td>{renderActionCell(p)}</td>
@@ -129,9 +150,19 @@ return (
 
             <p>
               <strong>Status:</strong>{" "}
-              <span className="status-label status-nonmember">
-                Not a member
-              </span>
+              <span
+  className={`status-label ${
+    ["invited", "requested"].includes(p.membership_status)
+      ? "status-info"
+      : "status-nonmember"
+  }`}
+>
+  {p.membership_status === "invited"
+    ? "Invite Sent"
+    : p.membership_status === "requested"
+    ? "Request Pending"
+    : "Not a member"}
+</span>
             </p>
 
             <div className="card-actions">
