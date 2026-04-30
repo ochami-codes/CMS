@@ -42,7 +42,9 @@
 .members-table th,
 .members-table td,
 .role-requests-table th,
-.role-requests-table td {
+.role-requests-table td,
+.non-members-table th,
+.non-members-table td {
   padding: 0.75rem;
   border-bottom: 1px solid #e5e7eb;
   text-align: left;
@@ -51,7 +53,8 @@
 
 /* Text wrapping */
 .members-table td,
-.role-requests-table td {
+.role-requests-table td,
+.non-members-table td {
   word-break: break-word;
   overflow-wrap: anywhere;
 }
@@ -193,7 +196,8 @@
 ========================== */
 
 .non-members-table {
-  table-layout: auto;
+  table-layout: fixed;
+  min-width: 700px;
 }
 
 .non-members-table th,
@@ -216,7 +220,6 @@
 }
 
 /* Email wrapping fix */
-.non-
-members-table td:nth-child(2) {
+.non-members-table td:nth-child(2) {
   word-break: break-all;
 }
