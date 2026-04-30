@@ -197,7 +197,7 @@ export const MembershipAPI = {
     }),
 
   // Get my latest membership request
-  myRequest: () =>
+  myRequests: () =>
     request("/membership-requests/me"),
 
   // Respond to an invite (accept / reject)
