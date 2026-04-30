@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { NotificationsAPI, MembershipAPI } from "../utils/api";
+import { NotificationsAPI } from "../utils/api";
 import "../styles/pages.css";
-
+import { respondToInvite } from "../utils/membershipActions";
+import { useAuth } from "../context/AuthContext";
 export default function NotificationsDropdown({ onClose, refreshUnread }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({}); // { [id]: "accepted" | "rejected" | null }
+  const { refreshUser } = useAuth();
 
   /* -----------------------------------
      Load Notifications
@@ -58,9 +60,9 @@ export default function NotificationsDropdown({ onClose, refreshUnread }) {
       }));
 
       await MembershipAPI.respondInvite(
-        notification.related_id,
-        action
-      );
+  notification.related_id,
+  action
+);
 
       await markAsRead(notifId);
     } catch (err) {

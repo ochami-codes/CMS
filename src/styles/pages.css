@@ -867,3 +867,25 @@
   width: 100%;
   min-width: 0; /* IMPORTANT for flex/grid children */
 }
+
+.invite-actions-box {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+
+.invite-title {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.invite-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.invite-buttons .btn {
+  flex: 1;
+}
