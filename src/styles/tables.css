@@ -192,30 +192,31 @@
    NON-MEMBERS ONLY
 ========================== */
 
-.non-members-page .members-table {
+.non-members-table {
   table-layout: auto;
 }
 
-.non-members-page .members-table th,
-.non-members-page .members-table td {
+.non-members-table th,
+.non-members-table td {
   vertical-align: middle;
 }
 
 /* Flexible column widths ONLY here */
-.non-members-page .members-table th:nth-child(1) { width: 20%; }
-.non-members-page .members-table th:nth-child(2) { width: 25%; }
-.non-members-page .members-table th:nth-child(3) { width: 15%; }
-.non-members-page .members-table th:nth-child(4) { width: 15%; }
-.non-members-page .members-table th:nth-child(5) { width: 25%; }
+.non-members-table th:nth-child(1) { width: 20%; }
+.non-members-table th:nth-child(2) { width: 25%; }
+.non-members-table th:nth-child(3) { width: 15%; }
+.non-members-table th:nth-child(4) { width: 15%; }
+.non-members-table th:nth-child(5) { width: 25%; }
 
 /* Fix button stacking */
-.non-members-page .members-table td:last-child {
+.non-members-table td:last-child {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
 /* Email wrapping fix */
-.non-members-page .members-table td:nth-child(2) {
+.non-
+members-table td:nth-child(2) {
   word-break: break-all;
 }

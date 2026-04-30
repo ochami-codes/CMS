@@ -85,8 +85,9 @@ return (
       <h3 className="card-title">Non-Members</h3>
 
       {/* ---------------- DESKTOP TABLE ---------------- */}
-      <div className="desktop-table table-scroll">
-        <table className="non-members-page">
+      <div className="desktop-table">
+       <div className="table-scroll">
+        <table className="non-members-table">
           <thead>
             <tr>
               <th>Name</th>
@@ -116,7 +117,7 @@ return (
           </tbody>
         </table>
       </div>
-
+    </div>
       {/* ---------------- MOBILE CARDS ---------------- */}
       <div className="mobile-cards">
         {data.map((p) => (
