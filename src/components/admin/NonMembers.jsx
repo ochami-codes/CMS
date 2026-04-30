@@ -3,7 +3,7 @@ import { AdminAPI } from "../../utils/api";
 import { useToast } from "../../components/ToastProvider";
 import Loader from "../../components/Loader";
 import "../../styles/pages.css";
-
+import "../../styles/tables.css";
 export default function NonMembers() {
   const { showToast } = useToast();
 
