@@ -4,6 +4,7 @@ import { useToast } from "../../components/ToastProvider";
 import Loader from "../../components/Loader";
 import "../../styles/pages.css";
 import "../../styles/tables.css";
+
 export default function NonMembers() {
   const { showToast } = useToast();
 
@@ -30,54 +31,58 @@ export default function NonMembers() {
   }, []);
 
   /* ------------------ Invite Action ------------------ */
-  const handleInvite = async (profile_id) => {
-    setActionLoading((prev) => ({ ...prev, [profile_id]: true }));
+  const handleInvite = async (profileId) => {
+    setActionLoading((prev) => ({ ...prev, [profileId]: true }));
 
     try {
-      await AdminAPI.sendInvite(profile_id);
+      await AdminAPI.sendInvite(profileId);
       showToast("Invite sent successfully");
       await loadNonMembers();
     } catch (err) {
       console.error("Failed to send invite:", err);
       showToast(err.message || "Failed to send invite", "error");
     } finally {
-      setActionLoading((prev) => ({ ...prev, [profile_id]: false }));
+      setActionLoading((prev) => ({ ...prev, [profileId]: false }));
     }
   };
 
-  /* ------------------ Render Action Cell ------------------ */
-const renderActionCell = (p) => {
-  const status = p.membership_status;
+  /* ------------------ Helpers ------------------ */
+  const getStatusLabel = (status) => {
+    if (status === "invited") return "Invite Sent";
+    if (status === "requested") return "Request Pending";
+    return "Not a member";
+  };
 
-  // Block actions for invited + requested
-  if (status === "invited") {
+  const getStatusClass = (status) =>
+    ["invited", "requested"].includes(status)
+      ? "status-info"
+      : "status-nonmember";
+
+  const renderActionCell = (p) => {
+    const status = p.membership_status;
+    const isBlocked = ["invited", "requested"].includes(status);
+    const isLoading = actionLoading[p.profile_id];
+
     return (
-      <span className="status-label status-info">
-        Invite Sent
-      </span>
+      <button
+        className={`btn btn-role-request ${
+          isBlocked ? "btn-disabled-custom" : "btn-primary"
+        }`}
+        disabled={isBlocked || isLoading}
+        onClick={() => !isBlocked && handleInvite(p.profile_id)}
+      >
+        {isLoading
+          ? "Inviting…"
+          : status === "invited"
+          ? "Invite Sent"
+          : status === "requested"
+          ? "Pending"
+          : "Invite"}
+      </button>
     );
-  }
+  };
 
-  if (status === "requested") {
-    return (
-      <span className="status-label status-warning">
-        Request Pending
-      </span>
-    );
-  }
-
-  // Default → allow invite
-  return (
-    <button
-      className="btn btn-primary btn-role-request"
-      disabled={actionLoading[p.profile_id]}
-      onClick={() => handleInvite(p.profile_id)}
-    >
-      {actionLoading[p.profile_id] ? "Inviting…" : "Invite"}
-    </button>
-  );
-};
-  /* ------------------ Loading & Empty States ------------------ */
+  /* ------------------ Loading & Empty ------------------ */
   if (loading) return <Loader message="Loading non-members…" />;
 
   if (!data.length) {
@@ -89,89 +94,82 @@ const renderActionCell = (p) => {
     );
   }
 
-  /* ------------------ Main Table ------------------ */
-return (
-  <div className="page-container">
-    <div className="page-card">
-      <h3 className="card-title">Non-Members</h3>
+  /* ------------------ Main UI ------------------ */
+  return (
+    <div className="page-container">
+      <div className="page-card">
+        <h3 className="card-title">Non-Members</h3>
 
-      {/* ---------------- DESKTOP TABLE ---------------- */}
-      <div className="desktop-table">
-       <div className="table-scroll">
-        <table className="non-members-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Membership</th>
-              <th>Action</th>
-            </tr>
-          </thead>
+        {/* -------- Desktop Table -------- */}
+        <div className="desktop-table">
+          <div className="table-scroll">
+            <table className="non-members-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Membership</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
 
-          <tbody>
-            {data.map((p) => (
-              <tr key={p.profile_id}>
-                <td>{p.full_name || "-"}</td>
-                <td>{p.email || "-"}</td>
-                <td>{p.phone || "-"}</td>
+              <tbody>
+                {data.map((p) => (
+                  <tr key={p.profile_id}>
+                    <td>{p.full_name || "-"}</td>
+                    <td>{p.email || "-"}</td>
+                    <td>{p.phone || "-"}</td>
 
-                <td>
-  <span
-  className={`status-label ${
-    ["invited", "requested"].includes(p.membership_status)
-      ? "status-info"
-      : "status-nonmember"
-  }`}
->
-  {p.membership_status === "invited"
-    ? "Invite Sent"
-    : p.membership_status === "requested"
-    ? "Request Pending"
-    : "Not a member"}
-</span>
-                </td>
+                    <td>
+                      <span
+                        className={`status-label ${getStatusClass(
+                          p.membership_status
+                        )}`}
+                      >
+                        {getStatusLabel(p.membership_status)}
+                      </span>
+                    </td>
 
-                <td>{renderActionCell(p)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-      {/* ---------------- MOBILE CARDS ---------------- */}
-      <div className="mobile-cards">
-        {data.map((p) => (
-          <div key={p.profile_id} className="member-card">
-            <h3>{p.full_name || "Unnamed"}</h3>
-
-            <p><strong>Email:</strong> {p.email || "-"}</p>
-            <p><strong>Phone:</strong> {p.phone || "-"}</p>
-
-            <p>
-              <strong>Status:</strong>{" "}
-              <span
-  className={`status-label ${
-    ["invited", "requested"].includes(p.membership_status)
-      ? "status-info"
-      : "status-nonmember"
-  }`}
->
-  {p.membership_status === "invited"
-    ? "Invite Sent"
-    : p.membership_status === "requested"
-    ? "Request Pending"
-    : "Not a member"}
-</span>
-            </p>
-
-            <div className="card-actions">
-              {renderActionCell(p)}
-            </div>
+                    <td>{renderActionCell(p)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))}
+        </div>
+
+        {/* -------- Mobile Cards -------- */}
+        <div className="mobile-cards">
+          {data.map((p) => (
+            <div key={p.profile_id} className="member-card">
+              <h3>{p.full_name || "Unnamed"}</h3>
+
+              <p>
+                <strong>Email:</strong> {p.email || "-"}
+              </p>
+              <p>
+                <strong>Phone:</strong> {p.phone || "-"}
+              </p>
+
+              <p>
+                <strong>Status:</strong>{" "}
+                <span
+                  className={`status-label ${getStatusClass(
+                    p.membership_status
+                  )}`}
+                >
+                  {getStatusLabel(p.membership_status)}
+                </span>
+              </p>
+
+              <div className="card-actions">
+                {renderActionCell(p)}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 }

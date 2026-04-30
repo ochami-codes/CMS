@@ -95,7 +95,8 @@ export default function Dashboard() {
 const [actionLoadingId, setActionLoadingId] = useState(null);
  const [now, setNow] = useState(new Date());
 const [initialized, setInitialized] = useState(false);
-  
+  const [membershipData, setMembershipData] = useState(null);
+const [hasActiveRequest, setHasActiveRequest] = useState(false);
   const role = user?.role_name?.toLowerCase() || "guest";
   const isGuest = role === "guest";
   const isAdmin = role === "admin";
@@ -188,9 +189,9 @@ return timeDiff(nextBirthday, now);
         todayBirthdays: todays || [],
         upcomingBirthdays: upcoming || [],
         birthday: myBirthday?.birthday || null,
-        membershipStatus: isGuest
-          ? membership?.request?.membership_request_status || null
-          : null,
+        membershipStatus: isGuest ? membership?.membership_status || null : null,
+membershipData: isGuest ? membership?.membership || null : null,
+hasActiveRequest: isGuest ? membership?.has_active_request || false : false,
       };
 
       // ✅ Update UI
@@ -200,7 +201,11 @@ return timeDiff(nextBirthday, now);
       setTodayBirthdays(newData.todayBirthdays);
       setUpcomingBirthdays(newData.upcomingBirthdays);
       setBirthday(newData.birthday);
-      if (isGuest) setMembershipStatus(newData.membershipStatus);
+      if (isGuest) {
+  setMembershipStatus(newData.membershipStatus);
+  setMembershipData(membership?.membership || null);
+  setHasActiveRequest(membership?.has_active_request || false);
+}
 
       // 💾 Save cache
       sessionStorage.setItem("dashboardData", JSON.stringify(newData));
@@ -314,24 +319,20 @@ const handleAction = async (type) => {
 
     <div className="card">
       {/* MESSAGE LOGIC */}
-      <p>
-        {membershipStatus?.source === "user_request" &&
-        membershipStatus?.status === "requested"
-          ? "Your membership request is pending review."
-          : membershipStatus?.source === "user_request" &&
-            membershipStatus?.status === "approved"
-          ? "Your membership has been approved 🎉"
-          : membershipStatus?.source === "user_request" &&
-            membershipStatus?.status === "rejected"
-          ? "Your membership request was rejected."
-          : membershipStatus?.source === "admin_invite" &&
-            membershipStatus?.status === "invited"
-          ? "You have been invited to join this church."
-          : "Request membership to access ministries and announcements."}
-      </p>
+ <p>
+  {membershipStatus === "requested"
+    ? "Your membership request is pending review."
+    : membershipStatus === "invited"
+    ? "You have been invited to join this church."
+    : membershipStatus === "accepted"
+    ? "Your membership has been approved 🎉"
+    : membershipStatus === "rejected"
+    ? "Your membership request was rejected."
+    : "Request membership to access ministries and announcements."}
+</p>
 
       {/* USER REQUEST BUTTON */}
-      {!membershipStatus && (
+      {!hasActiveRequest && (
         <button
           className="btn btn-primary"
           disabled={loadingMembershipRequest}
@@ -342,10 +343,8 @@ const handleAction = async (type) => {
               setSuccessMessage("");
 
               await MembershipAPI.submit({});
-              setMembershipStatus({
-                status: "requested",
-                source: "user_request",
-              });
+              setMembershipStatus("requested");
+setHasActiveRequest(true);
 
               setSuccessMessage("Membership request submitted 🙏");
             } catch (e) {
