@@ -290,18 +290,21 @@ const handleRespondInvite = async (action) => {
     await respondToInvite({
       requestId: membershipData.id,
       action,
-      refreshUser,
-      onSuccess: () => {
-        if (action === "accepted") {
-          setMembershipStatus("accepted");
-          setHasActiveRequest(false);
-        } else {
-          setMembershipStatus("rejected");
-          setHasActiveRequest(false);
-        }
-      },
     });
 
+    if (action === "accepted") {
+      // ✅ Update UI immediately
+      setMembershipStatus("accepted");
+      setHasActiveRequest(false);
+
+      // 🔥 Critical: refresh auth state
+      await refreshUser();
+
+    } else {
+      // rejected
+      setMembershipStatus("rejected");
+      setHasActiveRequest(false);
+}
   } catch (e) {
     console.error(e);
   } finally {

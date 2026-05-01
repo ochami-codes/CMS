@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NotificationsAPI } from "../utils/api";
 import "../styles/pages.css";
+import { useNavigate } from "react-router-dom";
 import { respondToInvite } from "../utils/membershipActions";
 import { useAuth } from "../context/AuthContext";
 export default function NotificationsDropdown({ onClose, refreshUnread }) {
@@ -8,7 +9,7 @@ export default function NotificationsDropdown({ onClose, refreshUnread }) {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({}); // { [id]: "accepted" | "rejected" | null }
   const { refreshUser } = useAuth();
-
+    const navigate = useNavigate();
   /* -----------------------------------
      Load Notifications
   ----------------------------------- */
@@ -50,31 +51,42 @@ export default function NotificationsDropdown({ onClose, refreshUnread }) {
   /* -----------------------------------
      Accept / Reject Invite
   ----------------------------------- */
-  const respondInvite = async (notification, action) => {
-    const notifId = notification.id;
+const respondInvite = async (notification, action) => {
+  const notifId = notification.id;
 
-    try {
-      setActionLoading((prev) => ({
-        ...prev,
-        [notifId]: action,
-      }));
+  try {
+    setActionLoading((prev) => ({
+      ...prev,
+      [notifId]: action,
+    }));
 
-      await MembershipAPI.respondInvite(
-  notification.related_id,
-  action
-);
+    await respondToInvite({
+      requestId: notification.related_id,
+      action,
+    });
 
-      await markAsRead(notifId);
-    } catch (err) {
-      console.error("Invite response failed:", err);
-    } finally {
-      setActionLoading((prev) => ({
-        ...prev,
-        [notifId]: null,
-      }));
+    // ✅ Mark notification as read
+    await markAsRead(notifId);
+
+    // 🔥 Critical: update global user state after accept
+    if (action === "accepted") {
+      await refreshUser();
+      // optional UX: close dropdown or redirect
+       onClose?.();
+       navigate("/dashboard");
     }
-  };
 
+    refreshUnread?.();
+
+  } catch (err) {
+    console.error("Invite response failed:", err);
+  } finally {
+    setActionLoading((prev) => ({
+      ...prev,
+      [notifId]: null,
+    }));
+  }
+};
   /* -----------------------------------
      Mark All as Read
   ----------------------------------- */
