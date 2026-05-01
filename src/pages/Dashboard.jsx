@@ -78,7 +78,7 @@ const timeDiff = (target, now) => {
 /* ================= DASHBOARD ================= */
 
 export default function Dashboard() {
-  const { user, refreshUser } = useAuth();
+  const { user, refetchUser } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [verse, setVerse] = useState(null);
@@ -298,7 +298,7 @@ const handleRespondInvite = async (action) => {
       setHasActiveRequest(false);
 
       // 🔥 Critical: refresh auth state
-      await refreshUser();
+      await refetchUser();
 
     } else {
       // rejected

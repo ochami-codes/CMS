@@ -8,7 +8,7 @@ export default function NotificationsDropdown({ onClose, refreshUnread }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({}); // { [id]: "accepted" | "rejected" | null }
-  const { refreshUser } = useAuth();
+  const { refetchUser } = useAuth();
     const navigate = useNavigate();
   /* -----------------------------------
      Load Notifications
@@ -70,7 +70,7 @@ const respondInvite = async (notification, action) => {
 
     // 🔥 Critical: update global user state after accept
     if (action === "accepted") {
-      await refreshUser();
+      await refetchUser();
       // optional UX: close dropdown or redirect
        onClose?.();
        navigate("/dashboard");
