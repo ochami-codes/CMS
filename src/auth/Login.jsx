@@ -27,7 +27,7 @@ export default function Login() {
   -------------------------------------------------- */
   useEffect(() => {
   if (authReady && user) {
-    navigate("/dashboard", { replace: true });
+    navigate("/onboarding", { replace: true });
   }
 }, [authReady, user, navigate]);
 

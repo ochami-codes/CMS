@@ -1,5 +1,11 @@
-// src/context/AuthContext.jsx
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { AuthAPI, RolesAPI } from "../utils/api";
 import { normalizeRole } from "../config/roles.js";
 
@@ -11,23 +17,24 @@ export const AuthProvider = ({ children }) => {
   ------------------------------- */
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
-  const [rolesData, setRolesData] = useState({
-    roles: [],           // array of role objects for dropdowns
-    roleLabels: {},      // map role name => label
-    requestableRoles: [],// roles users can request
-    allRoles: [],        // all roles
-    allPermissions: [],  // all permissions
-  });
   const [authError, setAuthError] = useState(null);
 
+  const [rolesData, setRolesData] = useState({
+    roles: [],
+    roleLabels: {},
+    requestableRoles: [],
+    allRoles: [],
+    allPermissions: [],
+  });
+
   /* -------------------------------
-     Fetch /roles from backend
+     Fetch roles
   ------------------------------- */
   const fetchRoles = useCallback(async () => {
     try {
       const data = await RolesAPI.getAll();
 
-      const roles = (data.roles || []).map(r => ({
+      const roles = (data.roles || []).map((r) => ({
         name: normalizeRole(r.name),
         label: r.label || r.name,
         requestable: r.requestable ?? false,
@@ -39,8 +46,14 @@ export const AuthProvider = ({ children }) => {
         return acc;
       }, {});
 
-      const allPermissions = [...new Set(roles.flatMap(r => r.permissions))];
-      const requestableRoles = (data.requestable_roles || []).map(normalizeRole);
+      const allPermissions = [
+        ...new Set(roles.flatMap((r) => r.permissions)),
+      ];
+
+      const requestableRoles = (data.requestable_roles || []).map(
+        normalizeRole
+      );
+
       const allRoles = (data.all_roles || []).map(normalizeRole);
 
       setRolesData({
@@ -50,7 +63,6 @@ export const AuthProvider = ({ children }) => {
         allRoles,
         allPermissions,
       });
-
     } catch (err) {
       console.error("Failed to load roles:", err);
     }
@@ -58,7 +70,6 @@ export const AuthProvider = ({ children }) => {
 
   /* -------------------------------
      Fetch /auth/me
-     Single source of truth
   ------------------------------- */
   const fetchMe = useCallback(async () => {
     try {
@@ -69,17 +80,16 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
 
-const normalizedUser = {
-  ...data.user,
-  roles: (data.user.roles || []).map(normalizeRole),
-  permissions: data.user.permissions || [],
-  role_name: normalizeRole(
-    data.user.role_name || data.user.roles?.[0] || "guest"
-  ),
-};
+      const normalizedUser = {
+        ...data.user,
+        roles: (data.user.roles || []).map(normalizeRole),
+        permissions: data.user.permissions || [],
+        memberships: data.user.memberships || [],
+        active_church: data.user.active_church || null,
+      };
+
       setUser(normalizedUser);
       return normalizedUser;
-
     } catch (err) {
       console.error("fetchMe failed:", err);
       localStorage.removeItem("access_token");
@@ -88,88 +98,112 @@ const normalizedUser = {
     }
   }, []);
 
-/* -------------------------------
-   Login
--------------------------------- */
-const login = async ({ email, password }) => {
-  setAuthError(null);
-  setAuthReady(false); // auth is resolving
-
-  try {
-    const data = await AuthAPI.login({ email, password });
-    if (!data?.access_token) throw new Error("Login failed");
-
-    localStorage.setItem("access_token", data.access_token);
-
-    const realUser = await fetchMe();
-    if (!realUser) throw new Error("Failed to load user");
-
-    fetchRoles();
-
-  } catch (err) {
-    setAuthError(err.message || "Login failed");
-    throw err;
-  } finally {
-    setAuthReady(true); // done deciding auth
-  }
-};
-/* -------------------------------
-   Logout
--------------------------------- */
-const logout = async () => {
-  try {
-    await AuthAPI.logout();
-  } catch {}
-
-  localStorage.removeItem("access_token");
-
-  // ✅ Clear everything immediately
-  setUser(null);
-
-  // Optional: reset roles (prevents stale UI)
-  setRolesData({
-    roles: [],
-    roleLabels: {},
-    requestableRoles: [],
-    allRoles: [],
-    allPermissions: [],
-  });
-};
   /* -------------------------------
-     Auth + roles initialization (ONCE)
+     Derived state (safe + memoized)
   ------------------------------- */
-useEffect(() => {
-  const token = localStorage.getItem("access_token");
+  const activeChurch = useMemo(
+    () => user?.active_church || null,
+    [user]
+  );
 
-  if (!token) {
-    setUser(null);
-    setAuthReady(true);
-    return;
-  }
+  const activeMembership = useMemo(() => {
+    if (!user?.memberships || !activeChurch?.id) return null;
 
-  fetchMe().finally(() => setAuthReady(true));
-  fetchRoles();
-}, [fetchMe, fetchRoles]);
+    return user.memberships.find(
+      (m) => m.church_id === activeChurch.id
+    );
+  }, [user, activeChurch]);
 
   /* -------------------------------
-     Permission & role helpers
+     Login
+  ------------------------------- */
+  const login = async ({ email, password }) => {
+    setAuthError(null);
+    setAuthReady(false);
+
+    try {
+      const data = await AuthAPI.login({ email, password });
+
+      if (!data?.access_token) {
+        throw new Error("Login failed");
+      }
+
+      localStorage.setItem("access_token", data.access_token);
+
+      const realUser = await fetchMe();
+
+      if (!realUser) {
+        throw new Error("Failed to load user");
+      }
+
+      fetchRoles();
+    } catch (err) {
+      setAuthError(err.message || "Login failed");
+      throw err;
+    } finally {
+      setAuthReady(true);
+    }
+  };
+
+  /* -------------------------------
+     Logout
+  ------------------------------- */
+  const logout = async () => {
+    try {
+      await AuthAPI.logout();
+    } catch {}
+
+    localStorage.removeItem("access_token");
+    setUser(null);
+
+    setRolesData({
+      roles: [],
+      roleLabels: {},
+      requestableRoles: [],
+      allRoles: [],
+      allPermissions: [],
+    });
+  };
+
+  /* -------------------------------
+     Init
+  ------------------------------- */
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      setUser(null);
+      setAuthReady(true);
+      return;
+    }
+
+    fetchMe().finally(() => setAuthReady(true));
+    fetchRoles();
+  }, [fetchMe, fetchRoles]);
+
+  /* -------------------------------
+     Helpers
   ------------------------------- */
   const canUser = (permission) => {
     if (!user) return false;
     if (!permission) return true;
 
-    // Admin override
     if (user.roles.includes("admin")) return true;
 
     return user.permissions.includes(permission);
   };
 
-  const isAdmin = () => user?.roles.includes("admin") ?? false;
+  const isAdmin = () => user?.roles?.includes("admin") ?? false;
 
-  const hasRole = (role) => user?.roles.includes(normalizeRole(role)) ?? false;
+  const hasRole = (role) =>
+    user?.roles?.includes(normalizeRole(role)) ?? false;
 
-  const getRoleLabel = (role) => rolesData.roleLabels[normalizeRole(role)] || role;
+  const getRoleLabel = (role) =>
+    rolesData.roleLabels[normalizeRole(role)] || role;
 
+  /* -------------------------------
+     Provider
+  ------------------------------- */
   return (
     <AuthContext.Provider
       value={{
@@ -180,10 +214,15 @@ useEffect(() => {
         login,
         logout,
         refetchUser: fetchMe,
+
         canUser,
         isAdmin,
         hasRole,
         getRoleLabel,
+
+        // multi-church
+        activeChurch,
+        activeMembership,
       }}
     >
       {children}

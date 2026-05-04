@@ -15,7 +15,7 @@ export default function ProtectedRoute({
 
   // Block non-members if required
   if (requireMember && !user.is_member) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/onboarding" replace />;
   }
 
   // Permission check
@@ -23,7 +23,7 @@ export default function ProtectedRoute({
     requiredPermission &&
     !user.permissions?.includes(requiredPermission)
   ) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <Outlet />;

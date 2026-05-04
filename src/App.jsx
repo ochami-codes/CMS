@@ -19,6 +19,7 @@ import ChangePasswordSuccess from "./auth/ChangePasswordSuccess";
 
 // Pages
 import Home from "./pages/Home";
+import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import YouthDashboard from "./pages/youth/YouthDashboard";
 import ChildrenDashboard from "./pages/children/ChildrenDashboard";
@@ -90,6 +91,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route element={<DashboardLayout />}>
                 {/* Main */}
+                <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/myrolerequest" element={<MyRoleRequests />} />
 
