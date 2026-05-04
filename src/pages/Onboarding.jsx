@@ -7,16 +7,15 @@ export default function Onboarding() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  if (!user) return null;
-
+  if (!user) return <div> Loading...</div>;
+  const activeMembership =
+  memberships.find((m) => m.status === "active") || null;
   const isAdmin =
   activeMembership?.roles?.includes("admin") || false;
   const isGuest = !user.is_member || user.membership_status !== "approved";
 
   const memberships = user.memberships || [];
 
-const activeMembership =
-  memberships.find((m) => m.status === "active") || null;
 
 const defaultChurchId = activeMembership?.church_id;
 

@@ -1,29 +1,39 @@
-// src/auth/ProtectedRoute.jsx
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute({
-  requiredPermission = null,  // New: backend permission to check
-  requireMember = false,      // Keep old member check
+  requiredPermission = null,
 }) {
   const { user } = useAuth();
+  const location = useLocation();
 
-  // Not logged in → redirect to login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Block non-members if required
-  if (requireMember && !user.is_member) {
+  const memberships = user.memberships || [];
+  const hasActiveChurch = memberships.some(
+    (m) => m.status === "active"
+  );
+
+  const isOnboardingPage = location.pathname.startsWith("/onboarding");
+
+  // 🚧 Force onboarding if no active church
+  if (!hasActiveChurch && !isOnboardingPage) {
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Permission check
+  // 🚀 Prevent going back to onboarding after setup
+  if (hasActiveChurch && isOnboardingPage) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // 🔐 Permission check
   if (
     requiredPermission &&
     !user.permissions?.includes(requiredPermission)
   ) {
-    return <Navigate to="/onboarding" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;
