@@ -4,10 +4,12 @@ import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./components/ToastProvider";
 import { Toaster } from "react-hot-toast";
 import RequirePermission from "./components/RequirePermission";
+
 // Layouts
+
 import PublicLayout from "./layouts/PublicLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
-
+import OnboardingLayout from "./layouts/OnboardingLayout";
 // Auth
 import ProtectedRoute from "./auth/ProtectedRoute";
 import Login from "./auth/Login";
@@ -91,7 +93,6 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route element={<DashboardLayout />}>
                 {/* Main */}
-                <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/myrolerequest" element={<MyRoleRequests />} />
 
@@ -126,6 +127,9 @@ function App() {
                     "access_admin_dashboard"
                   )}
                 />
+              </Route>
+            <Route element={<OnboardingLayout />}>
+                <Route path="/onboarding" element={<Onboarding />} />
               </Route>
             </Route>
           </Routes>

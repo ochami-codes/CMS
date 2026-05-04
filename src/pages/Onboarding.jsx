@@ -9,11 +9,16 @@ export default function Onboarding() {
 
   if (!user) return null;
 
-  const isAdmin = user.roles?.includes("admin");
-  const isGuest = user.roles?.includes("guest");
+  const isAdmin =
+  activeMembership?.roles?.includes("admin") || false;
+  const isGuest = !user.is_member || user.membership_status !== "approved";
 
   const memberships = user.memberships || [];
-  const defaultChurchId = user.active_church?.id || user.church_id;
+
+const activeMembership =
+  memberships.find((m) => m.status === "active") || null;
+
+const defaultChurchId = activeMembership?.church_id;
 
   const handleGoToDashboard = () => {
     if (defaultChurchId) {
@@ -44,12 +49,12 @@ export default function Onboarding() {
 
       {/* ---------- Context Card ---------- */}
       <div className="page-card">
-        {isAdmin && user.active_church && (
+        {isAdmin && activeMembership && (
           <>
             <h3 className="card-title">You're the Admin</h3>
             <p>
               You are the administrator of{" "}
-              <strong>{user.active_church.name}</strong>.
+              <strong>{activeMembership.church_name}</strong>.
             </p>
 
             <div className="actions">
