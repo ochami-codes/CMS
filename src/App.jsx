@@ -16,7 +16,7 @@ import Login from "./auth/Login";
 import Register from "./auth/Register";
 import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
-import Callback from "./auth/Callback";
+import AuthCallback from "./auth/Callback";
 import ChangePasswordSuccess from "./auth/ChangePasswordSuccess";
 
 // Pages
@@ -84,7 +84,7 @@ function App() {
                 path="/auth/reset-password-confirm"
                 element={<ResetPasswordConfirm />}
               />
-              <Route path="/auth/callback" element={<Callback />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route
                 path="/profile/change-password-success"
                 element={<ChangePasswordSuccess />}
