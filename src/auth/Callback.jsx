@@ -45,7 +45,7 @@ export default function AuthCallback() {
     };
 
     handleAuth();
-  }, [params, navigate, refreshUser]);
+  }, [params, navigate, refetchUser]);
 
   return (
     <div className="h-screen flex items-center justify-center px-4">
