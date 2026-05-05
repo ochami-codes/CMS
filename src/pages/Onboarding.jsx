@@ -1,41 +1,48 @@
-// src/pages/Onboarding.jsx
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { ChurchAPI } from "../utils/api";
 import "../styles/pages.css";
 
 export default function Onboarding() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  if (!user) return <div> Loading...</div>;
-  const activeMembership =
-  memberships.find((m) => m.status === "active") || null;
-  const isAdmin =
-  activeMembership?.roles?.includes("admin") || false;
-  const isGuest = !user.is_member || user.membership_status !== "approved";
+  if (!user) return <div>Loading...</div>;
 
   const memberships = user.memberships || [];
 
+  const activeMemberships = memberships.filter(
+    (m) => m.status === "active"
+  );
 
-const defaultChurchId = activeMembership?.church_id;
+  const pendingMemberships = memberships.filter(
+    (m) => m.status !== "active"
+  );
 
-  const handleGoToDashboard = () => {
-    if (defaultChurchId) {
-      navigate("/dashboard");
-    }
-  };
+  const handleOpenChurch = async (churchId) => {
+  try {
+    await ChurchAPI.setActiveChurch({
+      church_id: churchId,
+      profile_id: user.id,
+    });
 
-  const handleOpenChurch = (churchId) => {
-    // optional: set active church via API later
     navigate("/dashboard");
-  };
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const handleCreateChurch = () => {
     navigate("/create-church");
   };
 
+  const handleJoinChurch = () => {
+    navigate("/join-church");
+  };
+
   return (
     <div className="page-container">
+
       {/* ---------- Welcome ---------- */}
       <div className="page-card">
         <h2 className="card-title">
@@ -46,69 +53,15 @@ const defaultChurchId = activeMembership?.church_id;
         </p>
       </div>
 
-      {/* ---------- Context Card ---------- */}
-      <div className="page-card">
-        {isAdmin && activeMembership && (
-          <>
-            <h3 className="card-title">You're the Admin</h3>
-            <p>
-              You are the administrator of{" "}
-              <strong>{activeMembership.church_name}</strong>.
-            </p>
-
-            <div className="actions">
-              <button
-                className="btn btn-primary"
-                onClick={handleGoToDashboard}
-              >
-                Go to Dashboard
-              </button>
-            </div>
-          </>
-        )}
-
-        {isGuest && (
-          <>
-            <h3 className="card-title">Guest Access</h3>
-            <p>
-              You are registered as a guest. An admin manages this church.
-              You can request membership from the dashboard.
-            </p>
-
-            <div className="actions">
-              <button
-                className="btn btn-primary"
-                onClick={handleGoToDashboard}
-              >
-                Go to Dashboard
-              </button>
-            </div>
-          </>
-        )}
-
-        {!isAdmin && !isGuest && memberships.length === 0 && (
-          <>
-            <h3 className="card-title">Welcome</h3>
-            <p>
-              You are not yet a member of any church.
-            </p>
-          </>
-        )}
-      </div>
-
-      {/* ---------- My Churches ---------- */}
-      {memberships.length > 0 && (
+      {/* ---------- Active Churches ---------- */}
+      {activeMemberships.length > 0 && (
         <div className="page-card">
-          <h3 className="card-title">My Churches</h3>
+          <h3 className="card-title">Your Churches</h3>
 
           <div className="actions">
-            {memberships.map((m) => (
-              <div
-                key={m.id}
-                className="dashboard-action-card"
-              >
+            {activeMemberships.map((m) => (
+              <div key={m.id} className="dashboard-action-card">
                 <h3>{m.church_name}</h3>
-                <p>Status: {m.status}</p>
 
                 <button
                   className="btn btn-primary"
@@ -122,7 +75,48 @@ const defaultChurchId = activeMembership?.church_id;
         </div>
       )}
 
-      {/* ---------- Create Church ---------- */}
+      {/* ---------- Pending ---------- */}
+      {pendingMemberships.length > 0 && (
+        <div className="page-card">
+          <h3 className="card-title">Pending Requests</h3>
+
+          <div className="actions">
+            {pendingMemberships.map((m) => (
+              <div key={m.id} className="dashboard-action-card">
+                <h3>{m.church_name}</h3>
+                <p>Status: {m.status}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ---------- No Membership ---------- */}
+      {memberships.length === 0 && (
+        <div className="page-card">
+          <h3 className="card-title">Get Started</h3>
+          <p>You are not part of any church yet.</p>
+        </div>
+      )}
+
+      {/* ---------- JOIN CHURCH (NEW) ---------- */}
+      <div className="page-card">
+        <h3 className="card-title">Join an Existing Church</h3>
+        <p className="card-subtitle">
+          Search for your church and request to join.
+        </p>
+
+        <div className="actions">
+          <button
+            className="btn btn-primary"
+            onClick={handleJoinChurch}
+          >
+            🔍 Join Church
+          </button>
+        </div>
+      </div>
+
+      {/* ---------- CREATE CHURCH ---------- */}
       <div className="page-card">
         <h3 className="card-title">Start Something New</h3>
         <p className="card-subtitle">
@@ -138,6 +132,7 @@ const defaultChurchId = activeMembership?.church_id;
           </button>
         </div>
       </div>
+
     </div>
   );
 }

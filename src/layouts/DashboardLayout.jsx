@@ -2,6 +2,7 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import NotificationBell from "../components/NotificationBell";
+import ChurchSwitcher from "../components/ChurchSwitcher";
 import Sidebar from "../components/Sidebar";
 import { useState } from "react";
 import "../styles/layout.css";
@@ -50,7 +51,7 @@ export default function DashboardLayout() {
 
   <div className="navbar-actions">
     <NotificationBell />
-
+    <ChurchSwitcher />
     <button onClick={handleLogout} className="btn btn-secondary">
       Logout
     </button>

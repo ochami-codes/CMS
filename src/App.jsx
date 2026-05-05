@@ -21,6 +21,8 @@ import ChangePasswordSuccess from "./auth/ChangePasswordSuccess";
 
 // Pages
 import Home from "./pages/Home";
+import CreateChurch from "./pages/CreateChurch";
+import JoinChurch from "./pages/JoinChurch";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import YouthDashboard from "./pages/youth/YouthDashboard";
@@ -130,7 +132,9 @@ function App() {
               </Route>
             <Route element={<OnboardingLayout />}>
                 <Route path="/onboarding" element={<Onboarding />} />
-              </Route>
+                <Route path="/create-church" element={<CreateChurch />} />             
+                <Route path="/join-church" element={<JoinChurch />} />
+ </Route>
             </Route>
           </Routes>
         </AuthProvider>

@@ -27,7 +27,15 @@ export default function Login() {
   -------------------------------------------------- */
   useEffect(() => {
   if (authReady && user) {
-    navigate("/onboarding", { replace: true });
+    const hasActiveChurch = user.memberships?.some(
+      (m) => m.status === "active"
+    );
+
+    if (hasActiveChurch) {
+      navigate("/dashboard", { replace: true });
+    } else {
+      navigate("/onboarding", { replace: true });
+    }
   }
 }, [authReady, user, navigate]);
 

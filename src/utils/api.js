@@ -310,6 +310,37 @@ export const AdminDashboardAPI = {
 ====================== */
 export const ChurchAPI = {
   getById: (id) => request(`/churches/${id}`),
+
+  /* -------------------------
+     SEARCH CHURCHES
+  ------------------------- */
+  searchChurches: (query) =>
+    request(`/churches?search=${encodeURIComponent(query)}`),
+
+  /* -------------------------
+     CREATE CHURCH
+  ------------------------- */
+  createChurch: ({ church_name, conference_id, profile_id }) =>
+    request("/create-church", {
+      method: "POST",
+      body: JSON.stringify({
+        church_name,
+        conference_id,
+        profile_id,
+      }),
+    }),
+
+  /* -------------------------
+     SET ACTIVE CHURCH
+  ------------------------- */
+  setActiveChurch: ({ church_id, profile_id }) =>
+    request("/active-church", {
+      method: "POST",
+      body: JSON.stringify({
+        church_id,
+        profile_id,
+      }),
+    }),
 };
 /* ======================
    ROLES API

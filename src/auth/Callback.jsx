@@ -1,34 +1,56 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { refetchUser, user } = useAuth();
 
   useEffect(() => {
-    const type = params.get("type");
-    const origin = params.get("origin"); // optional: identify the flow
+    const handleAuth = async () => {
+      const type = params.get("type");
+      const origin = params.get("origin");
 
-    // Only handle signup email verification
-    if (type === "signup") {
-      navigate("/login", { replace: true, state: { verified: true } });
-      return;
-    }
+      // Ignore password flows
+      if (origin === "reset" || origin === "change-password") {
+        return;
+      }
 
-    // If this callback was triggered for reset or password change, do nothing
-    if (origin === "reset" || origin === "change-password") {
-      // optional: maybe show a message instead of redirecting
-      return;
-    }
+      try {
+        // 🔥 IMPORTANT: fetch user after Supabase sets session
+        const refreshedUser = await refetchUser();
 
-    // Default fallback: go to login safely
-    navigate("/login", { replace: true });
-  }, [params, navigate]);
+        // If no user → fallback to login
+        if (!refreshedUser) {
+          navigate("/login", { replace: true });
+          return;
+        }
+
+        // 🧠 Check if user has an active membership
+        const hasActiveChurch = refreshedUser.memberships?.some(
+          (m) => m.status === "active"
+        );
+
+        if (hasActiveChurch) {
+          navigate("/dashboard", { replace: true });
+        } else {
+          navigate("/onboarding", { replace: true });
+        }
+
+      } catch (err) {
+        console.error("Auth callback error:", err);
+        navigate("/login", { replace: true });
+      }
+    };
+
+    handleAuth();
+  }, [params, navigate, refreshUser]);
 
   return (
     <div className="h-screen flex items-center justify-center px-4">
       <p className="text-lg font-medium text-center">
-        Email verified. Redirecting…
+        Setting up your account…
       </p>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Input from "../components/Input";
 import PasswordInput from "../components/PasswordInput";
 import Button from "../components/Button";
@@ -16,13 +16,10 @@ export default function Register() {
     phone: "",
     dateOfBirth: "",
     gender: "",
-    conferenceId: "",
-    churchBaseName: "",
     password: "",
     confirmPassword: "",
   });
 
-  const [conferences, setConferences] = useState([]);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
@@ -43,29 +40,6 @@ export default function Register() {
     if (p.startsWith("+")) p = p.slice(1);
     return p;
   };
-
-  const sanitizeChurchBaseName = (value) =>
-    value
-      .replace(/\b(sda|church|seventh day adventist)\b/gi, "")
-      .replace(/\s{2,}/g, " ")
-      .trim();
-
-  /* -------------------------
-     Load Conferences
-  ------------------------- */
-
-  useEffect(() => {
-    const loadConferences = async () => {
-      try {
-        const res = await AuthAPI.getConferences();
-        setConferences(res?.conferences || []);
-      } catch {
-        setConferences([]);
-      }
-    };
-
-    loadConferences();
-  }, []);
 
   /* -------------------------
      Handlers
@@ -117,10 +91,6 @@ export default function Register() {
       newErrors.phone = "Enter a valid Kenyan phone number";
     }
 
-    if (!form.churchBaseName.trim()) {
-      newErrors.churchBaseName = "Church name is required";
-    }
-
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -136,11 +106,10 @@ export default function Register() {
         phone: normalizeKenyanPhone(form.phone),
         date_of_birth: form.dateOfBirth,
         gender: form.gender,
-        conference_id: form.conferenceId,
-        church_name: sanitizeChurchBaseName(form.churchBaseName),
       };
 
       await AuthAPI.register(payload);
+
       setRegistered(true);
     } catch (err) {
       setErrors({
@@ -162,9 +131,9 @@ export default function Register() {
     return (
       <EncouragementRedirect
         title="Registration successful 🎉"
-        message="Account created successfully. Please verify your email before login."
+        message="Please check your email to verify your account before logging in."
         redirectTo="/login"
-        delay={10000}
+        delay={8000}
       />
     );
   }
@@ -236,52 +205,6 @@ export default function Register() {
             </select>
             {errors.gender && (
               <p className="error-text">{errors.gender}</p>
-            )}
-          </div>
-
-          {/* Conference */}
-          <div className="form-group">
-            <label>Conference</label>
-            <select
-              name="conferenceId"
-              value={form.conferenceId}
-              onChange={handleChange}
-              className={errors.conferenceId ? "input-error" : ""}
-            >
-              <option value="">Select conference</option>
-              {conferences.map((conf) => (
-                <option key={conf.id} value={conf.id}>
-                  {conf.name}
-                </option>
-              ))}
-            </select>
-            {errors.conferenceId && (
-              <p className="error-text">{errors.conferenceId}</p>
-            )}
-          </div>
-
-          {/* Church Name */}
-          <div className="form-group">
-            <label>Church Name</label>
-
-            <div className="church-input">
-              <input
-                type="text"
-                name="churchBaseName"
-                value={form.churchBaseName}
-                onChange={handleChange}
-                placeholder="Maai Mahiu"
-                className={errors.churchBaseName ? "input-error" : ""}
-              />
-              <span>SDA Church</span>
-            </div>
-
-            <small>
-              Type only church name. <strong>SDA Church</strong> is added automatically.
-            </small>
-
-            {errors.churchBaseName && (
-              <p className="error-text">{errors.churchBaseName}</p>
             )}
           </div>
 
