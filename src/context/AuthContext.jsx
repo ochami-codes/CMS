@@ -107,7 +107,10 @@ const normalizedUser = {
     () => user?.active_church || null,
     [user]
   );
-
+  const activeChurchId = useMemo(
+  () => user?.active_church_id || null,
+  [user]
+);
   const activeMembership = useMemo(() => {
   if (!user?.memberships || !user?.active_church_id) return null;
 
@@ -236,7 +239,7 @@ const switchChurch = async (churchId) => {
 
         // multi-church
         activeChurch,
-        active_church_id,
+        activeChurchId,
         switchChurch,
         activeMembership,
       }}
