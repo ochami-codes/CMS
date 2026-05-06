@@ -4,7 +4,7 @@ import { ChurchAPI } from "../utils/api";
 import "../styles/pages.css";
 
 export default function Onboarding() {
-  const { user } = useAuth();
+  const { user, refetchUser } = useAuth();
   const navigate = useNavigate();
 
   if (!user) return <div>Loading...</div>;
@@ -25,7 +25,7 @@ export default function Onboarding() {
       church_id: churchId,
       profile_id: user.id,
     });
-
+   await refetchUser();
     navigate("/dashboard");
   } catch (err) {
     console.error(err);

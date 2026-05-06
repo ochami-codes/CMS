@@ -89,7 +89,7 @@ export default function CreateChurch() {
   showToast("Church created successfully 🎉", "success");
 
   await refetchUser();
-  navigate("/onboarding");
+  navigate("/dashboard");
 } catch (err) {
   setErrors({
     global: err?.message || "Failed to create church",
