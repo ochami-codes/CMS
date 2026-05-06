@@ -82,7 +82,6 @@ export default function CreateChurch() {
   await ChurchAPI.createChurch({
     church_name: cleanedName,
     conference_id: form.conferenceId,
-    profile_id: user.id,
   });
 
   navigate("/onboarding");
