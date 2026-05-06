@@ -78,17 +78,24 @@ const timeDiff = (target, now) => {
 /* ================= DASHBOARD ================= */
 
 export default function Dashboard() {
-  const { user, refetchUser } = useAuth();
+  const {
+  user,
+  activeChurch,
+  activeChurchId,
+  activeMembership,
+  isAdmin,
+  refetchUser,
+  canUser,
+} = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [verse, setVerse] = useState(null);
-  const [churchName, setChurchName] = useState("Your Church");
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [localMembershipStatus, setLocalMembershipStatus] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
   const [birthday, setBirthday] = useState(null);
   const [todayBirthdays, setTodayBirthdays] = useState([]);
   const [upcomingBirthdays, setUpcomingBirthdays] = useState([]);
-  const [membershipStatus, setMembershipStatus] = useState(null);
   const [loadingMembershipRequest, setLoadingMembershipRequest] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [membershipError, setMembershipError] = useState("");  
@@ -97,10 +104,13 @@ const [actionLoadingId, setActionLoadingId] = useState(null);
 const [initialized, setInitialized] = useState(false);
   const [membershipData, setMembershipData] = useState(null);
 const [hasActiveRequest, setHasActiveRequest] = useState(false);
-  const role = user?.role_name?.toLowerCase() || "guest";
-  const isGuest = role === "guest";
-  const isAdmin = role === "admin";
-  const churchId = user?.church_id;  
+  const role = user?.primary_role || "guest";
+const isGuest = !user?.is_member;
+  const churchId = activeChurchId;
+const churchName = activeChurch?.name || "Your Church";  
+const membershipStatus = isGuest
+  ? (localMembershipStatus ?? null)
+  : user?.membership_status;
 
   /* ================= GREETING ================= */
 
@@ -146,12 +156,10 @@ return timeDiff(nextBirthday, now);
       const data = JSON.parse(cached);
 
       setVerse(data.verse || null);
-      setChurchName(data.churchName || "Your Church");
       setAnnouncements(data.announcements || []);
       setTodayBirthdays(data.todayBirthdays || []);
       setUpcomingBirthdays(data.upcomingBirthdays || []);
       setBirthday(data.birthday || null);
-      setMembershipStatus(data.membershipStatus || null);
 
       setLoading(false);      // ⚡ no loader
       setInitialized(true);   // ⚡ skip blocking
@@ -166,7 +174,6 @@ return timeDiff(nextBirthday, now);
     try {
       const [
         dailyVerse,
-        church,
         anns,
         myBirthday,
         todays,
@@ -174,7 +181,6 @@ return timeDiff(nextBirthday, now);
         membership,
       ] = await Promise.all([
         getDailyVerse(),
-        churchId ? ChurchAPI.getById(churchId) : null,
         AnnouncementsAPI.fetch(churchId, 10),
         !isGuest ? getMyBirthday() : null,
         !isGuest ? getTodaysBirthdays(churchId) : [],
@@ -184,11 +190,9 @@ return timeDiff(nextBirthday, now);
 
       const newData = {
         verse: dailyVerse,
-        churchName: church?.name || "Your Church",
         announcements: anns || [],
         todayBirthdays: todays || [],
         upcomingBirthdays: upcoming || [],
-        birthday: myBirthday?.birthday || null,
         membershipStatus: isGuest ? membership?.membership_status || null : null,
 membershipData: isGuest ? membership?.membership || null : null,
 hasActiveRequest: isGuest ? membership?.has_active_request || false : false,
@@ -196,13 +200,12 @@ hasActiveRequest: isGuest ? membership?.has_active_request || false : false,
 
       // ✅ Update UI
       setVerse(newData.verse);
-      setChurchName(newData.churchName);
       setAnnouncements(newData.announcements);
       setTodayBirthdays(newData.todayBirthdays);
       setUpcomingBirthdays(newData.upcomingBirthdays);
       setBirthday(newData.birthday);
       if (isGuest) {
-  setMembershipStatus(newData.membershipStatus);
+  setLocalMembershipStatus(membership?.membership_status || null);
   setMembershipData(membership?.membership || null);
   setHasActiveRequest(membership?.has_active_request || false);
 }
@@ -294,15 +297,14 @@ const handleRespondInvite = async (action) => {
 
     if (action === "accepted") {
       // ✅ Update UI immediately
-      setMembershipStatus("accepted");
+      setLocalMembershipStatus("accepted");
       setHasActiveRequest(false);
-
       // 🔥 Critical: refresh auth state
       await refetchUser();
 
     } else {
       // rejected
-      setMembershipStatus("rejected");
+      setLocalMembershipStatus("rejected");
       setHasActiveRequest(false);
 }
   } catch (e) {
@@ -315,7 +317,7 @@ const handleRespondInvite = async (action) => {
 
   const filteredAnnouncements = announcements.filter((a) => {
     if (a.target === "all") return true;
-    if (a.target === role) return true;
+    if (a.target === user?.primary_role) return true;
     if (a.target === user?.department_name) return true;
     return false;
   });
@@ -372,7 +374,7 @@ const handleRespondInvite = async (action) => {
               setSuccessMessage("");
 
               await MembershipAPI.submit({});
-              setMembershipStatus("requested");
+              setLocalMembershipStatus("requested");
 setHasActiveRequest(true);
 
               setSuccessMessage("Membership request submitted 🙏");
@@ -493,21 +495,21 @@ setHasActiveRequest(true);
 
   <div className="dashboard-actions">
     {/* Treasury */}
-    {(isAdmin || user.permissions?.includes("access_treasury_dashboard")) && (
+    {(canUser("access_treasury_dashboard")) && (
       <Link to="/dashboard/treasury" className="dashboard-action-card">
         Treasury
       </Link>
     )}
 
     {/* Youth */}
-    {(isAdmin || user.permissions?.includes("access_youth_dashboard")) && (
+    {(canUser("access_youth_dashboard")) && (
       <Link to="/dashboard/youth" className="dashboard-action-card">
         Youth
       </Link>
     )}
 
     {/* Admin */}
-    {(isAdmin || user.permissions?.includes("access_admin_dashboard")) && (
+    {(canUser("access_admin_dashboard")) && (
       <Link to="/dashboard/admin" className="dashboard-action-card">
         Admin
       </Link>
