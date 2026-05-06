@@ -6,7 +6,7 @@ import { ChurchAPI } from "../utils/api";
 import "../styles/church-switcher.css";
 
 export default function ChurchSwitcher() {
-  const { user, refreshUser } = useAuth();
+  const { user, switchChurch } = useAuth();
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
@@ -33,19 +33,14 @@ export default function ChurchSwitcher() {
   /* -------------------------
      Switch church
   ------------------------- */
-  const handleSwitch = async (churchId) => {
-    try {
-      await ChurchAPI.setActiveChurch({
-        church_id: churchId,
-        profile_id: user.id,
-      });
-
-      await refreshUser(); // important: updates global context
-      setOpen(false);
-    } catch (err) {
-      console.error("Switch failed:", err);
-    }
-  };
+const handleSwitch = async (churchId) => {
+  try {
+    await switchChurch(churchId);
+    setOpen(false);
+  } catch (err) {
+    console.error("Switch failed:", err);
+  }
+};
 
   /* -------------------------
      Navigation shortcuts
@@ -67,7 +62,6 @@ export default function ChurchSwitcher() {
         className="church-switcher-btn"
         onClick={() => setOpen(!open)}
       >
-        <span className="church-icon">🏛</span>
 
         <span className="church-name">
           {activeChurch?.name || "Select Church"}

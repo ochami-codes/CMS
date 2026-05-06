@@ -1,6 +1,7 @@
 // src/components/Sidebar.jsx
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import ChurchSwitcher from "./ChurchSwitcher";
 import sdaLogo from "../assets/sda-logo.png";
 import "../styles/layout.css";
 import {
@@ -58,14 +59,17 @@ export default function Sidebar({ open, onClose }) {
       <div className="sidebar-header">
         <div className="sidebar-brand">
           <img src={sdaLogo} alt="SDA Logo" className="sidebar-logo" />
-          <div className="sidebar-brand-text">
-            <span className="sidebar-church-name">{churchName}</span>
-            {!isMember && (
-              <span className="sidebar-status">
-                {user.membership_status === "requested" ? "Pending approval" : "Guest"}
-              </span>
-            )}
-          </div>
+<div className="sidebar-brand-text">
+  <ChurchSwitcher />
+
+  {!isMember && (
+    <span className="sidebar-status">
+      {user.membership_status === "requested"
+        ? "Pending approval"
+        : "Guest"}
+    </span>
+  )}
+</div>
         </div>
 
         <button className="close-btn" onClick={onClose}>

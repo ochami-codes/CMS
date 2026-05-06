@@ -6,7 +6,7 @@ import {
   useCallback,
   useMemo,
 } from "react";
-import { AuthAPI, RolesAPI } from "../utils/api";
+import { AuthAPI, RolesAPI, ChurchAPI } from "../utils/api";
 import { normalizeRole } from "../config/roles.js";
 
 const AuthContext = createContext(null);
@@ -80,13 +80,15 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
 
-      const normalizedUser = {
-        ...data.user,
-        roles: (data.user.roles || []).map(normalizeRole),
-        permissions: data.user.permissions || [],
-        memberships: data.user.memberships || [],
-        active_church: data.user.active_church || null,
-      };
+const normalizedUser = {
+  ...data.user,
+  roles: (data.user.roles || []).map(normalizeRole),
+  permissions: data.user.permissions || [],
+  memberships: data.user.memberships || [],
+
+  active_church_id: data.user.active_church_id || null,
+  active_church: data.user.active_church || null,
+};
 
       setUser(normalizedUser);
       return normalizedUser;
@@ -107,13 +109,25 @@ export const AuthProvider = ({ children }) => {
   );
 
   const activeMembership = useMemo(() => {
-    if (!user?.memberships || !activeChurch?.id) return null;
+  if (!user?.memberships || !user?.active_church_id) return null;
 
-    return user.memberships.find(
-      (m) => m.church_id === activeChurch.id
-    );
-  }, [user, activeChurch]);
+  return user.memberships.find(
+    (m) => m.church_id === user.active_church_id
+  ) || null;
+}, [user]);
 
+const switchChurch = async (churchId) => {
+  try {
+    await ChurchAPI.setActiveChurch({ church_id: churchId });
+
+    await fetchMe(); // CRITICAL
+
+    return true;
+  } catch (err) {
+    console.error("Switch church failed:", err);
+    return false;
+  }
+};
   /* -------------------------------
      Login
   ------------------------------- */
@@ -222,6 +236,8 @@ export const AuthProvider = ({ children }) => {
 
         // multi-church
         activeChurch,
+        active_church_id,
+        switchChurch,
         activeMembership,
       }}
     >

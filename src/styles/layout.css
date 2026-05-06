@@ -213,33 +213,6 @@ a {
 .navbar-bottom select {
   max-width: 140px;
 }
-/* Top row */
-.navbar-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* Bottom row */
-.navbar-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Desktop override */
-@media (min-width: 768px) {
-  .dashboard-navbar {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .navbar-bottom {
-    width: auto;
-  }
-}
 /* ---------------- SIDEBAR ---------------- */
 .sidebar {
   width: 250px;
