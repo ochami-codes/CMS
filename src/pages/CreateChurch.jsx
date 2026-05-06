@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import { useAuth } from "../context/AuthContext";
+import { useToast } from "../components/ToastProvider";
 import { AuthAPI, ChurchAPI } from "../utils/api";
 import "../styles/auth.css";
 
@@ -12,11 +14,12 @@ export default function CreateChurch() {
     churchName: "",
     conferenceId: "",
   });
-
+ 
   const [conferences, setConferences] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-
+  const { refetchUser } = useAuth();
+  const { showToast } = useToast();
   /* -------------------------
      Helpers (STRICT)
   ------------------------- */
@@ -83,7 +86,9 @@ export default function CreateChurch() {
     church_name: cleanedName,
     conference_id: form.conferenceId,
   });
+  showToast("Church created successfully 🎉", "success");
 
+  await refetchUser();
   navigate("/onboarding");
 } catch (err) {
   setErrors({

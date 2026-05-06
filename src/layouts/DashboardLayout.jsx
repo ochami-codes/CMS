@@ -47,11 +47,19 @@ export default function DashboardLayout() {
       <main className="dashboard-content">
         {/* Navbar */}
 <header className="dashboard-navbar">
-  <h3>Dashboard</h3>
+  {/* Top row */}
+  <div className="navbar-top">
+    <h3>Dashboard</h3>
 
-  <div className="navbar-actions">
-    <NotificationBell />
+    <div className="navbar-icons">
+      <NotificationBell />
+    </div>
+  </div>
+
+  {/* Bottom row */}
+  <div className="navbar-bottom">
     <ChurchSwitcher />
+
     <button onClick={handleLogout} className="btn btn-secondary">
       Logout
     </button>
