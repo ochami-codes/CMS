@@ -1,5 +1,5 @@
 // src/pages/admin/ManageRoles.jsx
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { AdminAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../components/ToastProvider";
@@ -9,7 +9,7 @@ import "../../styles/tables.css";
 import RoleModal from "./RoleModal";
 
 export default function ManageRoles() {
-  const { user, setUser, rolesData, getRoleLabel } = useAuth();
+  const { user, setUser, getRoleLabel } = useAuth();
   const { showToast } = useToast();
 
   const [members, setMembers] = useState([]);
@@ -31,7 +31,7 @@ export default function ManageRoles() {
       setMembers(
         (data.members ?? []).map((m) => ({
           ...m,
-          department: m.departments ?? [],
+          departments: m.departments ?? [],
         }))
       );
     } catch {
@@ -77,9 +77,17 @@ export default function ManageRoles() {
     }
   };
 
-  if (!user)
-    return <div className="dashboard-content">Loading profile…</div>;
+  if (!user) return null;
 
+const renderRoles = (roles = []) => (
+  <div className="roles-container">
+    {roles.map((r) => (
+      <span key={r} className="role-badge">
+        {getRoleLabel(r)}
+      </span>
+    ))}
+  </div>
+);
   return (
     <>
       {/* ------------------ Header ------------------ */}
@@ -128,8 +136,8 @@ export default function ManageRoles() {
                         <td>{m.full_name}</td>
 
                         <td>
-                          {m.department.length > 0
-                            ? m.department.join(", ")
+                          {m.departments.length > 0
+                            ? m.departments.join(", ")
                             : "-"}
                         </td>
 
@@ -137,15 +145,7 @@ export default function ManageRoles() {
                           {m.active ? "Active" : "Inactive"}
                         </td>
 
-<td>
-  <div className="roles-container">
-    {m.roles?.map((r) => (
-      <span key={r} className="role-badge">
-        {getRoleLabel(r)}
-      </span>
-    ))}
-  </div>
-</td>
+<td>{renderRoles(m.roles)}</td>
                         <td className="actions">
                           {m.is_system_user && (
                             <>
@@ -203,8 +203,8 @@ export default function ManageRoles() {
 
                   <p>
                     <strong>Department:</strong>{" "}
-                    {m.department.length > 0
-                      ? m.department.join(", ")
+                    {m.departments.length > 0
+                      ? m.departments.join(", ")
                       : "-"}
                   </p>
 
@@ -213,16 +213,10 @@ export default function ManageRoles() {
                     {m.active ? "Active" : "Inactive"}
                   </p>
 
-     <p>
+     <div>
   <strong>Roles:</strong>
-  <div className="roles-container">
-    {m.roles?.map((r) => (
-      <span key={r} className="role-badge">
-        {getRoleLabel(r)}
-      </span>
-    ))}
-  </div>
-</p>
+  {renderRoles(m.roles)}
+</div>
                   <div className="card-actions">
                     {m.is_system_user && (
                       <>

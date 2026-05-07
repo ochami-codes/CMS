@@ -2,16 +2,33 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-export default function RequirePermission({ permission, role, children }) {
-  const { user } = useAuth();
+export default function RequirePermission({
+  permission,
+  role,
+  children,
+}) {
+  const {
+    user,
+    canUser,
+    hasRole,
+    authReady,
+  } = useAuth();
 
-  if (!user) return <Navigate to="/login" replace />;
+  // wait for auth bootstrap
+  if (!authReady) return null;
 
-  if (role && user.role_name !== role) {
+  // not logged in
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // role protection
+  if (role && !hasRole(role)) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  if (permission && !user.permissions?.includes(permission)) {
+  // permission protection
+  if (permission && !canUser(permission)) {
     return <Navigate to="/dashboard" replace />;
   }
 

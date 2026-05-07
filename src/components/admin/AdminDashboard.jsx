@@ -1,47 +1,86 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+
 import AdminHeader from "./AdminHeader";
 import AdminTabs from "./AdminTabs";
 import AdminContent from "./AdminContent";
+
+import Loader from "../../components/Loader";
+
 import "../../styles/pages.css";
 
 export default function AdminDashboard() {
-  const { user, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState("manage");
+  const {
+    user,
+    authReady,
+    canUser,
+  } = useAuth();
 
-  if (loading) {
+  const [activeTab, setActiveTab] = useState("manage");
+  const [pageReady, setPageReady] = useState(false);
+
+  useEffect(() => {
+    if (!authReady) return;
+
+    // local dashboard bootstrap
+    setPageReady(true);
+  }, [authReady]);
+
+  // auth still initializing
+  if (!authReady) {
     return (
       <div className="dashboard-content">
-        <div className="card">Checking admin permissions…</div>
+        <Loader message="Loading dashboard..." />
       </div>
     );
   }
 
+  // not authenticated
   if (!user) {
     return (
       <div className="dashboard-content">
-        <div className="card">Loading admin profile…</div>
+        <div className="card">
+          Please sign in to continue.
+        </div>
+      </div>
+    );
+  }
+
+  // permission gate
+  if (!canUser("access_admin_dashboard")) {
+    return (
+      <div className="dashboard-content">
+        <div className="card">
+          You do not have permission to access this page.
+        </div>
+      </div>
+    );
+  }
+
+  // local page loading
+  if (!pageReady) {
+    return (
+      <div className="dashboard-content">
+        <Loader message="Preparing admin dashboard..." />
       </div>
     );
   }
 
   return (
     <div className="dashboard-content">
-
-      {/* HEADER — no card */}
+      {/* HEADER */}
       <AdminHeader />
 
-      {/* TABS — light container */}
+      {/* TABS */}
       <AdminTabs
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
 
-      {/* CONTENT — single main card */}
+      {/* CONTENT */}
       <div className="card">
         <AdminContent activeTab={activeTab} />
       </div>
-
     </div>
   );
 }
