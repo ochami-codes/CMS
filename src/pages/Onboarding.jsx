@@ -1,10 +1,9 @@
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { ChurchAPI } from "../utils/api";
 import "../styles/pages.css";
 
 export default function Onboarding() {
-  const { user, refetchUser } = useAuth();
+  const { user, switchChurch } = useAuth();
   const navigate = useNavigate();
 
   if (!user) return <div>Loading...</div>;
@@ -19,19 +18,17 @@ export default function Onboarding() {
     (m) => m.status !== "active"
   );
 
-  const handleOpenChurch = async (churchId) => {
+const handleOpenChurch = async (churchId) => {
   try {
-    await ChurchAPI.setActiveChurch({
-      church_id: churchId,
-      profile_id: user.id,
-    });
-   await refetchUser();
-    navigate("/dashboard");
+    const success = await switchChurch(churchId);
+
+    if (success) {
+      navigate("/dashboard");
+    }
   } catch (err) {
     console.error(err);
   }
 };
-
   const handleCreateChurch = () => {
     navigate("/create-church");
   };
