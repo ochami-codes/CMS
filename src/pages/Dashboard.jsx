@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
 import "../styles/pages.css";
-import { respondToInvite } from "../utils/membershipActions";
 import {
   getDailyVerse,
   getMyBirthday,
@@ -286,33 +285,7 @@ const handleAction = async (type) => {
   }
 };
 
-const handleRespondInvite = async (action) => {
-  try {
-    setActionLoadingId(action);
 
-    await respondToInvite({
-      requestId: membershipData.id,
-      action,
-    });
-
-    if (action === "accepted") {
-      // ✅ Update UI immediately
-      setLocalMembershipStatus("accepted");
-      setHasActiveRequest(false);
-      // 🔥 Critical: refresh auth state
-      await refetchUser();
-
-    } else {
-      // rejected
-      setLocalMembershipStatus("rejected");
-      setHasActiveRequest(false);
-}
-  } catch (e) {
-    console.error(e);
-  } finally {
-    setActionLoadingId(null);
-  }
-};
   /* ================= FILTER ANNOUNCEMENTS ================= */
 
   const filteredAnnouncements = announcements.filter((a) => {
@@ -353,8 +326,7 @@ const handleRespondInvite = async (action) => {
  <p>
   {membershipStatus === "requested"
     ? "Your membership request is pending review."
-    : membershipStatus === "invited"
-    ? "You have been invited to join this church."
+
     : membershipStatus === "accepted"
     ? "Your membership has been approved 🎉"
     : membershipStatus === "rejected"
@@ -400,29 +372,6 @@ setHasActiveRequest(true);
         </div>
       )}
 
-   {membershipStatus === "invited" && membershipData && (
-  <div className="invite-actions-box">
-    <p className="invite-title">Church Invitation</p>
-
-    <div className="invite-buttons">
-      <button
-        className="btn btn-success"
-        disabled={actionLoadingId === "accepted"}
-        onClick={() => handleRespondInvite("accepted")}
-      >
-        {actionLoadingId === "accepted" ? "Accepting..." : "Accept"}
-      </button>
-
-      <button
-        className="btn btn-danger"
-        disabled={actionLoadingId === "rejected"}
-        onClick={() => handleRespondInvite("rejected")}
-      >
-        {actionLoadingId === "rejected" ? "Rejecting..." : "Reject"}
-      </button>
-    </div>
-  </div>
-)}     
 
       {membershipError && (
         <div className="message-error" style={{ marginTop: "0.5rem" }}>

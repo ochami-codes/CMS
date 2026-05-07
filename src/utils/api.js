@@ -161,17 +161,6 @@ export const AdminAPI = {
     method: "POST",
     body: JSON.stringify({ action }), // "approved" | "rejected"
   }),
-
-  /* -------- NEW: Non-members API -------- */
-  fetchNonMembers: () => request("/admin/membership-requests/non-members"),
-
-  /* -------- NEW: Invite API -------- */
-  sendInvite: (id, payload) =>
-    request(`/admin/membership-requests/invite/${id}`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-      headers: { "Content-Type": "application/json" },
-    }),
 };
 /* ======================
    ROLE REQUESTS API
@@ -199,13 +188,6 @@ export const MembershipAPI = {
   // Get my latest membership request
   myRequests: () =>
     request("/membership-requests/me"),
-
-  // Respond to an invite (accept / reject)
-  respondInvite: (requestId, action) =>
-    request(`/membership-requests/${requestId}/respond`, {
-      method: "PATCH",
-      body: JSON.stringify({ action }), // "accepted" | "rejected"
-    }),
 };
 
 
@@ -222,12 +204,6 @@ export const AdminMembershipAPI = {
     request(`/admin/membership-requests/${requestId}/review`, {
       method: "POST",
       body: JSON.stringify({ action }), // "approved" | "rejected"
-    }),
-
-  // Invite user to church
-  invite: (profileId) =>
-    request(`/admin/membership-requests/invite/${profileId}`, {
-      method: "POST",
     }),
 };
 /* ======================

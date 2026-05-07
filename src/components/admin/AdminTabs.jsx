@@ -75,18 +75,6 @@ export default function AdminTabs({
         Manage Members
       </button>
 
-      <button
-        className={
-          activeTab === "non-members"
-            ? "tab active"
-            : "tab"
-        }
-        onClick={() =>
-          setActiveTab("non-members")
-        }
-      >
-        Non-Members
-      </button>
 
       <button
         className={
