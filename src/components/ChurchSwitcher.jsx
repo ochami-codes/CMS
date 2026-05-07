@@ -6,14 +6,13 @@ import { ChurchAPI } from "../utils/api";
 import "../styles/church-switcher.css";
 
 export default function ChurchSwitcher() {
-  const { user, switchChurch } = useAuth();
+  const { user, switchChurch, activeChurchId, activeChurch } = useAuth();
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const memberships = user?.memberships || [];
-  const activeChurch = user?.active_church;
 
   /* -------------------------
      Close on outside click
@@ -33,9 +32,9 @@ export default function ChurchSwitcher() {
   /* -------------------------
      Switch church
   ------------------------- */
-const handleSwitch = async (churchId) => {
+const handleSwitch = async (activeChurchId) => {
   try {
-    await switchChurch(churchId);
+    await switchChurch(activeChurchId);
     setOpen(false);
   } catch (err) {
     console.error("Switch failed:", err);
@@ -82,7 +81,7 @@ const handleSwitch = async (churchId) => {
               <button
                 key={m.church_id}
                 className={`church-item ${
-                  m.church_id === activeChurch?.id ? "active" : ""
+                  m.church_id === activeChurchId ? "active" : ""
                 }`}
                 onClick={() => handleSwitch(m.church_id)}
               >
