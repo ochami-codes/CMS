@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { ChurchAPI } from "../utils/api";
@@ -11,7 +12,7 @@ export default function JoinChurch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const { switchChurch } = useAuth();
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!query.trim()) return;
@@ -27,6 +28,15 @@ export default function JoinChurch() {
       setLoading(false);
     }
   };
+
+const handleOpenChurch = async (churchId) => {
+  try {
+    await switchChurch(churchId);
+    navigate("/dashboard");
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   return (
     <div className="page-container">
@@ -72,14 +82,12 @@ export default function JoinChurch() {
                   Code: {church.church_code}
                 </p>
 
-                <Button
-                  className="btn-primary"
-                  onClick={() =>
-                    navigate(`/dashboard?church=${church.id}`)
-                  }
-                >
-                  Open Church
-                </Button>
+<Button
+  className="btn-primary"
+  onClick={() => handleOpenChurch(church.id)}
+>
+  Open Church
+</Button>
               </div>
             ))}
           </div>
