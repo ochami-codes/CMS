@@ -77,14 +77,18 @@ const timeDiff = (target, now) => {
 /* ================= DASHBOARD ================= */
 
 export default function Dashboard() {
-  const {
+const {
   user,
   activeChurch,
   activeChurchId,
-  activeMembership,
   isAdmin,
-  refetchUser,
   canUser,
+
+  // NEW helpers
+  isActiveMember,
+  isPendingMember,
+  isGuest,
+  activeMembershipStatus,
 } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -104,12 +108,9 @@ const [initialized, setInitialized] = useState(false);
   const [membershipData, setMembershipData] = useState(null);
 const [hasActiveRequest, setHasActiveRequest] = useState(false);
   const role = user?.primary_role || "guest";
-const isGuest = !user?.is_member;
   const churchId = activeChurchId;
 const churchName = activeChurch?.name || "Your Church";  
-const membershipStatus = isGuest
-  ? (localMembershipStatus ?? null)
-  : user?.membership_status;
+const membershipStatus = activeMembershipStatus;
 
   /* ================= GREETING ================= */
 

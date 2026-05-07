@@ -131,6 +131,36 @@ const switchChurch = async (churchId) => {
     return false;
   }
 };
+
+const currentMembership = useMemo(() => {
+  if (!user?.memberships || !user?.active_church_id) return null;
+
+  return (
+    user.memberships.find(
+      (m) => m.church_id === user.active_church_id
+    ) || null
+  );
+}, [user]);
+
+const activeMembershipStatus = useMemo(() => {
+  return currentMembership?.status || "guest";
+}, [currentMembership]);
+
+const isActiveMember = useMemo(() => {
+  return activeMembershipStatus === "active";
+}, [activeMembershipStatus]);
+
+const isPendingMember = useMemo(() => {
+  return activeMembershipStatus === "pending";
+}, [activeMembershipStatus]);
+
+const isGuest = useMemo(() => {
+  return !currentMembership || activeMembershipStatus === "guest";
+}, [currentMembership, activeMembershipStatus]);
+
+const hasAnyMembership = useMemo(() => {
+  return (user?.memberships?.length || 0) > 0;
+}, [user]);
   /* -------------------------------
      Login
   ------------------------------- */
@@ -242,6 +272,12 @@ const switchChurch = async (churchId) => {
         activeChurchId,
         switchChurch,
         activeMembership,
+        currentMembership,
+    activeMembershipStatus,
+    isActiveMember,
+    isPendingMember,
+    isGuest,
+    hasAnyMembership,
       }}
     >
       {children}
