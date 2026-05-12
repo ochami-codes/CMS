@@ -114,7 +114,7 @@ const SIDEBAR_ITEMS = [
   },
 ];
 
-export default function Sidebar({ open, onClose }) {
+export default function Sidebar({ open, onClose, onLogout, }) {
   const {
     user,
     activeChurch,
@@ -204,6 +204,15 @@ export default function Sidebar({ open, onClose }) {
           );
         })}
       </nav>
+{/* Footer */}
+<div className="sidebar-footer">
+  <button
+    onClick={onLogout}
+    className="btn btn-secondary sidebar-logout"
+  >
+    Logout
+  </button>
+</div>
     </aside>
   );
 }

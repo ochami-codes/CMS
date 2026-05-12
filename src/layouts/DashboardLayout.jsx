@@ -32,6 +32,7 @@ export default function DashboardLayout() {
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        onLogout={handleLogout}
       />
 
       {/* Overlay for mobile */}
@@ -53,14 +54,6 @@ export default function DashboardLayout() {
     <div className="navbar-icons">
       <NotificationBell />
     </div>
-  </div>
-
-  {/* Bottom row */}
-  <div className="navbar-bottom">
-
-    <button onClick={handleLogout} className="btn btn-secondary">
-      Logout
-    </button>
   </div>
 </header>
         {/* Routed pages */}

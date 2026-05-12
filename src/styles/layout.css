@@ -322,6 +322,23 @@ a {
   font-size: 0.7rem;
   color: #f59e0b; /* amber */
 }
+.sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-links {
+  flex: 1;
+}
+
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid #ddd;
+}
+
+.sidebar-logout {
+  width: 100%;
+}
 /* ---------------- CARDS & GRID ---------------- */
 .page-card,
 .card {
