@@ -228,6 +228,28 @@ const hasAnyMembership = useMemo(() => {
     fetchRoles();
   }, [fetchMe, fetchRoles]);
 
+/* -------------------------------
+     Membership revalidation
+  ------------------------------- */
+  useEffect(() => {
+    if (!user) return;
+
+    const shouldPoll =
+      user.membership_status === "requested" ||
+      activeMembershipStatus === "pending";
+
+    if (!shouldPoll) return;
+
+    const interval = setInterval(async () => {
+      await fetchMe();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [
+    user,
+    activeMembershipStatus,
+    fetchMe,
+  ]);
   /* -------------------------------
      Helpers
   ------------------------------- */
@@ -247,7 +269,14 @@ const hasAnyMembership = useMemo(() => {
 
   const getRoleLabel = (role) =>
     rolesData.roleLabels[normalizeRole(role)] || role;
-
+const dashboardMode = useMemo(() => {
+  if (isActiveMember) return "member";
+  if (isPendingMember) return "pending";
+  return "guest";
+}, [
+  isActiveMember,
+  isPendingMember,
+]);
   /* -------------------------------
      Provider
   ------------------------------- */
@@ -278,6 +307,7 @@ const hasAnyMembership = useMemo(() => {
     isPendingMember,
     isGuest,
     hasAnyMembership,
+    dashboardMode,
       }}
     >
       {children}

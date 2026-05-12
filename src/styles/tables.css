@@ -191,37 +191,29 @@
   font-size: 12px;
   white-space: nowrap;
 }
-/* ==========================
-   NON-MEMBERS ONLY
-========================== */
-
-.non-members-table {
-  table-layout: fixed;
-  min-width: 700px;
-}
-
-.non-members-table th,
-.non-members-table td {
-  vertical-align: middle;
-}
-
-/* Flexible column widths ONLY here */
-.non-members-table th:nth-child(1) { width: 20%; }
-.non-members-table th:nth-child(2) { width: 25%; }
-.non-members-table th:nth-child(3) { width: 15%; }
-.non-members-table th:nth-child(4) { width: 15%; }
-.non-members-table th:nth-child(5) { width: 25%; }
-
-/* Fix button stacking */
-.non-members-table td:last-child {
+.table-loading-state {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #6b7280;
 }
 
-/* Email wrapping fix */
-.non-members-table td:nth-child(2) {
-  word-break: break-all;
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .btn-disabled-custom {
   background-color: #e5e7eb; /* soft gray */

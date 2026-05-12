@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { UserPlus } from "lucide-react";
-
+import { useAuth } from "../../context/AuthContext";
 import { MembershipAPI } from "../../utils/api";
 
 export default function MembershipSection({
@@ -16,35 +16,44 @@ export default function MembershipSection({
   const [errorMessage, setErrorMessage] =
     useState("");
 
-  const handleRequestMembership = async () => {
-    try {
-      setLoading(true);
+const {
+  dashboardMode,
+  activeMembershipStatus,
+  refetchUser,
+} = useAuth();
 
-      setSuccessMessage("");
-      setErrorMessage("");
+ const handleRequestMembership = async () => {
+  try {
+    setLoading(true);
 
-      await MembershipAPI.submit({});
+    setSuccessMessage("");
+    setErrorMessage("");
 
-      setSuccessMessage(
-        "Membership request submitted 🙏"
-      );
+    await MembershipAPI.submit({});
 
-    } catch (err) {
-      const message =
-        err?.response?.data?.message ||
-        "Request failed";
+    await refetchUser();
 
-      setErrorMessage(message);
+    setSuccessMessage(
+      "Membership request submitted 🙏"
+    );
 
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err) {
+    const message =
+      err?.response?.data?.message ||
+      "Request failed";
 
-  const status = membership?.status;
+    setErrorMessage(message);
 
-  const hasActiveRequest =
-    membership?.hasActiveRequest;
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const status = activeMembershipStatus;
+
+const hasActiveRequest =
+  status === "pending" ||
+  status === "active";
 
   return (
     <section className="dashboard-section">
@@ -58,16 +67,16 @@ export default function MembershipSection({
         {/* STATUS MESSAGE */}
 
         <p>
-          {status === "requested"
-            ? "Your membership request is pending review."
+          {status === "pending"
+  ? "Your membership request is pending review."
 
-            : status === "accepted"
-            ? "Your membership has been approved 🎉"
+  : status === "active"
+  ? "Your membership has been approved 🎉"
 
-            : status === "rejected"
-            ? "Your membership request was rejected."
+  : status === "rejected"
+  ? "Your membership request was rejected."
 
-            : "Request membership to access ministries and announcements."}
+  : "Request membership to access ministries and announcements."}
         </p>
 
         {/* REQUEST BUTTON */}

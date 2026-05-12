@@ -30,7 +30,8 @@
   right: 0;
   top: 110%;
   width: 240px;
-  background: white;
+  max-width: calc(100vw - 32px); 
+ background: white;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.08);
@@ -95,4 +96,24 @@
   font-size: 0.8rem;
   color: #6b7280;
   padding: 8px;
+}
+@media (max-width: 768px) {
+  .church-dropdown {
+    left: 0;
+    right: auto;
+    width: 100%;
+    min-width: 220px;
+  }
+
+  .church-switcher-btn {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .church-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 160px;
+  }
 }

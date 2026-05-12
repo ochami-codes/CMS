@@ -9,7 +9,13 @@ import "../../styles/tables.css";
 import RoleModal from "./RoleModal";
 
 export default function ManageRoles() {
-  const { user, setUser, getRoleLabel } = useAuth();
+  const {
+  user,
+  rolesData,
+  getRoleLabel,
+  activeChurchId,
+  refetchUser,
+} = useAuth();
   const { showToast } = useToast();
 
   const [members, setMembers] = useState([]);
@@ -20,31 +26,31 @@ export default function ManageRoles() {
   const [selectedMember, setSelectedMember] = useState(null);
 
   /* ------------------ Fetch Members ------------------ */
-  const fetchMembers = useCallback(async () => {
-    if (!user?.church_id) return;
+ const fetchMembers = useCallback(async () => {
+  if (!activeChurchId) return;
 
-    setLoadingMembers(true);
-    try {
-      const params = new URLSearchParams({ search }).toString();
-      const data = await AdminAPI.fetchMembers(params);
+  setLoadingMembers(true);
+  try {
+    const params = new URLSearchParams({ search }).toString();
+    const data = await AdminAPI.fetchMembers(params);
 
-      setMembers(
-        (data.members ?? []).map((m) => ({
-          ...m,
-          departments: m.departments ?? [],
-        }))
-      );
-    } catch {
-      showToast("Failed to load members", "error");
-    } finally {
-      setLoadingMembers(false);
-    }
-  }, [user?.church_id, search, showToast]);
+    setMembers(
+      (data.members ?? []).map((m) => ({
+        ...m,
+        departments: m.departments ?? [],
+      }))
+    );
+  } catch {
+    showToast("Failed to load members", "error");
+  } finally {
+    setLoadingMembers(false);
+  }
+}, [activeChurchId, search, showToast]);
 
   /* ------------------ Initial Load ------------------ */
   useEffect(() => {
-    if (user?.church_id) fetchMembers();
-  }, [user?.church_id, fetchMembers]);
+    if (activeChurchId) fetchMembers();
+  }, [activeChurchId, fetchMembers]);
 
   /* ------------------ Toggle Active ------------------ */
   const toggleMember = async (id, active) => {
@@ -282,12 +288,8 @@ onSave={async (data) => {
     );
 
     if (data.id === user.id) {
-      setUser((u) => ({
-        ...u,
-        roles: data.roles,
-        primary_role: data.primary_role,
-      }));
-    }
+  await refetchUser();
+}
 
     showToast("Roles updated");
     setSelectedMember(null);
