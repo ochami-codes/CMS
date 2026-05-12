@@ -256,6 +256,13 @@ const hasAnyMembership = useMemo(() => {
   /* -------------------------------
      Helpers
   ------------------------------- */
+const isAdmin = useCallback(
+  () =>
+    user?.roles?.includes("admin") ?? false,
+  [user]
+);
+
+
 const canUser = useCallback(
   (permission, options = {}) => {
     if (!user) return false;
@@ -302,8 +309,7 @@ const canUser = useCallback(
   },
   [user, isActiveMember, isAdmin]
 );
-  const isAdmin = () => user?.roles?.includes("admin") ?? false;
-
+ 
   const hasRole = (role) =>
     user?.roles?.includes(normalizeRole(role)) ?? false;
 
