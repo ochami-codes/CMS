@@ -119,11 +119,10 @@ export default function Sidebar({ open, onClose, onLogout, }) {
     user,
     activeChurch,
     canUser,
+    isGuest,
   } = useAuth();
 
   if (!user) return null;
-
-  const isGuest = !user?.is_member;
 
   const churchName =
     activeChurch?.name ||

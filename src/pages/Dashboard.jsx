@@ -116,7 +116,6 @@ export default function Dashboard() {
     {
       key: "request_role",
       label: "Request Role",
-      hideForAdmin: true,
     },
 
     {
@@ -139,8 +138,8 @@ export default function Dashboard() {
   ) => {
     switch (type) {
       case "request_role":
-        if (isGuest || isAdmin)
-          return;
+  navigate("/myrolerequest");
+  break;
 
         navigate("/myrolerequest");
         break;
@@ -175,7 +174,12 @@ export default function Dashboard() {
       <Loader message="Loading dashboard..." />
     );
   }
-
+const visibleActions = actions.filter((action) =>
+  canUser(action.permission, {
+    roles: action.roles,
+    requireActiveMember: action.requireActiveMember,
+  })
+);
   // =========================
   // UI
   // =========================
@@ -202,15 +206,13 @@ export default function Dashboard() {
 
           {/* QUICK ACTIONS */}
 
-          <QuickActions
-            actions={actions}
-            unreadMessages={
-              unreadMessages
-            }
-            isAdmin={isAdmin}
-            user={user}
-            onAction={handleAction}
-          />
+  <QuickActions
+  actions={visibleActions}
+  unreadMessages={unreadMessages}
+  isAdmin={isAdmin}
+  user={user}
+  onAction={handleAction}
+/>
 
           {/* TOOLS */}
 

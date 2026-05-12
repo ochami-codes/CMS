@@ -161,6 +161,9 @@ const isGuest = useMemo(() => {
 const hasAnyMembership = useMemo(() => {
   return (user?.memberships?.length || 0) > 0;
 }, [user]);
+
+
+
   /* -------------------------------
      Login
   ------------------------------- */
@@ -253,15 +256,52 @@ const hasAnyMembership = useMemo(() => {
   /* -------------------------------
      Helpers
   ------------------------------- */
-  const canUser = (permission) => {
+const canUser = useCallback(
+  (permission, options = {}) => {
     if (!user) return false;
-    if (!permission) return true;
 
-    if (user.roles.includes("admin")) return true;
+    const {
+      roles,
+      requireActiveMember = false,
+    } = options;
 
-    return user.permissions.includes(permission);
-  };
+    // membership gate
+    if (
+      requireActiveMember &&
+      !isActiveMember
+    ) {
+      return false;
+    }
 
+    // role check
+    if (roles?.length) {
+      const hasRoleMatch =
+        roles.some((r) =>
+          user.roles.includes(
+            normalizeRole(r)
+          )
+        );
+
+      if (!hasRoleMatch) {
+        return false;
+      }
+    }
+
+    // admin override
+    if (isAdmin()) return true;
+
+    // permission check
+    if (permission) {
+      return user.permissions.includes(
+        permission
+      );
+    }
+
+    // public access
+    return true;
+  },
+  [user, isActiveMember, isAdmin]
+);
   const isAdmin = () => user?.roles?.includes("admin") ?? false;
 
   const hasRole = (role) =>
@@ -277,6 +317,8 @@ const dashboardMode = useMemo(() => {
   isActiveMember,
   isPendingMember,
 ]);
+
+
   /* -------------------------------
      Provider
   ------------------------------- */
@@ -290,7 +332,6 @@ const dashboardMode = useMemo(() => {
         login,
         logout,
         refetchUser: fetchMe,
-
         canUser,
         isAdmin,
         hasRole,
