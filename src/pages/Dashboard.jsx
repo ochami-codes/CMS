@@ -107,27 +107,34 @@ export default function Dashboard() {
   // QUICK ACTIONS
   // =========================
 
-  const actions = [
-    {
-      key: "message",
-      label: "Messages",
-    },
+const actions = [
+  {
+    key: "message",
+    label: "Messages",
+  },
 
-    {
-      key: "request_role",
-      label: "Request Role",
-    },
+  {
+    key: "request_role",
+    label: "Request Role",
+    permission: "role.request",
+  },
 
-    {
-      key: "transfer",
-      label: "Membership Transfer",
-    },
+  {
+    key: "transfer",
+    label: "Membership Transfer",
+    permission:
+      "membership.transfer",
+    requireActiveMember: true,
+  },
 
-    {
-      key: "lesson",
-      label: "Lesson Subscription",
-    },
-  ];
+  {
+    key: "lesson",
+    label: "Lesson Subscription",
+    permission:
+      "lesson.subscribe",
+    requireActiveMember: true,
+  },
+];
 
   // =========================
   // ACTION HANDLER
@@ -209,7 +216,7 @@ const visibleActions = actions.filter((action) =>
   <QuickActions
   actions={visibleActions}
   unreadMessages={unreadMessages}
-  isAdmin={isAdmin}
+  isAdmin={isAdmin()}
   user={user}
   onAction={handleAction}
 />
