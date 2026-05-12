@@ -52,8 +52,7 @@ const {
   const status = activeMembershipStatus;
 
 const hasActiveRequest =
-  status === "pending" ||
-  status === "active";
+  status === "requested";
 
   return (
     <section className="dashboard-section">
@@ -67,10 +66,10 @@ const hasActiveRequest =
         {/* STATUS MESSAGE */}
 
         <p>
-          {status === "pending"
+          {status === "requested"
   ? "Your membership request is pending review."
 
-  : status === "active"
+  : status === "approved"
   ? "Your membership has been approved 🎉"
 
   : status === "rejected"

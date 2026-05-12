@@ -8,6 +8,7 @@ import {
 } from "react";
 import { AuthAPI, RolesAPI, ChurchAPI } from "../utils/api";
 import { normalizeRole } from "../config/roles.js";
+import { supabase } from "../supabaseClient";
 
 const AuthContext = createContext(null);
 
@@ -151,7 +152,7 @@ const isActiveMember = useMemo(() => {
 }, [activeMembershipStatus]);
 
 const isPendingMember = useMemo(() => {
-  return activeMembershipStatus === "pending";
+  return activeMembershipStatus === "requested";
 }, [activeMembershipStatus]);
 
 const isGuest = useMemo(() => {
@@ -232,27 +233,45 @@ const hasAnyMembership = useMemo(() => {
   }, [fetchMe, fetchRoles]);
 
 /* -------------------------------
-     Membership revalidation
-  ------------------------------- */
-  useEffect(() => {
-    if (!user) return;
+   Membership realtime updates
+------------------------------- */
+useEffect(() => {
+  if (!user?.id) return;
 
-    const shouldPoll =
-      user.membership_status === "requested" ||
-      activeMembershipStatus === "pending";
+  const shouldSubscribe =
+    user.membership_status === "requested";
 
-    if (!shouldPoll) return;
+  if (!shouldSubscribe) return;
 
-    const interval = setInterval(async () => {
-      await fetchMe();
-    }, 5000);
+  const channel = supabase
+    .channel(`membership-request-${user.id}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "membership_requests",
+        filter: `profile_id=eq.${user.id}`,
+      },
+      async (payload) => {
+        const newStatus = payload.new.status;
 
-    return () => clearInterval(interval);
-  }, [
-    user,
-    activeMembershipStatus,
-    fetchMe,
-  ]);
+        // Only react when request handled
+        if (
+          newStatus === "approved" ||
+          newStatus === "rejected"
+        ) {
+          await fetchMe();
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [user, fetchMe]);
+
   /* -------------------------------
      Helpers
   ------------------------------- */
@@ -317,7 +336,7 @@ const canUser = useCallback(
     rolesData.roleLabels[normalizeRole(role)] || role;
 const dashboardMode = useMemo(() => {
   if (isActiveMember) return "member";
-  if (isPendingMember) return "pending";
+  if (isPendingMember) return "requested";
   return "guest";
 }, [
   isActiveMember,
