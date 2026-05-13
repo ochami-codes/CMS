@@ -395,7 +395,7 @@ export const AuthProvider = ({
     if (!user?.id) return;
 
     const hasPendingRequest =
-      user.membership_requests?.some(
+      user?.membership_requests?.some(
         (r) =>
           r.status ===
           "requested"
