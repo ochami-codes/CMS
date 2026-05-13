@@ -29,17 +29,19 @@ export default function Dashboard() {
 
   const {
     user,
-    activeChurch,
+
     activeChurchId,
 
     isAdmin,
     canUser,
+
     isGuest,
+    dashboardMode,
   } = useAuth();
 
-  // =========================
-  // DASHBOARD DATA
-  // =========================
+  /* =========================
+     DASHBOARD DATA
+  ========================= */
 
   const {
     loading,
@@ -51,34 +53,31 @@ export default function Dashboard() {
     birthday,
     todayBirthdays,
     upcomingBirthdays,
-
-    membership,
   } = useDashboardData({
     user,
     churchId: activeChurchId,
     isGuest,
   });
 
-  // =========================
-  // UNREAD MESSAGES
-  // =========================
+  /* =========================
+     UNREAD MESSAGES
+  ========================= */
 
-  const {
-    unreadMessages,
-  } = useUnreadMessages();
+  const { unreadMessages } =
+    useUnreadMessages();
 
-  // =========================
-  // SABBATH TIMER
-  // =========================
+  /* =========================
+     SABBATH TIMER
+  ========================= */
 
   const {
     isSabbath,
     timer: sabbathTimer,
   } = useSabbathTimer();
 
-  // =========================
-  // BIRTHDAY TIMER
-  // =========================
+  /* =========================
+     BIRTHDAY TIMER
+  ========================= */
 
   const {
     hasBirthday,
@@ -86,9 +85,9 @@ export default function Dashboard() {
     birthdayTimer,
   } = useBirthdays(birthday);
 
-  // =========================
-  // DERIVED UI DATA
-  // =========================
+  /* =========================
+     DERIVED UI DATA
+  ========================= */
 
   const greeting =
     getGreeting(user);
@@ -100,63 +99,93 @@ export default function Dashboard() {
     );
 
   const churchName =
-    activeChurch?.name ||
+    user?.active_membership
+      ?.churches?.name ||
     "Your Church";
 
-  // =========================
-  // QUICK ACTIONS
-  // =========================
+  /* =========================
+     QUICK ACTIONS
+  ========================= */
 
-const actions = [
-  {
-    key: "message",
-    label: "Messages",
-  },
+  const actions = [
+    {
+      key: "message",
+      label: "Messages",
+    },
 
-  {
-    key: "request_role",
-    label: "Request Role",
-    permission: "role.request",
-  },
+    {
+      key: "request_role",
+      label: "Request Role",
+      permission:
+        "access_role_requests",
 
-  {
-    key: "transfer",
-    label: "Membership Transfer",
-    permission:
-      "membership.transfer",
-    requireActiveMember: true,
-  },
+      requireActiveMember: true,
+    },
 
-  {
-    key: "lesson",
-    label: "Lesson Subscription",
-    permission:
-      "lesson.subscribe",
-    requireActiveMember: true,
-  },
-];
+    {
+      key: "transfer",
+      label:
+        "Membership Transfer",
 
-  // =========================
-  // ACTION HANDLER
-  // =========================
+      permission:
+        "membership.transfer",
+
+      requireActiveMember: true,
+    },
+
+    {
+      key: "lesson",
+      label:
+        "Lesson Subscription",
+
+      permission:
+        "lesson.subscribe",
+
+      requireActiveMember: true,
+    },
+  ];
+
+  /* =========================
+     FILTER VISIBLE ACTIONS
+  ========================= */
+
+  const visibleActions =
+    actions.filter((action) =>
+      canUser(
+        action.permission,
+        {
+          roles: action.roles,
+
+          requireActiveMember:
+            action.requireActiveMember,
+        }
+      )
+    );
+
+  /* =========================
+     ACTION HANDLER
+  ========================= */
 
   const handleAction = async (
     type
   ) => {
     switch (type) {
       case "request_role":
-  navigate("/myrolerequest");
-  break;
-
-        navigate("/myrolerequest");
+        navigate(
+          "/myrolerequest"
+        );
         break;
 
       case "transfer":
-        alert("Request transfer");
+        alert(
+          "Membership transfer coming soon"
+        );
         break;
 
       case "lesson":
-        alert("Subscribe lesson");
+        alert(
+          "Lesson subscription coming soon"
+        );
         break;
 
       case "message":
@@ -170,9 +199,9 @@ const actions = [
     }
   };
 
-  // =========================
-  // LOADING
-  // =========================
+  /* =========================
+     LOADING
+  ========================= */
 
   if (!user) return null;
 
@@ -181,15 +210,10 @@ const actions = [
       <Loader message="Loading dashboard..." />
     );
   }
-const visibleActions = actions.filter((action) =>
-  canUser(action.permission, {
-    roles: action.roles,
-    requireActiveMember: action.requireActiveMember,
-  })
-);
-  // =========================
-  // UI
-  // =========================
+
+  /* =========================
+     UI
+  ========================= */
 
   return (
     <div className="dashboard-content">
@@ -202,24 +226,35 @@ const visibleActions = actions.filter((action) =>
         verse={verse}
       />
 
-      {/* GUEST VIEW */}
+      {/* GUEST / REQUESTED */}
 
-      {isGuest ? (
-        <MembershipSection
-          membership={membership}
-        />
-      ) : (
+      {(dashboardMode ===
+        "guest" ||
+        dashboardMode ===
+          "requested") && (
+        <MembershipSection />
+      )}
+
+      {/* MEMBER VIEW */}
+
+      {dashboardMode ===
+        "member" && (
         <>
-
           {/* QUICK ACTIONS */}
 
-  <QuickActions
-  actions={visibleActions}
-  unreadMessages={unreadMessages}
-  isAdmin={isAdmin()}
-  user={user}
-  onAction={handleAction}
-/>
+          <QuickActions
+            actions={
+              visibleActions
+            }
+            unreadMessages={
+              unreadMessages
+            }
+            isAdmin={isAdmin()}
+            user={user}
+            onAction={
+              handleAction
+            }
+          />
 
           {/* TOOLS */}
 
@@ -238,7 +273,9 @@ const visibleActions = actions.filter((action) =>
           {/* SABBATH */}
 
           <SabbathSection
-            isSabbath={isSabbath}
+            isSabbath={
+              isSabbath
+            }
             sabbathTimer={
               sabbathTimer
             }
@@ -264,10 +301,8 @@ const visibleActions = actions.filter((action) =>
               upcomingBirthdays
             }
           />
-
         </>
       )}
-
     </div>
   );
 }

@@ -6,190 +6,331 @@ import {
   useCallback,
   useMemo,
 } from "react";
-import { AuthAPI, RolesAPI, ChurchAPI } from "../utils/api";
+
+import {
+  AuthAPI,
+  RolesAPI,
+  ChurchAPI,
+} from "../utils/api";
+
 import { normalizeRole } from "../config/roles.js";
+
 import { supabase } from "../supabaseClient";
 
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({
+  children,
+}) => {
   /* -------------------------------
      Core auth state
   ------------------------------- */
   const [user, setUser] = useState(null);
-  const [authReady, setAuthReady] = useState(false);
-  const [authError, setAuthError] = useState(null);
 
-  const [rolesData, setRolesData] = useState({
-    roles: [],
-    roleLabels: {},
-    requestableRoles: [],
-    allRoles: [],
-    allPermissions: [],
-  });
+  const [authReady, setAuthReady] =
+    useState(false);
+
+  const [authError, setAuthError] =
+    useState(null);
 
   /* -------------------------------
-     Fetch roles
+     Roles metadata
   ------------------------------- */
-  const fetchRoles = useCallback(async () => {
-    try {
-      const data = await RolesAPI.getAll();
-
-      const roles = (data.roles || []).map((r) => ({
-        name: normalizeRole(r.name),
-        label: r.label || r.name,
-        requestable: r.requestable ?? false,
-        permissions: r.permissions || [],
-      }));
-
-      const roleLabels = roles.reduce((acc, r) => {
-        acc[r.name] = r.label;
-        return acc;
-      }, {});
-
-      const allPermissions = [
-        ...new Set(roles.flatMap((r) => r.permissions)),
-      ];
-
-      const requestableRoles = (data.requestable_roles || []).map(
-        normalizeRole
-      );
-
-      const allRoles = (data.all_roles || []).map(normalizeRole);
-
-      setRolesData({
-        roles,
-        roleLabels,
-        requestableRoles,
-        allRoles,
-        allPermissions,
-      });
-    } catch (err) {
-      console.error("Failed to load roles:", err);
-    }
-  }, []);
+  const [rolesData, setRolesData] =
+    useState({
+      roles: [],
+      roleLabels: {},
+      requestableRoles: [],
+      allRoles: [],
+      allPermissions: [],
+    });
 
   /* -------------------------------
-     Fetch /auth/me
+     Fetch roles metadata
   ------------------------------- */
-  const fetchMe = useCallback(async () => {
-    try {
-      const data = await AuthAPI.me();
+  const fetchRoles = useCallback(
+    async () => {
+      try {
+        const data =
+          await RolesAPI.getAll();
 
-      if (!data?.user) {
+        const roles = (
+          data.roles || []
+        ).map((r) => ({
+          name: normalizeRole(r.name),
+
+          label:
+            r.label || r.name,
+
+          requestable:
+            r.requestable ?? false,
+
+          permissions:
+            r.permissions || [],
+        }));
+
+        const roleLabels =
+          roles.reduce((acc, r) => {
+            acc[r.name] = r.label;
+            return acc;
+          }, {});
+
+        const allPermissions = [
+          ...new Set(
+            roles.flatMap(
+              (r) => r.permissions
+            )
+          ),
+        ];
+
+        const requestableRoles = (
+          data.requestable_roles || []
+        ).map(normalizeRole);
+
+        const allRoles = (
+          data.all_roles || []
+        ).map(normalizeRole);
+
+        setRolesData({
+          roles,
+          roleLabels,
+          requestableRoles,
+          allRoles,
+          allPermissions,
+        });
+      } catch (err) {
+        console.error(
+          "Failed to load roles:",
+          err
+        );
+      }
+    },
+    []
+  );
+
+  /* -------------------------------
+     Fetch authenticated user
+  ------------------------------- */
+  const fetchMe = useCallback(
+    async () => {
+      try {
+        const data =
+          await AuthAPI.me();
+
+        if (!data?.user) {
+          setUser(null);
+          return null;
+        }
+
+        const normalizedUser = {
+          ...data.user,
+
+          roles: (
+            data.user.roles || []
+          ).map(normalizeRole),
+
+          permissions:
+            data.user.permissions ||
+            [],
+
+          memberships:
+            data.user.memberships ||
+            [],
+
+          membership_requests:
+            data.user
+              .membership_requests ||
+            [],
+
+          active_membership:
+            data.user
+              .active_membership ||
+            null,
+
+          active_membership_status:
+            data.user
+              .active_membership_status ||
+            "guest",
+
+          active_church_id:
+            data.user
+              .active_church_id ||
+            null,
+        };
+
+        setUser(normalizedUser);
+
+        return normalizedUser;
+      } catch (err) {
+        console.error(
+          "fetchMe failed:",
+          err
+        );
+
+        localStorage.removeItem(
+          "access_token"
+        );
+
         setUser(null);
+
         return null;
       }
-
-const normalizedUser = {
-  ...data.user,
-  roles: (data.user.roles || []).map(normalizeRole),
-  permissions: data.user.permissions || [],
-  memberships: data.user.memberships || [],
-
-  active_church_id: data.user.active_church_id || null,
-  active_church: data.user.active_church || null,
-};
-
-      setUser(normalizedUser);
-      return normalizedUser;
-    } catch (err) {
-      console.error("fetchMe failed:", err);
-      localStorage.removeItem("access_token");
-      setUser(null);
-      return null;
-    }
-  }, []);
+    },
+    []
+  );
 
   /* -------------------------------
-     Derived state (safe + memoized)
+     Derived state
   ------------------------------- */
-  const activeChurch = useMemo(
-    () => user?.active_church || null,
+
+  const activeChurchId = useMemo(
+    () =>
+      user?.active_church_id ||
+      null,
     [user]
   );
-  const activeChurchId = useMemo(
-  () => user?.active_church_id || null,
-  [user]
-);
-  const activeMembership = useMemo(() => {
-  if (!user?.memberships || !user?.active_church_id) return null;
 
-  return user.memberships.find(
-    (m) => m.church_id === user.active_church_id
-  ) || null;
-}, [user]);
+  const activeMembership =
+    useMemo(
+      () =>
+        user?.active_membership ||
+        null,
+      [user]
+    );
 
-const switchChurch = async (churchId) => {
-  try {
-    await ChurchAPI.setActiveChurch({ church_id: churchId });
+  const activeMembershipStatus =
+    useMemo(
+      () =>
+        user?.active_membership_status ||
+        "guest",
+      [user]
+    );
 
-    await fetchMe(); // CRITICAL
+  const isActiveMember =
+    useMemo(
+      () =>
+        activeMembershipStatus ===
+        "active",
+      [activeMembershipStatus]
+    );
 
-    return true;
-  } catch (err) {
-    console.error("Switch church failed:", err);
-    return false;
-  }
-};
+  const isPendingMember =
+    useMemo(
+      () =>
+        activeMembershipStatus ===
+        "requested",
+      [activeMembershipStatus]
+    );
 
-const currentMembership = useMemo(() => {
-  if (!user?.memberships || !user?.active_church_id) return null;
-
-  return (
-    user.memberships.find(
-      (m) => m.church_id === user.active_church_id
-    ) || null
+  const isGuest = useMemo(
+    () =>
+      activeMembershipStatus ===
+      "guest",
+    [activeMembershipStatus]
   );
-}, [user]);
 
-const activeMembershipStatus = useMemo(() => {
-  return currentMembership?.status || "guest";
-}, [currentMembership]);
+  const hasAnyMembership =
+    useMemo(
+      () =>
+        (user?.memberships?.length ||
+          0) > 0,
+      [user]
+    );
 
-const isActiveMember = useMemo(() => {
-  return activeMembershipStatus === "active";
-}, [activeMembershipStatus]);
+  const dashboardMode =
+    useMemo(() => {
+      if (
+        activeMembershipStatus ===
+        "active"
+      ) {
+        return "member";
+      }
 
-const isPendingMember = useMemo(() => {
-  return activeMembershipStatus === "requested";
-}, [activeMembershipStatus]);
+      if (
+        activeMembershipStatus ===
+        "requested"
+      ) {
+        return "requested";
+      }
 
-const isGuest = useMemo(() => {
-  return !currentMembership || activeMembershipStatus === "guest";
-}, [currentMembership, activeMembershipStatus]);
+      return "guest";
+    }, [activeMembershipStatus]);
 
-const hasAnyMembership = useMemo(() => {
-  return (user?.memberships?.length || 0) > 0;
-}, [user]);
+  /* -------------------------------
+     Church switching
+  ------------------------------- */
 
+  const switchChurch =
+    useCallback(
+      async (churchId) => {
+        try {
+          await ChurchAPI.setActiveChurch(
+            {
+              church_id: churchId,
+            }
+          );
 
+          await fetchMe();
+
+          return true;
+        } catch (err) {
+          console.error(
+            "Switch church failed:",
+            err
+          );
+
+          return false;
+        }
+      },
+      [fetchMe]
+    );
 
   /* -------------------------------
      Login
   ------------------------------- */
-  const login = async ({ email, password }) => {
+
+  const login = async ({
+    email,
+    password,
+  }) => {
     setAuthError(null);
+
     setAuthReady(false);
 
     try {
-      const data = await AuthAPI.login({ email, password });
+      const data =
+        await AuthAPI.login({
+          email,
+          password,
+        });
 
       if (!data?.access_token) {
-        throw new Error("Login failed");
+        throw new Error(
+          "Login failed"
+        );
       }
 
-      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem(
+        "access_token",
+        data.access_token
+      );
 
-      const realUser = await fetchMe();
+      const realUser =
+        await fetchMe();
 
       if (!realUser) {
-        throw new Error("Failed to load user");
+        throw new Error(
+          "Failed to load user"
+        );
       }
 
-      fetchRoles();
+      await fetchRoles();
     } catch (err) {
-      setAuthError(err.message || "Login failed");
+      setAuthError(
+        err.message ||
+          "Login failed"
+      );
+
       throw err;
     } finally {
       setAuthReady(true);
@@ -199,12 +340,16 @@ const hasAnyMembership = useMemo(() => {
   /* -------------------------------
      Logout
   ------------------------------- */
+
   const logout = async () => {
     try {
       await AuthAPI.logout();
     } catch {}
 
-    localStorage.removeItem("access_token");
+    localStorage.removeItem(
+      "access_token"
+    );
+
     setUser(null);
 
     setRolesData({
@@ -217,163 +362,201 @@ const hasAnyMembership = useMemo(() => {
   };
 
   /* -------------------------------
-     Init
+     Initial auth boot
   ------------------------------- */
+
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token =
+      localStorage.getItem(
+        "access_token"
+      );
 
     if (!token) {
       setUser(null);
+
       setAuthReady(true);
+
       return;
     }
 
-    fetchMe().finally(() => setAuthReady(true));
-    fetchRoles();
+    Promise.all([
+      fetchMe(),
+      fetchRoles(),
+    ]).finally(() =>
+      setAuthReady(true)
+    );
   }, [fetchMe, fetchRoles]);
 
-/* -------------------------------
-   Membership realtime updates
-------------------------------- */
-useEffect(() => {
-  if (!user?.id) return;
+  /* -------------------------------
+     Membership realtime updates
+  ------------------------------- */
 
-  const shouldSubscribe =
-    user.membership_status === "requested";
+  useEffect(() => {
+    if (!user?.id) return;
 
-  if (!shouldSubscribe) return;
+    const hasPendingRequest =
+      user.membership_requests?.some(
+        (r) =>
+          r.status ===
+          "requested"
+      );
 
-  const channel = supabase
-    .channel(`membership-request-${user.id}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "UPDATE",
-        schema: "public",
-        table: "membership_requests",
-        filter: `profile_id=eq.${user.id}`,
-      },
-      async (payload) => {
-        const newStatus = payload.new.status;
+    if (!hasPendingRequest)
+      return;
 
-        // Only react when request handled
-        if (
-          newStatus === "approved" ||
-          newStatus === "rejected"
-        ) {
-          await fetchMe();
+    const channel = supabase
+      .channel(
+        `membership-request-${user.id}`
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table:
+            "membership_requests",
+
+          filter: `profile_id=eq.${user.id}`,
+        },
+
+        async (payload) => {
+          const newStatus =
+            payload.new.status;
+
+          if (
+            newStatus ===
+              "approved" ||
+            newStatus ===
+              "rejected"
+          ) {
+            await fetchMe();
+          }
         }
-      }
-    )
-    .subscribe();
+      )
+      .subscribe();
 
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}, [user, fetchMe]);
+    return () => {
+      supabase.removeChannel(
+        channel
+      );
+    };
+  }, [user, fetchMe]);
 
   /* -------------------------------
-     Helpers
+     Permission helpers
   ------------------------------- */
-const isAdmin = useCallback(
-  () =>
-    user?.roles?.includes("admin") ?? false,
-  [user]
-);
 
+  const isAdmin = useCallback(
+    () =>
+      user?.roles?.includes(
+        "admin"
+      ) ?? false,
+    [user]
+  );
 
-const canUser = useCallback(
-  (permission, options = {}) => {
-    if (!user) return false;
+  const hasRole = useCallback(
+    (role) =>
+      user?.roles?.includes(
+        normalizeRole(role)
+      ) ?? false,
+    [user]
+  );
 
-    const {
-      roles,
-      requireActiveMember = false,
-    } = options;
+  const canUser = useCallback(
+    (
+      permission,
+      options = {}
+    ) => {
+      if (!user) return false;
 
-    // membership gate
-    if (
-      requireActiveMember &&
-      !isActiveMember
-    ) {
-      return false;
-    }
+      const {
+        roles,
+        requireActiveMember = false,
+      } = options;
 
-    // role check
-    if (roles?.length) {
-      const hasRoleMatch =
-        roles.some((r) =>
-          user.roles.includes(
-            normalizeRole(r)
-          )
-        );
-
-      if (!hasRoleMatch) {
+      if (
+        requireActiveMember &&
+        !isActiveMember
+      ) {
         return false;
       }
-    }
 
-    // admin override
-    if (isAdmin()) return true;
+      if (roles?.length) {
+        const hasRoleMatch =
+          roles.some((r) =>
+            user.roles.includes(
+              normalizeRole(r)
+            )
+          );
 
-    // permission check
-    if (permission) {
-      return user.permissions.includes(
-        permission
-      );
-    }
+        if (!hasRoleMatch) {
+          return false;
+        }
+      }
 
-    // public access
-    return true;
-  },
-  [user, isActiveMember, isAdmin]
-);
- 
-  const hasRole = (role) =>
-    user?.roles?.includes(normalizeRole(role)) ?? false;
+      // admin override
+      if (isAdmin()) {
+        return true;
+      }
 
-  const getRoleLabel = (role) =>
-    rolesData.roleLabels[normalizeRole(role)] || role;
-const dashboardMode = useMemo(() => {
-  if (isActiveMember) return "member";
-  if (isPendingMember) return "requested";
-  return "guest";
-}, [
-  isActiveMember,
-  isPendingMember,
-]);
+      if (permission) {
+        return user.permissions.includes(
+          permission
+        );
+      }
 
+      return true;
+    },
+    [user, isActiveMember, isAdmin]
+  );
+
+  const getRoleLabel =
+    useCallback(
+      (role) =>
+        rolesData.roleLabels[
+          normalizeRole(role)
+        ] || role,
+      [rolesData]
+    );
 
   /* -------------------------------
      Provider
   ------------------------------- */
+
   return (
     <AuthContext.Provider
       value={{
         user,
-        rolesData,
+
         authReady,
         authError,
+
+        rolesData,
+
         login,
         logout,
+
         refetchUser: fetchMe,
+
+        switchChurch,
+
         canUser,
         isAdmin,
         hasRole,
         getRoleLabel,
 
-        // multi-church
-        activeChurch,
         activeChurchId,
-        switchChurch,
+
         activeMembership,
-        currentMembership,
-    activeMembershipStatus,
-    isActiveMember,
-    isPendingMember,
-    isGuest,
-    hasAnyMembership,
-    dashboardMode,
+        activeMembershipStatus,
+
+        isActiveMember,
+        isPendingMember,
+        isGuest,
+
+        hasAnyMembership,
+
+        dashboardMode,
       }}
     >
       {children}
@@ -381,4 +564,5 @@ const dashboardMode = useMemo(() => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () =>
+  useContext(AuthContext);
