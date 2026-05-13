@@ -391,57 +391,70 @@ export const AuthProvider = ({
      Membership realtime updates
   ------------------------------- */
 
-  useEffect(() => {
-    if (!user?.id) return;
+useEffect(() => {
+  if (!user?.id) return;
 
-    const hasPendingRequest =
-      user?.membership_requests?.some(
-        (r) =>
-          r.status ===
-          "requested"
-      );
+  const channels = [];
 
-    if (!hasPendingRequest)
-      return;
+  /* -------------------------------
+     1. Membership requests listener
+  ------------------------------- */
+  const requestChannel = supabase
+    .channel(`membership-requests-${user.id}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "membership_requests",
+        filter: `profile_id=eq.${user.id}`,
+      },
+      async (payload) => {
+        const newStatus = payload.new?.status;
 
-    const channel = supabase
-      .channel(
-        `membership-request-${user.id}`
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table:
-            "membership_requests",
-
-          filter: `profile_id=eq.${user.id}`,
-        },
-
-        async (payload) => {
-          const newStatus =
-            payload.new.status;
-
-          if (
-            newStatus ===
-              "approved" ||
-            newStatus ===
-              "rejected"
-          ) {
-            await fetchMe();
-          }
+        if (
+          newStatus === "approved" ||
+          newStatus === "rejected"
+        ) {
+          await fetchMe();
         }
-      )
-      .subscribe();
+      }
+    )
+    .subscribe();
 
-    return () => {
-      supabase.removeChannel(
-        channel
-      );
-    };
-  }, [user, fetchMe]);
+  channels.push(requestChannel);
 
+  /* -------------------------------
+     2. MEMBERS listener (THIS FIXES YOUR BUG)
+  ------------------------------- */
+  const membersChannel = supabase
+    .channel(`members-${user.id}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "members",
+        filter: `profile_id=eq.${user.id}`,
+      },
+      async () => {
+        // IMPORTANT: full refresh
+        await fetchMe();
+      }
+    )
+    .subscribe();
+
+  channels.push(membersChannel);
+
+  /* -------------------------------
+     Cleanup
+  ------------------------------- */
+  return () => {
+    channels.forEach((channel) =>
+      supabase.removeChannel(channel)
+    );
+  };
+}, [user?.id, fetchMe]);
   /* -------------------------------
      Permission helpers
   ------------------------------- */
