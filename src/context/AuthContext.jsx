@@ -394,8 +394,14 @@ export const AuthProvider = ({
 useEffect(() => {
   if (!user?.id) return;
 
+  console.log(
+    "STARTING REALTIME FOR:",
+    user.id
+  );
+
   const channel = supabase
-    .channel(`user-membership-${user.id}`)
+    .channel(`test-realtime-${user.id}`)
+
     .on(
       "postgres_changes",
       {
@@ -404,8 +410,16 @@ useEffect(() => {
         table: "membership_requests",
         filter: `profile_id=eq.${user.id}`,
       },
-      () => fetchMe()
+      (payload) => {
+        console.log(
+          "REQUEST REALTIME FIRED:",
+          payload
+        );
+
+        fetchMe();
+      }
     )
+
     .on(
       "postgres_changes",
       {
@@ -414,11 +428,28 @@ useEffect(() => {
         table: "members",
         filter: `profile_id=eq.${user.id}`,
       },
-      () => fetchMe()
+      (payload) => {
+        console.log(
+          "MEMBERS REALTIME FIRED:",
+          payload
+        );
+
+        fetchMe();
+      }
     )
-    .subscribe();
+
+    .subscribe((status) => {
+      console.log(
+        "SUBSCRIPTION STATUS:",
+        status
+      );
+    });
 
   return () => {
+    console.log(
+      "REMOVING REALTIME CHANNEL"
+    );
+
     supabase.removeChannel(channel);
   };
 }, [user?.id, fetchMe]);
