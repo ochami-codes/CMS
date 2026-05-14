@@ -33,7 +33,8 @@ export const AuthProvider = ({
 
   const [authError, setAuthError] =
     useState(null);
-
+const lastVersion = useRef(null);
+  const fetching = useRef(false);
   /* -------------------------------
      Roles metadata
   ------------------------------- */
@@ -327,73 +328,53 @@ const dashboardMode =
     );
   }, [fetchMe, fetchRoles]);
 
-/* -------------------------------
-   Membership realtime updates
--------------------------------- */
-useEffect(() => {
-  if (!authReady || !profileId) return;
+  /* Membership realtime updates */
+  useEffect(() => {
+    if (!authReady || !profileId) return;
 
-  console.log("[RT] profile sync started");
+    console.log("[RT] profile sync started");
 
-  const lastVersion = useRef(null);
-  const fetching = useRef(false);
-
-  const safeFetch = async () => {
-    if (fetching.current) return;
-
-    fetching.current = true;
-    try {
-      await fetchMe();
-    } finally {
-      fetching.current = false;
-    }
-  };
-
-  const channel = supabase
-    .channel(`profile-sync-${profileId}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "profiles",
-        filter: `id=eq.${profileId}`,
-      },
-      async (payload) => {
-        const newVersion =
-          payload.new?.profile_state_version ||
-          payload.old?.profile_state_version;
-
-        console.log("[RT] profile event");
-        console.log("[RT] version:", newVersion);
-
-        if (
-          newVersion &&
-          newVersion !== lastVersion.current
-        ) {
-          lastVersion.current = newVersion;
-
-          console.log(
-            "[RT] version changed → refreshing user"
-          );
-
-          await safeFetch();
-        } else {
-          console.log(
-            "[RT] ignored duplicate event"
-          );
-        }
+    const safeFetch = async () => {
+      if (fetching.current) return;
+      fetching.current = true;
+      try {
+        await fetchMe();
+      } finally {
+        fetching.current = false;
       }
-    )
-    .subscribe((status) => {
-      console.log("[RT] status:", status);
-    });
+    };
 
-  return () => {
-    console.log("[RT] cleanup");
-    supabase.removeChannel(channel);
-  };
-}, [authReady, profileId, fetchMe]);
+    const channel = supabase
+      .channel(`profile-sync-${profileId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${profileId}`,
+        },
+        async (payload) => {
+          const newVersion =
+            payload.new?.profile_state_version ||
+            payload.old?.profile_state_version;
+
+          if (newVersion && newVersion !== lastVersion.current) {
+            lastVersion.current = newVersion;
+            await safeFetch();
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log("[RT] status:", status);
+      });
+
+    return () => {
+      console.log("[RT] cleanup");
+      supabase.removeChannel(channel);
+      lastVersion.current = null; // reset on cleanup
+    };
+  }, [authReady, profileId, fetchMe]);
   /* -------------------------------
      Permission helpers
   ------------------------------- */
