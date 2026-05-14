@@ -111,151 +111,74 @@ export const AuthProvider = ({
   /* -------------------------------
      Fetch authenticated user
   ------------------------------- */
-  const fetchMe = useCallback(
-    async () => {
-      try {
-        const data =
-          await AuthAPI.me();
+  const fetchMe = useCallback(async () => {
+  try {
+    const data = await AuthAPI.me();
 
-        if (!data?.user) {
-          setUser(null);
-          return null;
-        }
+    if (!data?.user) {
+      setUser(null);
+      return null;
+    }
 
-        const normalizedUser = {
-          ...data.user,
+    const normalizedUser = {
+      ...data.user,
 
-          roles: (
-            data.user.roles || []
-          ).map(normalizeRole),
+      // identity contract (VERY IMPORTANT)
+      profileId: data.user.id,
+      authUserId: data.user.auth_user_id,
 
-          permissions:
-            data.user.permissions ||
-            [],
+      roles: (data.user.roles || []).map(normalizeRole),
+      permissions: data.user.permissions || [],
+      memberships: data.user.memberships || [],
+      membership_requests: data.user.membership_requests || [],
+      active_membership: data.user.active_membership || null,
+      active_membership_status:
+        data.user.active_membership_status || "guest",
+      active_church_id: data.user.active_church_id || null,
+    };
 
-          memberships:
-            data.user.memberships ||
-            [],
-
-          membership_requests:
-            data.user
-              .membership_requests ||
-            [],
-
-          active_membership:
-            data.user
-              .active_membership ||
-            null,
-
-          active_membership_status:
-            data.user
-              .active_membership_status ||
-            "guest",
-
-          active_church_id:
-            data.user
-              .active_church_id ||
-            null,
-        };
-
-        setUser(normalizedUser);
-
-        return normalizedUser;
-      } catch (err) {
-        console.error(
-          "fetchMe failed:",
-          err
-        );
-
-        localStorage.removeItem(
-          "access_token"
-        );
-
-        setUser(null);
-
-        return null;
-      }
-    },
-    []
-  );
-
+    setUser(normalizedUser);
+    return normalizedUser;
+  } catch (err) {
+    console.error("fetchMe failed:", err);
+    localStorage.removeItem("access_token");
+    setUser(null);
+    return null;
+  }
+}, []);
+const profileId = user?.profileId || null;
+const authUserId = user?.authUserId || null;
   /* -------------------------------
      Derived state
   ------------------------------- */
 
-  const activeChurchId = useMemo(
-    () =>
-      user?.active_church_id ||
-      null,
-    [user]
-  );
+ const activeChurchId =
+  user?.active_church_id || null;
 
-  const activeMembership =
-    useMemo(
-      () =>
-        user?.active_membership ||
-        null,
-      [user]
-    );
+const activeMembership =
+  user?.active_membership || null;
 
-  const activeMembershipStatus =
-    useMemo(
-      () =>
-        user?.active_membership_status ||
-        "guest",
-      [user]
-    );
+const activeMembershipStatus =
+  user?.active_membership_status || "guest";
 
-  const isActiveMember =
-    useMemo(
-      () =>
-        activeMembershipStatus ===
-        "active",
-      [activeMembershipStatus]
-    );
+const isActiveMember =
+  activeMembershipStatus === "active";
 
-  const isPendingMember =
-    useMemo(
-      () =>
-        activeMembershipStatus ===
-        "requested",
-      [activeMembershipStatus]
-    );
+const isPendingMember =
+  activeMembershipStatus === "requested";
 
-  const isGuest = useMemo(
-    () =>
-      activeMembershipStatus ===
-      "guest",
-    [activeMembershipStatus]
-  );
+const isGuest =
+  activeMembershipStatus === "guest";
 
-  const hasAnyMembership =
-    useMemo(
-      () =>
-        (user?.memberships?.length ||
-          0) > 0,
-      [user]
-    );
+const hasAnyMembership =
+  (user?.memberships?.length || 0) > 0;
 
-  const dashboardMode =
-    useMemo(() => {
-      if (
-        activeMembershipStatus ===
-        "active"
-      ) {
-        return "member";
-      }
-
-      if (
-        activeMembershipStatus ===
-        "requested"
-      ) {
-        return "requested";
-      }
-
-      return "guest";
-    }, [activeMembershipStatus]);
-
+const dashboardMode =
+  isActiveMember
+    ? "member"
+    : isPendingMember
+    ? "requested"
+    : "guest";
   /* -------------------------------
      Church switching
   ------------------------------- */
@@ -396,37 +319,33 @@ export const AuthProvider = ({
 -------------------------------- */
 
 useEffect(() => {
-  if (!user?.id) return;
+  if (!profileId) return;
 
   const channel = supabase
-    .channel(`membership-${user.id}`)
+    .channel(`membership-${profileId}`)
 
-    /* Membership requests */
+    /* membership requests */
     .on(
       "postgres_changes",
       {
         event: "*",
         schema: "public",
         table: "membership_requests",
-        filter: `profile_id=eq.${user.id}`,
+        filter: `profile_id=eq.${profileId}`,
       },
-      async () => {
-        await fetchMe();
-      }
+      fetchMe
     )
 
-    /* Approved memberships */
+    /* members */
     .on(
       "postgres_changes",
       {
         event: "*",
         schema: "public",
         table: "members",
-        filter: `profile_id=eq.${user.id}`,
+        filter: `profile_id=eq.${profileId}`,
       },
-      async () => {
-        await fetchMe();
-      }
+      fetchMe
     )
 
     .subscribe();
@@ -434,7 +353,7 @@ useEffect(() => {
   return () => {
     supabase.removeChannel(channel);
   };
-}, [user?.id, fetchMe]);
+}, [profileId, fetchMe]);
   /* -------------------------------
      Permission helpers
   ------------------------------- */
