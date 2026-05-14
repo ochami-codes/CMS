@@ -394,13 +394,8 @@ export const AuthProvider = ({
 useEffect(() => {
   if (!user?.id) return;
 
-  const channels = [];
-
-  /* -------------------------------
-     1. Membership requests listener
-  ------------------------------- */
-  const requestChannel = supabase
-    .channel(`membership-requests-${user.id}`)
+  const channel = supabase
+    .channel(`user-membership-${user.id}`)
     .on(
       "postgres_changes",
       {
@@ -409,26 +404,8 @@ useEffect(() => {
         table: "membership_requests",
         filter: `profile_id=eq.${user.id}`,
       },
-      async (payload) => {
-        const newStatus = payload.new?.status;
-
-        if (
-          newStatus === "approved" ||
-          newStatus === "rejected"
-        ) {
-          await fetchMe();
-        }
-      }
+      () => fetchMe()
     )
-    .subscribe();
-
-  channels.push(requestChannel);
-
-  /* -------------------------------
-     2. MEMBERS listener (THIS FIXES YOUR BUG)
-  ------------------------------- */
-  const membersChannel = supabase
-    .channel(`members-${user.id}`)
     .on(
       "postgres_changes",
       {
@@ -437,22 +414,12 @@ useEffect(() => {
         table: "members",
         filter: `profile_id=eq.${user.id}`,
       },
-      async () => {
-        // IMPORTANT: full refresh
-        await fetchMe();
-      }
+      () => fetchMe()
     )
     .subscribe();
 
-  channels.push(membersChannel);
-
-  /* -------------------------------
-     Cleanup
-  ------------------------------- */
   return () => {
-    channels.forEach((channel) =>
-      supabase.removeChannel(channel)
-    );
+    supabase.removeChannel(channel);
   };
 }, [user?.id, fetchMe]);
   /* -------------------------------
