@@ -392,15 +392,8 @@ export const AuthProvider = ({
   ------------------------------- */
 
 useEffect(() => {
-  if (!user?.id) return;
-
-  console.log(
-    "STARTING REALTIME FOR:",
-    user.id
-  );
-
   const channel = supabase
-    .channel(`test-realtime-${user.id}`)
+    .channel("debug-realtime")
 
     .on(
       "postgres_changes",
@@ -408,15 +401,12 @@ useEffect(() => {
         event: "*",
         schema: "public",
         table: "membership_requests",
-        filter: `profile_id=eq.${user.id}`,
       },
       (payload) => {
         console.log(
-          "REQUEST REALTIME FIRED:",
+          "REQUEST EVENT:",
           payload
         );
-
-        fetchMe();
       }
     )
 
@@ -426,33 +416,26 @@ useEffect(() => {
         event: "*",
         schema: "public",
         table: "members",
-        filter: `profile_id=eq.${user.id}`,
       },
       (payload) => {
         console.log(
-          "MEMBERS REALTIME FIRED:",
+          "MEMBER EVENT:",
           payload
         );
-
-        fetchMe();
       }
     )
 
     .subscribe((status) => {
       console.log(
-        "SUBSCRIPTION STATUS:",
+        "STATUS:",
         status
       );
     });
 
   return () => {
-    console.log(
-      "REMOVING REALTIME CHANNEL"
-    );
-
     supabase.removeChannel(channel);
   };
-}, [user?.id, fetchMe]);
+}, []);
   /* -------------------------------
      Permission helpers
   ------------------------------- */
