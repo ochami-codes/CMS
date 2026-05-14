@@ -391,55 +391,50 @@ export const AuthProvider = ({
      Membership realtime updates
   ------------------------------- */
 
-useEffect(() => {
-  const channel = supabase
-    .channel("debug-realtime")
+/* -------------------------------
+   Membership realtime updates
+-------------------------------- */
 
+useEffect(() => {
+  if (!user?.id) return;
+
+  const channel = supabase
+    .channel(`membership-${user.id}`)
+
+    /* Membership requests */
     .on(
       "postgres_changes",
       {
         event: "*",
         schema: "public",
         table: "membership_requests",
+        filter: `profile_id=eq.${user.id}`,
       },
-      (payload) => {
-        console.log(
-          "REQUEST EVENT:",
-          payload
-        );
+      async () => {
+        await fetchMe();
       }
     )
 
+    /* Approved memberships */
     .on(
       "postgres_changes",
       {
         event: "*",
         schema: "public",
         table: "members",
+        filter: `profile_id=eq.${user.id}`,
       },
-      async (payload) => {
-  console.log("MEMBER EVENT", payload);
+      async () => {
+        await fetchMe();
+      }
+    )
 
-  const updated =
-    await fetchMe();
-
-  console.log(
-    "UPDATED USER:",
-    updated
-  );
-})
-
-    .subscribe((status) => {
-      console.log(
-        "STATUS:",
-        status
-      );
-    });
+    .subscribe();
 
   return () => {
     supabase.removeChannel(channel);
   };
-}, []);
+}, [user?.id, fetchMe]);
   /* -------------------------------
      Permission helpers
   ------------------------------- */
