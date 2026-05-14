@@ -315,306 +315,63 @@ const dashboardMode =
   ------------------------------- */
 
 useEffect(() => {
-  console.log("=================================");
-  console.log("[RT] EFFECT TRIGGERED");
-  console.log("=================================");
-
-  console.log("[RT] authReady:", authReady);
-  console.log("[RT] profileId:", profileId);
-  console.log("[RT] current user:", user);
-
-  /* ---------------------------------
-     GUARDS
-  --------------------------------- */
+  console.log("========================");
+  console.log("[RT] MEMBERS EFFECT");
+  console.log("========================");
 
   if (!authReady) {
     console.log(
-      "[RT] BLOCKED -> auth not ready"
+      "[RT] blocked -> auth not ready"
     );
     return;
   }
 
   if (!profileId) {
     console.log(
-      "[RT] BLOCKED -> no profileId"
+      "[RT] blocked -> no profileId"
     );
     return;
   }
 
   console.log(
-    "[RT] STARTING SUBSCRIPTION FOR:",
+    "[RT] subscribing to members for:",
     profileId
   );
 
-  /* ---------------------------------
-     CHANNEL
-  --------------------------------- */
+  const channel = supabase
+    .channel(`members-${profileId}`)
 
-  const channel = supabase.channel(
-    `membership-${profileId}`
-  );
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "members",
+        filter: `profile_id=eq.${profileId}`,
+      },
 
-  /* ---------------------------------
-     MEMBERSHIP REQUESTS
-  --------------------------------- */
-
-  channel.on(
-    "postgres_changes",
-    {
-      event: "*",
-      schema: "public",
-      table: "membership_requests",
-      filter: `profile_id=eq.${profileId}`,
-    },
-
-    async (payload) => {
-      console.log(
-        "================================="
-      );
-
-      console.log(
-        "🔥 REQUEST EVENT RECEIVED"
-      );
-
-      console.log(
-        "================================="
-      );
-
-      console.log(
-        "[REQUEST] eventType:",
-        payload.eventType
-      );
-
-      console.log(
-        "[REQUEST] payload:",
-        payload
-      );
-
-      console.log(
-        "[REQUEST] old:",
-        payload.old
-      );
-
-      console.log(
-        "[REQUEST] new:",
-        payload.new
-      );
-
-      console.log(
-        "[REQUEST] fetchMe STARTING..."
-      );
-
-      try {
-        const updatedUser =
-          await fetchMe();
-
+      async (payload) => {
         console.log(
-          "[REQUEST] fetchMe COMPLETE"
+          "🔥 MEMBERS EVENT RECEIVED"
         );
 
         console.log(
-          "[REQUEST] updated user:",
-          updatedUser
+          "[RT] event type:",
+          payload.eventType
         );
 
         console.log(
-          "[REQUEST] updated membership status:",
-          updatedUser?.active_membership_status
+          "[RT] member id:",
+          payload.new?.id
         );
 
         console.log(
-          "[REQUEST] updated memberships:",
-          updatedUser?.memberships
+          "[RT] member status:",
+          payload.new?.status
         );
-      } catch (err) {
-        console.error(
-          "[REQUEST] fetchMe FAILED:",
-          err
-        );
-      }
 
-      console.log(
-        "================================="
-      );
-    }
-  );
-
-  /* ---------------------------------
-     MEMBERS
-  --------------------------------- */
-
-  channel.on(
-    "postgres_changes",
-    {
-      event: "*",
-      schema: "public",
-      table: "members",
-      filter: `profile_id=eq.${profileId}`,
-    },
-
-    async (payload) => {
-      console.log(
-        "================================="
-      );
-
-      console.log(
-        "🔥 MEMBER EVENT RECEIVED"
-      );
-
-      console.log(
-        "================================="
-      );
-
-      console.log(
-        "[MEMBER] eventType:",
-        payload.eventType
-      );
-
-      console.log(
-        "[MEMBER] payload:",
-        payload
-      );
-
-      console.log(
-        "[MEMBER] old:",
-        payload.old
-      );
-
-      console.log(
-        "[MEMBER] new:",
-        payload.new
-      );
-
-      console.log(
-        "[MEMBER] payload.new.status:",
-        payload.new?.status
-      );
-
-      console.log(
-        "[MEMBER] current React user BEFORE update:",
-        user
-      );
-
-      /* ---------------------------------
-         OPTIMISTIC LOCAL UPDATE
-      --------------------------------- */
-
-      if (payload.new) {
         console.log(
-          "[MEMBER] applying optimistic update..."
-        );
-
-        setUser((prev) => {
-          console.log(
-            "[MEMBER] previous user state:",
-            prev
-          );
-
-          if (!prev) {
-            console.log(
-              "[MEMBER] aborted -> no previous user"
-            );
-
-            return prev;
-          }
-
-          const existing =
-            prev.memberships.some(
-              (m) =>
-                m.id ===
-                payload.new.id
-            );
-
-          console.log(
-            "[MEMBER] existing membership:",
-            existing
-          );
-
-          const updatedMemberships =
-            existing
-              ? prev.memberships.map(
-                  (m) =>
-                    m.id ===
-                    payload.new.id
-                      ? {
-                          ...m,
-                          ...payload.new,
-                        }
-                      : m
-                )
-              : [
-                  ...prev.memberships,
-                  payload.new,
-                ];
-
-          console.log(
-            "[MEMBER] updated memberships:",
-            updatedMemberships
-          );
-
-          const activeMembership =
-            updatedMemberships.find(
-              (m) =>
-                String(
-                  m.church_id
-                ) ===
-                String(
-                  prev.active_church_id
-                )
-            ) || null;
-
-          console.log(
-            "[MEMBER] active membership:",
-            activeMembership
-          );
-
-          const nextUser = {
-            ...prev,
-
-            memberships:
-              updatedMemberships,
-
-            active_membership:
-              activeMembership,
-
-            active_membership_status:
-              activeMembership?.status ||
-              "guest",
-          };
-
-          console.log(
-            "[MEMBER] next user state:",
-            nextUser
-          );
-
-          console.log(
-            "[MEMBER] next dashboard mode:",
-            nextUser
-              ?.active_membership_status ===
-              "active"
-              ? "member"
-              : nextUser
-                    ?.active_membership_status ===
-                  "requested"
-              ? "requested"
-              : "guest"
-          );
-
-          return nextUser;
-        });
-      }
-
-      /* ---------------------------------
-         BACKEND RESYNC
-      --------------------------------- */
-
-      console.log(
-        "[MEMBER] waiting before backend sync..."
-      );
-
-      setTimeout(async () => {
-        console.log(
-          "[MEMBER] fetchMe STARTING..."
+          "[RT] triggering full user refetch..."
         );
 
         try {
@@ -622,92 +379,46 @@ useEffect(() => {
             await fetchMe();
 
           console.log(
-            "[MEMBER] fetchMe COMPLETE"
+            "[RT] fetchMe success"
           );
 
           console.log(
-            "[MEMBER] updated user:",
-            updatedUser
-          );
-
-          console.log(
-            "[MEMBER] updated membership status:",
+            "[RT] active membership status:",
             updatedUser?.active_membership_status
           );
 
           console.log(
-            "[MEMBER] updated memberships:",
-            updatedUser?.memberships
+            "[RT] dashboard mode should now be:",
+            updatedUser
+              ?.active_membership_status ===
+              "active"
+              ? "member"
+              : updatedUser
+                    ?.active_membership_status ===
+                  "requested"
+              ? "requested"
+              : "guest"
           );
         } catch (err) {
           console.error(
-            "[MEMBER] fetchMe FAILED:",
+            "[RT] fetchMe failed:",
             err
           );
         }
+      }
+    )
 
-        console.log(
-          "================================="
-        );
-      }, 500);
-    }
-  );
-
-  /* ---------------------------------
-     SUBSCRIBE
-  --------------------------------- */
-
-  channel.subscribe((status) => {
-    console.log(
-      "[RT] SUBSCRIPTION STATUS:",
-      status
-    );
-
-    if (status === "SUBSCRIBED") {
+    .subscribe((status) => {
       console.log(
-        "[RT] REALTIME CONNECTED SUCCESSFULLY"
+        "[RT] subscription status:",
+        status
       );
-    }
-
-    if (status === "CHANNEL_ERROR") {
-      console.error(
-        "[RT] CHANNEL ERROR"
-      );
-    }
-
-    if (status === "TIMED_OUT") {
-      console.error(
-        "[RT] SUBSCRIPTION TIMED OUT"
-      );
-    }
-
-    if (status === "CLOSED") {
-      console.warn(
-        "[RT] CHANNEL CLOSED"
-      );
-    }
-  });
-
-  /* ---------------------------------
-     CLEANUP
-  --------------------------------- */
+    });
 
   return () => {
     console.log(
-      "================================="
-    );
-
-    console.log(
-      "[RT] CLEANING UP CHANNEL:"
-    );
-
-    console.log(
-      "[RT] profileId:",
+      "[RT] removing members channel:",
       profileId
-    );
-
-    console.log(
-      "================================="
     );
 
     supabase.removeChannel(channel);
@@ -716,7 +427,6 @@ useEffect(() => {
   authReady,
   profileId,
   fetchMe,
-  user,
 ]);
   /* -------------------------------
      Permission helpers
