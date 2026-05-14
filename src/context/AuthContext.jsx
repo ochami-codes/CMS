@@ -331,209 +331,168 @@ const dashboardMode =
 -------------------------------- */
 
 useEffect(() => {
-  console.log("========================");
-  console.log("[RT] MEMBERSHIP EFFECT");
-  console.log("========================");
-
-  if (!authReady) {
-    console.log(
-      "[RT] blocked -> auth not ready"
-    );
+  if (!authReady || !profileId) {
     return;
   }
 
-  if (!profileId) {
-    console.log(
-      "[RT] blocked -> no profileId"
-    );
-    return;
-  }
+  console.log("====================");
+  console.log("[RT] START");
+  console.log("====================");
 
   console.log(
-    "[RT] starting subscriptions for:",
+    "[RT] profile:",
     profileId
   );
 
-  const refetchUserState =
-    async (source) => {
-      console.log(
-        `[RT][${source}] refetching user...`
-      );
+  const channel = supabase
 
-      try {
-        const updatedUser =
+    .channel(
+      `user-realtime-${profileId}`
+    )
+
+    /* --------------------------------
+       MEMBERSHIP REQUESTS
+    -------------------------------- */
+
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table:
+          "membership_requests",
+      },
+
+      async (payload) => {
+        const row =
+          payload.new ||
+          payload.old;
+
+        if (
+          row?.profile_id !==
+          profileId
+        ) {
+          return;
+        }
+
+        console.log("");
+        console.log(
+          "📨 REQUEST EVENT"
+        );
+
+        console.log(
+          "[RT][request] type:",
+          payload.eventType
+        );
+
+        console.log(
+          "[RT][request] old status:",
+          payload.old?.status
+        );
+
+        console.log(
+          "[RT][request] new status:",
+          payload.new?.status
+        );
+
+        if (
+          payload.old?.status ===
+            "requested" &&
+          payload.new?.status ===
+            "approved"
+        ) {
+          console.log(
+            "[RT][request] APPROVED"
+          );
+        }
+
+        const updated =
           await fetchMe();
 
         console.log(
-          `[RT][${source}] fetchMe success`
-        );
-
-        console.log(
-          `[RT][${source}] active membership status:`,
-          updatedUser?.active_membership_status
-        );
-
-        console.log(
-          `[RT][${source}] has active request:`,
-          !!updatedUser?.active_membership_request
-        );
-
-        console.log(
-          `[RT][${source}] dashboard mode:`,
-          updatedUser
-            ?.active_membership_status ===
-            "active"
-            ? "member"
-            : updatedUser?.active_membership_request
-            ? "requested"
-            : "guest"
-        );
-      } catch (err) {
-        console.error(
-          `[RT][${source}] fetchMe failed:`,
-          err
+          "[RT][request] updated user:",
+          updated
         );
       }
-    };
+    )
 
-  /* --------------------------------
-     MEMBERS TABLE
-  -------------------------------- */
+    /* --------------------------------
+       MEMBERS
+    -------------------------------- */
 
-  const membersChannel =
-    supabase
-      .channel(
-        `members-${profileId}`
-      )
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "members",
+      },
 
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "members",
-          filter: `profile_id=eq.${profileId}`,
-        },
+      async (payload) => {
+        const row =
+          payload.new ||
+          payload.old;
 
-        async (payload) => {
-          console.log("");
+        if (
+          row?.profile_id !==
+          profileId
+        ) {
+          return;
+        }
+
+        console.log("");
+        console.log(
+          "🔥 MEMBER EVENT"
+        );
+
+        console.log(
+          "[RT][member] type:",
+          payload.eventType
+        );
+
+        console.log(
+          "[RT][member] old status:",
+          payload.old?.status
+        );
+
+        console.log(
+          "[RT][member] new status:",
+          payload.new?.status
+        );
+
+        if (
+          payload.new?.status ===
+          "active"
+        ) {
           console.log(
-            "🔥 MEMBERS EVENT"
-          );
-
-          console.log(
-            "[RT][members] event:",
-            payload.eventType
-          );
-
-          console.log(
-            "[RT][members] row id:",
-            payload.new?.id
-          );
-
-          console.log(
-            "[RT][members] status:",
-            payload.new?.status
-          );
-
-          if (
-            payload.new?.status ===
-            "active"
-          ) {
-            console.log(
-              "[RT][members] member became ACTIVE"
-            );
-          }
-
-          await refetchUserState(
-            "members"
+            "[RT][member] MEMBER ACTIVE"
           );
         }
-      )
 
-      .subscribe((status) => {
+        const updated =
+          await fetchMe();
+
         console.log(
-          "[RT][members] subscription:",
-          status
+          "[RT][member] updated user:",
+          updated
         );
-      });
+      }
+    )
 
-  /* --------------------------------
-     MEMBERSHIP REQUESTS TABLE
-  -------------------------------- */
-
-  const requestsChannel =
-    supabase
-      .channel(
-        `membership-requests-${profileId}`
-      )
-
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table:
-            "membership_requests",
-          filter: `profile_id=eq.${profileId}`,
-        },
-
-        async (payload) => {
-          console.log("");
-          console.log(
-            "📨 MEMBERSHIP REQUEST EVENT"
-          );
-
-          console.log(
-            "[RT][requests] event:",
-            payload.eventType
-          );
-
-          console.log(
-            "[RT][requests] request id:",
-            payload.new?.id
-          );
-
-          console.log(
-            "[RT][requests] status:",
-            payload.new?.status
-          );
-
-          if (
-            payload.old?.status ===
-              "requested" &&
-            payload.new?.status ===
-              "approved"
-          ) {
-            console.log(
-              "[RT][requests] request APPROVED"
-            );
-          }
-
-          await refetchUserState(
-            "requests"
-          );
-        }
-      )
-
-      .subscribe((status) => {
-        console.log(
-          "[RT][requests] subscription:",
-          status
-        );
-      });
+    .subscribe((status) => {
+      console.log(
+        "[RT] STATUS:",
+        status
+      );
+    });
 
   return () => {
     console.log(
-      "[RT] removing realtime channels"
+      "[RT] CLEANUP"
     );
 
     supabase.removeChannel(
-      membersChannel
-    );
-
-    supabase.removeChannel(
-      requestsChannel
+      channel
     );
   };
 }, [
