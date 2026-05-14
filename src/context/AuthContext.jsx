@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   useCallback,
   useMemo,
@@ -329,177 +330,70 @@ const dashboardMode =
 /* -------------------------------
    Membership realtime updates
 -------------------------------- */
-
 useEffect(() => {
-  if (!authReady || !profileId) {
-    return;
-  }
+  if (!authReady || !profileId) return;
 
-  console.log("====================");
-  console.log("[RT] START");
-  console.log("====================");
+  console.log("[RT] profile sync started");
 
-  console.log(
-    "[RT] profile:",
-    profileId
-  );
+  const lastVersion = useRef(null);
+  const fetching = useRef(false);
+
+  const safeFetch = async () => {
+    if (fetching.current) return;
+
+    fetching.current = true;
+    try {
+      await fetchMe();
+    } finally {
+      fetching.current = false;
+    }
+  };
 
   const channel = supabase
-
-    .channel(
-      `user-realtime-${profileId}`
-    )
-
-    /* --------------------------------
-       MEMBERSHIP REQUESTS
-    -------------------------------- */
-
+    .channel(`profile-sync-${profileId}`)
     .on(
       "postgres_changes",
       {
         event: "*",
         schema: "public",
-        table:
-          "membership_requests",
+        table: "profiles",
+        filter: `id=eq.${profileId}`,
       },
-
       async (payload) => {
-        const row =
-          payload.new ||
-          payload.old;
+        const newVersion =
+          payload.new?.profile_state_version ||
+          payload.old?.profile_state_version;
+
+        console.log("[RT] profile event");
+        console.log("[RT] version:", newVersion);
 
         if (
-          row?.profile_id !==
-          profileId
+          newVersion &&
+          newVersion !== lastVersion.current
         ) {
-          return;
-        }
+          lastVersion.current = newVersion;
 
-        console.log("");
-        console.log(
-          "📨 REQUEST EVENT"
-        );
-
-        console.log(
-          "[RT][request] type:",
-          payload.eventType
-        );
-
-        console.log(
-          "[RT][request] old status:",
-          payload.old?.status
-        );
-
-        console.log(
-          "[RT][request] new status:",
-          payload.new?.status
-        );
-
-        if (
-          payload.old?.status ===
-            "requested" &&
-          payload.new?.status ===
-            "approved"
-        ) {
           console.log(
-            "[RT][request] APPROVED"
+            "[RT] version changed → refreshing user"
+          );
+
+          await safeFetch();
+        } else {
+          console.log(
+            "[RT] ignored duplicate event"
           );
         }
-
-        const updated =
-          await fetchMe();
-
-        console.log(
-          "[RT][request] updated user:",
-          updated
-        );
       }
     )
-
-    /* --------------------------------
-       MEMBERS
-    -------------------------------- */
-
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "members",
-      },
-
-      async (payload) => {
-        const row =
-          payload.new ||
-          payload.old;
-
-        if (
-          row?.profile_id !==
-          profileId
-        ) {
-          return;
-        }
-
-        console.log("");
-        console.log(
-          "🔥 MEMBER EVENT"
-        );
-
-        console.log(
-          "[RT][member] type:",
-          payload.eventType
-        );
-
-        console.log(
-          "[RT][member] old status:",
-          payload.old?.status
-        );
-
-        console.log(
-          "[RT][member] new status:",
-          payload.new?.status
-        );
-
-        if (
-          payload.new?.status ===
-          "active"
-        ) {
-          console.log(
-            "[RT][member] MEMBER ACTIVE"
-          );
-        }
-
-        const updated =
-          await fetchMe();
-
-        console.log(
-          "[RT][member] updated user:",
-          updated
-        );
-      }
-    )
-
     .subscribe((status) => {
-      console.log(
-        "[RT] STATUS:",
-        status
-      );
+      console.log("[RT] status:", status);
     });
 
   return () => {
-    console.log(
-      "[RT] CLEANUP"
-    );
-
-    supabase.removeChannel(
-      channel
-    );
+    console.log("[RT] cleanup");
+    supabase.removeChannel(channel);
   };
-}, [
-  authReady,
-  profileId,
-  fetchMe,
-]);
+}, [authReady, profileId, fetchMe]);
   /* -------------------------------
      Permission helpers
   ------------------------------- */
