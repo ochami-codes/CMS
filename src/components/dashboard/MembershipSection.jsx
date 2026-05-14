@@ -69,7 +69,7 @@ const hasActiveRequest =
           {status === "requested"
   ? "Your membership request is pending review."
 
-  : status === "approved"
+  : status === "active"
   ? "Your membership has been approved 🎉"
 
   : status === "rejected"
