@@ -332,34 +332,28 @@ useEffect(() => {
   const channel = supabase
     .channel(`membership-${profileId}`)
 
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "membership_requests",
-        filter: `profile_id=eq.${profileId}`,
-      },
-      (payload) => {
-        console.log("[RT] membership_requests event:", payload);
-        fetchMe();
-      }
-    )
-
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "members",
-        filter: `profile_id=eq.${profileId}`,
-      },
-      (payload) => {
-        console.log("[RT] members event:", payload);
-        fetchMe();
-      }
-    )
-
+.on(
+  "postgres_changes",
+  {
+    event: "*",
+    schema: "public",
+    table: "membership_requests",
+  },
+  (payload) => {
+    console.log("🔥 RAW REQUEST EVENT:", payload);
+  }
+)
+ .on(
+  "postgres_changes",
+  {
+    event: "*",
+    schema: "public",
+    table: "members",
+  },
+  (payload) => {
+    console.log("🔥 RAW MEMBER EVENT:", payload);
+  }
+)
     .subscribe((status) => {
       console.log("[RT] subscription status:", status);
     });
