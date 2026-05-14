@@ -317,6 +317,11 @@ const dashboardMode =
 useEffect(() => {
   console.log("[RT] effect triggered");
 
+  if (!authReady) {
+    console.log("[RT] blocked: auth not ready");
+    return;
+  }
+
   if (!profileId) {
     console.log("[RT] blocked: no profileId");
     return;
@@ -327,9 +332,6 @@ useEffect(() => {
   const channel = supabase
     .channel(`membership-${profileId}`)
 
-    /* -----------------------------
-       membership_requests
-    ----------------------------- */
     .on(
       "postgres_changes",
       {
@@ -339,17 +341,11 @@ useEffect(() => {
         filter: `profile_id=eq.${profileId}`,
       },
       (payload) => {
-        console.log("[RT] membership_requests event:");
-        console.log("[RT] payload:", payload);
-        console.log("[RT] profile match:", profileId);
-
+        console.log("[RT] membership_requests event:", payload);
         fetchMe();
       }
     )
 
-    /* -----------------------------
-       members
-    ----------------------------- */
     .on(
       "postgres_changes",
       {
@@ -359,10 +355,7 @@ useEffect(() => {
         filter: `profile_id=eq.${profileId}`,
       },
       (payload) => {
-        console.log("[RT] members event:");
-        console.log("[RT] payload:", payload);
-        console.log("[RT] profile match:", profileId);
-
+        console.log("[RT] members event:", payload);
         fetchMe();
       }
     )
@@ -371,13 +364,11 @@ useEffect(() => {
       console.log("[RT] subscription status:", status);
     });
 
-  console.log("[RT] channel created:", channel);
-
   return () => {
-    console.log("[RT] cleaning up channel:", profileId);
+    console.log("[RT] cleaning up:", profileId);
     supabase.removeChannel(channel);
   };
-}, [profileId, fetchMe]);
+}, [authReady, profileId, fetchMe]);
   /* -------------------------------
      Permission helpers
   ------------------------------- */
