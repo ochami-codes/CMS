@@ -329,52 +329,37 @@ const dashboardMode =
   }, [fetchMe, fetchRoles]);
 
   /* Membership realtime updates */
-  useEffect(() => {
-    if (!authReady || !profileId) return;
 
-    console.log("[RT] profile sync started");
+useEffect(() => {
+  if (!authReady || !profileId) return;
 
-    const safeFetch = async () => {
-      if (fetching.current) return;
-      fetching.current = true;
-      try {
+  const channel = supabase
+    .channel(`profile-sync-${profileId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "profiles",
+        filter: `id=eq.${profileId}`,
+      },
+      async (payload) => {
+        console.log("[RT] EVENT RECEIVED");
+        console.log(payload);
+
+        console.log("[RT] REFRESH USER");
+
         await fetchMe();
-      } finally {
-        fetching.current = false;
       }
-    };
+    )
+    .subscribe((status) => {
+      console.log("[RT] STATUS:", status);
+    });
 
-    const channel = supabase
-      .channel(`profile-sync-${profileId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${profileId}`,
-        },
-        async (payload) => {
-          const newVersion =
-            payload.new?.profile_state_version ||
-            payload.old?.profile_state_version;
-
-          if (newVersion && newVersion !== lastVersion.current) {
-            lastVersion.current = newVersion;
-            await safeFetch();
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log("[RT] status:", status);
-      });
-
-    return () => {
-      console.log("[RT] cleanup");
-      supabase.removeChannel(channel);
-      lastVersion.current = null; // reset on cleanup
-    };
-  }, [authReady, profileId, fetchMe]);
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [authReady, profileId, fetchMe]);
   /* -------------------------------
      Permission helpers
   ------------------------------- */
