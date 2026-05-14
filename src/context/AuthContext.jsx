@@ -314,17 +314,22 @@ const dashboardMode =
      Membership realtime updates
   ------------------------------- */
 
-/* -------------------------------
-   Membership realtime updates
--------------------------------- */
-
 useEffect(() => {
-  if (!profileId) return;
+  console.log("[RT] effect triggered");
+
+  if (!profileId) {
+    console.log("[RT] blocked: no profileId");
+    return;
+  }
+
+  console.log("[RT] starting subscription for:", profileId);
 
   const channel = supabase
     .channel(`membership-${profileId}`)
 
-    /* membership requests */
+    /* -----------------------------
+       membership_requests
+    ----------------------------- */
     .on(
       "postgres_changes",
       {
@@ -333,10 +338,18 @@ useEffect(() => {
         table: "membership_requests",
         filter: `profile_id=eq.${profileId}`,
       },
-      fetchMe
+      (payload) => {
+        console.log("[RT] membership_requests event:");
+        console.log("[RT] payload:", payload);
+        console.log("[RT] profile match:", profileId);
+
+        fetchMe();
+      }
     )
 
-    /* members */
+    /* -----------------------------
+       members
+    ----------------------------- */
     .on(
       "postgres_changes",
       {
@@ -345,12 +358,23 @@ useEffect(() => {
         table: "members",
         filter: `profile_id=eq.${profileId}`,
       },
-      fetchMe
+      (payload) => {
+        console.log("[RT] members event:");
+        console.log("[RT] payload:", payload);
+        console.log("[RT] profile match:", profileId);
+
+        fetchMe();
+      }
     )
 
-    .subscribe();
+    .subscribe((status) => {
+      console.log("[RT] subscription status:", status);
+    });
+
+  console.log("[RT] channel created:", channel);
 
   return () => {
+    console.log("[RT] cleaning up channel:", profileId);
     supabase.removeChannel(channel);
   };
 }, [profileId, fetchMe]);
