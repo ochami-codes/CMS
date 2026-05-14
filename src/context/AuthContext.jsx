@@ -417,13 +417,17 @@ useEffect(() => {
         schema: "public",
         table: "members",
       },
-      (payload) => {
-        console.log(
-          "MEMBER EVENT:",
-          payload
-        );
-      }
-    )
+      async (payload) => {
+  console.log("MEMBER EVENT", payload);
+
+  const updated =
+    await fetchMe();
+
+  console.log(
+    "UPDATED USER:",
+    updated
+  );
+})
 
     .subscribe((status) => {
       console.log(
