@@ -38,20 +38,19 @@ export default function useBirthdays(birthday) {
   // =========================
   // COUNTDOWN TIMER
   // =========================
-  const birthdayTimer = useMemo(() => {
-    if (!birthday?.birthday) return null;
+const birthdayTimer = useMemo(() => {
+  if (!birthday?.birthday) return null;
 
-    const dob = new Date(birthday.birthday);
+  const dob = new Date(birthday.birthday);
 
-    const nextBirthday = getNextBirthday(dob);
+  // invalid date guard
+  if (isNaN(dob.getTime())) {
+    console.error("Invalid birthday:", birthday.birthday);
+    return null;
+  }
 
-    return timeDiff(nextBirthday, now);
+  const nextBirthday = getNextBirthday(dob);
 
-  }, [birthday, now]);
+if (!nextBirthday) return null;
 
-  return {
-    hasBirthday,
-    isBirthday,
-    birthdayTimer,
-  };
-}
+return timeDiff(nextBirthday, now);
