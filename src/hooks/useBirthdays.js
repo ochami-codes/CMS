@@ -41,7 +41,7 @@ export default function useBirthdays(birthday) {
 const birthdayTimer = useMemo(() => {
   if (!birthday?.birthday) return null;
 
-  const dob = new Date(birthday.birthday);
+  const dob = new Date(birthday.birthday.birthday);
 
   // invalid date guard
   if (isNaN(dob.getTime())) {
