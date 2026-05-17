@@ -117,9 +117,6 @@ const actions = [
     key: "request_role",
     label: "Request Role",
 
-    permission:
-      "access_role_requests",
-
     requireActiveMember: true,
 
     hideForAdmin: true,
