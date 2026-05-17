@@ -1,16 +1,23 @@
 // ./src/utils/time.js
 // Dashboard functions
 export const getNextBirthday = (dob) => {
-const today = new Date();
-let next = new Date(
-today.getFullYear(),
-dob.getMonth(),
-dob.getDate()
-);
-if (next < today) {
-next.setFullYear(today.getFullYear() + 1);
-}
-return next;
+  if (!(dob instanceof Date) || isNaN(dob)) {
+    return null;
+  }
+
+  const today = new Date();
+
+  let next = new Date(
+    today.getFullYear(),
+    dob.getMonth(),
+    dob.getDate()
+  );
+
+  if (next < today) {
+    next.setFullYear(today.getFullYear() + 1);
+  }
+
+  return next;
 };
 
 export const isSabbathNow = () => {

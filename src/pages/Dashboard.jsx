@@ -107,60 +107,65 @@ export default function Dashboard() {
      QUICK ACTIONS
   ========================= */
 
-  const actions = [
-    {
-      key: "message",
-      label: "Messages",
-    },
+const actions = [
+  {
+    key: "message",
+    label: "Messages",
+  },
 
-    {
-      key: "request_role",
-      label: "Request Role",
-      permission:
-        "access_role_requests",
+  {
+    key: "request_role",
+    label: "Request Role",
 
-      requireActiveMember: true,
-    },
+    permission:
+      "access_role_requests",
 
-    {
-      key: "transfer",
-      label:
-        "Membership Transfer",
+    requireActiveMember: true,
 
-      permission:
-        "membership.transfer",
+    hideForAdmin: true,
+  },
 
-      requireActiveMember: true,
-    },
+  {
+    key: "transfer",
+    label:
+      "Membership Transfer",
 
-    {
-      key: "lesson",
-      label:
-        "Lesson Subscription",
+    requireActiveMember: true,
+  },
 
-      permission:
-        "lesson.subscribe",
+  {
+    key: "lesson",
+    label:
+      "Lesson Subscription",
 
-      requireActiveMember: true,
-    },
-  ];
+    requireActiveMember: true,
+  },
+];
 
   /* =========================
      FILTER VISIBLE ACTIONS
   ========================= */
 
   const visibleActions =
-    actions.filter((action) =>
-      canUser(
-        action.permission,
-        {
-          roles: action.roles,
+  actions.filter((action) => {
 
-          requireActiveMember:
-            action.requireActiveMember,
-        }
-      )
+    if (
+      action.hideForAdmin &&
+      isAdmin()
+    ) {
+      return false;
+    }
+
+    return canUser(
+      action.permission,
+      {
+        roles: action.roles,
+
+        requireActiveMember:
+          action.requireActiveMember,
+      }
     );
+  });
 
   /* =========================
      ACTION HANDLER

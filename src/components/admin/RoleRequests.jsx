@@ -129,10 +129,6 @@ export default function RoleRequests() {
             Role Change Requests
           </h2>
 
-          <p className="text-muted">
-            Active Church:{" "}
-            {activeMembership?.church?.name || "Unknown"}
-          </p>
         </div>
       </div>
 
