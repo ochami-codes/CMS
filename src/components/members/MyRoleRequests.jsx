@@ -1,43 +1,51 @@
 // src/components/members/MyRoleRequests.jsx
 import { useState, useEffect } from "react";
+import { Shield, Clock, CheckCircle, XCircle } from "lucide-react";
 import { RoleRequestsAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/pages.css";
 
 export default function MyRoleRequests() {
   const { user, rolesData, getRoleLabel } = useAuth();
+
   const [requests, setRequests] = useState([]);
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  /* ------------------ Load my role requests ------------------ */
   const loadRequests = async () => {
     if (!user?.id) return;
+
     try {
       setLoading(true);
-      const data = await RoleRequestsAPI.fetchMyRequests();
-      setRequests(Array.isArray(data) ? data : data.requests ?? []);
-    } catch (err) {
-      console.error(err);
+
+      const data =
+        await RoleRequestsAPI.fetchMyRequests();
+
+      setRequests(
+        Array.isArray(data)
+          ? data
+          : data.requests ?? []
+      );
+    } catch {
       setRequests([]);
     } finally {
       setLoading(false);
     }
   };
 
-  /* ------------------ Submit new role request ------------------ */
   const submitRequest = async () => {
     if (!role) return;
 
     try {
       setSubmitting(true);
+
       await RoleRequestsAPI.submit(role);
-      alert("Role request submitted!");
-      setRole(""); // reset selection
+
+      alert("Request submitted");
+
+      setRole("");
       loadRequests();
-    } catch (err) {
-      alert(err.message || "Failed to submit request");
     } finally {
       setSubmitting(false);
     }
@@ -47,39 +55,65 @@ export default function MyRoleRequests() {
     loadRequests();
   }, [user]);
 
-  if (!user) {
-    return (
-      <div className="page-container">
-        <div className="page-card">Loading profile…</div>
-      </div>
-    );
-  }
+  const statusClass = (status) => {
+    if (status === "approved")
+      return "status-approved";
 
-  if (loading) {
+    if (status === "rejected")
+      return "status-rejected";
+
+    return "status-pending";
+  };
+
+  if (loading)
     return (
-      <div className="page-container">
-        <div className="page-card">Loading requests…</div>
+      <div className="page-card">
+        Loading requests...
       </div>
     );
-  }
 
   return (
-    <div className="page-container space-y-6">
-      {/* Request Form */}
-      <div className="page-card">
-        <h2 className="card-title">Request a Role</h2>
+    <div className="page-container role-page">
 
-        <div className="form-group flex-row">
+      {/* Header */}
+      <div className="role-header">
+        <h1>Role Requests</h1>
+        <p>
+          Request additional permissions
+          within your church.
+        </p>
+      </div>
+
+      {/* Request Form */}
+      <div className="page-card role-request-card">
+
+        <div className="card-title">
+          <Shield size={20}/>
+          Request New Role
+        </div>
+
+        <div className="role-form">
+
           <select
             value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="input flex-1"
+            onChange={(e) =>
+              setRole(e.target.value)
+            }
+            className="role-select"
           >
-            <option value="">Select a role…</option>
+            <option value="">
+              Select role
+            </option>
+
             {rolesData.roles
-              .filter(r => r.name !== "admin") // exclude admin
+              .filter(
+                r => r.name !== "admin"
+              )
               .map(r => (
-                <option key={r.name} value={r.name}>
+                <option
+                  key={r.name}
+                  value={r.name}
+                >
                   {r.label}
                 </option>
               ))}
@@ -87,39 +121,78 @@ export default function MyRoleRequests() {
 
           <button
             onClick={submitRequest}
-            disabled={submitting || !role}
-            className="btn btn-primary ml-2"
+            disabled={
+              !role || submitting
+            }
+            className="btn btn-primary"
           >
-            {submitting ? "Submitting…" : "Submit Request"}
+            {submitting
+              ? "Submitting..."
+              : "Send Request"}
           </button>
+
         </div>
+
       </div>
 
-      {/* My Requests */}
+      {/* Requests */}
       <div className="page-card">
-        <h3 className="card-title">My Requests</h3>
-        {requests.length === 0 ? (
-          <p className="card-subtitle">No role requests yet.</p>
+
+        <div className="card-title">
+          My Requests
+        </div>
+
+        {!requests.length ? (
+
+          <div className="empty-state">
+            No role requests yet
+          </div>
+
         ) : (
-          <ul className="list-disc pl-5">
-            {requests.map((r) => (
-              <li
+
+          <div className="request-list">
+
+            {requests.map(r => (
+
+              <div
                 key={r.id}
-                className="flex flex-col sm:flex-row sm:justify-between py-1"
+                className="request-item"
               >
-                <span>
-                  {getRoleLabel(r.requested_role)} – <strong>{r.role_request_status}</strong>
+
+                <div>
+
+                  <div className="request-role">
+                    {getRoleLabel(
+                      r.requested_role
+                    )}
+                  </div>
+
+                  <small className="request-date">
+                    {new Date(
+                      r.role_requested_at
+                    ).toLocaleDateString()}
+                  </small>
+
+                </div>
+
+                <span
+                  className={`status-label ${statusClass(
+                    r.role_request_status
+                  )}`}
+                >
+                  {r.role_request_status}
                 </span>
-                <span className="text-gray-500 text-sm">
-                  {r.role_requested_at
-                    ? new Date(r.role_requested_at).toLocaleString()
-                    : "-"}
-                </span>
-              </li>
+
+              </div>
+
             ))}
-          </ul>
+
+          </div>
+
         )}
+
       </div>
+
     </div>
   );
 }
