@@ -4,7 +4,7 @@ import { Bell } from "lucide-react";
 import NotificationsDropdown from "./NotificationsDropdown";
 import { NotificationsAPI } from "../utils/api";
 import "../styles/pages.css";
-
+import "../styles/notifications.css";
 export default function NotificationBell() {
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);

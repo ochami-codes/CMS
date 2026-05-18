@@ -1,6 +1,7 @@
 // src/pages/Home.jsx
 import { Link } from "react-router-dom";
 import "../styles/pages.css";
+import "../styles/home.css";
 import { FaUsers, FaMoneyBillWave, FaBullhorn, FaLock, FaUserPlus, FaEnvelope, FaSignInAlt } from "react-icons/fa";
 
 export default function Home() {

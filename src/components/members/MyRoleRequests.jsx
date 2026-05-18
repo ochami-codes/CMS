@@ -4,7 +4,7 @@ import { Shield, Clock, CheckCircle, XCircle } from "lucide-react";
 import { RoleRequestsAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/pages.css";
-
+import "../../styles/role-request.css";
 export default function MyRoleRequests() {
   const { user, rolesData, getRoleLabel } = useAuth();
 

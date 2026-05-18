@@ -3,6 +3,7 @@ import Input from "../../../components/Input";
 import Button from "../../../components/Button";
 import Toast from "../../../components/Toast";
 import "../../../styles/pages.css";
+import "../../../styles/profile.css";
 export default function ProfileForm({ profile, onUpdate, loading, message }) {
   const [localProfile, setLocalProfile] = useState(profile);
   const [errors, setErrors] = useState({});

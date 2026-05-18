@@ -1,0 +1,199 @@
+/* ---------- Dashboard Container ---------- */
+.dashboard-content {
+  margin: 2rem auto;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ---------- Dashboard Action Cards ---------- */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dashboard-action-card {
+  background-color: #f3f4f6;
+  color: #374151;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 100px;
+}
+
+.dashboard-action-card:hover {
+  transform: translateY(-3px);
+  background-color: #e5e7eb;
+}
+
+/* ---------- Info / Birthday Cards ---------- */
+.dashboard-info-card,
+.dashboard-birthday-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: #fefce8; /* subtle warm yellow */
+  border-radius: 12px;
+}
+
+.dashboard-birthday-card h3 {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.birthday-today {
+  color: #16a34a; /* green */
+  font-weight: 500;
+}
+
+.birthday-upcoming {
+  color: #f59e0b; /* amber */
+  font-weight: 500;
+}
+.birthday-none {
+  background-color: #f3f4f6; /* match card background */
+  color: #6b7280; /* subtle gray text */
+  font-style: italic;
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+.my-birthday-card {
+  background-color: #f0f9ff; /* light blue */
+  border-left: 4px solid #3b82f6; /* blue highlight */
+  font-weight: 500;
+  padding: 0.75rem;
+  text-align: center;
+}
+/* ---------- Birthdays Grid ---------- */
+.birthdays-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.birthday-card {
+  background-color: #e0f2fe; /* light blue */
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* ---------- Announcements ---------- */
+.announcement-card {
+  background-color: #fef2f2; /* soft red tint */
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.announcement-card h4 {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.announcement-card span {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+/* ---------- Dashboard Sections ---------- */
+.dashboard-section {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.dashboard-section:last-child {
+  border-bottom: none;
+}
+
+.dashboard-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #374151;
+  padding-left: 0.25rem;
+}
+
+.dashboard-section-header span {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+/* ---------- Verse ---------- */
+.dashboard-verse {
+  font-size: 0.95rem;
+  color: #374151;
+  margin-top: 0.5rem;
+  line-height: 1.6;
+}
+
+/* ---------- Sabbath Card ---------- */
+.sabbath-card {
+  background-color: #f8fafc;
+  border-left: 4px solid #4f46e5;
+}
+
+/* ---------- Birthday Cards ---------- */
+.birthday-today {
+  background-color: #ecfdf5;
+  color: #065f46;
+  font-weight: 500;
+}
+
+.birthday-upcoming {
+  background-color: #fff7ed;
+  color: #92400e;
+  font-weight: 500;
+}
+/* ---------- Harmonized Quick Links (Fully Aligned) ---------- */
+.dashboard-action-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: #4f46e5;             /* subtle accent for title/icon */
+}
+
+.dashboard-action-card p {
+  font-size: 0.875rem;
+  color: #6b7280;             /* soft subtitle text */
+  margin: 0;
+}
+
+.dashboard-action-card:hover {
+  transform: translateY(-3px);
+  background-color: #e5e7eb;   /* subtle hover lift */
+  box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+}
+
+/* Optional: icon color consistency */
+.dashboard-action-card svg {
+  color: #4f46e5; /* match h3 title accent */
+  flex-shrink: 0;
+}
+
+/* Responsive tweaks to match dashboard spacing */
+@media (max-width: 768px) {
+  .dashboard-actions {
+    flex-direction: column;
+  }
+}

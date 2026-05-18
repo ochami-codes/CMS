@@ -3,6 +3,7 @@ import { NotificationsAPI } from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/pages.css";
+import "../styles/notifications.css";
 
 export default function NotificationsDropdown({ onClose, refreshUnread }) {
   const [notifications, setNotifications] = useState([]);

@@ -23,7 +23,7 @@ import { getGreeting } from "../utils/greetings";
 import { filterAnnouncements } from "../utils/announcements";
 
 import "../styles/pages.css";
-
+import "../styles/dashboard.css";
 export default function Dashboard() {
   const navigate = useNavigate();
 
