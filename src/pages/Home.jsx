@@ -1,93 +1,183 @@
 // src/pages/Home.jsx
 import { Link } from "react-router-dom";
-import "../styles/pages.css";
+import {
+  FaUsers,
+  FaMoneyBillWave,
+  FaBullhorn,
+  FaLock,
+  FaUserPlus,
+  FaEnvelope,
+  FaSignInAlt,
+  FaChurch,
+  FaClipboardList,
+} from "react-icons/fa";
+
 import "../styles/home.css";
-import { FaUsers, FaMoneyBillWave, FaBullhorn, FaLock, FaUserPlus, FaEnvelope, FaSignInAlt } from "react-icons/fa";
 
 export default function Home() {
   return (
-    <div className="container home-container">
+    <div className="home-container">
 
-      {/* ================= Hero ================= */}
-      <header className="card home-hero text-center">
-        <h1 className="home-hero-title">Church management, made simple</h1>
-        <p className="home-hero-subtitle">
-          Manage members, departments, finances, and announcements — all in one place.
+      {/* HERO */}
+      <section className="home-hero">
+
+        <div className="hero-badge">
+          <FaChurch />
+          Built for churches
+        </div>
+
+        <h1>
+          Manage your church
+          <span> simply & securely</span>
+        </h1>
+
+        <p>
+          Membership records, departments, treasury,
+          announcements, and church roles —
+          all in one platform.
         </p>
 
         <div className="home-buttons">
-          <Link to="/login" className="btn btn-primary">Sign In</Link>
-          <Link to="/register" className="btn btn-secondary">Get Started</Link>
+          <Link to="/register" className="btn btn-primary">
+            Get Started
+          </Link>
+
+          <Link to="/login" className="btn btn-outline">
+            Sign In
+          </Link>
         </div>
-      </header>
 
-      {/* ================= How It Works ================= */}
-      <section className="home-section">
-        <h2 className="section-title">How It Works</h2>
-        <div className="features-grid features-grid-3">
-          <div className="feature-card feature-gradient-indigo">
-            <div className="feature-icon-title">
-              <FaUserPlus size={24} />
-              <h3 className="feature-title">1. Register</h3>
-            </div>
-            <p>Create an account by clicking the <strong>Get Started</strong> button.</p>
+        <div className="hero-stats">
+          <div>
+            <strong>Members</strong>
+            <span>Records & transfers</span>
           </div>
 
-          <div className="feature-card feature-gradient-green">
-            <div className="feature-icon-title">
-              <FaEnvelope size={24} />
-              <h3 className="feature-title">2. Verify Email</h3>
-            </div>
-            <p>Check your inbox and click the verification link we send you.</p>
+          <div>
+            <strong>Departments</strong>
+            <span>Manage ministries</span>
           </div>
 
-          <div className="feature-card feature-gradient-yellow">
-            <div className="feature-icon-title">
-              <FaSignInAlt size={24} />
-              <h3 className="feature-title">3. Log In</h3>
-            </div>
-            <p>Once verified, sign in and access your church dashboard.</p>
+          <div>
+            <strong>Treasury</strong>
+            <span>Track finances</span>
           </div>
         </div>
+
       </section>
 
-      {/* ================= Features ================= */}
-      <section className="home-section">
-        <h2 className="section-title">Features</h2>
-        <div className="features-grid features-grid-4">
-          <div className="feature-card feature-gradient-indigo">
-            <div className="feature-icon-title">
-              <FaUsers size={24} />
-              <h3 className="feature-title">Departments</h3>
-            </div>
-            <p>Youth, Children, Sabbath School & more.</p>
+
+      {/* HOW IT WORKS */}
+      <section>
+
+        <h2 className="section-title">
+          Getting started is easy
+        </h2>
+
+        <div className="features-grid">
+
+          <div className="feature-card">
+            <FaUserPlus />
+            <h3>Create account</h3>
+            <p>Register your church profile.</p>
           </div>
 
-          <div className="feature-card feature-gradient-green">
-            <div className="feature-icon-title">
-              <FaMoneyBillWave size={24} />
-              <h3 className="feature-title">Treasury</h3>
-            </div>
-            <p>Track tithe, offerings, and church funds.</p>
+          <div className="feature-card">
+            <FaEnvelope />
+            <h3>Verify email</h3>
+            <p>Confirm ownership securely.</p>
           </div>
 
-          <div className="feature-card feature-gradient-yellow">
-            <div className="feature-icon-title">
-              <FaBullhorn size={24} />
-              <h3 className="feature-title">Announcements</h3>
-            </div>
-            <p>Share updates with the whole church.</p>
+          <div className="feature-card">
+            <FaSignInAlt />
+            <h3>Start managing</h3>
+            <p>Access your dashboard instantly.</p>
           </div>
 
-          <div className="feature-card feature-gradient-red">
-            <div className="feature-icon-title">
-              <FaLock size={24} />
-              <h3 className="feature-title">Roles & Security</h3>
-            </div>
-            <p>Admins, pastors, and members — securely managed.</p>
-          </div>
         </div>
+
       </section>
+
+
+      {/* FEATURES */}
+      <section>
+
+        <h2 className="section-title">
+          Everything churches need
+        </h2>
+
+        <div className="features-grid">
+
+          <div className="feature-card">
+            <FaClipboardList />
+            <h3>Church Clerk</h3>
+            <p>
+              Membership registers,
+              baptisms, transfers,
+              missing members.
+            </p>
+          </div>
+
+          <div className="feature-card">
+            <FaUsers />
+            <h3>Departments</h3>
+            <p>
+              Youth, Sabbath School,
+              Children, Music & more.
+            </p>
+          </div>
+
+          <div className="feature-card">
+            <FaMoneyBillWave />
+            <h3>Treasury</h3>
+            <p>
+              Track offerings,
+              expenses and funds.
+            </p>
+          </div>
+
+          <div className="feature-card">
+            <FaBullhorn />
+            <h3>Announcements</h3>
+            <p>
+              Reach the whole church.
+            </p>
+          </div>
+
+          <div className="feature-card">
+            <FaLock />
+            <h3>Role Permissions</h3>
+            <p>
+              Pastor, elder,
+              clerk, member access.
+            </p>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* CTA */}
+      <section className="cta-section">
+
+        <h2>
+          Ready to organize your church?
+        </h2>
+
+        <p>
+          Start using the platform today.
+        </p>
+
+        <Link
+          to="/register"
+          className="btn btn-primary"
+        >
+          Create Account
+        </Link>
+
+      </section>
+
     </div>
   );
 }
