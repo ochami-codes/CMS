@@ -100,7 +100,7 @@ export default function Home() {
 
 
       {/* FEATURES */}
-      <section>
+      <section className="card-section">
 
         <h2 className="section-title">
           Everything churches need
