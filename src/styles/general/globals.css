@@ -23,6 +23,11 @@ body{
 
   overflow-x:hidden;
 }
+section:nth-child(even) {
+  background: rgba(243, 244, 246, 0.6);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1rem;
+}
 
 img{
   max-width:100%;

@@ -1,15 +1,22 @@
-.card{
-    background:var(--surface);
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
 
-    padding:1rem;
-
-    border-radius:
-      var(--radius-lg);
-
-    box-shadow:
-      var(--shadow-sm);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
 }
-
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(37, 99, 235, 0.2);
+}
 .title{
     margin-bottom:1rem;
+}
+.card svg {
+  color: var(--primary);
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
 }
