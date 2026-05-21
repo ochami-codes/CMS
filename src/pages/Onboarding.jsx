@@ -1,6 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { FaChurch, FaPlus, FaSearch } from "react-icons/fa";
-
 import { useAuth } from "../context/AuthContext";
 
 import Loader from "../components/Loader";
@@ -11,200 +9,134 @@ import PageHeader from "../components/PageHeader";
 import styles from "../styles/pages/Onboarding.module.css";
 
 export default function Onboarding() {
-  const { user, switchChurch } = useAuth();
   const navigate = useNavigate();
+
+  const {
+    user,
+    switchChurch,
+    isActiveMember,
+    isPendingMember,
+    isRejectedMember,
+    activeMembership,
+    activeMembershipRequest,
+    hasAnyMembership,
+  } = useAuth();
 
   if (!user) return <Loader />;
 
-  const memberships = user.memberships || [];
+  async function handleOpenChurch(churchId) {
+    const success = await switchChurch(churchId);
 
-  const active =
-    memberships.filter(
-      m => m.status === "active"
-    );
-
-  const pending =
-    memberships.filter(
-      m => m.status !== "active"
-    );
-
-
-  async function handleOpenChurch(churchId){
-    const success =
-      await switchChurch(churchId);
-
-    if(success){
+    if (success) {
       navigate("/dashboard");
     }
   }
 
   return (
-
     <div className={styles.container}>
-
       <PageHeader
-        title={`Welcome back,
-        ${user.full_name || "User"} 👋`}
+        title={`Welcome back, ${user.full_name || "User"} 👋`}
         subtitle="Choose how you'd like to continue"
       />
 
-
-
-      {active.length > 0 && (
-
+      {/* ---------------- ACTIVE MEMBERSHIPS ---------------- */}
+      {isActiveMember && hasAnyMembership && (
         <section>
-
-          <h2 className={styles.title}>
-            Your Churches
-          </h2>
+          <h2 className={styles.title}>Your Churches</h2>
 
           <div className={styles.grid}>
+            {user.memberships
+              .filter((m) => m.status === "active")
+              .map((m) => (
+                <Card key={m.id} className={styles.churchCard}>
+                  <h3>{m.church_name}</h3>
 
-            {active.map(m => (
+                  <p className={styles.statusSuccess}>
+                    Active Member
+                  </p>
 
-              <Card
-                key={m.id}
-                className={styles.churchCard}
-              >
-
-                <FaChurch />
-
-                <h3>
-                  {m.church_name}
-                </h3>
-
-                <Button
-                  onClick={() =>
-                    handleOpenChurch(
-                      m.church_id
-                    )
-                  }
-                >
-                  Open Church
-                </Button>
-
-              </Card>
-
-            ))}
-
+                  <Button onClick={() => handleOpenChurch(m.church_id)}>
+                    Open Church
+                  </Button>
+                </Card>
+              ))}
           </div>
-
         </section>
-
       )}
 
-
-
-      {pending.length > 0 && (
-
+      {/* ---------------- PENDING REQUEST ---------------- */}
+      {isPendingMember && activeMembershipRequest && (
         <section>
+          <h2 className={styles.title}>Membership Request</h2>
 
-          <h2 className={styles.title}>
-            Pending Requests
-          </h2>
+          <Card className={styles.churchCard}>
+            <h3>{activeMembershipRequest.church_name}</h3>
 
-          <div className={styles.grid}>
+            <p className={styles.statusPending}>
+              Pending Approval
+            </p>
 
-            {pending.map(m => (
-
-              <Card key={m.id}>
-
-                <h3>
-                  {m.church_name}
-                </h3>
-
-                <p>
-                  Status:
-                  {" "}
-                  {m.status}
-                </p>
-
-              </Card>
-
-            ))}
-
-          </div>
-
+            <p className={styles.note}>
+              Your request is being reviewed by church leadership.
+            </p>
+          </Card>
         </section>
-
       )}
 
+      {/* ---------------- REJECTED REQUEST ---------------- */}
+      {isRejectedMember && activeMembershipRequest && (
+        <section>
+          <h2 className={styles.title}>Membership Request</h2>
 
+          <Card className={styles.churchCard}>
+            <h3>{activeMembershipRequest.church_name}</h3>
 
-      {memberships.length === 0 && (
+            <p className={styles.statusError}>
+              Request Rejected
+            </p>
 
+            <p className={styles.note}>
+              You can try joining another church or resubmit your request.
+            </p>
+
+            <Button onClick={() => navigate("/join-church")}>
+              Try Again
+            </Button>
+          </Card>
+        </section>
+      )}
+
+      {/* ---------------- EMPTY STATE ---------------- */}
+      {!hasAnyMembership && !isPendingMember && (
         <Card>
-
-          <h3>
-            No church memberships
-          </h3>
-
-          <p>
-            Join a church or
-            create one.
-          </p>
-
+          <h3>No church membership yet</h3>
+          <p>Join a church or create one to get started.</p>
         </Card>
-
       )}
 
-
-
+      {/* ---------------- ACTIONS ---------------- */}
       <div className={styles.actions}>
-
         <Card>
+          <h3>Join Church</h3>
+          <p>Request access to an existing church.</p>
 
-          <FaSearch />
-
-          <h3>
-            Join Church
-          </h3>
-
-          <p>
-            Request access to
-            an existing church.
-          </p>
-
-          <Button
-            onClick={() =>
-              navigate("/join-church")
-            }
-          >
+          <Button onClick={() => navigate("/join-church")}>
             Join Church
           </Button>
-
         </Card>
 
-
-
         <Card>
-
-          <FaPlus />
-
-          <h3>
-            Create Church
-          </h3>
-
-          <p>
-            Start a new church
-            workspace.
-          </p>
+          <h3>Create Church</h3>
+          <p>Start a new church workspace.</p>
 
           <Button
             variant="outline"
-            onClick={() =>
-              navigate(
-                "/create-church"
-              )
-            }
+            onClick={() => navigate("/create-church")}
           >
             Create Church
           </Button>
-
         </Card>
-
       </div>
-
     </div>
   );
 }

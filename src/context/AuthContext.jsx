@@ -147,11 +147,11 @@ const lastVersion = useRef(null);
 
   active_membership_status:
     data.user.active_membership_status || "guest",
-
+  active_church_name: data.user.active_church_name || null,
   active_church_id:
     data.user.active_church_id || null,
 };
-  active_church_name: data.user.active_church_name || null,
+  
     setUser(normalizedUser);
     return normalizedUser;
   } catch (err) {
@@ -186,7 +186,8 @@ const isActiveMember =
 
 const isPendingMember =
   !!activeMembershipRequest;
-
+const isRejectedMember =
+  activeMembershipRequestStatus === "rejected";
 const isGuest =
   !isActiveMember &&
   !isPendingMember;
@@ -474,6 +475,7 @@ useEffect(() => {
 
         isActiveMember,
         isPendingMember,
+        isRejectedMember,
         isGuest,
 
         hasAnyMembership,
