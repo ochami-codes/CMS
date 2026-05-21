@@ -1,7 +1,7 @@
 import { Outlet, Link } from "react-router-dom";
 
 import styles from "../styles/layouts/PublicLayout.module.css";
-
+import Button from "../components/Button";
 export default function PublicLayout() {
 
   return (
@@ -16,19 +16,17 @@ export default function PublicLayout() {
 
         <div className={styles.links}>
 
-          <Link
+          <Button
             to="/login"
-            className="btn btn-secondary btn-sm"
           >
             Login
-          </Link>
+          </Button>
 
-          <Link
+          <Button
             to="/register"
-            className="btn btn-primary btn-sm"
           >
             Register
-          </Link>
+          </Button>
 
         </div>
 
