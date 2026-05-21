@@ -1,31 +1,87 @@
 .btn{
- padding:.8rem 1rem;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
 
- border-radius:
-    var(--radius-md);
+  padding:.85rem 1.2rem;
 
- transition:
-    var(--transition);
+  border:none;
+  outline:none;
+
+  border-radius:
+      var(--radius-md);
+
+  font-size:.95rem;
+  font-weight:600;
+
+  cursor:pointer;
+  text-decoration:none;
+
+  transition:
+      var(--transition);
 }
 
+
+/* ---------- PRIMARY ---------- */
 
 .primary{
- background:
-    var(--primary);
+  background:
+      var(--primary);
 
- color:white;
+  color:white;
+}
+
+.primary:hover{
+  background:
+      var(--primary-dark);
+
+  transform:
+      translateY(-2px);
 }
 
 
-.danger{
- background:
-   var(--danger);
-
- color:white;
-}
-
+/* ---------- OUTLINE ---------- */
 
 .outline{
- border:
-   1px solid var(--border);
+  background:
+      transparent;
+
+  border:
+      1px solid var(--border);
+
+  color:
+      var(--text);
+}
+
+.outline:hover{
+  background:
+      var(--surface-alt);
+
+  border-color:
+      var(--primary);
+}
+
+
+/* ---------- DANGER ---------- */
+
+.danger{
+  background:
+      var(--danger);
+
+  color:white;
+}
+
+.danger:hover{
+  opacity:.9;
+}
+
+
+/* ---------- DISABLED ---------- */
+
+.btn:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+
+  transform:none;
 }

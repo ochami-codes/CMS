@@ -84,11 +84,40 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+  margin-top: 2rem;
 }
 
-@media (max-width: 768px) {
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+
+  padding: 1.5rem;
+  text-align: left;
+
+  min-height: 110px;
+
+  justify-content: center;
+}
+
+.statCard strong {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.statCard span {
+  font-size: .95rem;
+  line-height: 1.5;
+  color: var(--text-light);
+}
+@media (max-width:768px) {
   .stats {
     grid-template-columns: 1fr;
+  }
+
+  .statCard {
+    min-height: auto;
   }
 }
 

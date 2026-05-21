@@ -1,22 +1,38 @@
-// src/components/Button.jsx
+import { Link } from "react-router-dom";
 import styles from "../styles/components/Button.module.css";
 
 export default function Button({
   children,
-  variant="primary",
+  variant = "primary",
+  to,
+  className = "",
   ...props
 }) {
+  const classes =
+    `${styles.btn}
+     ${styles[variant]}
+     ${className}`;
 
- return(
-   <button
-      className={
-        `${styles.btn}
-         ${styles[variant]}`
-      }
+  // Navigation button
+  if (to) {
+    return (
+      <Link
+        to={to}
+        className={classes}
+        {...props}
+      >
+        {children}
+      </Link>
+    );
+  }
 
+  // Action button
+  return (
+    <button
+      className={classes}
       {...props}
-   >
+    >
       {children}
-   </button>
- )
+    </button>
+  );
 }

@@ -11,6 +11,7 @@ import {
   FaClipboardList,
 } from "react-icons/fa";
 
+import Button from "../components/Button";
 import Card from "../components/Card";
 import styles from "../styles/pages/Home.module.css";
 
@@ -38,31 +39,31 @@ export default function Home() {
         </p>
 
         <div className={styles.buttons}>
-          <Link to="/register" className="btn btn-primary">
+          <Button to="/register">
             Get Started
-          </Link>
+          </Button>
 
-          <Link to="/login" className="btn btn-outline">
+          <Button to="/login">
             Sign In
-          </Link>
+          </Button>
         </div>
 
-        <div className={styles.stats}>
-          <Card>
-            <strong>Members</strong>
-            <span>Records & transfers</span>
-          </Card>
+<div className={styles.stats}>
+  <Card className={styles.statCard}>
+    <strong>Members</strong>
+    <span>Records & transfers</span>
+  </Card>
 
-          <Card>
-            <strong>Departments</strong>
-            <span>Manage ministries</span>
-          </Card>
+  <Card className={styles.statCard}>
+    <strong>Departments</strong>
+    <span>Manage ministries</span>
+  </Card>
 
-          <Card>
-            <strong>Treasury</strong>
-            <span>Track finances</span>
-          </Card>
-        </div>
+  <Card className={styles.statCard}>
+    <strong>Treasury</strong>
+    <span>Track finances</span>
+  </Card>
+</div>
 
       </section>
 
@@ -165,9 +166,9 @@ export default function Home() {
           Start using the platform today.
         </p>
 
-        <Link to="/register" className="btn btn-primary">
+        <Button to="/register">
           Create Account
-        </Link>
+        </Button>
 
       </section>
 
