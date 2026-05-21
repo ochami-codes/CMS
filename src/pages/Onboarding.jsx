@@ -18,7 +18,7 @@ export default function Onboarding() {
     isPendingMember,
     isRejectedMember,
     activeMembership,
-    activeMembershipRequest,
+    churchRequested,
     hasAnyMembership,
   } = useAuth();
 
@@ -65,12 +65,12 @@ export default function Onboarding() {
       )}
 
       {/* ---------------- PENDING REQUEST ---------------- */}
-      {isPendingMember && activeMembershipRequest && (
+      {isPendingMember &&(
         <section>
           <h2 className={styles.title}>Membership Request</h2>
 
           <Card className={styles.churchCard}>
-            <h3>{activeMembershipRequest.church_name}</h3>
+            <h3>{churchRequested}</h3>
 
             <p className={styles.statusPending}>
               Pending Approval
@@ -84,12 +84,12 @@ export default function Onboarding() {
       )}
 
       {/* ---------------- REJECTED REQUEST ---------------- */}
-      {isRejectedMember && activeMembershipRequest && (
+      {isRejectedMember &&(
         <section>
           <h2 className={styles.title}>Membership Request</h2>
 
           <Card className={styles.churchCard}>
-            <h3>{activeMembershipRequest.church_name}</h3>
+            <h3>{churchRequested}</h3>
 
             <p className={styles.statusError}>
               Request Rejected
