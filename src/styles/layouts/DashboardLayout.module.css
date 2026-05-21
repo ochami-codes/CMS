@@ -91,3 +91,9 @@
     margin-left: 0;
   }
 }
+/* hide hamburger on large screens */
+@media (min-width: 769px) {
+  .hamburger {
+    display: none;
+  }
+}

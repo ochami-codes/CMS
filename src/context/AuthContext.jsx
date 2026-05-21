@@ -151,6 +151,7 @@ const lastVersion = useRef(null);
   active_church_id:
     data.user.active_church_id || null,
 };
+  active_church_name: data.user.active_church_name || null,
     setUser(normalizedUser);
     return normalizedUser;
   } catch (err) {
@@ -168,6 +169,8 @@ const authUserId = user?.authUserId || null;
 
  const activeChurchId =
   user?.active_church_id || null;
+
+const activeChurchName = user?.active_church_name || null;
 
 const activeMembership =
   user?.active_membership || null;
@@ -464,6 +467,7 @@ useEffect(() => {
         getRoleLabel,
 
         activeChurchId,
+        activeChurchName,
 
         activeMembership,
         activeMembershipStatus,

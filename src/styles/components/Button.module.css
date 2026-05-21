@@ -20,6 +20,8 @@
 
   transition:
       var(--transition);
+  width: fit-content;
+  white-space: nowrap;
 }
 
 

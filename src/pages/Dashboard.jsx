@@ -30,6 +30,7 @@ export default function Dashboard() {
   const {
     user,
     activeChurchId,
+    activeChurchName,
     isAdmin,
     canUser,
     dashboardMode,
@@ -64,9 +65,7 @@ export default function Dashboard() {
   const filteredAnnouncements =
     filterAnnouncements(announcements, user);
 
-  const churchName =
-    user?.active_membership?.churches?.name ||
-    "Your Church";
+  const churchName = activeChurchName;
 
   const actions = [
     { key: "message", label: "Messages" },
