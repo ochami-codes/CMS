@@ -1,0 +1,66 @@
+.container{
+  max-width:1100px;
+  margin:auto;
+
+  padding:1rem;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:2rem;
+}
+
+
+.title{
+  margin-bottom:1rem;
+
+  font-size:1.2rem;
+  font-weight:700;
+}
+
+
+.grid{
+  display:grid;
+
+  grid-template-columns:
+      repeat(auto-fit,
+      minmax(240px,1fr));
+
+  gap:1rem;
+}
+
+
+.actions{
+  display:grid;
+
+  grid-template-columns:
+      repeat(auto-fit,
+      minmax(260px,1fr));
+
+  gap:1rem;
+}
+
+
+.churchCard{
+  display:flex;
+  flex-direction:column;
+
+  gap:1rem;
+}
+
+
+.churchCard svg{
+  font-size:1.5rem;
+
+  color:
+    var(--primary);
+}
+
+
+@media(max-width:768px){
+
+  .container{
+      padding:.75rem;
+  }
+
+}
