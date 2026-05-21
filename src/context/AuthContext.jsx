@@ -186,7 +186,7 @@ const isActiveMember =
   activeMembershipStatus === "active";
 
 const isPendingMember =
-  !!activeMembershipRequest;
+  activeMembershipRequestStatus === "requested";
 const isRejectedMember =
   activeMembershipRequestStatus === "rejected";
 const isGuest =
