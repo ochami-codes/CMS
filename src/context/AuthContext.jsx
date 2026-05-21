@@ -180,7 +180,7 @@ const activeMembershipStatus =
 
 const activeMembershipRequest =
   user?.active_membership_request || null;
-
+const churchRequested = activeMembershipRequest?.churches?.name || null;
 const activeMembershipRequestStatus = user?.membership_requests?.status || null;
 const isActiveMember =
   activeMembershipStatus === "active";
@@ -473,7 +473,7 @@ useEffect(() => {
 
         activeMembership,
         activeMembershipStatus,
-
+        churchRequested,
         isActiveMember,
         isPendingMember,
         isRejectedMember,
