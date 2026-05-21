@@ -1,7 +1,7 @@
 import { Outlet, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
-
+import Button from "../components/Button";
 import styles from "../styles/layouts/OnboardingLayout.module.css";
 
 export default function OnboardingLayout() {
@@ -36,12 +36,11 @@ export default function OnboardingLayout() {
               {user?.email}
             </span>
 
-            <button
+            <Button
               onClick={handleLogout}
-              className="btn btn-secondary"
-            >
+              >
               Logout
-            </button>
+            </Button>
 
           </div>
 

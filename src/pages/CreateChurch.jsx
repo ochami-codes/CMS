@@ -1,27 +1,31 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Input from "../components/Input";
 import Button from "../components/Button";
+import Card from "../components/Card";
+import PageHeader from "../components/PageHeader";
+
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/ToastProvider";
 import { AuthAPI, ChurchAPI } from "../utils/api";
 
+import styles from "../styles/pages/CreateChurch.module.css";
+
 export default function CreateChurch() {
   const navigate = useNavigate();
+
+  const { refetchUser } = useAuth();
+  const { showToast } = useToast();
 
   const [form, setForm] = useState({
     churchName: "",
     conferenceId: "",
   });
- 
+
   const [conferences, setConferences] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const { refetchUser } = useAuth();
-  const { showToast } = useToast();
-  /* -------------------------
-     Helpers (STRICT)
-  ------------------------- */
 
   const sanitizeChurchBaseName = (value) =>
     value
@@ -29,9 +33,6 @@ export default function CreateChurch() {
       .replace(/\s{2,}/g, " ")
       .trim();
 
-  /* -------------------------
-     Load Conferences
-  ------------------------- */
   useEffect(() => {
     const loadConferences = async () => {
       try {
@@ -45,21 +46,14 @@ export default function CreateChurch() {
     loadConferences();
   }, []);
 
-  /* -------------------------
-     Handle input
-  ------------------------- */
   const handleChange = (e) => {
-    setForm((prev) => ({
-      ...prev,
+    setForm((p) => ({
+      ...p,
       [e.target.name]: e.target.value,
     }));
-
     setErrors({});
   };
 
-  /* -------------------------
-     Submit
-  ------------------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -67,52 +61,52 @@ export default function CreateChurch() {
     const cleanedName = sanitizeChurchBaseName(form.churchName);
 
     if (!cleanedName) {
-      return setErrors({
-        churchName: "Church name is required",
-      });
+      return setErrors({ churchName: "Church name is required" });
     }
 
     if (!form.conferenceId) {
-      return setErrors({
-        conferenceId: "Select a conference",
-      });
+      return setErrors({ conferenceId: "Select a conference" });
     }
 
     setLoading(true);
 
     try {
-  await ChurchAPI.createChurch({
-    church_name: cleanedName,
-    conference_id: form.conferenceId,
-  });
-  showToast("Church created successfully 🎉", "success");
+      await ChurchAPI.createChurch({
+        church_name: cleanedName,
+        conference_id: form.conferenceId,
+      });
 
-  await refetchUser();
-  navigate("/dashboard");
-} catch (err) {
-  setErrors({
-    global: err?.message || "Failed to create church",
-  });
-} finally {
-  setLoading(false);
-}
+      showToast("Church created successfully 🎉", "success");
+
+      await refetchUser();
+      navigate("/dashboard");
+    } catch (err) {
+      setErrors({
+        global: err?.message || "Failed to create church",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
+    <div className={styles.container}>
 
-        <h2>Create Church</h2>
+      <PageHeader
+        title="Create Church"
+        subtitle="Set up a new church workspace"
+      />
+
+      <Card className={styles.card}>
 
         {errors.global && (
-          <p className="text-error text-sm text-center">
+          <p className={styles.errorGlobal}>
             {errors.global}
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="form-stack">
+        <form onSubmit={handleSubmit} className={styles.form}>
 
-          {/* Church Name */}
           <Input
             label="Church Name"
             name="churchName"
@@ -122,21 +116,29 @@ export default function CreateChurch() {
             error={errors.churchName}
           />
 
-          <small style={{ color: "#6b7280" }}>
+          <small className={styles.helperText}>
             “SDA Church” will be added automatically
           </small>
 
-          {/* Conference */}
-          <div className="form-group">
-            <label>Conference</label>
+          <div className={styles.group}>
+
+            <label className={styles.label}>
+              Conference
+            </label>
 
             <select
               name="conferenceId"
               value={form.conferenceId}
               onChange={handleChange}
-              className={errors.conferenceId ? "input-error" : ""}
+              className={
+                errors.conferenceId
+                  ? styles.inputError
+                  : styles.select
+              }
             >
-              <option value="">Select conference</option>
+              <option value="">
+                Select conference
+              </option>
 
               {conferences.map((conf) => (
                 <option key={conf.id} value={conf.id}>
@@ -146,21 +148,27 @@ export default function CreateChurch() {
             </select>
 
             {errors.conferenceId && (
-              <p className="error-text">{errors.conferenceId}</p>
+              <p className={styles.errorText}>
+                {errors.conferenceId}
+              </p>
             )}
+
           </div>
 
-          {/* Submit */}
           <Button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full"
+            className={styles.submitBtn}
           >
-            {loading ? "Creating church..." : "Create Church"}
+            {loading
+              ? "Creating church..."
+              : "Create Church"}
           </Button>
 
         </form>
-      </div>
+
+      </Card>
+
     </div>
   );
 }

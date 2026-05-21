@@ -1,40 +1,29 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaChurch, FaSearch } from "react-icons/fa";
 
 import { useAuth } from "../context/AuthContext";
 
 import Input from "../components/Input";
 import Button from "../components/Button";
+import Card from "../components/Card";
 import Loader from "../components/Loader";
+import PageHeader from "../components/PageHeader";
 
 import { ChurchAPI } from "../utils/api";
 
+import styles from "../styles/pages/JoinChurch.module.css";
+
 export default function JoinChurch() {
   const navigate = useNavigate();
-
   const { switchChurch } = useAuth();
 
-  const [query, setQuery] =
-    useState("");
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [openingChurchId, setOpeningChurchId] = useState(null);
 
-  const [results, setResults] =
-    useState([]);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [
-    openingChurchId,
-    setOpeningChurchId,
-  ] = useState(null);
-
-  /* =========================
-     SEARCH
-  ========================= */
-
-  const handleSearch = async (
-    e
-  ) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
 
     if (!query.trim()) return;
@@ -42,14 +31,8 @@ export default function JoinChurch() {
     setLoading(true);
 
     try {
-      const res =
-        await ChurchAPI.searchChurches(
-          query
-        );
-
-      setResults(
-        res?.churches || []
-      );
+      const res = await ChurchAPI.searchChurches(query);
+      setResults(res?.churches || []);
     } catch {
       setResults([]);
     } finally {
@@ -57,170 +40,126 @@ export default function JoinChurch() {
     }
   };
 
-  /* =========================
-     OPEN CHURCH
-  ========================= */
+  const handleOpenChurch = async (churchId) => {
+    try {
+      setOpeningChurchId(churchId);
 
-  const handleOpenChurch =
-    async (churchId) => {
-      try {
-        setOpeningChurchId(
-          churchId
-        );
+      await switchChurch(churchId);
 
-        await switchChurch(
-          churchId
-        );
-
-        navigate("/dashboard");
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setOpeningChurchId(
-          null
-        );
-      }
-    };
-
-  /* =========================
-     FULLSCREEN TRANSITION
-  ========================= */
+      navigate("/dashboard");
+    } finally {
+      setOpeningChurchId(null);
+    }
+  };
 
   if (openingChurchId) {
-    return (
-      <Loader message="Opening church..." />
-    );
+    return <Loader message="Opening church..." />;
   }
 
-  /* =========================
-     UI
-  ========================= */
-
   return (
-    <div className="page-container">
+    <div className={styles.container}>
 
-      <div className="page-card">
-        <h2 className="card-title">
-          Find Your Church
-        </h2>
+      <PageHeader
+        title="Find Your Church"
+        subtitle="Search for your church or create a new one"
+      />
 
-        <p className="card-subtitle">
-          Search for your church
-          or create a new one
-        </p>
-      </div>
+      {/* SEARCH */}
+      <Card className={styles.searchCard}>
 
-      <div className="page-card">
-        <form
-          onSubmit={handleSearch}
-          className="form-stack"
-        >
+        <form onSubmit={handleSearch} className={styles.form}>
+
           <Input
             label="Search Church"
             value={query}
-            onChange={(e) =>
-              setQuery(
-                e.target.value
-              )
-            }
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="e.g. Maai Mahiu SDA"
           />
 
           <Button
             type="submit"
-            className="btn-primary w-full"
             disabled={loading}
+            className={styles.searchBtn}
           >
-            {loading
-              ? "Searching..."
-              : "Search"}
+            <FaSearch />
+            {loading ? "Searching..." : "Search"}
           </Button>
+
         </form>
-      </div>
 
+      </Card>
+
+      {/* RESULTS */}
       {results.length > 0 && (
-        <div className="page-card">
-          <h3 className="card-title">
+
+        <section>
+
+          <h2 className={styles.title}>
             Results
-          </h3>
+          </h2>
 
-          <div className="actions">
-            {results.map(
-              (church) => {
-                const isOpening =
-                  openingChurchId ===
-                  church.id;
+          <div className={styles.grid}>
 
-                return (
-                  <div
-                    key={
-                      church.id
+            {results.map((church) => {
+
+              const isOpening =
+                openingChurchId === church.id;
+
+              return (
+                <Card
+                  key={church.id}
+                  className={styles.resultCard}
+                >
+
+                  <FaChurch className={styles.icon} />
+
+                  <h3>{church.name}</h3>
+
+                  <p className={styles.code}>
+                    Code: {church.church_code}
+                  </p>
+
+                  <Button
+                    onClick={() =>
+                      handleOpenChurch(church.id)
                     }
-                    className="dashboard-action-card"
+                    disabled={isOpening}
                   >
-                    <h3>
-                      {church.name}
-                    </h3>
+                    {isOpening
+                      ? "Opening..."
+                      : "Open Church"}
+                  </Button>
 
-                    <p
-                      style={{
-                        fontSize:
-                          "0.9rem",
+                </Card>
+              );
+            })}
 
-                        color:
-                          "#6b7280",
-                      }}
-                    >
-                      Code:{" "}
-                      {
-                        church.church_code
-                      }
-                    </p>
-
-                    <Button
-                      className="btn-primary"
-                      disabled={
-                        isOpening
-                      }
-                      onClick={() =>
-                        handleOpenChurch(
-                          church.id
-                        )
-                      }
-                    >
-                      {isOpening
-                        ? "Opening..."
-                        : "Open Church"}
-                    </Button>
-                  </div>
-                );
-              }
-            )}
           </div>
-        </div>
+
+        </section>
+
       )}
 
-      {!loading &&
-        query &&
-        results.length === 0 && (
-          <div className="page-card">
-            <p>
-              No churches found.
-            </p>
+      {/* EMPTY STATE */}
+      {!loading && query && results.length === 0 && (
 
-            <Button
-              className="btn-secondary"
-              onClick={() =>
-                navigate(
-                  "/create-church"
-                )
-              }
-            >
-              ➕ Create Church
-              Instead
-            </Button>
-          </div>
-        )}
+        <Card className={styles.empty}>
+
+          <h3>No churches found</h3>
+
+          <p>Try a different search or create a new church.</p>
+
+          <Button
+            variant="outline"
+            onClick={() => navigate("/create-church")}
+          >
+            ➕ Create Church
+          </Button>
+
+        </Card>
+
+      )}
+
     </div>
   );
 }
