@@ -172,6 +172,7 @@ const authUserId = user?.authUserId || null;
 
 const activeChurchName = user?.active_church_name || null;
 
+
 const activeMembership =
   user?.active_membership || null;
 
@@ -180,21 +181,33 @@ const activeMembershipStatus =
 
 const activeMembershipRequest =
   user?.active_membership_request || null;
-const churchRequested = activeMembershipRequest?.churches?.name || null;
-const activeMembershipRequestStatus = user?.membership_requests?.status || null;
+
+const activeMembershipRequestStatus =
+  activeMembershipRequest?.status || null;
+
+const churchRequested =
+  activeMembershipRequest?.churches?.name || null;
+
+const activeMemberships =
+  user?.memberships?.filter(
+    (m) => m.status === "active"
+  ) || [];
+
 const isActiveMember =
   activeMembershipStatus === "active";
 
 const isPendingMember =
   activeMembershipRequestStatus === "requested";
+
 const isRejectedMember =
   activeMembershipRequestStatus === "rejected";
+
 const isGuest =
   !isActiveMember &&
   !isPendingMember;
 
 const hasAnyMembership =
-  (user?.memberships?.length || 0) > 0;
+  activeMemberships.length > 0;
 
 const dashboardMode =
   isActiveMember
