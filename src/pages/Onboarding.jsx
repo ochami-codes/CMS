@@ -107,7 +107,7 @@ export default function Onboarding() {
       )}
 
       {/* ---------------- EMPTY STATE ---------------- */}
-      {!hasAnyMembership && !isPendingMember && (
+      {!hasAnyMembership && !isPendingMember && !isRejectedMember && (
         <Card>
           <h3>No church membership yet</h3>
           <p>Join a church or create one to get started.</p>
