@@ -181,6 +181,7 @@ const activeMembershipStatus =
 const activeMembershipRequest =
   user?.active_membership_request || null;
 
+const activeMembershipRequestStatus = user?.active_membership_request?.status || null;
 const isActiveMember =
   activeMembershipStatus === "active";
 
