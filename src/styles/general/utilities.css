@@ -1,0 +1,39 @@
+.flex{
+  display:flex;
+}
+
+.flex-between{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.center{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.grid{
+  display:grid;
+}
+
+.gap-sm{
+  gap:1rem;
+}
+
+.gap-md{
+  gap:1.5rem;
+}
+
+.w-full{
+  width:100%;
+}
+
+.mt-sm{
+  margin-top:1rem;
+}
+
+.hidden{
+  display:none;
+}

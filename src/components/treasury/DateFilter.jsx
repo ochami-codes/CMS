@@ -1,4 +1,4 @@
-import "../../styles/pages.css";
+
 export default function DateFilter({ onChange }) {
   return (
     <div className="form-stack">

@@ -1,5 +1,5 @@
-// src/components/Input.jsx
-import "../styles/layout.css";
+import styles from "../styles/components/Input.module.css";
+
 export default function Input({
   label,
   type = "text",
@@ -11,8 +11,17 @@ export default function Input({
   error = ""
 }) {
   return (
-    <div className="input-group">
-      {label && <label htmlFor={name}>{label}</label>}
+    <div className={styles.group}>
+
+      {label && (
+        <label
+          htmlFor={name}
+          className={styles.label}
+        >
+          {label}
+        </label>
+      )}
+
       <input
         id={name}
         type={type}
@@ -21,10 +30,18 @@ export default function Input({
         onChange={onChange}
         placeholder={placeholder}
         required={required}
-        className={error ? "input-error" : ""}
+        className={`
+          ${styles.input}
+          ${error ? styles.errorInput : ""}
+        `}
       />
-      {error && <span className="error-text">{error}</span>}
+
+      {error && (
+        <span className={styles.errorText}>
+          {error}
+        </span>
+      )}
+
     </div>
   );
 }
-

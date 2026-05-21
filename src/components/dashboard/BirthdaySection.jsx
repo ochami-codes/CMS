@@ -1,92 +1,147 @@
 // components/dashboard/BirthdaySection.jsx
-
 import { Gift } from "lucide-react";
 
+import Card from "../Card";
+import StatCard from "../StatCard";
+import PageHeader from "../PageHeader";
+import EmptyState from "../EmptyState";
+
+import styles from "../../styles/dashboard/BirthdaySection.module.css";
+
 export default function BirthdaySection({
+
   user,
+
   hasBirthday,
   isBirthday,
   birthdayTimer,
-  todayBirthdays,
-  upcomingBirthdays,
+
+  todayBirthdays=[],
+  upcomingBirthdays=[],
+
 }) {
-  return (
-    <section className="dashboard-section">
-      <div className="dashboard-section-header">
-        <Gift size={18} />
-        Birthday Corner
-      </div>
 
-      <div className="card">
-        <div className="birthdays-grid">
+return(
 
-          {/* MY BIRTHDAY */}
+<section className={styles.section}>
 
-          <div className="birthday-card my-birthday-card">
+<PageHeader
+title="Birthday Corner"
+icon={<Gift size={18}/>}
+/>
 
-            {hasBirthday ? (
 
-              isBirthday ? (
-                <>
-                  🎉 Happy Birthday,{" "}
-                  {user.full_name}! May
-                  God's face shine on you!
-                  🎉
-                </>
-              ) : birthdayTimer ? (
-                <>
-                  Your birthday is in:
+<div className={styles.grid}>
 
-                  <strong>
-                    {" "}
-                    {birthdayTimer.d}d{" "}
-                    {birthdayTimer.h}h{" "}
-                    {birthdayTimer.m}m{" "}
-                    {birthdayTimer.s}s
-                  </strong>
 
-                  {" "}May God keep you
-                  till then!
-                </>
-              ) : null
+{/* MY BIRTHDAY */}
 
-            ) : (
-              <p>
-                Your birthday is not set
-                yet.
-              </p>
-            )}
+<Card>
 
-          </div>
+{hasBirthday ? (
 
-          {/* TODAY BIRTHDAYS */}
+isBirthday ? (
 
-          {todayBirthdays.map((birthday) => (
-            <div
-              key={birthday.id}
-              className="birthday-card birthday-today"
-            >
-              🎉 Let's celebrate{" "}
-              {birthday.full_name},
-              it's their birthday!
-            </div>
-          ))}
+<p>
 
-          {/* UPCOMING BIRTHDAYS */}
+🎉 Happy Birthday,
+<strong>
+ {user.full_name}
+</strong>
 
-          {upcomingBirthdays.map((birthday) => (
-            <div
-              key={birthday.id}
-              className="birthday-card birthday-upcoming"
-            >
-              {birthday.full_name}
-              {" — "}
-              {birthday.daysUntil} days
-            </div>
-          ))}
+May God's blessings
+be with you today.
 
-        </div>
-      </div>
-    </section>
-  );
+</p>
+
+)
+
+: birthdayTimer ? (
+
+<p>
+
+Your birthday in
+
+<strong>
+
+{" "}
+{birthdayTimer.d}d
+
+{" "}
+{birthdayTimer.h}h
+
+{" "}
+{birthdayTimer.m}m
+
+{" "}
+{birthdayTimer.s}s
+
+</strong>
+
+</p>
+
+)
+
+: null
+
+)
+
+:
+
+<EmptyState
+title="Birthday missing"
+message="Set your birthday in profile."
+/>
+
+}
+
+</Card>
+
+
+
+{/* TODAY */}
+
+{todayBirthdays.map(person=>(
+
+<Card key={person.id}>
+
+🎉 Celebrate
+<strong>
+{" "}
+{person.full_name}
+</strong>
+
+today!
+
+</Card>
+
+))}
+
+
+
+{/* UPCOMING */}
+
+{upcomingBirthdays.map(person=>(
+
+<StatCard
+
+key={person.id}
+
+title={person.full_name}
+
+value={`${person.daysUntil} days`}
+
+icon={<Gift size={18}/>}
+
+/>
+
+))}
+
+
+</div>
+
+</section>
+
+)
+
 }

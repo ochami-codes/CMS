@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
 import Attendance from "../../components/members/Attendance";
-import "../../styles/pages.css";
+
 
 export default function DeaconryDashboard() {
   const { user } = useAuth(); // use normalized user

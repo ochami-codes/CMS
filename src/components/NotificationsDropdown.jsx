@@ -1,27 +1,38 @@
 import { useEffect, useState } from "react";
-import { NotificationsAPI } from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import "../styles/pages.css";
-import "../styles/notifications.css";
 
-export default function NotificationsDropdown({ onClose, refreshUnread }) {
+import { NotificationsAPI } from "../utils/api";
+
+import styles from "../styles/components/NotificationsDropdown.module.css";
+
+export default function NotificationsDropdown({
+  onClose,
+  refreshUnread
+}) {
+
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const { refetchUser } = useAuth();
   const navigate = useNavigate();
 
-  /* -----------------------------------
-     Load Notifications
-  ----------------------------------- */
   const loadNotifications = async () => {
     setLoading(true);
+
     try {
-      const res = await NotificationsAPI.getAll({ page: 1, limit: 10 });
-      setNotifications(res?.notifications || []);
+      const res =
+        await NotificationsAPI.getAll({
+          page: 1,
+          limit: 10
+        });
+
+      setNotifications(
+        res?.notifications || []
+      );
+
     } catch (err) {
-      console.error("Failed to load notifications:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -31,85 +42,108 @@ export default function NotificationsDropdown({ onClose, refreshUnread }) {
     loadNotifications();
   }, []);
 
-  /* -----------------------------------
-     Mark Single as Read
-  ----------------------------------- */
   const markAsRead = async (id) => {
     try {
       await NotificationsAPI.markAsRead(id);
 
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === id ? { ...n, is_read: true } : n
+      setNotifications(prev =>
+        prev.map(n =>
+          n.id === id
+            ? { ...n, is_read: true }
+            : n
         )
       );
 
       refreshUnread?.();
     } catch (err) {
-      console.error("Mark as read failed:", err);
+      console.error(err);
     }
   };
 
-  /* -----------------------------------
-     Mark All as Read
-  ----------------------------------- */
   const markAll = async () => {
     try {
       await NotificationsAPI.markAllAsRead();
 
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, is_read: true }))
+      setNotifications(prev =>
+        prev.map(n => ({
+          ...n,
+          is_read: true
+        }))
       );
 
       refreshUnread?.();
     } catch (err) {
-      console.error("Mark all failed:", err);
+      console.error(err);
     }
   };
 
   return (
-    <div className="notification-card">
-      {/* Header */}
-      <div className="notification-header">
+    <div className={styles.card}>
+
+      {/* HEADER */}
+      <div className={styles.header}>
+
         <h4>Notifications</h4>
 
-        <div className="notification-header-actions">
+        <div className={styles.actions}>
+
           {notifications.length > 0 && (
-            <button onClick={markAll}>Mark all</button>
+            <button onClick={markAll}>
+              Mark all
+            </button>
           )}
 
-          <button className="close-x" onClick={onClose}>
+          <button
+            className={styles.closeBtn}
+            onClick={onClose}
+          >
             ✕
           </button>
+
         </div>
+
       </div>
 
-      {/* States */}
+      {/* STATES */}
       {loading && (
-        <p className="notification-loading">Loading...</p>
+        <p className={styles.loading}>
+          Loading...
+        </p>
       )}
 
-      {!loading && notifications.length === 0 && (
-        <p className="notification-empty">No notifications</p>
+      {!loading &&
+        notifications.length === 0 && (
+          <p className={styles.empty}>
+            No notifications
+          </p>
       )}
 
-      {/* List */}
-      {!loading && notifications.length > 0 && (
-        <div className="notification-body-list">
-          {notifications.map((n) => (
-            <div
-              key={n.id}
-              className={`notification-item ${
-                n.is_read ? "read" : "unread"
-              }`}
-              onClick={() => !n.is_read && markAsRead(n.id)}
-            >
-              <p className="notification-title">{n.title}</p>
-              <p className="notification-message">{n.message}</p>
-            </div>
-          ))}
-        </div>
+      {/* LIST */}
+      {!loading &&
+        notifications.length > 0 && (
+          <div className={styles.body}>
+
+            {notifications.map(n => (
+              <div
+                key={n.id}
+                className={`${styles.item} ${
+                  n.is_read
+                    ? styles.read
+                    : styles.unread
+                }`}
+                onClick={() =>
+                  !n.is_read &&
+                  markAsRead(n.id)
+                }
+              >
+                <p>{n.title}</p>
+                <p>{n.message}</p>
+              </div>
+            ))}
+
+          </div>
       )}
+
     </div>
   );
 }

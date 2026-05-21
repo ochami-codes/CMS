@@ -1,0 +1,26 @@
+.card{
+  display:flex;
+  flex-direction:column;
+  gap:.5rem;
+}
+
+.title{
+  font-size:1.4rem;
+  font-weight:600;
+}
+
+.subtitle{
+  color:var(--text-muted);
+  font-size:.95rem;
+}
+
+.list{
+  margin:0;
+  padding-left:1.25rem;
+
+  display:flex;
+  flex-direction:column;
+  gap:.25rem;
+
+  color:var(--text);
+}

@@ -1,10 +1,12 @@
 // src/components/members/MyRoleRequests.jsx
-import { useState, useEffect } from "react";
-import { Shield, Clock, CheckCircle, XCircle } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Shield } from "lucide-react";
+
 import { RoleRequestsAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
-import "../../styles/pages.css";
-import "../../styles/role-request.css";
+
+import Card from "../Card";
+
 export default function MyRoleRequests() {
   const { user, rolesData, getRoleLabel } = useAuth();
 
@@ -13,27 +15,29 @@ export default function MyRoleRequests() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  /* ---------------- LOAD ---------------- */
   const loadRequests = async () => {
     if (!user?.id) return;
 
     try {
       setLoading(true);
 
-      const data =
-        await RoleRequestsAPI.fetchMyRequests();
+      const data = await RoleRequestsAPI.fetchMyRequests();
 
-      setRequests(
-        Array.isArray(data)
-          ? data
-          : data.requests ?? []
-      );
-    } catch {
+      setRequests(Array.isArray(data) ? data : data?.requests ?? []);
+    } catch (err) {
+      console.error(err);
       setRequests([]);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadRequests();
+  }, [user]);
+
+  /* ---------------- SUBMIT ---------------- */
   const submitRequest = async () => {
     if (!role) return;
 
@@ -42,137 +46,111 @@ export default function MyRoleRequests() {
 
       await RoleRequestsAPI.submit(role);
 
-      alert("Request submitted");
-
       setRole("");
-      loadRequests();
+      await loadRequests();
+    } catch (err) {
+      console.error(err);
     } finally {
       setSubmitting(false);
     }
   };
 
-  useEffect(() => {
-    loadRequests();
-  }, [user]);
+  /* ---------------- HELPERS ---------------- */
+  const availableRoles = useMemo(() => {
+    return (rolesData?.roles ?? []).filter(
+      (r) => r.name !== "admin"
+    );
+  }, [rolesData]);
 
   const statusClass = (status) => {
-    if (status === "approved")
-      return "status-approved";
-
-    if (status === "rejected")
-      return "status-rejected";
-
-    return "status-pending";
+    switch (status) {
+      case "approved":
+        return "status-success";
+      case "rejected":
+        return "status-danger";
+      default:
+        return "status-warning";
+    }
   };
 
-  if (loading)
+  /* ---------------- STATES ---------------- */
+  if (loading) {
     return (
-      <div className="page-card">
+      <Card title="Role Requests">
         Loading requests...
-      </div>
+      </Card>
     );
+  }
 
+  /* ---------------- UI ---------------- */
   return (
-    <div className="page-container role-page">
+    <div className="space-y-4">
 
-      {/* Header */}
-      <div className="role-header">
-        <h1>Role Requests</h1>
-        <p>
-          Request additional permissions
-          within your church.
-        </p>
-      </div>
+      {/* HEADER */}
+      <Card
+        title="Role Requests"
+        subtitle="Request additional permissions within your church"
+        icon={<Shield size={18} />}
+      />
 
-      {/* Request Form */}
-      <div className="page-card role-request-card">
+      {/* REQUEST FORM */}
+      <Card title="Request New Role">
 
-        <div className="card-title">
-          <Shield size={20}/>
-          Request New Role
-        </div>
-
-        <div className="role-form">
+        <div className="form-group">
 
           <select
             value={role}
-            onChange={(e) =>
-              setRole(e.target.value)
-            }
-            className="role-select"
+            onChange={(e) => setRole(e.target.value)}
+            className="input"
           >
-            <option value="">
-              Select role
-            </option>
+            <option value="">Select role</option>
 
-            {rolesData.roles
-              .filter(
-                r => r.name !== "admin"
-              )
-              .map(r => (
-                <option
-                  key={r.name}
-                  value={r.name}
-                >
-                  {r.label}
-                </option>
-              ))}
+            {availableRoles.map((r) => (
+              <option key={r.name} value={r.name}>
+                {r.label}
+              </option>
+            ))}
+
           </select>
 
-          <button
-            onClick={submitRequest}
-            disabled={
-              !role || submitting
-            }
-            className="btn btn-primary"
-          >
-            {submitting
-              ? "Submitting..."
-              : "Send Request"}
-          </button>
-
         </div>
 
-      </div>
+        <button
+          onClick={submitRequest}
+          disabled={!role || submitting}
+          className="btn btn-primary"
+        >
+          {submitting ? "Submitting..." : "Send Request"}
+        </button>
 
-      {/* Requests */}
-      <div className="page-card">
+      </Card>
 
-        <div className="card-title">
-          My Requests
-        </div>
+      {/* REQUEST LIST */}
+      <Card title="My Requests">
 
         {!requests.length ? (
-
-          <div className="empty-state">
+          <p className="text-muted">
             No role requests yet
-          </div>
-
+          </p>
         ) : (
+          <div className="list">
 
-          <div className="request-list">
-
-            {requests.map(r => (
-
+            {requests.map((r) => (
               <div
                 key={r.id}
-                className="request-item"
+                className="list-item flex justify-between items-center"
               >
 
                 <div>
-
-                  <div className="request-role">
-                    {getRoleLabel(
-                      r.requested_role
-                    )}
+                  <div className="font-medium">
+                    {getRoleLabel(r.requested_role)}
                   </div>
 
-                  <small className="request-date">
+                  <small className="text-muted">
                     {new Date(
                       r.role_requested_at
                     ).toLocaleDateString()}
                   </small>
-
                 </div>
 
                 <span
@@ -184,14 +162,12 @@ export default function MyRoleRequests() {
                 </span>
 
               </div>
-
             ))}
 
           </div>
-
         )}
 
-      </div>
+      </Card>
 
     </div>
   );

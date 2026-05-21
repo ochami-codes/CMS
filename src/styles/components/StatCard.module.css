@@ -1,0 +1,21 @@
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: var(--space-sm);
+}
+
+.value {
+  font-size: 2rem;
+  font-weight: 700;
+
+  color: var(--text);
+
+  margin-bottom: .25rem;
+}
+
+.title {
+  font-size: .9rem;
+  color: var(--text-light);
+}

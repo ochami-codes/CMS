@@ -1,5 +1,5 @@
 import React from "react";
-import "../../../styles/pages.css";
+
 export default function Contributions({ contributions }) {
   return (
     <div className="card">

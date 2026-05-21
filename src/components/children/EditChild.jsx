@@ -1,51 +1,63 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+
 import { memberFields } from "../../utils/memberFields";
 import { ChildrenAPI, DepartmentsAPI } from "../../utils/api";
-import { useAuth } from "../../context/AuthContext";
+
 import { useToast } from "../ToastProvider";
-import "../../styles/pages.css";
+
 
 export default function EditChild({ child, onUpdated, onCancel }) {
-  const { user } = useAuth(); // <- updated from profile to user
   const { showToast } = useToast();
-  const { fields } = memberFields["children"];
+
+  const { fields = [] } = memberFields["children"] || {};
 
   const [departments, setDepartments] = useState([]);
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
 
-  /* ------------------ LOAD DEPARTMENTS ------------------ */
+  /* ---------------- LOAD DEPARTMENTS ---------------- */
   useEffect(() => {
     const loadDepartments = async () => {
       try {
         const res = await DepartmentsAPI.fetchAll();
-        setDepartments(res ?? []);
+        setDepartments(Array.isArray(res) ? res : []);
       } catch (err) {
         console.error(err);
         showToast("Failed to load departments", "error");
       }
     };
+
     loadDepartments();
   }, [showToast]);
 
-  /* ------------------ INIT FORM ------------------ */
-  useEffect(() => {
-    const data = {};
-    fields.forEach((f) => {
-      if (f.name === "department") {
-        f.options = departments.map((d) => d.name);
-      }
-      data[f.name] = child[f.name] ?? "";
-    });
-    setFormData(data);
-  }, [child, fields, departments]);
+  /* ---------------- INITIAL FORM DATA ---------------- */
+  const initialFormData = useMemo(() => {
+    if (!child) return {};
 
-  /* ------------------ CHANGE ------------------ */
+    const data = {};
+
+    fields.forEach((f) => {
+      data[f.name] = child?.[f.name] ?? "";
+    });
+
+    return data;
+  }, [child, fields]);
+
+  useEffect(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
+
+  /* ---------------- HANDLE CHANGE ---------------- */
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  /* ------------------ SUBMIT ------------------ */
+  /* ---------------- SUBMIT ---------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -56,27 +68,31 @@ export default function EditChild({ child, onUpdated, onCancel }) {
       }
     }
 
-    const payload = { ...formData, church_id: user?.church_id }; // <- use user.church_id
-    if (payload.date_of_birth) {
-      payload.date_of_birth = new Date(payload.date_of_birth).toISOString();
-    }
+    const payload = {
+      ...formData,
+      date_of_birth: formData.date_of_birth
+        ? new Date(formData.date_of_birth).toISOString()
+        : undefined,
+    };
 
     setLoading(true);
+
     try {
       await ChildrenAPI.update(child.id, payload);
+
       showToast("Child updated successfully", "success");
       onUpdated?.();
     } catch (err) {
       console.error(err);
-      showToast(err.message || "Error updating child", "error");
+      showToast(err.message || "Failed to update child", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  /* ------------------ UI ------------------ */
+  /* ---------------- UI ---------------- */
   return (
-    <>
+    <div>
       <h2 className="card-title">Edit Child</h2>
       <p className="card-subtitle">Update child information below.</p>
 
@@ -88,23 +104,30 @@ export default function EditChild({ child, onUpdated, onCancel }) {
             {field.type === "select" ? (
               <select
                 name={field.name}
-                value={formData[field.name]}
+                value={formData[field.name] || ""}
                 onChange={handleChange}
                 required={field.required}
                 className="input-field"
               >
                 <option value="">Select {field.label}</option>
-                {field.options?.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
+
+                {field.name === "department"
+                  ? departments.map((d) => (
+                      <option key={d.id} value={d.name}>
+                        {d.name}
+                      </option>
+                    ))
+                  : field.options?.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
               </select>
             ) : (
               <input
                 type={field.type || "text"}
                 name={field.name}
-                value={formData[field.name]}
+                value={formData[field.name] || ""}
                 onChange={handleChange}
                 required={field.required}
                 className="input-field"
@@ -131,6 +154,6 @@ export default function EditChild({ child, onUpdated, onCancel }) {
           </button>
         </div>
       </form>
-    </>
+    </div>
   );
 }

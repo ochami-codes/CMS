@@ -1,0 +1,51 @@
+.container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  z-index: 9999;
+}
+
+.toast {
+  padding: 0.75rem 1rem;
+
+  border-radius: var(--radius-md);
+
+  box-shadow: var(--shadow-md);
+
+  color: white;
+
+  min-width: 220px;
+
+  animation: slideIn 0.25s ease;
+}
+
+/* types */
+.success {
+  background: var(--success);
+}
+
+.error {
+  background: var(--danger);
+}
+
+.warning {
+  background: var(--warning);
+  color: black;
+}
+
+/* animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

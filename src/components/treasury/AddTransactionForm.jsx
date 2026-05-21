@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { TreasuryAPI } from "../../utils/api";
-import "../../styles/pages.css";
+
 export default function AddTransactionForm({ onSuccess }) {
   const [groups, setGroups] = useState([]);
   const [funds, setFunds] = useState([]);

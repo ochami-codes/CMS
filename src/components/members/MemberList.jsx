@@ -3,40 +3,28 @@ import { useEffect, useState, useCallback } from "react";
 import { useToast } from "../ToastProvider";
 import { MembersAPI } from "../../utils/api";
 import { memberFields } from "../../utils/memberFields";
-import "../../styles/pages.css";
-export default function MemberList({ department, refreshKey, currentUser }) {
+
+import Table from "../Table";
+import MobileCards from "../MobileCards";
+
+export default function MemberList({
+  department,
+  refreshKey,
+  currentUser,
+}) {
   const { showToast } = useToast();
 
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
 
-  /* ---------------- CONFIG ---------------- */
   const config = memberFields[department];
+  const fields = config?.fields ?? [];
 
-  if (!department) {
-    return (
-      <div className="card">
-        <h2 className="card-title">Members</h2>
-        <p className="card-subtitle">No department selected.</p>
-      </div>
-    );
-  }
-
-  if (!config || !Array.isArray(config.fields)) {
-    console.error("Invalid memberFields config:", department, config);
-    return (
-      <div className="card">
-        <h2 className="card-title">Members</h2>
-        <p className="card-subtitle">Invalid member configuration.</p>
-      </div>
-    );
-  }
-
-  const { fields } = config;
-
-  /* ---------------- FETCH MEMBERS ---------------- */
+  /* ---------------- FETCH ---------------- */
   const loadMembers = useCallback(async () => {
+    if (!department) return;
+
     setLoading(true);
     try {
       const res = await MembersAPI.fetchAll(department);
@@ -55,28 +43,49 @@ export default function MemberList({ department, refreshKey, currentUser }) {
   }, [loadMembers, refreshKey]);
 
   /* ---------------- ACTIONS ---------------- */
+  const canEdit = ["Admin", "Clerk"].includes(currentUser?.role);
+
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this member?")) return;
+    if (!window.confirm("Delete this member?")) return;
 
     setDeletingId(id);
+
     try {
       await MembersAPI.remove(id);
       setMembers((prev) => prev.filter((m) => m.id !== id));
-      showToast("Member deleted successfully", "success");
+      showToast("Member deleted", "success");
     } catch (err) {
       console.error(err);
-      showToast(err.message || "Failed to delete member", "error");
+      showToast(err.message || "Delete failed", "error");
     } finally {
       setDeletingId(null);
     }
   };
 
   const handleEdit = (id) => {
-    if (!["Admin", "Clerk"].includes(currentUser?.role)) return;
+    if (!canEdit) return;
     window.location.href = `/members/${department}/edit/${id}`;
   };
 
-  /* ---------------- STATES ---------------- */
+  /* ---------------- GUARDS ---------------- */
+  if (!department) {
+    return (
+      <div className="card">
+        <h2 className="card-title">Members</h2>
+        <p className="card-subtitle">No department selected.</p>
+      </div>
+    );
+  }
+
+  if (!config) {
+    return (
+      <div className="card">
+        <h2 className="card-title">Members</h2>
+        <p className="card-subtitle">Invalid department config.</p>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="card">
@@ -84,6 +93,35 @@ export default function MemberList({ department, refreshKey, currentUser }) {
       </div>
     );
   }
+
+  /* ---------------- TABLE DATA ---------------- */
+  const columns = [
+    ...fields.map((f) => ({
+      key: f.name,
+      label: f.label,
+    })),
+  ];
+
+  const renderActions = (member) => (
+    <div className="table-actions">
+      {canEdit && (
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => handleEdit(member.id)}
+        >
+          Edit
+        </button>
+      )}
+
+      <button
+        className="btn btn-danger btn-sm"
+        onClick={() => handleDelete(member.id)}
+        disabled={deletingId === member.id}
+      >
+        {deletingId === member.id ? "Deleting…" : "Delete"}
+      </button>
+    </div>
+  );
 
   /* ---------------- UI ---------------- */
   return (
@@ -96,51 +134,19 @@ export default function MemberList({ department, refreshKey, currentUser }) {
         Registered members in this department.
       </p>
 
-      {members.length === 0 ? (
-        <p className="table-empty">No members found.</p>
-      ) : (
-        <table className="member-list-table">
-          <thead>
-            <tr>
-              {fields.map((field) => (
-                <th key={field.name}>{field.label}</th>
-              ))}
-              <th>Actions</th>
-            </tr>
-          </thead>
+      {/* DESKTOP */}
+      <Table
+        columns={columns}
+        data={members}
+        renderActions={renderActions}
+      />
 
-          <tbody>
-            {members.map((member) => (
-              <tr key={member.id}>
-                {fields.map((field) => (
-                  <td key={field.name}>
-                    {member[field.name] ?? "-"}
-                  </td>
-                ))}
-
-                <td className="table-actions">
-                  {["Admin", "Clerk"].includes(currentUser?.role) && (
-                    <button
-                      onClick={() => handleEdit(member.id)}
-                      className="btn btn-secondary btn-sm"
-                    >
-                      Edit
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => handleDelete(member.id)}
-                    disabled={deletingId === member.id}
-                    className="btn btn-danger btn-sm"
-                  >
-                    {deletingId === member.id ? "Deleting…" : "Delete"}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      {/* MOBILE */}
+      <MobileCards
+        columns={columns}
+        data={members}
+        renderActions={renderActions}
+      />
     </div>
   );
 }

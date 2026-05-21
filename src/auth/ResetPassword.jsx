@@ -1,13 +1,16 @@
-// src/auth/ResetPassword.jsx
 import { useState } from "react";
+
 import Input from "../components/Input";
 import Button from "../components/Button";
 import Loader from "../components/Loader";
 import EncouragementRedirect from "../components/EncouragementRedirect";
+
 import { AuthAPI } from "../utils/api";
-import "../styles/auth.css";
+
+import styles from "../styles/pages/ResetPassword.module.css";
 
 export default function ResetPassword() {
+
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -15,6 +18,7 @@ export default function ResetPassword() {
 
   const handleReset = async (e) => {
     e.preventDefault();
+
     if (loading) return;
 
     setLoading(true);
@@ -22,17 +26,22 @@ export default function ResetPassword() {
 
     try {
       await AuthAPI.resetPassword(email.trim());
-      setSubmitted(true); // always show success screen
+
+      // always show success screen (anti-enumeration)
+      setSubmitted(true);
+
     } catch (err) {
       console.error("Reset password error:", err);
-      // Anti-enumeration: same UX either way
+
+      // same UX regardless of failure
       setSubmitted(true);
+
     } finally {
       setLoading(false);
     }
   };
 
-  /* ------------------ Success Screen ------------------ */
+  /* ---------------- SUCCESS SCREEN ---------------- */
   if (submitted) {
     return (
       <EncouragementRedirect
@@ -44,38 +53,62 @@ export default function ResetPassword() {
     );
   }
 
-  /* ------------------ Loading ------------------ */
+  /* ---------------- LOADING SCREEN ---------------- */
   if (loading) {
-    return <Loader message="Sending reset link… God loves you..." />;
+    return (
+      <Loader message="Sending reset link… God loves you..." />
+    );
   }
 
-  /* ------------------ Form ------------------ */
   return (
-    <div className="auth-container">
-      <div className="auth-card flex flex-col gap-4">
-        <h2 className="text-2xl font-semibold text-center">Reset Password</h2>
+    <div className={styles.container}>
 
-        <p className="text-gray-600 text-center">
+      <div className={styles.card}>
+
+        <h2 className={styles.title}>
+          Reset Password
+        </h2>
+
+        <p className={styles.description}>
           Enter your email address and we’ll send you a link to reset your password.
         </p>
 
-        <form onSubmit={handleReset} className="space-y-4">
+        <form
+          onSubmit={handleReset}
+          className={styles.form}
+        >
+
           <Input
             type="email"
             label="Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) =>
+              setEmail(e.target.value)
+            }
             placeholder="you@example.com"
             required
           />
 
-          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+          {error && (
+            <p className={styles.error}>
+              {error}
+            </p>
+          )}
 
-          <Button type="submit" disabled={!email || loading} className="w-full">
-            {loading ? "Sending…" : "Send Reset Link"}
+          <Button
+            type="submit"
+            disabled={!email || loading}
+            className="btn-primary w-full"
+          >
+            {loading
+              ? "Sending…"
+              : "Send Reset Link"}
           </Button>
+
         </form>
+
       </div>
+
     </div>
   );
 }

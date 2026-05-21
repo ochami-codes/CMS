@@ -1,3 +1,5 @@
+// src/pages/admin/RoleRequests.jsx
+
 import {
   useEffect,
   useState,
@@ -6,12 +8,18 @@ import {
 
 import { AdminAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
-import { useToast } from "../../components/ToastProvider";
+import { useToast } from "../ToastProvider";
 
-import "../../styles/pages.css";
-import "../../styles/tables.css";
+import Loader from "../Loader";
+import Card from "../Card";
+import Table from "../Table";
+import Button from "../Button";
+import EmptyState from "../EmptyState";
+import MobileCards from "../MobileCards";
+import PageHeader from "../PageHeader";
 
 export default function RoleRequests() {
+
   const {
     user,
     authReady,
@@ -31,364 +39,344 @@ export default function RoleRequests() {
   const [error, setError] =
     useState("");
 
-  const [
-    processingId,
-    setProcessingId,
-  ] = useState(null);
+  const [processingId,
+    setProcessingId] =
+      useState(null);
 
-  /* ---------------- Permissions ---------------- */
+
+  /* ---------------- PERMISSION ---------------- */
 
   const canManageRoles =
     hasRole("admin") ||
     hasRole("elder") ||
     hasRole("pastor");
 
-  /* ---------------- Fetch ---------------- */
+
+  /* ---------------- FETCH ---------------- */
 
   const fetchRequests =
     useCallback(async () => {
+
       if (
         !authReady ||
         !activeChurchId ||
         !canManageRoles
       ) {
         setLoading(false);
-        setRequests([]);
         return;
       }
 
       try {
+
         setLoading(true);
         setError("");
 
-        const { requests } =
+        const res =
           await AdminAPI.fetchRoleRequests();
 
         setRequests(
-          Array.isArray(requests)
-            ? requests
-            : []
+          res.requests || []
         );
 
       } catch (err) {
-        const message =
-          err?.message ||
-          "Failed to load role requests";
 
-        setError(message);
+        const msg =
+          err.message ||
+          "Failed loading requests";
+
+        setError(msg);
 
         showToast(
-          message,
+          msg,
           "error"
         );
 
-        setRequests([]);
-
       } finally {
+
         setLoading(false);
+
       }
-    }, [
+
+    },[
       authReady,
       activeChurchId,
       canManageRoles,
-      showToast,
+      showToast
     ]);
+
 
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
 
-  /* ---------------- Review ---------------- */
+
+  /* ---------------- REVIEW ---------------- */
 
   const handleReview =
-    async (
-      request,
-      action
-    ) => {
-      try {
+    async (request,status)=>{
+
+      try{
+
         setProcessingId(
           request.id
         );
 
-        await AdminAPI.reviewRoleRequest(
-          request.id,
-          action
-        );
+        await AdminAPI
+          .reviewRoleRequest(
+            request.id,
+            status
+          );
 
-        setRequests((prev) =>
+        setRequests(prev =>
           prev.filter(
-            (r) =>
-              r.id !== request.id
+            r =>
+            r.id !== request.id
           )
         );
 
         showToast(
-          `${
-            action === "approved"
-              ? "Approved"
-              : "Rejected"
-          } role request for ${
-            request.full_name
-          }`,
-          "success"
+          `Request ${
+            status === "approved"
+              ? "approved"
+              : "rejected"
+          }`
         );
 
-      } catch {
+      }catch{
+
         showToast(
-          "Failed to process request",
+          "Action failed",
           "error"
         );
 
-      } finally {
+      }finally{
+
         setProcessingId(null);
+
       }
+
     };
 
-  /* ---------------- Guards ---------------- */
 
-  if (!authReady || loading) {
-    return (
-      <div className="dashboard-content">
-        Loading role requests...
-      </div>
-    );
-  }
+  /* ---------------- GUARDS ---------------- */
 
-  if (!user || !activeChurchId) {
+  if (!authReady || loading)
     return (
-      <div className="dashboard-content">
-        No active church selected.
-      </div>
+      <Loader
+        message="Loading role requests..."
+      />
     );
-  }
 
-  if (!canManageRoles) {
+  if (!user || !activeChurchId)
     return (
-      <div className="dashboard-content">
-        No permission.
-      </div>
+      <EmptyState
+        title="No church selected"
+      />
     );
-  }
+
+  if (!canManageRoles)
+    return (
+      <EmptyState
+        title="No permission"
+      />
+    );
+
+
+  /* ---------------- DATA ---------------- */
+
+  const rows =
+    requests.map(req => ({
+
+      name:
+        req.full_name,
+
+      email:
+        req.email,
+
+      role:
+        req.requested_role,
+
+      date:
+        new Date(
+          req.role_requested_at
+        )
+        .toLocaleDateString(),
+
+      raw:req
+    }));
+
+
+  const columns = [
+
+    {
+      key:"name",
+      label:"Name"
+    },
+
+    {
+      key:"email",
+      label:"Email"
+    },
+
+    {
+      key:"role",
+      label:"Requested Role"
+    },
+
+    {
+      key:"date",
+      label:"Date"
+    }
+
+  ];
+
 
   return (
-    <div className="card">
+    <>
 
-      <div className="card-header">
-        <h2 className="card-title">
-          Role Requests
-        </h2>
-      </div>
+      <PageHeader
+        title="Role Requests"
+        subtitle="Approve or reject ministry role requests."
+      />
 
-      {error && (
-        <p className="text-error">
-          {error}
-        </p>
-      )}
+      <Card>
 
-      {!requests.length ? (
-        <p className="text-muted">
-          No pending requests.
-        </p>
-      ) : (
-        <>
-          {/* ===== Desktop ===== */}
+        {error && (
+          <p>
+            {error}
+          </p>
+        )}
 
-          <div className="desktop-table">
 
-            <div className="table-scroll">
+        {!requests.length ? (
 
-              <table className="members-table">
+          <EmptyState
+            title="No pending requests"
+          />
 
-                <thead>
-                  <tr>
-                    <th>Name</th>
+        ) : (
 
-                    <th>Email</th>
+          <>
 
-                    <th>
-                      Requested Role
-                    </th>
+            {/* DESKTOP */}
 
-                    <th>Date</th>
+            <Table
 
-                    <th>
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
+              columns={columns}
 
-                <tbody>
+              data={rows}
 
-                  {requests.map(
-                    (req) => (
-                      <tr
-                        key={req.id}
-                      >
-                        <td>
-                          {req.full_name}
-                        </td>
+              renderActions={(row)=>(
 
-                        <td>
-                          {req.email}
-                        </td>
+                <>
+                  <Button
 
-                        <td>
-                          <strong>
-                            {
-                              req.requested_role
-                            }
-                          </strong>
-                        </td>
+                    size="sm"
 
-                        <td>
-                          {new Date(
-                            req.role_requested_at
-                          ).toLocaleDateString()}
-                        </td>
-
-                        <td>
-
-                          <div className="table-actions">
-
-                            <button
-                              className="btn btn-primary"
-
-                              disabled={
-                                processingId ===
-                                req.id
-                              }
-
-                              onClick={() =>
-                                handleReview(
-                                  req,
-                                  "approved"
-                                )
-                              }
-                            >
-                              Approve
-                            </button>
-
-                            <button
-                              className="btn btn-secondary"
-
-                              disabled={
-                                processingId ===
-                                req.id
-                              }
-
-                              onClick={() =>
-                                handleReview(
-                                  req,
-                                  "rejected"
-                                )
-                              }
-                            >
-                              Reject
-                            </button>
-
-                          </div>
-
-                        </td>
-
-                      </tr>
-                    )
-                  )}
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-          </div>
-
-          {/* ===== Mobile ===== */}
-
-          <div className="mobile-cards">
-
-            {requests.map(
-              (req) => (
-                <div
-                  key={req.id}
-                  className="member-card"
-                >
-
-                  <h3>
-                    {req.full_name}
-                  </h3>
-
-                  <p>
-                    <strong>
-                      Email:
-                    </strong>{" "}
-                    {req.email}
-                  </p>
-
-                  <p>
-                    <strong>
-                      Requested:
-                    </strong>{" "}
-                    {
-                      req.requested_role
+                    disabled={
+                      processingId ===
+                      row.raw.id
                     }
-                  </p>
 
-                  <p>
-                    <strong>
-                      Date:
-                    </strong>{" "}
-                    {new Date(
-                      req.role_requested_at
-                    ).toLocaleDateString()}
-                  </p>
+                    onClick={()=>
 
-                  <div className="card-actions">
+                      handleReview(
+                        row.raw,
+                        "approved"
+                      )
 
-                    <button
-                      className="btn btn-primary"
+                    }
+                  >
+                    Approve
+                  </Button>
 
-                      disabled={
-                        processingId ===
-                        req.id
-                      }
 
-                      onClick={() =>
-                        handleReview(
-                          req,
-                          "approved"
-                        )
-                      }
-                    >
-                      Approve
-                    </button>
+                  <Button
 
-                    <button
-                      className="btn btn-secondary"
+                    variant="secondary"
 
-                      disabled={
-                        processingId ===
-                        req.id
-                      }
+                    size="sm"
 
-                      onClick={() =>
-                        handleReview(
-                          req,
-                          "rejected"
-                        )
-                      }
-                    >
-                      Reject
-                    </button>
+                    disabled={
+                      processingId ===
+                      row.raw.id
+                    }
 
-                  </div>
+                    onClick={()=>
 
-                </div>
-              )
-            )}
+                      handleReview(
+                        row.raw,
+                        "rejected"
+                      )
 
-          </div>
-        </>
-      )}
-    </div>
+                    }
+                  >
+                    Reject
+                  </Button>
+
+                </>
+
+              )}
+
+            />
+
+
+            {/* MOBILE */}
+
+            <MobileCards
+
+              columns={columns}
+
+              data={rows}
+
+              renderActions={(row)=>(
+
+                <>
+                  <Button
+                    size="sm"
+
+                    onClick={()=>
+
+                      handleReview(
+                        row.raw,
+                        "approved"
+                      )
+
+                    }
+                  >
+                    Approve
+                  </Button>
+
+
+                  <Button
+                    variant="secondary"
+
+                    size="sm"
+
+                    onClick={()=>
+
+                      handleReview(
+                        row.raw,
+                        "rejected"
+                      )
+
+                    }
+                  >
+                    Reject
+                  </Button>
+
+                </>
+
+              )}
+
+            />
+
+          </>
+
+        )}
+
+      </Card>
+
+    </>
   );
 }

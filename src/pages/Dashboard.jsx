@@ -22,62 +22,36 @@ import useBirthdays from "../hooks/useBirthdays";
 import { getGreeting } from "../utils/greetings";
 import { filterAnnouncements } from "../utils/announcements";
 
-import "../styles/pages.css";
-import "../styles/dashboard.css";
+import styles from "../styles/dashboard/Dashboard.module.css";
+
 export default function Dashboard() {
   const navigate = useNavigate();
 
   const {
     user,
-
     activeChurchId,
-
     isAdmin,
     canUser,
-
-    isGuest,
     dashboardMode,
   } = useAuth();
-
-  /* =========================
-     DASHBOARD DATA
-  ========================= */
 
   const {
     loading,
     initialized,
-
     verse,
     announcements,
-
     birthday,
     todayBirthdays,
     upcomingBirthdays,
   } = useDashboardData({
     user,
     churchId: activeChurchId,
-    isGuest,
   });
 
-  /* =========================
-     UNREAD MESSAGES
-  ========================= */
+  const { unreadMessages } = useUnreadMessages();
 
-  const { unreadMessages } =
-    useUnreadMessages();
-
-  /* =========================
-     SABBATH TIMER
-  ========================= */
-
-  const {
-    isSabbath,
-    timer: sabbathTimer,
-  } = useSabbathTimer();
-
-  /* =========================
-     BIRTHDAY TIMER
-  ========================= */
+  const { isSabbath, timer: sabbathTimer } =
+    useSabbathTimer();
 
   const {
     hasBirthday,
@@ -85,142 +59,63 @@ export default function Dashboard() {
     birthdayTimer,
   } = useBirthdays(birthday);
 
-  /* =========================
-     DERIVED UI DATA
-  ========================= */
-
-  const greeting =
-    getGreeting(user);
+  const greeting = getGreeting(user);
 
   const filteredAnnouncements =
-    filterAnnouncements(
-      announcements,
-      user
-    );
+    filterAnnouncements(announcements, user);
 
   const churchName =
-    user?.active_membership
-      ?.churches?.name ||
+    user?.active_membership?.churches?.name ||
     "Your Church";
 
-  /* =========================
-     QUICK ACTIONS
-  ========================= */
+  const actions = [
+    { key: "message", label: "Messages" },
+    {
+      key: "request_role",
+      label: "Request Role",
+      requireActiveMember: true,
+      hideForAdmin: true,
+    },
+    {
+      key: "transfer",
+      label: "Membership Transfer",
+      requireActiveMember: true,
+    },
+    {
+      key: "lesson",
+      label: "Lesson Subscription",
+      requireActiveMember: true,
+    },
+  ];
 
-const actions = [
-  {
-    key: "message",
-    label: "Messages",
-  },
+  const visibleActions = actions.filter((a) => {
+    if (a.hideForAdmin && isAdmin()) return false;
 
-  {
-    key: "request_role",
-    label: "Request Role",
-
-    requireActiveMember: true,
-
-    hideForAdmin: true,
-  },
-
-  {
-    key: "transfer",
-    label:
-      "Membership Transfer",
-
-    requireActiveMember: true,
-  },
-
-  {
-    key: "lesson",
-    label:
-      "Lesson Subscription",
-
-    requireActiveMember: true,
-  },
-];
-
-  /* =========================
-     FILTER VISIBLE ACTIONS
-  ========================= */
-
-  const visibleActions =
-  actions.filter((action) => {
-
-    if (
-      action.hideForAdmin &&
-      isAdmin()
-    ) {
-      return false;
-    }
-
-    return canUser(
-      action.permission,
-      {
-        roles: action.roles,
-
-        requireActiveMember:
-          action.requireActiveMember,
-      }
-    );
+    return canUser(a.permission, {
+      roles: a.roles,
+      requireActiveMember: a.requireActiveMember,
+    });
   });
 
-  /* =========================
-     ACTION HANDLER
-  ========================= */
+  const handleAction = (type) => {
+    const map = {
+      request_role: () => navigate("/myrolerequest"),
+      transfer: () => alert("Coming soon"),
+      lesson: () => alert("Coming soon"),
+      message: () => navigate("/dashboard/messages"),
+    };
 
-  const handleAction = async (
-    type
-  ) => {
-    switch (type) {
-      case "request_role":
-        navigate(
-          "/myrolerequest"
-        );
-        break;
-
-      case "transfer":
-        alert(
-          "Membership transfer coming soon"
-        );
-        break;
-
-      case "lesson":
-        alert(
-          "Lesson subscription coming soon"
-        );
-        break;
-
-      case "message":
-        navigate(
-          "/dashboard/messages"
-        );
-        break;
-
-      default:
-        break;
-    }
+    map[type]?.();
   };
-
-  /* =========================
-     LOADING
-  ========================= */
 
   if (!user) return null;
 
   if (loading && !initialized) {
-    return (
-      <Loader message="Loading dashboard..." />
-    );
+    return <Loader message="Loading dashboard..." />;
   }
 
-  /* =========================
-     UI
-  ========================= */
-
   return (
-    <div className="dashboard-content">
-
-      {/* HEADER */}
+    <div className={styles.dashboard}>
 
       <DashboardHeader
         churchName={churchName}
@@ -228,83 +123,45 @@ const actions = [
         verse={verse}
       />
 
-      {/* GUEST / REQUESTED */}
-
-      {(dashboardMode ===
-        "guest" ||
-        dashboardMode ===
-          "requested") && (
+      {(dashboardMode === "guest" ||
+        dashboardMode === "requested") && (
         <MembershipSection />
       )}
 
-      {/* MEMBER VIEW */}
-
-      {dashboardMode ===
-        "member" && (
-        <>
-          {/* QUICK ACTIONS */}
+      {dashboardMode === "member" && (
+        <div className={styles.grid}>
 
           <QuickActions
-            actions={
-              visibleActions
-            }
-            unreadMessages={
-              unreadMessages
-            }
+            actions={visibleActions}
+            unreadMessages={unreadMessages}
             isAdmin={isAdmin()}
             user={user}
-            onAction={
-              handleAction
-            }
+            onAction={handleAction}
           />
 
-          {/* TOOLS */}
-
-          <ToolsSection
-            canUser={canUser}
-          />
-
-          {/* ANNOUNCEMENTS */}
+          <ToolsSection canUser={canUser} />
 
           <AnnouncementsSection
-            announcements={
-              filteredAnnouncements
-            }
+            announcements={filteredAnnouncements}
           />
-
-          {/* SABBATH */}
 
           <SabbathSection
-            isSabbath={
-              isSabbath
-            }
-            sabbathTimer={
-              sabbathTimer
-            }
+            isSabbath={isSabbath}
+            sabbathTimer={sabbathTimer}
           />
-
-          {/* BIRTHDAYS */}
 
           <BirthdaySection
             user={user}
-            hasBirthday={
-              hasBirthday
-            }
-            isBirthday={
-              isBirthday
-            }
-            birthdayTimer={
-              birthdayTimer
-            }
-            todayBirthdays={
-              todayBirthdays
-            }
-            upcomingBirthdays={
-              upcomingBirthdays
-            }
+            hasBirthday={hasBirthday}
+            isBirthday={isBirthday}
+            birthdayTimer={birthdayTimer}
+            todayBirthdays={todayBirthdays}
+            upcomingBirthdays={upcomingBirthdays}
           />
-        </>
+
+        </div>
       )}
+
     </div>
   );
 }

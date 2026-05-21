@@ -1,0 +1,86 @@
+/* ---------- Tabs ---------- */
+
+.tabs {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+/* ---------- Tab Button ---------- */
+
+.tab {
+  border: none;
+  background: white;
+  padding: .85rem 1rem;
+  border-radius: 12px;
+
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+
+  cursor: pointer;
+
+  font-weight: 500;
+
+  transition: .2s ease;
+
+  box-shadow:
+    0 2px 8px
+    rgba(0,0,0,.04);
+}
+
+.tab:hover {
+  transform:
+    translateY(-2px);
+}
+
+.active {
+  background:
+    var(
+      --primary,
+      #2563eb
+    );
+
+  color: white;
+}
+
+/* ---------- Badge ---------- */
+
+.badge {
+  background:
+    rgba(
+      239,
+      68,
+      68,
+      .15
+    );
+
+  color:
+    #dc2626;
+
+  font-size:
+    .75rem;
+
+  padding:
+    .15rem .5rem;
+
+  border-radius:
+    999px;
+
+  font-weight:
+    600;
+}
+
+.active .badge {
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      .2
+    );
+
+  color:
+    white;
+}

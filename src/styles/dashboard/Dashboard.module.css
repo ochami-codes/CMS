@@ -1,0 +1,20 @@
+.dashboard{
+  display:flex;
+  flex-direction:column;
+  gap:1.5rem;
+}
+
+.grid{
+  display:flex;
+  flex-direction:column;
+  gap:1.5rem;
+}
+
+/* Optional: if later you want 2-column layout on desktop */
+@media(min-width: 1024px){
+  .grid{
+    display:grid;
+    grid-template-columns: 2fr 1fr;
+    align-items:start;
+  }
+}

@@ -1,23 +1,31 @@
-// src/auth/ResetPasswordConfirm.jsx
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+
 import { supabase } from "../supabaseClient";
+import { isStrongPassword } from "../utils/validators";
+
 import Input from "../components/Input";
 import Button from "../components/Button";
 import Loader from "../components/Loader";
-import { isStrongPassword } from "../utils/validators";
-import "../styles/auth.css";
+
+import styles from "../styles/pages/ResetPasswordConfirm.module.css";
+
 export default function ResetPasswordConfirm() {
+
   const navigate = useNavigate();
 
   const [sessionReady, setSessionReady] = useState(false);
+
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  /* ------------------ Read recovery session ------------------ */
+  /* ------------------ session setup ------------------ */
+
   useEffect(() => {
+
     const hash = window.location.hash.replace("#", "");
     const params = new URLSearchParams(hash);
 
@@ -36,13 +44,18 @@ export default function ResetPasswordConfirm() {
           setError("Invalid or expired password reset link.");
           return;
         }
+
         setSessionReady(true);
       });
+
   }, []);
 
-  /* ------------------ Submit new password ------------------ */
+  /* ------------------ submit ------------------ */
+
   const handleSubmit = async (e) => {
+
     e.preventDefault();
+
     if (loading) return;
 
     setError("");
@@ -61,7 +74,10 @@ export default function ResetPasswordConfirm() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error } =
+      await supabase.auth.updateUser({
+        password,
+      });
 
     if (error) {
       setError(error.message);
@@ -70,47 +86,72 @@ export default function ResetPasswordConfirm() {
     }
 
     await supabase.auth.signOut();
-    navigate("/login", { replace: true });
+
+    navigate("/login", {
+      replace: true,
+    });
   };
 
-  /* ------------------ Invalid link ------------------ */
+  /* ------------------ invalid link ------------------ */
+
   if (error && !sessionReady) {
     return (
-      <div className="auth-container">
-        <div className="auth-card text-center">
-          <p className="text-red-600">{error}</p>
+      <div className={styles.container}>
+
+        <div className={styles.card}>
+
+          <p className={styles.error}>
+            {error}
+          </p>
+
           <Link
             to="/login"
-            className="mt-4 inline-block text-blue-600 hover:underline"
+            className={styles.link}
           >
             Back to Login
           </Link>
+
         </div>
+
       </div>
     );
   }
 
-  /* ------------------ Verifying session ------------------ */
+  /* ------------------ loading ------------------ */
+
   if (!sessionReady) {
-    return <Loader message="Verifying reset link… God loves you!" />;
+    return (
+      <Loader message="Verifying reset link… God loves you!" />
+    );
   }
 
-  /* ------------------ Form ------------------ */
-  return (
-    <div className="auth-container">
-      <div className="auth-card flex flex-col gap-4">
-        <h2 className="text-2xl font-semibold text-center">Set New Password</h2>
+  /* ------------------ form ------------------ */
 
-        <p className="text-gray-600 text-center">
+  return (
+    <div className={styles.container}>
+
+      <div className={styles.card}>
+
+        <h2 className={styles.title}>
+          Set New Password
+        </h2>
+
+        <p className={styles.subtitle}>
           Choose a strong password for your account.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className={styles.form}
+        >
+
           <Input
             type="password"
             label="New password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) =>
+              setPassword(e.target.value)
+            }
             required
           />
 
@@ -118,23 +159,43 @@ export default function ResetPasswordConfirm() {
             type="password"
             label="Confirm password"
             value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
+            onChange={(e) =>
+              setConfirm(e.target.value)
+            }
             required
           />
 
-          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+          {error && (
+            <p className={styles.error}>
+              {error}
+            </p>
+          )}
 
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Updating…" : "Update Password"}
+          <Button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full"
+          >
+            {loading
+              ? "Updating…"
+              : "Update Password"}
           </Button>
+
         </form>
 
-        <div className="mt-4 text-center">
-          <Link to="/login" className="text-blue-600 hover:underline text-sm">
+        <div className={styles.footer}>
+
+          <Link
+            to="/login"
+            className={styles.link}
+          >
             Back to Login
           </Link>
+
         </div>
+
       </div>
+
     </div>
   );
 }

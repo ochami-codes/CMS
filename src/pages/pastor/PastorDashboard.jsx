@@ -1,7 +1,7 @@
 // src/pages/pastor/PastorDashboard.jsx
 import { useEffect, useState } from "react";
 import { useToast } from "../../components/ToastProvider";
-import "../../styles/pages.css";
+
 import { OverviewAPI } from "../../utils/api";
 
 export default function PastorDashboard() {

@@ -1,14 +1,22 @@
 // src/components/Button.jsx
-export default function Button({ children, onClick, type = "button", disabled = false }) {
-  return (
-    <button
-      className="btn"
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-    >
-      {children}
-    </button>
-  );
-}
+import styles from "../styles/components/Button.module.css";
 
+export default function Button({
+  children,
+  variant="primary",
+  ...props
+}) {
+
+ return(
+   <button
+      className={
+        `${styles.btn}
+         ${styles[variant]}`
+      }
+
+      {...props}
+   >
+      {children}
+   </button>
+ )
+}

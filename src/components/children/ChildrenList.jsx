@@ -1,68 +1,95 @@
-// src/components/members/ChildrenList.jsx
-import { useState, useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
+
 import { useToast } from "../ToastProvider";
 import { DepartmentsAPI, ChildrenAPI } from "../../utils/api";
+
 import AddChild from "./AddChild";
 import EditChild from "./EditChild";
-import "../../styles/pages.css";
-export default function ChildrenList() {
-  const [children, setChildren] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [editingChild, setEditingChild] = useState(null);
 
+import Table from "../Table";
+import Modal from "../Modal";
+
+
+export default function ChildrenList() {
   const { showToast } = useToast();
 
-  /* ------------------ LOAD DEPARTMENTS ------------------ */
-  useEffect(() => {
-    const loadDepartments = async () => {
-      try {
-        const res = await DepartmentsAPI.fetchAll();
-        setDepartments(res ?? []);
-      } catch (err) {
-        console.error(err);
-        showToast("Failed to load departments", "error");
-      }
-    };
-    loadDepartments();
-  }, [showToast]);
+  const [children, setChildren] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  /* ------------------ LOAD CHILDREN ------------------ */
-  const loadChildren = async () => {
+  const [editingChild, setEditingChild] = useState(null);
+
+  /* ---------------- LOAD CHILDREN ---------------- */
+  const loadChildren = useCallback(async () => {
     setLoading(true);
+
     try {
       const data = await ChildrenAPI.fetchAll();
       setChildren(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
       showToast("Failed to load children", "error");
+      setChildren([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     loadChildren();
-  }, []);
+  }, [loadChildren]);
 
-  /* ------------------ DELETE ------------------ */
+  /* ---------------- DELETE ---------------- */
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this child?")) return;
+    const ok = window.confirm("Delete this child?");
+    if (!ok) return;
 
     try {
       await ChildrenAPI.delete(id);
-      showToast("Child deleted successfully", "success");
-      loadChildren();
+      showToast("Child deleted", "success");
+      setChildren((prev) => prev.filter((c) => c.id !== id));
     } catch (err) {
       console.error(err);
-      showToast(err.message || "Error deleting child", "error");
+      showToast(err.message || "Delete failed", "error");
     }
   };
 
-  /* ------------------ UI ------------------ */
+  /* ---------------- TABLE CONFIG ---------------- */
+  const columns = [
+    { key: "full_name", label: "Child Name" },
+    { key: "parent_name", label: "Parent Name" },
+    { key: "parent_phone", label: "Parent Phone" },
+    {
+      key: "date_of_birth",
+      label: "Date of Birth",
+      render: (row) =>
+        row.date_of_birth
+          ? new Date(row.date_of_birth).toLocaleDateString()
+          : "-",
+    },
+  ];
+
+  const renderActions = (child) => (
+    <div className="table-actions">
+      <button
+        className="btn btn-secondary btn-sm"
+        onClick={() => setEditingChild(child)}
+      >
+        Edit
+      </button>
+
+      <button
+        className="btn btn-danger btn-sm"
+        onClick={() => handleDelete(child.id)}
+      >
+        Delete
+      </button>
+    </div>
+  );
+
   return (
-    <main className="page-container">
-      {/* ADD CHILD */}
+    <div className="page-container">
+
+      {/* HEADER + ADD CHILD */}
       <section className="page-card">
         <h2 className="card-title">Children Members</h2>
         <p className="card-subtitle">
@@ -72,77 +99,38 @@ export default function ChildrenList() {
         <AddChild onAdded={loadChildren} />
       </section>
 
-      {/* CHILDREN LIST */}
+      {/* LIST */}
       <section className="page-card">
         <h3 className="card-title">Registered Children</h3>
 
         {loading ? (
           <p className="text-muted">Loading children…</p>
         ) : children.length === 0 ? (
-          <p className="text-muted">No children added yet.</p>
+          <p className="text-muted">No children found.</p>
         ) : (
-          <table className="members-table">
-            <thead>
-              <tr>
-                <th>Child Name</th>
-                <th>Parent Name</th>
-                <th>Parent Phone</th>
-                <th>Date of Birth</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {children.map((child) => (
-                <tr key={child.id}>
-                  <td>{child.full_name}</td>
-                  <td>{child.parent_name}</td>
-                  <td>{child.parent_phone}</td>
-                  <td>
-                    {new Date(child.date_of_birth).toLocaleDateString()}
-                  </td>
-                  <td style={{ display: "flex", gap: "0.5rem" }}>
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => setEditingChild(child)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleDelete(child.id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Table
+            columns={columns}
+            data={children}
+            renderActions={renderActions}
+          />
         )}
       </section>
 
       {/* EDIT MODAL */}
-      {editingChild && (
-        <div className="modal-overlay">
-          <div className="modal-content page-card">
-            <button
-              className="modal-close-btn"
-              onClick={() => setEditingChild(null)}
-            >
-              ×
-            </button>
-
-            <EditChild
-              child={editingChild}
-              onUpdated={() => {
-                setEditingChild(null);
-                loadChildren();
-              }}
-            />
-          </div>
-        </div>
-      )}
-    </main>
+      <Modal
+        open={!!editingChild}
+        onClose={() => setEditingChild(null)}
+      >
+        {editingChild && (
+          <EditChild
+            child={editingChild}
+            onUpdated={() => {
+              setEditingChild(null);
+              loadChildren();
+            }}
+          />
+        )}
+      </Modal>
+    </div>
   );
 }

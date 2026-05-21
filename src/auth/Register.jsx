@@ -1,15 +1,33 @@
 import { useState } from "react";
+
 import Input from "../components/Input";
 import PasswordInput from "../components/PasswordInput";
 import Button from "../components/Button";
 import EncouragementRedirect from "../components/EncouragementRedirect";
+
 import { AuthAPI } from "../utils/api";
-import "../styles/auth.css";
+
+import styles from "../styles/pages/Register.module.css";
+
+/* -------------------------
+   Helpers
+------------------------- */
+
+const isValidKenyanPhone = (phone) => {
+  if (!phone) return false;
+  const cleaned = phone.replace(/\s+/g, "");
+  return /^(?:\+254|254|0)(7\d{8}|1\d{8})$/.test(cleaned);
+};
+
+const normalizeKenyanPhone = (phone) => {
+  let p = phone.replace(/\s+/g, "");
+  if (p.startsWith("0")) p = "254" + p.slice(1);
+  if (p.startsWith("+")) p = p.slice(1);
+  return p;
+};
 
 export default function Register() {
-  /* -------------------------
-     State
-  ------------------------- */
+
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -23,27 +41,6 @@ export default function Register() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
-
-  /* -------------------------
-     Helpers
-  ------------------------- */
-
-  const isValidKenyanPhone = (phone) => {
-    if (!phone) return false;
-    const cleaned = phone.replace(/\s+/g, "");
-    return /^(?:\+254|254|0)(7\d{8}|1\d{8})$/.test(cleaned);
-  };
-
-  const normalizeKenyanPhone = (phone) => {
-    let p = phone.replace(/\s+/g, "");
-    if (p.startsWith("0")) p = "254" + p.slice(1);
-    if (p.startsWith("+")) p = p.slice(1);
-    return p;
-  };
-
-  /* -------------------------
-     Handlers
-  ------------------------- */
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -60,35 +57,32 @@ export default function Register() {
     }));
   };
 
-  /* -------------------------
-     Submit
-  ------------------------- */
-
   const handleRegister = async (e) => {
     e.preventDefault();
+
     setErrors({});
 
     const newErrors = {};
 
-    // Required fields
     Object.entries(form).forEach(([key, value]) => {
       if (!value?.toString().trim()) {
         newErrors[key] = "This field is required";
       }
     });
 
-    // Password rules
     if (form.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+      newErrors.password =
+        "Password must be at least 8 characters";
     }
 
     if (form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword =
+        "Passwords do not match";
     }
 
-    // Phone validation
     if (!isValidKenyanPhone(form.phone)) {
-      newErrors.phone = "Enter a valid Kenyan phone number";
+      newErrors.phone =
+        "Enter a valid Kenyan phone number";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -124,7 +118,7 @@ export default function Register() {
   };
 
   /* -------------------------
-     Redirect
+     Success redirect screen
   ------------------------- */
 
   if (registered) {
@@ -138,22 +132,26 @@ export default function Register() {
     );
   }
 
-  /* -------------------------
-     Render
-  ------------------------- */
-
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>Create Account</h2>
+    <div className={styles.container}>
+
+      <div className={styles.card}>
+
+        <h2 className={styles.title}>
+          Create Account
+        </h2>
 
         {errors.global && (
-          <p className="text-error text-center text-sm">
+          <p className={styles.error}>
             {errors.global}
           </p>
         )}
 
-        <form onSubmit={handleRegister} className="form-stack">
+        <form
+          onSubmit={handleRegister}
+          className={styles.form}
+        >
+
           <Input
             label="Full Name"
             name="fullName"
@@ -191,21 +189,40 @@ export default function Register() {
           />
 
           {/* Gender */}
-          <div className="form-group">
+          <div className={styles.selectGroup}>
+
             <label>Gender</label>
+
             <select
               name="gender"
               value={form.gender}
               onChange={handleChange}
-              className={errors.gender ? "input-error" : ""}
+              className={
+                errors.gender
+                  ? styles.selectError
+                  : styles.select
+              }
             >
-              <option value="">Select gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
+              <option value="">
+                Select gender
+              </option>
+
+              <option value="Male">
+                Male
+              </option>
+
+              <option value="Female">
+                Female
+              </option>
+
             </select>
+
             {errors.gender && (
-              <p className="error-text">{errors.gender}</p>
+              <p className={styles.error}>
+                {errors.gender}
+              </p>
             )}
+
           </div>
 
           <PasswordInput
@@ -232,10 +249,15 @@ export default function Register() {
             disabled={loading}
             className="btn-primary w-full"
           >
-            {loading ? "Creating account…" : "Register"}
+            {loading
+              ? "Creating account…"
+              : "Register"}
           </Button>
+
         </form>
+
       </div>
+
     </div>
   );
 }

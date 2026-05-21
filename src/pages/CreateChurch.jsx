@@ -5,7 +5,6 @@ import Button from "../components/Button";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/ToastProvider";
 import { AuthAPI, ChurchAPI } from "../utils/api";
-import "../styles/auth.css";
 
 export default function CreateChurch() {
   const navigate = useNavigate();

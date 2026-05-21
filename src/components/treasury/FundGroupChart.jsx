@@ -6,7 +6,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import "../../styles/pages.css";
+
 export default function FundGroupChart({ data, title = "Fund Groups Overview" }) {
   return (
     <div className="card">

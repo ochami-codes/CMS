@@ -1,31 +1,49 @@
-// src/layouts/PublicLayout.jsx
 import { Outlet, Link } from "react-router-dom";
-import "../styles/layout.css";
+
+import styles from "../styles/layouts/PublicLayout.module.css";
+
 export default function PublicLayout() {
+
   return (
-    <div className="public-layout">
-      {/* Navbar */}
-      <nav className="navbar">
-        <h1 className="navbar-brand">ChurchApp</h1>
-        <div className="navbar-links">
-          <Link to="/login" className="btn btn-secondary btn-sm">
+    <div className={styles.layout}>
+
+      {/* NAVBAR */}
+      <nav className={styles.navbar}>
+
+        <h1 className={styles.brand}>
+          ChurchApp
+        </h1>
+
+        <div className={styles.links}>
+
+          <Link
+            to="/login"
+            className="btn btn-secondary btn-sm"
+          >
             Login
           </Link>
-          <Link to="/register" className="btn btn-primary btn-sm">
+
+          <Link
+            to="/register"
+            className="btn btn-primary btn-sm"
+          >
             Register
           </Link>
+
         </div>
+
       </nav>
 
-      {/* Page Content */}
-      <main className="container">
+      {/* MAIN CONTENT */}
+      <main className={styles.main}>
         <Outlet />
       </main>
 
-      {/* Footer */}
-      <footer className="footer">
+      {/* FOOTER */}
+      <footer className={styles.footer}>
         &copy; {new Date().getFullYear()} ChurchApp. All rights reserved.
       </footer>
+
     </div>
   );
 }

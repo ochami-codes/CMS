@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "../../components/ToastProvider";
 import ChildrenList from "../../components/children/ChildrenList";
 import { ChildrenAPI } from "../../utils/api";
-import "../../styles/pages.css";
+
 import RequirePermission from "../../components/RequirePermission";
 
 export default function ChildrenDashboard() {

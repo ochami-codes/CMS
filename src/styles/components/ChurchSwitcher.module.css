@@ -1,0 +1,147 @@
+.wrapper {
+  position: relative;
+}
+
+/* trigger button */
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 0.5rem;
+
+  padding: 0.5rem 0.75rem;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  background: var(--surface);
+
+  cursor: pointer;
+
+  min-width: 160px;
+}
+
+.name {
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.arrow {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+/* dropdown */
+.dropdown {
+  position: absolute;
+
+  top: calc(100% + 0.5rem);
+  left: 0;
+
+  width: 260px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+
+  box-shadow: var(--shadow-md);
+
+  z-index: 1000;
+
+  padding: 0.5rem 0;
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  color: var(--text-light);
+
+  padding: 0.5rem 1rem;
+}
+
+/* item */
+.item {
+  width: 100%;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0.75rem 1rem;
+
+  background: transparent;
+  border: none;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  transition: var(--transition);
+}
+
+.item:hover {
+  background: var(--surface-alt);
+}
+
+.active {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.itemName {
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.itemStatus {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* actions */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.5rem 0;
+}
+
+.action {
+  width: 100%;
+
+  padding: 0.75rem 1rem;
+
+  background: none;
+  border: none;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition: var(--transition);
+}
+
+.action:hover {
+  background: var(--surface-alt);
+}
+
+.empty {
+  padding: 0.75rem 1rem;
+
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

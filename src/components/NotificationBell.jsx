@@ -1,13 +1,16 @@
-// src/components/NotificationBell.jsx
 import { useEffect, useState, useRef } from "react";
 import { Bell } from "lucide-react";
+
 import NotificationsDropdown from "./NotificationsDropdown";
 import { NotificationsAPI } from "../utils/api";
-import "../styles/pages.css";
-import "../styles/notifications.css";
+
+import styles from "../styles/components/NotificationBell.module.css";
+
 export default function NotificationBell() {
+
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
+
   const bellRef = useRef(null);
 
   const loadUnread = async () => {
@@ -25,37 +28,64 @@ export default function NotificationBell() {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (bellRef.current && !bellRef.current.contains(e.target)) {
+      if (
+        bellRef.current &&
+        !bellRef.current.contains(e.target)
+      ) {
         setOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
   }, []);
 
   return (
-    <div className="notification-wrapper" ref={bellRef}>
+    <div
+      className={styles.wrapper}
+      ref={bellRef}
+    >
+
       <button
-        className={`notification-bell ${unread > 0 ? "has-unread" : ""}`}
-        onClick={() => setOpen((prev) => !prev)}
+        className={`${styles.bell} ${
+          unread > 0 ? styles.hasUnread : ""
+        }`}
+        onClick={() =>
+          setOpen(prev => !prev)
+        }
       >
+
         <Bell size={20} />
+
         {unread > 0 && (
-          <span className="notification-badge">
-            {unread > 99 ? "99+" : unread}
+          <span className={styles.badge}>
+            {unread > 99
+              ? "99+"
+              : unread}
           </span>
         )}
+
       </button>
 
-      <div className={`dropdown-container ${open ? "open" : ""}`}>
-        {open && (
+      {open && (
+        <div className={styles.dropdown}>
           <NotificationsDropdown
-            onClose={() => setOpen(false)}
+            onClose={() =>
+              setOpen(false)
+            }
             refreshUnread={loadUnread}
           />
-        )}
-      </div>
+        </div>
+      )}
+
     </div>
   );
 }

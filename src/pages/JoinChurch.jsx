@@ -9,8 +9,6 @@ import Loader from "../components/Loader";
 
 import { ChurchAPI } from "../utils/api";
 
-import "../styles/pages.css";
-
 export default function JoinChurch() {
   const navigate = useNavigate();
 

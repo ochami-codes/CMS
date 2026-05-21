@@ -1,66 +1,83 @@
-// src/layouts/DashboardLayout.jsx
 import { Outlet, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import NotificationBell from "../components/NotificationBell";
-import Sidebar from "../components/Sidebar";
 import { useState } from "react";
-import "../styles/layout.css";
+
+import { useAuth } from "../context/AuthContext";
+
+import Sidebar from "../components/Sidebar";
+import NotificationBell from "../components/NotificationBell";
+
+import styles from "../styles/layouts/DashboardLayout.module.css";
+
 export default function DashboardLayout() {
+
   const { logout } = useAuth();
   const navigate = useNavigate();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
-    navigate("/login", { replace: true });
+
+    navigate("/login", {
+      replace: true
+    });
   };
 
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-
   return (
-    <div className="dashboard-layout">
-      {/* Hamburger for mobile */}
+    <div className={styles.layout}>
+
+      {/* HAMBURGER */}
       <button
-        className="hamburger-btn"
-        onClick={toggleSidebar}
-        aria-label="Toggle sidebar"
+        className={styles.hamburger}
+        onClick={() =>
+          setSidebarOpen(prev => !prev)
+        }
       >
         ☰
       </button>
 
-      {/* Sidebar */}
+      {/* SIDEBAR */}
       <Sidebar
         open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+        onClose={() =>
+          setSidebarOpen(false)
+        }
         onLogout={handleLogout}
       />
 
-      {/* Overlay for mobile */}
+      {/* OVERLAY */}
       {sidebarOpen && (
         <div
-          className="sidebar-overlay"
-          onClick={() => setSidebarOpen(false)}
+          className={styles.overlay}
+          onClick={() =>
+            setSidebarOpen(false)
+          }
         />
       )}
 
-      {/* Main content */}
-      <main className="dashboard-content">
-        {/* Navbar */}
-<header className="dashboard-navbar">
-  {/* Top row */}
-  <div className="navbar-top">
-    <h3>Dashboard</h3>
+      {/* MAIN */}
+      <div className={styles.main}>
 
-    <div className="navbar-icons">
-      <NotificationBell />
-    </div>
-  </div>
-</header>
-        {/* Routed pages */}
-        <section className="dashboard-page">
+        {/* NAVBAR */}
+        <header className={styles.navbar}>
+
+          <h3 className={styles.title}>
+            Dashboard
+          </h3>
+
+          <div className={styles.icons}>
+            <NotificationBell />
+          </div>
+
+        </header>
+
+        {/* PAGE CONTENT */}
+        <section className={styles.page}>
           <Outlet />
         </section>
-      </main>
+
+      </div>
+
     </div>
   );
 }

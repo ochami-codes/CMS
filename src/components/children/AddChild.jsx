@@ -1,135 +1,171 @@
-// src/components/members/AddChild.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+
 import { memberFields } from "../../utils/memberFields";
 import { ChildrenAPI, DepartmentsAPI } from "../../utils/api";
 import { useToast } from "../ToastProvider";
-import "../../styles/pages.css";
+
+import Card from "../Card";
+
 export default function AddChild({ onAdded }) {
   const { showToast } = useToast();
+
   const [departments, setDepartments] = useState([]);
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
 
-  /* ------------------ LOAD DEPARTMENTS ------------------ */
+  const { fields: baseFields = [] } = memberFields["children"] || {};
+
+  /* ---------------- LOAD DEPARTMENTS ---------------- */
   useEffect(() => {
-    const loadDepartments = async () => {
+    const load = async () => {
       try {
         const res = await DepartmentsAPI.fetchAll();
-        setDepartments(res ?? []);
+        setDepartments(Array.isArray(res) ? res : []);
       } catch (err) {
         console.error(err);
         showToast("Failed to load departments", "error");
       }
     };
-    loadDepartments();
+
+    load();
   }, [showToast]);
 
-  /* ------------------ SETUP FORM ------------------ */
-  const { fields } = memberFields["children"];
-
-  useEffect(() => {
-    const initialState = {};
-    fields.forEach((f) => {
+  /* ---------------- BUILD FIELDS ---------------- */
+  const fields = useMemo(() => {
+    return baseFields.map((f) => {
       if (f.name === "department") {
-        f.options = departments.map((d) => d.name);
+        return {
+          ...f,
+          options: departments.map((d) => ({
+            label: d.name,
+            value: d.id,
+          })),
+        };
       }
-      initialState[f.name] = "";
+      return f;
     });
-    setFormData(initialState);
-  }, [fields, departments]);
+  }, [baseFields, departments]);
 
-  const handleChange = (e) => {
+  /* ---------------- INIT FORM ---------------- */
+  useEffect(() => {
+    const initial = {};
+    fields.forEach((f) => {
+      initial[f.name] = "";
+    });
+    setFormData(initial);
+  }, [fields]);
+
+  /* ---------------- CHANGE ---------------- */
+  const handleChange = (name, value) => {
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
   };
 
-  /* ------------------ SUBMIT ------------------ */
+  /* ---------------- SUBMIT ---------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    for (const field of fields) {
-      if (field.required && !formData[field.name]) {
-        showToast(`${field.label} is required`, "error");
+    for (const f of fields) {
+      if (f.required && !formData[f.name]) {
+        showToast(`${f.label} is required`, "error");
         return;
       }
     }
 
-    const payload = { ...formData };
+    const payload = {
+      ...formData,
+    };
+
     if (payload.date_of_birth) {
-      payload.date_of_birth = new Date(payload.date_of_birth).toISOString();
+      payload.date_of_birth = new Date(
+        payload.date_of_birth
+      ).toISOString();
     }
 
     setLoading(true);
+
     try {
       await ChildrenAPI.add(payload);
+
       showToast("Child added successfully", "success");
 
-      const reset = {};
-      fields.forEach((f) => (reset[f.name] = ""));
+      const reset = Object.fromEntries(
+        fields.map((f) => [f.name, ""])
+      );
       setFormData(reset);
 
       onAdded?.();
     } catch (err) {
       console.error(err);
-      showToast(err.message || "Error adding child", "error");
+      showToast(err.message || "Failed to add child", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  /* ------------------ UI ------------------ */
+  /* ---------------- UI ---------------- */
   return (
-    <main className="page-container">
-      <section className="page-card">
-        <h2 className="card-title">Add Child</h2>
-        <p className="card-subtitle">
-          Register a child and assign them to the appropriate department.
-        </p>
+    <Card
+      title="Add Child"
+      subtitle="Register a child and assign them to a department"
+    >
+      <form className="form-stack" onSubmit={handleSubmit}>
 
-        <form onSubmit={handleSubmit} className="form-stack">
-          {fields.map((field) => (
-            <div key={field.name} className="form-group">
-              <label className="label">{field.label}</label>
+        {fields.map((field) => (
+          <div key={field.name} className="form-group">
 
-              {field.type === "select" ? (
-                <select
-                  name={field.name}
-                  value={formData[field.name]}
-                  onChange={handleChange}
-                  required={field.required}
-                  className="input-field"
-                >
-                  <option value="">Select {field.label}</option>
-                  {field.options?.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type={field.type || "text"}
-                  name={field.name}
-                  value={formData[field.name]}
-                  onChange={handleChange}
-                  required={field.required}
-                  className="input-field"
-                />
-              )}
-            </div>
-          ))}
+            <label className="label">
+              {field.label}
+            </label>
 
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={loading}
-          >
-            {loading ? "Saving…" : "Add Child"}
-          </button>
-        </form>
-      </section>
-    </main>
+            {field.type === "select" ? (
+              <select
+                value={formData[field.name]}
+                onChange={(e) =>
+                  handleChange(field.name, e.target.value)
+                }
+                className="input"
+                required={field.required}
+              >
+                <option value="">
+                  Select {field.label}
+                </option>
+
+                {(field.options || []).map((opt) => (
+                  <option
+                    key={opt.value}
+                    value={opt.value}
+                  >
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type={field.type || "text"}
+                value={formData[field.name]}
+                onChange={(e) =>
+                  handleChange(field.name, e.target.value)
+                }
+                className="input"
+                required={field.required}
+              />
+            )}
+
+          </div>
+        ))}
+
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={loading}
+        >
+          {loading ? "Saving..." : "Add Child"}
+        </button>
+
+      </form>
+    </Card>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "../../styles/pages.css";
+
 
 import ClerkOverview from "./ClerkOverview";
 import MembersRegister from "./MembersRegister";

@@ -1,0 +1,57 @@
+.grid{
+  display:grid;
+  gap:1rem;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(160px,1fr)
+    );
+}
+
+.card{
+  text-align:center;
+  cursor:pointer;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:.75rem;
+
+  transition:var(--transition);
+}
+
+.card:hover{
+  transform:
+    translateY(-2px);
+}
+
+.icon{
+  position:relative;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  width:56px;
+  height:56px;
+
+  border-radius:50%;
+  background:
+    var(--surface-hover);
+}
+
+.icon span{
+  position:absolute;
+
+  top:-4px;
+  right:-6px;
+}
+
+.hint{
+  color:
+    var(--text-muted);
+
+  font-size:
+    .85rem;
+}

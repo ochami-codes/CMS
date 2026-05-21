@@ -1,66 +1,98 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import encouragementVerses from "../utils/encouragementVerses";
-import "../styles/layout.css";
+import styles from "../styles/components/EncouragementRedirect.module.css";
+
 export default function EncouragementRedirect({
   title = "All set ✨",
   message = "You’ll be redirected shortly.",
   redirectTo = "/login",
-  delay = 10000, // default 10s
-  onComplete, // optional callback
+  delay = 10000,
+  onComplete,
 }) {
+
   const navigate = useNavigate();
-  const [secondsLeft, setSecondsLeft] = useState(delay / 1000);
+
+  const [secondsLeft, setSecondsLeft] = useState(
+    delay / 1000
+  );
 
   const verse = useMemo(() => {
     return encouragementVerses[
-      Math.floor(Math.random() * encouragementVerses.length)
+      Math.floor(
+        Math.random() *
+          encouragementVerses.length
+      )
     ];
   }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSecondsLeft((s) => s - 1);
+      setSecondsLeft(s => s - 1);
     }, 1000);
 
     const timeout = setTimeout(async () => {
       if (onComplete) await onComplete();
-      navigate(redirectTo, { replace: true });
+
+      navigate(redirectTo, {
+        replace: true
+      });
     }, delay);
 
     return () => {
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, [delay, navigate, redirectTo, onComplete]);
+  }, [
+    delay,
+    navigate,
+    redirectTo,
+    onComplete
+  ]);
 
-return (
-  <div className="dashboard-content redirect-container">
-    <div className="card redirect-card">
-      <h2 className="redirect-title">{title}</h2>
+  return (
+    <div className={styles.container}>
 
-      <p className="redirect-message">{message}</p>
+      <div className={styles.card}>
 
-      <blockquote className="redirect-verse">
-        “{verse.text}”
-      </blockquote>
+        <h2 className={styles.title}>
+          {title}
+        </h2>
 
-      <p className="redirect-ref">— {verse.ref}</p>
+        <p className={styles.message}>
+          {message}
+        </p>
 
-      <p className="redirect-timer">
-        Redirecting in {secondsLeft} second{secondsLeft !== 1 ? "s" : ""}…
-      </p>
+        <blockquote className={styles.verse}>
+          “{verse.text}”
+        </blockquote>
 
-      <button
-        className="btn btn-secondary"
-        onClick={async () => {
-          if (onComplete) await onComplete();
-          navigate(redirectTo, { replace: true });
-        }}
-      >
-        Go now
-      </button>
+        <p className={styles.ref}>
+          — {verse.ref}
+        </p>
+
+        <p className={styles.timer}>
+          Redirecting in{" "}
+          {secondsLeft} second
+          {secondsLeft !== 1 ? "s" : ""}…
+        </p>
+
+        <button
+          className={styles.button}
+          onClick={async () => {
+            if (onComplete) await onComplete();
+
+            navigate(redirectTo, {
+              replace: true
+            });
+          }}
+        >
+          Go now
+        </button>
+
+      </div>
+
     </div>
-  </div>
-);
+  );
 }

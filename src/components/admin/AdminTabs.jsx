@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+// components/admin/AdminTabs.jsx
 
+import { useEffect, useState } from "react";
 import {
   RoleRequestsAPI,
   AdminMembershipAPI,
@@ -7,107 +8,158 @@ import {
 
 import { useAuth } from "../../context/AuthContext";
 
-import "../../styles/pages.css";
+import styles from "../../styles/admin/AdminTabs.module.css";
 
 export default function AdminTabs({
   activeTab,
   setActiveTab,
 }) {
-  const {
-    authReady,
-    canUser,
-  } = useAuth();
+  const { authReady, canUser } =
+    useAuth();
 
-  const [rolePending, setRolePending] = useState(0);
-  const [membershipPending, setMembershipPending] = useState(0);
+  const [counts, setCounts] =
+    useState({
+      roles: 0,
+      memberships: 0,
+    });
 
-  const canAccessAdmin =
-    canUser("access_admin_dashboard");
-
-  useEffect(() => {
-    if (!authReady || !canAccessAdmin) return;
-
-    const fetchCounts = async () => {
-      try {
-        const [roleData, membershipData] =
-          await Promise.all([
-            RoleRequestsAPI.pendingCount(),
-            AdminMembershipAPI.fetchAll(),
-          ]);
-
-        setRolePending(roleData.count || 0);
-        setMembershipPending(
-          membershipData.length || 0
-        );
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchCounts();
-
-    const interval = setInterval(
-      fetchCounts,
-      10000
+  const canAccess =
+    canUser(
+      "access_admin_dashboard"
     );
 
-    return () => clearInterval(interval);
-  }, [authReady, canAccessAdmin]);
+  useEffect(() => {
+    if (
+      !authReady ||
+      !canAccess
+    )
+      return;
 
-  // auth still booting
-  if (!authReady) return null;
+    const loadCounts =
+      async () => {
+        try {
+          const [
+            roleData,
+            membershipData,
+          ] =
+            await Promise.all([
+              RoleRequestsAPI.pendingCount(),
+              AdminMembershipAPI.fetchAll(),
+            ]);
 
-  // no permission
-  if (!canAccessAdmin) return null;
+          setCounts({
+            roles:
+              roleData?.count ||
+              0,
+
+            memberships:
+              membershipData
+                ?.length || 0,
+          });
+        } catch (err) {
+          console.error(
+            "Failed loading admin counts:",
+            err
+          );
+        }
+      };
+
+    loadCounts();
+
+    const interval =
+      setInterval(
+        loadCounts,
+        10000
+      );
+
+    return () =>
+      clearInterval(
+        interval
+      );
+  }, [
+    authReady,
+    canAccess,
+  ]);
+
+  if (
+    !authReady ||
+    !canAccess
+  )
+    return null;
+
+  const tabs = [
+    {
+      key: "manage",
+      label:
+        "Manage Members",
+    },
+
+    {
+      key:
+        "membership-requests",
+
+      label:
+        "Membership Requests",
+
+      badge:
+        counts.memberships,
+    },
+
+    {
+      key:
+        "role-requests",
+
+      label:
+        "Role Requests",
+
+      badge:
+        counts.roles,
+    },
+  ];
 
   return (
-    <div className="admin-tabs">
-      <button
-        className={
-          activeTab === "manage"
-            ? "tab active"
-            : "tab"
-        }
-        onClick={() =>
-          setActiveTab("manage")
-        }
-      >
-        Manage Members
-      </button>
+    <nav
+      className={
+        styles.tabs
+      }
+    >
+      {tabs.map(
+        (tab) => (
+          <button
+            key={
+              tab.key
+            }
+            onClick={() =>
+              setActiveTab(
+                tab.key
+              )
+            }
+            className={`
+              ${styles.tab}
+              ${
+                activeTab ===
+                tab.key
+                  ? styles.active
+                  : ""
+              }
+            `}
+          >
+            {tab.label}
 
-
-      <button
-        className={
-          activeTab ===
-          "membership-requests"
-            ? "tab active"
-            : "tab"
-        }
-        onClick={() =>
-          setActiveTab(
-            "membership-requests"
-          )
-        }
-      >
-        Membership Requests
-        {membershipPending > 0 &&
-          ` (${membershipPending})`}
-      </button>
-
-      <button
-        className={
-          activeTab === "role-requests"
-            ? "tab active"
-            : "tab"
-        }
-        onClick={() =>
-          setActiveTab("role-requests")
-        }
-      >
-        Role Requests
-        {rolePending > 0 &&
-          ` (${rolePending})`}
-      </button>
-    </div>
+            {!!tab.badge && (
+              <span
+                className={
+                  styles.badge
+                }
+              >
+                {
+                  tab.badge
+                }
+              </span>
+            )}
+          </button>
+        )
+      )}
+    </nav>
   );
 }

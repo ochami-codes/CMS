@@ -1,0 +1,53 @@
+.navbar {
+  height: 60px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 1rem;
+
+  background: var(--surface);
+
+  border-bottom: 1px solid var(--border);
+
+  position: sticky;
+  top: 0;
+
+  z-index: 100;
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 600;
+
+  color: var(--text);
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.email {
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+.logout {
+  padding: 0.4rem 0.8rem;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  background: transparent;
+
+  cursor: pointer;
+
+  transition: var(--transition);
+}
+
+.logout:hover {
+  background: var(--surface-alt);
+}

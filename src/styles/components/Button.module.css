@@ -1,0 +1,31 @@
+.btn{
+ padding:.8rem 1rem;
+
+ border-radius:
+    var(--radius-md);
+
+ transition:
+    var(--transition);
+}
+
+
+.primary{
+ background:
+    var(--primary);
+
+ color:white;
+}
+
+
+.danger{
+ background:
+   var(--danger);
+
+ color:white;
+}
+
+
+.outline{
+ border:
+   1px solid var(--border);
+}

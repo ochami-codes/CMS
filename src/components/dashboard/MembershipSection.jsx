@@ -1,120 +1,188 @@
 // components/dashboard/MembershipSection.jsx
-
 import { useState } from "react";
 import { UserPlus } from "lucide-react";
+
 import { useAuth } from "../../context/AuthContext";
 import { MembershipAPI } from "../../utils/api";
 
-export default function MembershipSection({
-  membership,
-}) {
-  const [loading, setLoading] = useState(false);
+import Card from "../Card";
+import Button from "../Button";
+import PageHeader from "../PageHeader";
 
-  const [successMessage, setSuccessMessage] =
-    useState("");
+import styles from "../../styles/dashboard/MembershipSection.module.css";
 
-  const [errorMessage, setErrorMessage] =
-    useState("");
+export default function MembershipSection() {
+
+const [loading,setLoading] =
+useState(false);
+
+const [successMessage,
+setSuccessMessage] =
+useState("");
+
+const [errorMessage,
+setErrorMessage] =
+useState("");
+
 
 const {
-  dashboardMode,
-  activeMembershipStatus,
-  refetchUser,
+
+activeMembershipStatus,
+
+refetchUser,
+
 } = useAuth();
 
- const handleRequestMembership = async () => {
-  try {
-    setLoading(true);
 
-    setSuccessMessage("");
-    setErrorMessage("");
+const handleRequestMembership =
+async()=>{
 
-    await MembershipAPI.submit({});
+try{
 
-    await refetchUser();
+setLoading(true);
 
-    setSuccessMessage(
-      "Membership request submitted 🙏"
-    );
+setSuccessMessage("");
+setErrorMessage("");
 
-  } catch (err) {
-    const message =
-      err?.response?.data?.message ||
-      "Request failed";
+await MembershipAPI.submit({});
 
-    setErrorMessage(message);
+await refetchUser();
 
-  } finally {
-    setLoading(false);
-  }
+setSuccessMessage(
+"Membership request submitted 🙏"
+);
+
+}
+
+catch(err){
+
+setErrorMessage(
+
+err?.response?.data?.message ||
+
+"Request failed"
+
+);
+
+}
+
+finally{
+
+setLoading(false);
+
+}
+
 };
 
-  const status = activeMembershipStatus;
+
+const status =
+activeMembershipStatus;
+
 
 const hasActiveRequest =
-  status === "requested";
+status === "requested";
 
-  return (
-    <section className="dashboard-section">
-      <div className="dashboard-section-header">
-        <UserPlus size={18} />
-        Join Your Church
-      </div>
 
-      <div className="card">
+const statusMessage =
 
-        {/* STATUS MESSAGE */}
+status === "requested"
 
-        <p>
-          {status === "requested"
-  ? "Your membership request is pending review."
+? "Your membership request is pending review."
 
-  : status === "active"
-  ? "Your membership has been approved 🎉"
+: status === "active"
 
-  : status === "rejected"
-  ? "Your membership request was rejected."
+? "Your membership has been approved 🎉"
 
-  : "Request membership to access ministries and announcements."}
-        </p>
+: status === "rejected"
 
-        {/* REQUEST BUTTON */}
+? "Your membership request was rejected."
 
-        {!hasActiveRequest && (
-          <button
-            className="btn btn-primary"
-            disabled={loading}
-            onClick={handleRequestMembership}
-          >
-            {loading
-              ? "Sending request..."
-              : "Request Membership"}
-          </button>
-        )}
+: "Request membership to access ministries and announcements.";
 
-        {/* SUCCESS */}
 
-        {successMessage && (
-          <div
-            className="message-success"
-            style={{ marginTop: "0.5rem" }}
-          >
-            {successMessage}
-          </div>
-        )}
 
-        {/* ERROR */}
+return(
 
-        {errorMessage && (
-          <div
-            className="message-error"
-            style={{ marginTop: "0.5rem" }}
-          >
-            {errorMessage}
-          </div>
-        )}
+<section className={styles.section}>
 
-      </div>
-    </section>
-  );
+
+<PageHeader
+
+title="Join Your Church"
+
+icon={<UserPlus size={18}/>}
+
+/>
+
+
+<Card>
+
+<div className={styles.content}>
+
+
+<p className={styles.status}>
+{statusMessage}
+</p>
+
+
+
+{!hasActiveRequest && (
+
+<Button
+
+variant="primary"
+
+disabled={loading}
+
+onClick={
+handleRequestMembership
+}
+
+>
+
+{loading
+
+? "Sending request..."
+
+: "Request Membership"
+
+}
+
+</Button>
+
+)}
+
+
+
+{successMessage && (
+
+<p className={styles.success}>
+
+{successMessage}
+
+</p>
+
+)}
+
+
+
+{errorMessage && (
+
+<p className={styles.error}>
+
+{errorMessage}
+
+</p>
+
+)}
+
+
+</div>
+
+</Card>
+
+</section>
+
+)
+
 }

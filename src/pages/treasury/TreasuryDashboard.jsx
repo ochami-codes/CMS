@@ -10,7 +10,6 @@ import { generateTablePDF } from "../../utils/pdf";
 import toast from "react-hot-toast";
 import Loader from "../../components/Loader";
 import RequirePermission from "../../components/RequirePermission";
-import "../../styles/pages.css";
 
 export default function TreasuryDashboard() {
   const { user } = useAuth(); // <- aligned with new AuthContext

@@ -6,7 +6,7 @@ import { AnnouncementsAPI } from "../../utils/api";
 import RequirePermission from "../../components/RequirePermission";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
-import "../../styles/pages.css";
+
 
 export default function CommunicationDashboard() {
   const { user } = useAuth();

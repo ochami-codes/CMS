@@ -2,27 +2,67 @@
 
 import { Home } from "lucide-react";
 
+import Card from "../Card";
+
+import styles from "../../styles/dashboard/DashboardHeader.module.css";
+
 export default function DashboardHeader({
+
   churchName,
   greeting,
   verse,
+
 }) {
-  return (
-    <section className="dashboard-section">
-      <div className="card">
-        <h2>
-          <Home size={18} /> {churchName}
-        </h2>
 
-        <p>{greeting}</p>
+return(
 
-        {verse && (
-          <p>
-            <strong>{verse.reference}</strong>:{" "}
-            {verse.text}
-          </p>
-        )}
-      </div>
-    </section>
-  );
+<section>
+
+<Card>
+
+<div className={styles.top}>
+
+<div className={styles.title}>
+
+<Home size={20}/>
+
+<h2>
+{churchName}
+</h2>
+
+</div>
+
+<p className={styles.greeting}>
+{greeting}
+</p>
+
+</div>
+
+
+{verse && (
+
+<blockquote
+className={styles.verse}
+>
+
+<p>
+"{verse.text}"
+</p>
+
+<footer>
+
+— {verse.reference}
+
+</footer>
+
+</blockquote>
+
+)}
+
+</Card>
+
+</section>
+
+)
+
 }

@@ -1,0 +1,19 @@
+.badge{
+ padding:.3rem .7rem;
+
+ border-radius:999px;
+
+ font-size:.8rem;
+}
+
+.success{
+ background:#dcfce7;
+}
+
+.warning{
+ background:#fef9c3;
+}
+
+.danger{
+ background:#fee2e2;
+}

@@ -1,6 +1,15 @@
 // components/dashboard/QuickActions.jsx
 
-import { Coffee, MessageCircle } from "lucide-react";
+import {
+  Coffee,
+  MessageCircle,
+} from "lucide-react";
+
+import Card from "../Card";
+import PageHeader from "../PageHeader";
+import Badge from "../Badge";
+
+import styles from "../../styles/dashboard/QuickActions.module.css";
 
 export default function QuickActions({
   actions,
@@ -9,90 +18,97 @@ export default function QuickActions({
   user,
   onAction,
 }) {
+  const visibleActions =
+    actions.filter((action) => {
+
+      if (
+        action.hideForAdmin &&
+        isAdmin
+      ) {
+        return false;
+      }
+
+      if (action.permission) {
+        return (
+          isAdmin ||
+          user?.permissions?.includes(
+            action.permission
+          )
+        );
+      }
+
+      return true;
+    });
+
   return (
-    <section className="dashboard-section">
-      <div className="dashboard-section-header">
-        <Coffee size={18} />
-        Quick Actions
-      </div>
+    <section>
 
-      <div className="dashboard-actions">
+      <PageHeader
+        title="Quick Actions"
+        icon={<Coffee size={18} />}
+      />
 
-        {actions
-          .filter((action) => {
+      <div className={styles.grid}>
 
-            // hide admin-only actions
-            if (
-              action.hideForAdmin &&
-              isAdmin
-            ) {
-              return false;
-            }
+        {visibleActions.map((action) => {
 
-            // optional permission check
-            if (action.permission) {
-              return (
-                isAdmin ||
-                user?.permissions?.includes(
-                  action.permission
-                )
-              );
-            }
+          const isMessage =
+            action.key === "message";
 
-            return true;
-          })
+          return (
 
-          .map((action) => (
-            <button
+            <Card
               key={action.key}
-              className={`dashboard-action-card ${
-                action.key === "message"
-                  ? "message"
-                  : ""
-              }`}
+              clickable
+              className={styles.card}
               onClick={() =>
                 onAction(action.key)
               }
             >
 
-              {/* ICON */}
+              <div className={styles.icon}>
 
-              {action.key === "message" ? (
-                <div className="icon-wrapper">
+                {isMessage ? (
+                  <>
+                    <MessageCircle size={24} />
 
-                  <MessageCircle size={24} />
+                    {unreadMessages > 0 && (
+                      <Badge type="danger">
+                        {unreadMessages}
+                      </Badge>
+                    )}
+                  </>
+                ) : (
+                  <Coffee size={24} />
+                )}
 
-                  {unreadMessages > 0 && (
-                    <span className="badge unread">
-                      {unreadMessages}
-                    </span>
-                  )}
+              </div>
 
-                </div>
-              ) : (
-                <Coffee size={24} />
-              )}
+              <h4>
+                {action.label}
+              </h4>
 
-              {/* LABEL */}
-
-              <h3>{action.label}</h3>
-
-              {/* HINT */}
-
-              {action.key === "message" &&
+              {isMessage &&
                 unreadMessages > 0 && (
-                  <small className="action-hint">
-                    {unreadMessages} new
-                    message
-                    {unreadMessages > 1 &&
-                      "s"}
-                  </small>
+
+                <small
+                  className={styles.hint}
+                >
+                  {unreadMessages}
+                  {" "}new message
+                  {unreadMessages > 1 &&
+                    "s"}
+                </small>
+
               )}
 
-            </button>
-          ))}
+            </Card>
+
+          );
+        })}
 
       </div>
+
     </section>
   );
 }

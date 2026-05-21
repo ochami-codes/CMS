@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import "../../styles/pages.css";
 
 export default function SabbathSchoolDashboard() {
   // =========================

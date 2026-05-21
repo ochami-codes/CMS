@@ -1,0 +1,53 @@
+.timer{
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(70px,1fr)
+    );
+
+  gap:1rem;
+
+  text-align:center;
+}
+
+.unit{
+  padding:1rem;
+
+  border-radius:
+    var(--radius-md);
+
+  background:
+    var(--surface-hover);
+
+  display:flex;
+  flex-direction:column;
+  gap:.25rem;
+}
+
+.unit strong{
+  font-size:
+    1.5rem;
+
+  color:
+    var(--primary);
+}
+
+.unit span{
+  font-size:
+    .85rem;
+
+  color:
+    var(--text-muted);
+}
+
+.message{
+  text-align:center;
+
+  padding:
+    1rem;
+
+  font-weight:
+    500;
+}

@@ -1,60 +1,147 @@
 // components/dashboard/ToolsSection.jsx
 
 import { Link } from "react-router-dom";
-import { Users } from "lucide-react";
+
+import {
+  Users,
+  Wallet,
+  Shield,
+  Music,
+  Baby,
+  Church,
+} from "lucide-react";
+
+import Card from "../Card";
+import PageHeader from "../PageHeader";
+import EmptyState from "../EmptyState";
+
+import styles from "../../styles/dashboard/ToolsSection.module.css";
+
+const TOOLS = [
+  {
+    title: "Treasury",
+    path: "/dashboard/treasury",
+    permission:
+      "access_treasury_dashboard",
+
+    icon: Wallet,
+  },
+
+  {
+    title: "Youth",
+    path: "/dashboard/youth",
+    permission:
+      "access_youth_dashboard",
+
+    icon: Users,
+  },
+
+  {
+    title: "Children",
+    path: "/dashboard/children",
+    permission:
+      "access_children_dashboard",
+
+    icon: Baby,
+  },
+
+  {
+    title: "Choir",
+    path: "/dashboard/choir",
+    permission:
+      "access_choir_dashboard",
+
+    icon: Music,
+  },
+
+  {
+    title: "Pastor",
+    path: "/dashboard/pastor",
+    permission:
+      "access_pastor_dashboard",
+
+    icon: Church,
+  },
+
+  {
+    title: "Admin",
+    path: "/dashboard/admin",
+    permission:
+      "access_admin_dashboard",
+
+    icon: Shield,
+  },
+];
 
 export default function ToolsSection({
   canUser,
 }) {
+
+  const visibleTools =
+    TOOLS.filter(tool =>
+      canUser(tool.permission)
+    );
+
   return (
-    <section className="dashboard-section">
-      <div className="dashboard-section-header">
-        <Users size={18} />
-        Tools
-      </div>
+    <section>
 
-      <div className="dashboard-actions">
+      <PageHeader
+        title="Tools"
+        icon={<Users size={18} />}
+      />
 
-        {/* Treasury */}
+      {visibleTools.length === 0 ? (
 
-        {canUser(
-          "access_treasury_dashboard"
-        ) && (
-          <Link
-            to="/dashboard/treasury"
-            className="dashboard-action-card"
-          >
-            Treasury
-          </Link>
-        )}
+        <Card>
+          <EmptyState
+            title="No tools available"
+            description="You currently have no department access."
+          />
+        </Card>
 
-        {/* Youth */}
+      ) : (
 
-        {canUser(
-          "access_youth_dashboard"
-        ) && (
-          <Link
-            to="/dashboard/youth"
-            className="dashboard-action-card"
-          >
-            Youth
-          </Link>
-        )}
+        <div className={styles.grid}>
 
-        {/* Admin */}
+          {visibleTools.map(tool => {
 
-        {canUser(
-          "access_admin_dashboard"
-        ) && (
-          <Link
-            to="/dashboard/admin"
-            className="dashboard-action-card"
-          >
-            Admin
-          </Link>
-        )}
+            const Icon =
+              tool.icon;
 
-      </div>
+            return (
+
+              <Link
+                key={tool.path}
+                to={tool.path}
+                className={
+                  styles.link
+                }
+              >
+
+                <Card
+                  clickable
+                  className={
+                    styles.card
+                  }
+                >
+
+                  <Icon size={24} />
+
+                  <h4>
+                    {tool.title}
+                  </h4>
+
+                </Card>
+
+              </Link>
+
+            );
+          })}
+
+        </div>
+
+      )}
+
     </section>
   );
 }

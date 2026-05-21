@@ -6,7 +6,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import "../../styles/pages.css";
 export default function FundBreakdownChart({ data, title = "Fund Breakdown" }) {
   return (
     <div className="card">

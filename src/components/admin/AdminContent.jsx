@@ -1,16 +1,32 @@
 import ManageRoles from "./ManageRoles";
 import RoleRequests from "./RoleRequests";
 import MembershipRequests from "./MembershipRequests";
-import "../../styles/pages.css";
+
+import EmptyState from "../EmptyState";
+
+import styles from "../../styles/admin/AdminContent.module.css";
+
+const TABS = {
+  manage: ManageRoles,
+  "membership-requests": MembershipRequests,
+  "role-requests": RoleRequests,
+};
 
 export default function AdminContent({ activeTab }) {
+  const ActiveComponent = TABS[activeTab];
+
+  if (!ActiveComponent) {
+    return (
+      <EmptyState
+        title="Unknown section"
+        description="Please select a valid tab."
+      />
+    );
+  }
+
   return (
-    <>
-      {activeTab === "manage" && <ManageRoles />}
-
-      {activeTab === "membership-requests" && <MembershipRequests />}
-
-      {activeTab === "role-requests" && <RoleRequests />}
-    </>
+    <div className={styles.container}>
+      <ActiveComponent />
+    </div>
   );
 }
