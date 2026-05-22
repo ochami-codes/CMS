@@ -3,7 +3,8 @@ import {
   useState,
   useCallback,
 } from "react";
-
+import { Search } from "lucide-react";
+import Button from "../../components/Button";
 import {
   AdminAPI,
 } from "../../utils/api";
@@ -120,10 +121,10 @@ export default function ManageRoles() {
 
         : await AdminAPI
             .activateMember(
-               member.id
+               member.idv
             );
 
-        loadMembers();
+       await loadMembers();
 
         showToast(
           "Member updated"
