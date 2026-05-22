@@ -3,6 +3,7 @@ import {
   useState,
   useCallback,
 } from "react";
+
 import { Search } from "lucide-react";
 import Button from "../../components/Button";
 import {
@@ -17,37 +18,40 @@ import {
   useToast,
 } from "../../components/ToastProvider";
 
+import Button from "../../components/Button";
 import Loader from "../../components/Loader";
 import EmptyState from "../../components/EmptyState";
 import PageHeader from "../../components/PageHeader";
-
-import MobileCards from "../MobileCards";
-import Table from "../Table";
 import SearchBar from "../SearchBar";
+import Table from "../Table";
+import MobileCards from "../MobileCards";
 import Modal from "../Modal";
 
-import styles from "../../styles/admin/ManageRoles.module.css";
+import styles from
+"../../styles/admin/ManageRoles.module.css";
 
 export default function ManageRoles() {
   const {
-    user,
-    rolesData,
-    getRoleLabel,
     activeChurchId,
-    refetchUser,
+    getRoleLabel,
   } = useAuth();
 
   const { showToast } =
     useToast();
 
-  const [members,setMembers] =
+  const [members, setMembers] =
     useState([]);
 
-  const [loading,setLoading] =
+  const [loading, setLoading] =
     useState(true);
 
-  const [search,setSearch] =
+  const [search, setSearch] =
     useState("");
+
+  const [
+    selectedMember,
+    setSelectedMember,
+  ] = useState(null);
 
   const [
     processingId,
@@ -55,22 +59,28 @@ export default function ManageRoles() {
   ] = useState(null);
 
   const [
-    selectedMember,
-    setSelectedMember,
-  ] = useState(null);
+    saving,
+    setSaving,
+  ] = useState(false);
+
+  /* -------------------------
+     LOAD MEMBERS
+  -------------------------- */
 
   const loadMembers =
     useCallback(async () => {
 
-      if(!activeChurchId)
+      if (!activeChurchId) {
+        setLoading(false);
         return;
+      }
 
       try {
         setLoading(true);
 
         const params =
           new URLSearchParams({
-            search
+            search,
           });
 
         const res =
@@ -91,25 +101,29 @@ export default function ManageRoles() {
         );
 
       } finally {
+
         setLoading(false);
+
       }
 
-  },[
+    }, [
       activeChurchId,
       search,
-      showToast
-  ]);
+      showToast,
+    ]);
 
-  useEffect(()=>{
-      loadMembers();
-  },[loadMembers]);
+  useEffect(() => {
+    loadMembers();
+  }, [loadMembers]);
+
+
+
+  /* -------------------------
+     ACTIVATE / DEACTIVATE
+  -------------------------- */
 
   const toggleMember =
-    async(member)=>{
-
-      setProcessingId(
-        member.id
-      );
+    async (member) => {
 
       try{
 
@@ -128,287 +142,476 @@ export default function ManageRoles() {
 
         showToast(
           "Member updated"
+
+        setProcessingId(
+          member.id
         );
 
-      }catch{
+        if (member.active) {
+
+          await AdminAPI
+            .deactivateMember(
+              member.id
+            );
+
+        } else {
+
+          await AdminAPI
+            .activateMember(
+              member.id
+            );
+
+        }
+
+        await loadMembers();
+
+        showToast(
+          "Member updated",
+          "success"
+        );
+
+      } catch {
 
         showToast(
           "Action failed",
           "error"
         );
 
-      }finally{
+      } finally {
 
         setProcessingId(
           null
         );
 
       }
-  };
 
-const columns = [
+    };
 
-{
- key:"full_name",
- label:"Member"
-},
 
-{
- key:"departments",
- label:"Departments",
 
- render:(m)=>
-  m.departments.length
-   ? m.departments.join(", ")
-   : "-"
-},
+  /* -------------------------
+     MODAL ACTIONS
+  -------------------------- */
 
-{
- key:"active",
- label:"Status",
+  const closeModal = () =>
+    setSelectedMember(null);
 
- render:(m)=>(
 
-<span
-className={
-m.active
-? styles.active
-: styles.inactive
-}
->
+  const handleSave =
+    async () => {
 
-{m.active
-? "Active"
-: "Inactive"}
+      try {
 
-</span>
+        setSaving(true);
 
-)
-},
+        // save roles here
 
-{
- key:"roles",
+        showToast(
+          "Roles updated",
+          "success"
+        );
 
- label:"Roles",
+        closeModal();
 
- render:(m)=>(
+      } catch {
 
-<div className={styles.roles}>
+        showToast(
+          "Failed updating roles",
+          "error"
+        );
 
-{m.roles.map(role=>(
+      } finally {
 
-<span
-key={role}
-className={
-styles.roleBadge
-}
->
+        setSaving(false);
 
-{
-getRoleLabel(role)
-}
+      }
 
-</span>
+    };
 
-))}
 
-</div>
 
-)
-}
+  /* -------------------------
+     TABLE COLUMNS
+  -------------------------- */
 
-];
+  const columns = [
+
+    {
+      key:
+      "full_name",
+
+      label:
+      "Member",
+    },
+
+    {
+      key:
+      "departments",
+
+      label:
+      "Departments",
+
+      render:
+      (m) =>
+
+      m.departments?.length
+        ? m.departments.join(
+            ", "
+          )
+        : "-",
+    },
+
+    {
+      key:
+      "active",
+
+      label:
+      "Status",
+
+      render:
+      (m) => (
+
+        <span
+          className={
+            m.active
+              ? styles.active
+              : styles.inactive
+          }
+        >
+
+          {m.active
+            ? "Active"
+            : "Inactive"}
+
+        </span>
+
+      ),
+    },
+
+    {
+      key:
+      "roles",
+
+      label:
+      "Roles",
+
+      render:
+      (m) => (
+
+        <div
+          className={
+            styles.roles
+          }
+        >
+
+          {(m.roles || [])
+            .map(role => (
+
+            <span
+              key={role}
+              className={
+                styles.roleBadge
+              }
+            >
+
+              {
+                getRoleLabel(
+                  role
+                )
+              }
+
+            </span>
+
+          ))}
+
+        </div>
+
+      ),
+    },
+
+  ];
+
+
 
   return (
-    <div className={styles.section}>
 
-    <PageHeader
-title="Members & Roles"
-subtitle="
-Manage members,
-permissions and access
-"
-/>
+    <div
+      className={
+        styles.section
+      }
+    >
 
-<SearchBar
-value={search}
+      <PageHeader
+        title="
+        Members & Roles
+        "
 
-icon={<Search size={16}/>}
+        subtitle="
+        Manage members,
+        permissions
+        and access
+        "
+      />
 
-placeholder="
-Search members...
-"
 
-onChange={(e)=>
-setSearch(
-e.target.value
-)}
+      <SearchBar
+        value={search}
 
-onClear={()=>
-setSearch("")
-}
-/>
+        icon={
+          <Search
+            size={16}
+          />
+        }
+
+        placeholder="
+        Search members...
+        "
+
+        onChange={
+          (e) =>
+          setSearch(
+            e.target.value
+          )
+        }
+
+        onClear={() =>
+          setSearch("")
+        }
+      />
+
 
       {loading && (
+
         <Loader
           message="
-            Loading members...
+          Loading members...
           "
         />
+
       )}
 
+
       {!loading &&
-        members.length===0 && (
+       members.length === 0 && (
 
         <EmptyState
           title="
-            No members found
+          No members found
           "
         />
+
       )}
 
+
+
       {!loading &&
-       members.length>0 && (
+       members.length > 0 && (
 
         <>
-<Table
-columns={columns}
-data={members}
 
-renderActions={(m)=>(
+          <Table
+            columns={columns}
+            data={members}
 
-<>
+            renderActions={
+              (m) => (
 
-<Button
-variant="secondary"
-onClick={()=>
-setSelectedMember(m)
-}
->
-Manage Roles
-</Button>
+              <>
+                <Button
+                  variant="
+                  secondary
+                  "
 
-<Button
-variant={
-m.active
-? "danger"
-: "success"
-}
+                  onClick={() =>
+                    setSelectedMember(
+                      m
+                    )
+                  }
+                >
 
-onClick={()=>
-toggleMember(
-m.id,
-m.active
-)}
->
+                  Manage Roles
 
-{m.active
-? "Deactivate"
-: "Activate"}
+                </Button>
 
-</Button>
 
-</>
+                <Button
+                  loading={
+                    processingId
+                    === m.id
+                  }
 
-)}
-/>
+                  variant={
+                    m.active
+                      ? "danger"
+                      : "success"
+                  }
+
+                  onClick={() =>
+                    toggleMember(
+                      m
+                    )
+                  }
+                >
+
+                  {m.active
+                    ? "Deactivate"
+                    : "Activate"}
+
+                </Button>
+
+              </>
+
+            )}
+          />
+
 
           <div
             className={
               styles.mobileList
             }
           >
+
             {members.map(
               member => (
 
-             <MobileCards
-columns={columns}
-data={members}
-renderActions={(m)=>(
+              <MobileCards
+                key={
+                  member.id
+                }
 
-<>
+                columns={
+                  columns
+                }
 
-<Button
-variant="secondary"
-onClick={()=>
-setSelectedMember(m)
-}
->
-Manage Roles
-</Button>
+                data={[
+                  member
+                ]}
 
-<Button
-variant={
-m.active
-? "danger"
-: "success"
-}
+                renderActions={
+                  () => (
 
-onClick={()=>
-toggleMember(
-m.id,
-m.active
-)}
->
+                  <>
+                    <Button
+                      variant="
+                      secondary
+                      "
 
-{m.active
-? "Deactivate"
-: "Activate"}
+                      onClick={() =>
+                        setSelectedMember(
+                          member
+                        )
+                      }
+                    >
 
-</Button>
+                      Manage Roles
 
-</>
+                    </Button>
 
-)}
-/>
+
+                    <Button
+                      variant={
+                        member.active
+                        ? "danger"
+                        : "success"
+                      }
+
+                      loading={
+                        processingId
+                        === member.id
+                      }
+
+                      onClick={() =>
+                        toggleMember(
+                          member
+                        )
+                      }
+                    >
+
+                      {
+                        member.active
+                        ? "Deactivate"
+                        : "Activate"
+                      }
+
+                    </Button>
+
+                  </>
+
+                )}
+              />
 
             ))}
+
           </div>
+
         </>
+
       )}
+
+
 
       {selectedMember && (
 
-  <Modal
-open={!!member}
+        <Modal
+          open={
+            !!selectedMember
+          }
 
-onClose={onClose}
+          onClose={
+            closeModal
+          }
 
-title={
-`Manage Roles:
- ${member.full_name}`
-}
+          title={`
+          Manage Roles:
+          ${selectedMember.full_name}
+          `}
 
-size="lg"
+          size="lg"
 
-footer={
-<>
+          footer={
 
-<Button
-variant="secondary"
-onClick={onClose}
->
-Cancel
-</Button>
+            <>
+              <Button
+                variant="
+                secondary
+                "
 
-<Button
-onClick={handleSave}
-loading={saving}
->
-Save Changes
-</Button>
+                onClick={
+                  closeModal
+                }
+              >
 
-</>
-}
->
+                Cancel
 
-{/* roles UI */}
+              </Button>
 
-</Modal>
+
+              <Button
+                onClick={
+                  handleSave
+                }
+
+                loading={
+                  saving
+                }
+              >
+
+                Save Changes
+
+              </Button>
+            </>
+
+          }
+        >
+
+          {/* Roles UI here */}
+
+        </Modal>
 
       )}
 
     </div>
-  );
-}
 
+  );
+
+}

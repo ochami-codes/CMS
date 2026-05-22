@@ -1,8 +1,19 @@
 // src/pages/admin/MembershipRequests.jsx
 
-import { useEffect, useState } from "react";
-import { AdminMembershipAPI } from "../../utils/api";
-import { useToast } from "../../components/ToastProvider";
+import {
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
+
+import {
+  AdminMembershipAPI,
+} from "../../utils/api";
+
+import {
+  useToast,
+} from "../../components/ToastProvider";
 
 import Card from "../Card";
 import PageHeader from "../PageHeader";
@@ -12,301 +23,408 @@ import Button from "../Button";
 import Table from "../Table";
 import MobileCards from "../MobileCards";
 
+
 export default function MembershipRequests() {
-  const { showToast } = useToast();
+  const { showToast } =
+    useToast();
 
-  const [requests, setRequests] =
-    useState([]);
+  const [
+    requests,
+    setRequests,
+  ] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
 
-  const [actionLoading, setActionLoading] =
-    useState({});
+  const [
+    actionLoading,
+    setActionLoading,
+  ] = useState({});
 
-  /* -------------------- LOAD -------------------- */
+
+
+  /* -------------------------
+     LOAD REQUESTS
+  ------------------------- */
 
   const loadRequests =
-    async () => {
+    useCallback(async () => {
+
       try {
+
         setLoading(true);
 
         const res =
-          await AdminMembershipAPI.fetchAll();
+          await AdminMembershipAPI
+            .fetchAll();
 
         setRequests(
           res.requests || []
         );
 
       } catch {
+
         showToast(
-          "Failed loading requests",
+          "Failed loading membership requests",
           "error"
         );
 
       } finally {
+
         setLoading(false);
+
       }
-    };
+
+    }, [showToast]);
+
 
   useEffect(() => {
     loadRequests();
-  }, []);
+  }, [loadRequests]);
 
-  /* -------------------- ACTIONS -------------------- */
+
+
+  /* -------------------------
+     APPROVE / REJECT
+  ------------------------- */
 
   const handleAction =
-    async (id, action) => {
+    async (
+      id,
+      action
+    ) => {
 
       const status =
-        action === "approve"
+        action ===
+        "approve"
+
           ? "approved"
           : "rejected";
 
       const key =
         `${id}-${action}`;
 
-      setActionLoading(prev => ({
-        ...prev,
-        [key]: true,
-      }));
-
       try {
-        await AdminMembershipAPI.review(
-          id,
-          status
+
+        setActionLoading(
+          prev => ({
+            ...prev,
+            [key]: true,
+          })
         );
+
+        await AdminMembershipAPI
+          .review(
+            id,
+            status
+          );
+
+        await loadRequests();
 
         showToast(
-          status === "approved"
-            ? "Membership approved"
-            : "Membership rejected"
-        );
 
-        loadRequests();
+          status ===
+          "approved"
+
+            ? "Membership approved"
+
+            : "Membership rejected",
+
+          "success"
+        );
 
       } catch (err) {
 
         showToast(
-          err.message ||
-            "Action failed",
+
+          err?.message ||
+
+          "Action failed",
+
           "error"
         );
 
       } finally {
 
-        setActionLoading(prev => ({
-          ...prev,
-          [key]: false,
-        }));
+        setActionLoading(
+          prev => ({
+            ...prev,
+            [key]: false,
+          })
+        );
 
       }
+
     };
 
-  /* -------------------- TABLE DATA -------------------- */
+
+
+  /* -------------------------
+     TABLE DATA
+  ------------------------- */
 
   const rows =
-    requests.map(r => ({
+    useMemo(() => (
 
-      id:
-        r.membership_request_id,
+      requests.map(
+        request => ({
 
-      name:
-        r.full_name || "-",
+        id:
+          request
+          .membership_request_id,
 
-      email:
-        r.email || "-",
+        name:
+          request
+          .full_name || "-",
 
-      status:
-        r.membership_status,
+        email:
+          request
+          .email || "-",
 
-      requested:
+        status:
 
-        r.membership_requested_at
-          ? new Date(
-              r.membership_requested_at
-            ).toLocaleDateString()
-          : "-",
+          request
+          .membership_status ||
 
-      raw: r,
-    }));
+          "-",
+
+        requested:
+
+          request
+          .membership_requested_at
+
+            ? new Date(
+
+                request
+                .membership_requested_at
+
+              )
+
+              .toLocaleDateString()
+
+            : "-",
+
+        raw:
+          request,
+
+      }))
+
+    ), [requests]);
 
 
   const columns = [
 
     {
-      key: "name",
-      label: "Name",
+      key:
+      "name",
+
+      label:
+      "Name",
     },
 
     {
-      key: "email",
-      label: "Email",
+      key:
+      "email",
+
+      label:
+      "Email",
     },
 
     {
-      key: "status",
-      label: "Status",
+      key:
+      "status",
+
+      label:
+      "Status",
     },
 
     {
-      key: "requested",
-      label: "Requested",
+      key:
+      "requested",
+
+      label:
+      "Requested",
     },
+
   ];
 
 
-  /* -------------------- LOADING -------------------- */
+
+  /* -------------------------
+     ACTION BUTTONS
+  ------------------------- */
+
+  const renderActions =
+    (row) => {
+
+      const id =
+        row.raw
+        .membership_request_id;
+
+      const pending =
+
+        row.raw
+        .membership_status ===
+
+        "requested";
+
+
+      if (!pending)
+        return (
+          <span>
+            No action
+          </span>
+        );
+
+
+      return (
+
+        <>
+
+          <Button
+            size="sm"
+
+            loading={
+              actionLoading[
+              `${id}-approve`
+              ]
+            }
+
+            onClick={() =>
+              handleAction(
+                id,
+                "approve"
+              )
+            }
+          >
+
+            Approve
+
+          </Button>
+
+
+
+          <Button
+            variant="
+            secondary
+            "
+
+            size="sm"
+
+            loading={
+              actionLoading[
+              `${id}-reject`
+              ]
+            }
+
+            onClick={() =>
+              handleAction(
+                id,
+                "reject"
+              )
+            }
+          >
+
+            Reject
+
+          </Button>
+
+        </>
+
+      );
+
+    };
+
+
+
+  /* -------------------------
+     LOADING
+  ------------------------- */
 
   if (loading)
+
     return (
+
       <Loader
-        message="Loading membership requests..."
+        message="
+        Loading membership requests...
+        "
       />
+
     );
 
 
+
   return (
+
     <>
 
       <PageHeader
-        title="Membership Requests"
-        subtitle="Approve or reject church membership requests."
+        title="
+        Membership Requests
+        "
+
+        subtitle="
+        Approve or reject
+        church membership
+        requests.
+        "
       />
+
 
       <Card>
 
         {!requests.length ? (
 
           <EmptyState
-            title="No requests"
-            description="No pending membership requests."
+
+            title="
+            No requests
+            "
+
+            description="
+            No membership
+            requests found.
+            "
           />
 
         ) : (
 
           <>
-            {/* DESKTOP */}
+
+            {/* Desktop */}
 
             <Table
-              columns={columns}
-              data={rows}
+              columns={
+                columns
+              }
 
-              renderActions={(row) => {
+              data={
+                rows
+              }
 
-                const id =
-                  row.raw
-                    .membership_request_id;
-
-                const pending =
-                  row.raw
-                    .membership_status ===
-                  "requested";
-
-                if (!pending)
-                  return "No action";
-
-                return (
-                  <>
-
-                    <Button
-                      size="sm"
-
-                      loading={
-                        actionLoading[
-                          `${id}-approve`
-                        ]
-                      }
-
-                      onClick={() =>
-                        handleAction(
-                          id,
-                          "approve"
-                        )
-                      }
-                    >
-                      Approve
-                    </Button>
-
-                    <Button
-                      variant="secondary"
-                      size="sm"
-
-                      loading={
-                        actionLoading[
-                          `${id}-reject`
-                        ]
-                      }
-
-                      onClick={() =>
-                        handleAction(
-                          id,
-                          "reject"
-                        )
-                      }
-                    >
-                      Reject
-                    </Button>
-
-                  </>
-                );
-              }}
+              renderActions={
+                renderActions
+              }
             />
 
 
-            {/* MOBILE */}
+            {/* Mobile */}
 
             <MobileCards
-              columns={columns}
-              data={rows}
+              columns={
+                columns
+              }
 
-              renderActions={(row) => {
+              data={
+                rows
+              }
 
-                const id =
-                  row.raw
-                    .membership_request_id;
-
-                const pending =
-                  row.raw
-                    .membership_status ===
-                  "requested";
-
-                if (!pending)
-                  return null;
-
-                return (
-                  <>
-
-                    <Button
-                      size="sm"
-
-                      onClick={() =>
-                        handleAction(
-                          id,
-                          "approve"
-                        )
-                      }
-                    >
-                      Approve
-                    </Button>
-
-                    <Button
-                      variant="secondary"
-                      size="sm"
-
-                      onClick={() =>
-                        handleAction(
-                          id,
-                          "reject"
-                        )
-                      }
-                    >
-                      Reject
-                    </Button>
-
-                  </>
-                );
-              }}
+              renderActions={
+                renderActions
+              }
             />
 
           </>
@@ -316,5 +434,7 @@ export default function MembershipRequests() {
       </Card>
 
     </>
+
   );
+
 }

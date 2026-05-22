@@ -8,18 +8,17 @@ import {
 
 import { AdminAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
-import { useToast } from "../ToastProvider";
+import { useToast } from "../../components/ToastProvider";
 
-import Loader from "../Loader";
-import Card from "../Card";
-import Table from "../Table";
-import Button from "../Button";
-import EmptyState from "../EmptyState";
-import MobileCards from "../MobileCards";
-import PageHeader from "../PageHeader";
+import Loader from "../../components/Loader";
+import Card from "../../components/Card";
+import Table from "../../components/Table";
+import Button from "../../components/Button";
+import EmptyState from "../../components/EmptyState";
+import MobileCards from "../../components/MobileCards";
+import PageHeader from "../../components/PageHeader";
 
 export default function RoleRequests() {
-
   const {
     user,
     authReady,
@@ -27,356 +26,173 @@ export default function RoleRequests() {
     hasRole,
   } = useAuth();
 
-  const { showToast } =
-    useToast();
+  const { showToast } = useToast();
 
-  const [requests, setRequests] =
-    useState([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState("");
-
-  const [processingId,
-    setProcessingId] =
-      useState(null);
-
-
-  /* ---------------- PERMISSION ---------------- */
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [processing, setProcessing] = useState({});
 
   const canManageRoles =
     hasRole("admin") ||
     hasRole("elder") ||
     hasRole("pastor");
 
-
   /* ---------------- FETCH ---------------- */
 
-  const fetchRequests =
-    useCallback(async () => {
+  const fetchRequests = useCallback(async () => {
+    if (!authReady || !activeChurchId || !canManageRoles) {
+      setLoading(false);
+      return;
+    }
 
-      if (
-        !authReady ||
-        !activeChurchId ||
-        !canManageRoles
-      ) {
-        setLoading(false);
-        return;
-      }
+    try {
+      setLoading(true);
+      setError("");
 
-      try {
+      const res = await AdminAPI.fetchRoleRequests();
+      setRequests(res.requests || []);
 
-        setLoading(true);
-        setError("");
+    } catch (err) {
+      const msg = err?.message || "Failed loading requests";
 
-        const res =
-          await AdminAPI.fetchRoleRequests();
+      setError(msg);
+      showToast(msg, "error");
 
-        setRequests(
-          res.requests || []
-        );
-
-      } catch (err) {
-
-        const msg =
-          err.message ||
-          "Failed loading requests";
-
-        setError(msg);
-
-        showToast(
-          msg,
-          "error"
-        );
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    },[
-      authReady,
-      activeChurchId,
-      canManageRoles,
-      showToast
-    ]);
-
+    } finally {
+      setLoading(false);
+    }
+  }, [authReady, activeChurchId, canManageRoles, showToast]);
 
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
 
-
   /* ---------------- REVIEW ---------------- */
 
-  const handleReview =
-    async (request,status)=>{
+  const handleReview = async (request, status) => {
+    const key = `${request.id}-${status}`;
 
-      try{
+    try {
+      setProcessing(prev => ({ ...prev, [key]: true }));
 
-        setProcessingId(
-          request.id
-        );
+      await AdminAPI.reviewRoleRequest(request.id, status);
 
-        await AdminAPI
-          .reviewRoleRequest(
-            request.id,
-            status
-          );
+      setRequests(prev =>
+        prev.filter(r => r.id !== request.id)
+      );
 
-        setRequests(prev =>
-          prev.filter(
-            r =>
-            r.id !== request.id
-          )
-        );
+      showToast(
+        `Request ${
+          status === "approved" ? "approved" : "rejected"
+        }`,
+        "success"
+      );
 
-        showToast(
-          `Request ${
-            status === "approved"
-              ? "approved"
-              : "rejected"
-          }`
-        );
+    } catch (err) {
+      showToast(
+        err?.message || "Action failed",
+        "error"
+      );
 
-      }catch{
-
-        showToast(
-          "Action failed",
-          "error"
-        );
-
-      }finally{
-
-        setProcessingId(null);
-
-      }
-
-    };
-
+    } finally {
+      setProcessing(prev => ({ ...prev, [key]: false }));
+    }
+  };
 
   /* ---------------- GUARDS ---------------- */
 
-  if (!authReady || loading)
-    return (
-      <Loader
-        message="Loading role requests..."
-      />
-    );
+  if (!authReady || loading) {
+    return <Loader message="Loading role requests..." />;
+  }
 
-  if (!user || !activeChurchId)
-    return (
-      <EmptyState
-        title="No church selected"
-      />
-    );
+  if (!user || !activeChurchId) {
+    return <EmptyState title="No church selected" />;
+  }
 
-  if (!canManageRoles)
-    return (
-      <EmptyState
-        title="No permission"
-      />
-    );
+  if (!canManageRoles) {
+    return <EmptyState title="No permission" />;
+  }
 
+  if (error) {
+    return <EmptyState title="Error" description={error} />;
+  }
 
   /* ---------------- DATA ---------------- */
 
-  const rows =
-    requests.map(req => ({
-
-      name:
-        req.full_name,
-
-      email:
-        req.email,
-
-      role:
-        req.requested_role,
-
-      date:
-        new Date(
-          req.role_requested_at
-        )
-        .toLocaleDateString(),
-
-      raw:req
-    }));
-
+  const rows = requests.map(req => ({
+    name: req.full_name || "-",
+    email: req.email || "-",
+    role: req.requested_role || "-",
+    date: req.role_requested_at
+      ? new Date(req.role_requested_at).toLocaleDateString()
+      : "-",
+    raw: req,
+  }));
 
   const columns = [
-
-    {
-      key:"name",
-      label:"Name"
-    },
-
-    {
-      key:"email",
-      label:"Email"
-    },
-
-    {
-      key:"role",
-      label:"Requested Role"
-    },
-
-    {
-      key:"date",
-      label:"Date"
-    }
-
+    { key: "name", label: "Name" },
+    { key: "email", label: "Email" },
+    { key: "role", label: "Requested Role" },
+    { key: "date", label: "Date" },
   ];
 
+  const renderActions = (row) => {
+    const req = row.raw;
+
+    const approveKey = `${req.id}-approved`;
+    const rejectKey = `${req.id}-rejected`;
+
+    return (
+      <>
+        <Button
+          size="sm"
+          loading={processing[approveKey]}
+          onClick={() => handleReview(req, "approved")}
+        >
+          Approve
+        </Button>
+
+        <Button
+          size="sm"
+          variant="secondary"
+          loading={processing[rejectKey]}
+          onClick={() => handleReview(req, "rejected")}
+        >
+          Reject
+        </Button>
+      </>
+    );
+  };
+
+  /* ---------------- UI ---------------- */
 
   return (
     <>
-
       <PageHeader
         title="Role Requests"
         subtitle="Approve or reject ministry role requests."
       />
 
       <Card>
-
-        {error && (
-          <p>
-            {error}
-          </p>
-        )}
-
-
         {!requests.length ? (
-
-          <EmptyState
-            title="No pending requests"
-          />
-
+          <EmptyState title="No pending requests" />
         ) : (
-
           <>
-
-            {/* DESKTOP */}
-
             <Table
-
               columns={columns}
-
               data={rows}
-
-              renderActions={(row)=>(
-
-                <>
-                  <Button
-
-                    size="sm"
-
-                    disabled={
-                      processingId ===
-                      row.raw.id
-                    }
-
-                    onClick={()=>
-
-                      handleReview(
-                        row.raw,
-                        "approved"
-                      )
-
-                    }
-                  >
-                    Approve
-                  </Button>
-
-
-                  <Button
-
-                    variant="secondary"
-
-                    size="sm"
-
-                    disabled={
-                      processingId ===
-                      row.raw.id
-                    }
-
-                    onClick={()=>
-
-                      handleReview(
-                        row.raw,
-                        "rejected"
-                      )
-
-                    }
-                  >
-                    Reject
-                  </Button>
-
-                </>
-
-              )}
-
+              renderActions={renderActions}
             />
-
-
-            {/* MOBILE */}
 
             <MobileCards
-
               columns={columns}
-
               data={rows}
-
-              renderActions={(row)=>(
-
-                <>
-                  <Button
-                    size="sm"
-
-                    onClick={()=>
-
-                      handleReview(
-                        row.raw,
-                        "approved"
-                      )
-
-                    }
-                  >
-                    Approve
-                  </Button>
-
-
-                  <Button
-                    variant="secondary"
-
-                    size="sm"
-
-                    onClick={()=>
-
-                      handleReview(
-                        row.raw,
-                        "rejected"
-                      )
-
-                    }
-                  >
-                    Reject
-                  </Button>
-
-                </>
-
-              )}
-
+              renderActions={renderActions}
             />
-
           </>
-
         )}
-
       </Card>
-
     </>
   );
 }
