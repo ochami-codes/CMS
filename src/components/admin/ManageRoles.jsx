@@ -5,7 +5,7 @@ import {
 } from "react";
 
 import { Search } from "lucide-react";
-import Button from "../../components/Button";
+
 import {
   AdminAPI,
 } from "../../utils/api";
@@ -125,23 +125,7 @@ export default function ManageRoles() {
   const toggleMember =
     async (member) => {
 
-      try{
-
-        member.active
-        ? await AdminAPI
-            .deactivateMember(
-               member.id
-            )
-
-        : await AdminAPI
-            .activateMember(
-               member.idv
-            );
-
-       await loadMembers();
-
-        showToast(
-          "Member updated"
+      try {
 
         setProcessingId(
           member.id
