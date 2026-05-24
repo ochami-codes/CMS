@@ -1,0 +1,21 @@
+.desktop{
+  display:block;
+}
+
+.mobile{
+  display:none;
+}
+
+
+/* Mobile */
+@media(max-width:768px){
+
+  .desktop{
+    display:none;
+  }
+
+  .mobile{
+    display:block;
+  }
+
+}

@@ -1,5 +1,6 @@
 .wrapper {
   width: 100%;
+  overflow: hidden;
 }
 
 /* ===== DESKTOP GRID ===== */
@@ -66,7 +67,7 @@
   }
 
   .link {
-    flex: 0 0 auto;
+    flex: 0 0 140px;
   }
 
   .card {
