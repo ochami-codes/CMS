@@ -2,19 +2,35 @@
   display:flex;
   flex-direction:column;
   gap:1.5rem;
+
+  min-width:0;
 }
 
 .grid{
   display:flex;
   flex-direction:column;
   gap:1.5rem;
+
+  min-width:0;
 }
 
-/* Optional: if later you want 2-column layout on desktop */
-@media(min-width: 1024px){
+@media(min-width:1024px){
+
   .grid{
     display:grid;
-    grid-template-columns: 2fr 1fr;
+
+    grid-template-columns:
+      minmax(0,2fr)
+      minmax(0,1fr);
+
+    gap:1.5rem;
+
     align-items:start;
+
+    min-width:0;
+  }
+
+  .grid > *{
+    min-width:0;   /* important */
   }
 }
