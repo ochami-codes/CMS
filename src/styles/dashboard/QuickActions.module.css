@@ -1,57 +1,75 @@
-.grid{
-  display:grid;
-  gap:1rem;
+.grid {
+  display: grid;
+  gap: 1rem;
 
   grid-template-columns:
-    repeat(
-      auto-fit,
-      minmax(160px,1fr)
-    );
+    repeat(auto-fit, minmax(160px, 1fr));
 }
 
-.card{
-  text-align:center;
-  cursor:pointer;
+/* ===== CARD ===== */
+.card {
+  text-align: center;
+  cursor: pointer;
 
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
 
-  transition:var(--transition);
+  transition: var(--transition);
 }
 
-.card:hover{
-  transform:
-    translateY(-2px);
+.card:hover {
+  transform: translateY(-2px);
 }
 
-.icon{
-  position:relative;
+/* ===== ICON ===== */
+.icon {
+  position: relative;
 
-  display:flex;
-  justify-content:center;
-  align-items:center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-  width:56px;
-  height:56px;
+  width: 56px;
+  height: 56px;
 
-  border-radius:50%;
-  background:
-    var(--surface-hover);
+  border-radius: 50%;
+  background: var(--surface-hover);
 }
 
-.icon span{
-  position:absolute;
-
-  top:-4px;
-  right:-6px;
+.icon span {
+  position: absolute;
+  top: -4px;
+  right: -6px;
 }
 
-.hint{
-  color:
-    var(--text-muted);
+/* hint text */
+.hint {
+  color: var(--text-muted);
+  font-size: .85rem;
+}
 
-  font-size:
-    .85rem;
+/* =========================
+   MOBILE: horizontal scroll
+========================= */
+@media (max-width: 768px) {
+
+  .grid {
+    display: flex;
+    gap: 1rem;
+
+    overflow-x: auto;
+    padding-bottom: .5rem;
+
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .card {
+    min-width: 150px;
+    flex: 0 0 auto;
+
+    scroll-snap-align: start;
+  }
 }

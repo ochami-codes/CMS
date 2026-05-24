@@ -17,69 +17,50 @@ import EmptyState from "../EmptyState";
 
 import styles from "../../styles/dashboard/ToolsSection.module.css";
 
-const TOOLS = [
+const SHORTCUTS = [
   {
     title: "Treasury",
     path: "/dashboard/treasury",
-    permission:
-      "access_treasury_dashboard",
-
+    permission: "access_treasury_dashboard",
     icon: Wallet,
   },
-
   {
     title: "Youth",
     path: "/dashboard/youth",
-    permission:
-      "access_youth_dashboard",
-
+    permission: "access_youth_dashboard",
     icon: Users,
   },
-
   {
     title: "Children",
     path: "/dashboard/children",
-    permission:
-      "access_children_dashboard",
-
+    permission: "access_children_dashboard",
     icon: Baby,
   },
-
   {
     title: "Choir",
     path: "/dashboard/choir",
-    permission:
-      "access_choir_dashboard",
-
+    permission: "access_choir_dashboard",
     icon: Music,
   },
-
   {
     title: "Pastor",
     path: "/dashboard/pastor",
-    permission:
-      "access_pastor_dashboard",
-
+    permission: "access_pastor_dashboard",
     icon: Church,
   },
-
   {
     title: "Admin",
     path: "/dashboard/admin",
-    permission:
-      "access_admin_dashboard",
-
+    permission: "access_admin_dashboard",
     icon: Shield,
   },
 ];
 
-export default function ToolsSection({
-  canUser,
-}) {
+export default function ShortcutsSection({ canUser }) {
 
-  const visibleTools =
-    TOOLS.filter(tool =>
-      canUser(tool.permission)
+  const visible =
+    SHORTCUTS.filter(s =>
+      canUser(s.permission)
     );
 
   return (
@@ -87,60 +68,45 @@ export default function ToolsSection({
 
       <PageHeader
         level={3}
-        title="Tools"
+        title="Shortcuts"
         icon={<Users size={18} />}
       />
 
-      {visibleTools.length === 0 ? (
-
+      {visible.length === 0 ? (
         <Card>
           <EmptyState
-            title="No tools available"
+            title="No shortcuts available"
             description="You currently have no department access."
           />
         </Card>
-
       ) : (
+        <div className={styles.wrapper}>
 
-        <div className={styles.grid}>
+          <div className={styles.scroll}>
 
-          {visibleTools.map(tool => {
+            {visible.map(s => {
+              const Icon = s.icon;
 
-            const Icon =
-              tool.icon;
-
-            return (
-
-              <Link
-                key={tool.path}
-                to={tool.path}
-                className={
-                  styles.link
-                }
-              >
-
-                <Card
-                  clickable
-                  className={
-                    styles.card
-                  }
+              return (
+                <Link
+                  key={s.path}
+                  to={s.path}
+                  className={styles.link}
                 >
+                  <Card
+                    clickable
+                    className={styles.card}
+                  >
+                    <Icon size={22} />
+                    <h4>{s.title}</h4>
+                  </Card>
+                </Link>
+              );
+            })}
 
-                  <Icon size={24} />
-
-                  <h4>
-                    {tool.title}
-                  </h4>
-
-                </Card>
-
-              </Link>
-
-            );
-          })}
+          </div>
 
         </div>
-
       )}
 
     </section>

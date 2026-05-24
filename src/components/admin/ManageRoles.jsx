@@ -405,7 +405,7 @@ export default function ManageRoles() {
                   variant="
                   secondary
                   "
-
+                  size="sm"
                   onClick={() =>
                     setSelectedMember(
                       m
@@ -429,6 +429,7 @@ export default function ManageRoles() {
                       ? "danger"
                       : "success"
                   }
+                  size="sm"
 
                   onClick={() =>
                     toggleMember(
@@ -479,7 +480,7 @@ export default function ManageRoles() {
                 variant="
                 secondary
                 "
-
+                size="sm"
                 onClick={
                   closeModal
                 }
@@ -494,7 +495,7 @@ export default function ManageRoles() {
                 onClick={
                   handleSave
                 }
-
+                size="md"
                 loading={
                   saving
                 }

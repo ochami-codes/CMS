@@ -1,53 +1,127 @@
-.timer{
-  display:grid;
+.timer {
+  display: grid;
 
   grid-template-columns:
-    repeat(
-      auto-fit,
-      minmax(70px,1fr)
-    );
+    repeat(auto-fit, minmax(80px, 1fr));
 
-  gap:1rem;
+  gap: 1rem;
 
-  text-align:center;
+  text-align: center;
 }
 
-.unit{
-  padding:1rem;
+/* ===== UNIT CARD ===== */
+.unit {
+  padding: 1rem 0.75rem;
 
-  border-radius:
-    var(--radius-md);
+  border-radius: var(--radius-md);
 
-  background:
-    var(--surface-hover);
+  background: var(--surface-hover);
 
-  display:flex;
-  flex-direction:column;
-  gap:.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: .25rem;
+
+  transition: 0.2s ease;
+
+  position: relative;
+  overflow: hidden;
 }
 
-.unit strong{
-  font-size:
-    1.5rem;
+/* subtle glow accent */
+.unit::before {
+  content: "";
+  position: absolute;
 
-  color:
-    var(--primary);
+  inset: 0;
+
+  background: radial-gradient(
+    circle at top,
+    rgba(0, 123, 255, 0.15),
+    transparent 70%
+  );
+
+  opacity: 0.6;
 }
 
-.unit span{
-  font-size:
-    .85rem;
+/* number */
+.unit strong {
+  font-size: 1.7rem;
+  font-weight: 700;
 
-  color:
-    var(--text-muted);
+  color: var(--primary);
+
+  position: relative;
+  z-index: 1;
 }
 
-.message{
-  text-align:center;
+/* label */
+.unit span {
+  font-size: .8rem;
+  color: var(--text-muted);
 
-  padding:
-    1rem;
+  position: relative;
+  z-index: 1;
+}
 
-  font-weight:
-    500;
+/* hover effect */
+.unit:hover {
+  transform: translateY(-3px);
+}
+
+/* ===== MESSAGE ===== */
+.message {
+  text-align: center;
+
+  padding: 1.2rem;
+
+  font-weight: 500;
+
+  color: var(--text);
+
+  background: var(--surface-hover);
+  border-radius: var(--radius-md);
+
+  position: relative;
+  overflow: hidden;
+}
+
+/* soft spiritual glow */
+.message::before {
+  content: "";
+  position: absolute;
+
+  inset: 0;
+
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 215, 0, 0.12),
+    transparent 70%
+  );
+}
+.unit:nth-child(1) strong {
+  color: var(--primary);
+}
+
+.unit:nth-child(2) strong {
+  color: #3b82f6;
+}
+
+.unit:nth-child(3) strong {
+  color: #60a5fa;
+}
+
+.unit:nth-child(4) strong {
+  color: #93c5fd;
+}
+@media (max-width: 480px) {
+  .timer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .unit strong {
+    font-size: 1.5rem;
+  }
 }

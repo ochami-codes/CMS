@@ -18,12 +18,16 @@ export default function PublicLayout() {
 
           <Button
             to="/login"
+            size="md"
+            variant="primary"
           >
             Login
           </Button>
 
           <Button
             to="/register"
+            size="md"
+            variant="primary"
           >
             Register
           </Button>

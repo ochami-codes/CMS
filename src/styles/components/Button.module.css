@@ -1,89 +1,86 @@
-.btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:.5rem;
+.btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 
-  padding:.85rem 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  border:none;
-  outline:none;
+  font-weight: 500;
 
-  border-radius:
-      var(--radius-md);
-
-  font-size:.95rem;
-  font-weight:600;
-
-  cursor:pointer;
-  text-decoration:none;
-
-  transition:
-      var(--transition);
-  width: fit-content;
-  white-space: nowrap;
+  transition: 0.2s ease;
 }
 
+/* ======================
+   VARIANTS (colors)
+====================== */
 
-/* ---------- PRIMARY ---------- */
-
-.primary{
-  background:
-      var(--primary);
-
-  color:white;
+.primary {
+  background: #2563eb;
+  color: white;
 }
 
-.primary:hover{
-  background:
-      var(--primary-dark);
-
-  transform:
-      translateY(-2px);
+.primary:hover {
+  background: #1d4ed8;
 }
 
-
-/* ---------- OUTLINE ---------- */
-
-.outline{
-  background:
-      transparent;
-
-  border:
-      1px solid var(--border);
-
-  color:
-      var(--text);
+.secondary {
+  background: #e5e7eb;
+  color: #111827;
 }
 
-.outline:hover{
-  background:
-      var(--surface-alt);
-
-  border-color:
-      var(--primary);
+.secondary:hover {
+  background: #d1d5db;
 }
 
-
-/* ---------- DANGER ---------- */
-
-.danger{
-  background:
-      var(--danger);
-
-  color:white;
+.danger {
+  background: #ef4444;
+  color: white;
 }
 
-.danger:hover{
-  opacity:.9;
+.danger:hover {
+  background: #dc2626;
 }
 
+.success {
+  background: #10b981;
+  color: white;
+}
 
-/* ---------- DISABLED ---------- */
+.success:hover {
+  background: #059669;
+}
 
-.btn:disabled{
-  opacity:.6;
-  cursor:not-allowed;
+/* ======================
+   SIZES
+====================== */
 
-  transform:none;
+.sm {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.md {
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.lg {
+  padding: 12px 18px;
+  font-size: 16px;
+}
+
+/* ======================
+   STATES
+====================== */
+
+.full {
+  width: 100%;
+}
+
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
 }

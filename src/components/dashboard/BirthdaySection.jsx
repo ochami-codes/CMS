@@ -60,25 +60,14 @@ be with you today.
 : birthdayTimer ? (
 
 <p>
+  Your birthday in
 
-Your birthday in
-
-<strong>
-
-{" "}
-{birthdayTimer.d}d
-
-{" "}
-{birthdayTimer.h}h
-
-{" "}
-{birthdayTimer.m}m
-
-{" "}
-{birthdayTimer.s}s
-
-</strong>
-
+  <strong className={styles.timer}>
+    <span>{birthdayTimer.d}d</span>
+    <span>{birthdayTimer.h}h</span>
+    <span>{birthdayTimer.m}m</span>
+    <span>{birthdayTimer.s}s</span>
+  </strong>
 </p>
 
 )
