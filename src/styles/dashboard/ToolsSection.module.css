@@ -5,21 +5,27 @@
 /* ===== DESKTOP GRID ===== */
 .scroll {
   display: grid;
-
   gap: 1rem;
 
   grid-template-columns:
     repeat(auto-fit, minmax(160px, 1fr));
+
+  align-items: stretch;
 }
 
-/* link reset */
+/* reset link */
 .link {
   text-decoration: none;
   color: inherit;
+
+  display: flex;
 }
 
-/* card styling */
+/* card */
 .card {
+  width: 100%;
+  min-height: 120px;
+
   text-align: center;
 
   display: flex;
@@ -35,12 +41,18 @@
   transition: var(--transition);
 }
 
+.card h4 {
+  margin: 0;
+  font-size: .95rem;
+  font-weight: 600;
+}
+
 .card:hover {
   transform: translateY(-2px);
 }
 
-/* ===== MOBILE HORIZONTAL SCROLL ===== */
-@media (max-width: 768px) {
+/* ===== MOBILE SCROLL ===== */
+@media (max-width:768px) {
 
   .scroll {
     display: flex;
@@ -53,9 +65,13 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  .card {
-    min-width: 140px;
+  .link {
     flex: 0 0 auto;
+  }
+
+  .card {
+    width: 140px;
+    min-height: 110px;
 
     scroll-snap-align: start;
   }
