@@ -20,8 +20,7 @@ import PageHeader from "../PageHeader";
 import EmptyState from "../EmptyState";
 import Loader from "../Loader";
 import Button from "../Button";
-import Table from "../Table";
-import MobileCards from "../MobileCards";
+import MobileCards from "../ResponsiveDataView";
 
 
 export default function MembershipRequests() {
@@ -392,11 +391,9 @@ export default function MembershipRequests() {
 
         ) : (
 
-          <>
+         <>
 
-            {/* Desktop */}
-
-            <Table
+            <ResponsiveDataView
               columns={
                 columns
               }
@@ -410,22 +407,6 @@ export default function MembershipRequests() {
               }
             />
 
-
-            {/* Mobile */}
-
-            <MobileCards
-              columns={
-                columns
-              }
-
-              data={
-                rows
-              }
-
-              renderActions={
-                renderActions
-              }
-            />
 
           </>
 

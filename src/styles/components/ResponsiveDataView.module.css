@@ -1,0 +1,23 @@
+.wrapper {
+  width: 100%;
+}
+
+/* Default: desktop shows table */
+.tableView {
+  display: block;
+}
+
+.cardView {
+  display: none;
+}
+
+/* Mobile switch */
+@media (max-width: 768px) {
+  .tableView {
+    display: none;
+  }
+
+  .cardView {
+    display: block;
+  }
+}

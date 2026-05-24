@@ -1,21 +1,37 @@
 import styles from "../styles/components/PageHeader.module.css";
 
 export default function PageHeader({
- title,
- actions
-}){
+  title,
+  subtitle,
+  actions,
+  level = 1,
+  centered = false,
+}) {
+  const Heading = `h${level}`;
 
- return(
+  return (
+    <div
+      className={`${styles.header} ${
+        centered ? styles.centered : ""
+      }`}
+    >
+      <div className={styles.content}>
+        <Heading className={styles.title}>
+          {title}
+        </Heading>
 
- <div className={styles.header}>
+        {subtitle && (
+          <p className={styles.subtitle}>
+            {subtitle}
+          </p>
+        )}
+      </div>
 
-   <h1>{title}</h1>
-
-   <div>
-      {actions}
-   </div>
-
- </div>
-
- )
+      {actions && (
+        <div className={styles.actions}>
+          {actions}
+        </div>
+      )}
+    </div>
+  );
 }

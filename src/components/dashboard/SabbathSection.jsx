@@ -16,6 +16,7 @@ export default function SabbathSection({
     <section>
 
       <PageHeader
+        level={3}
         title="Sabbath"
         icon={<Calendar size={18} />}
       />

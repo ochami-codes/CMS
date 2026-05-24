@@ -8,15 +8,15 @@ import {
 
 import { AdminAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
-import { useToast } from "../../components/ToastProvider";
+import { useToast } from "../ToastProvider";
 
-import Loader from "../../components/Loader";
-import Card from "../../components/Card";
-import Table from "../../components/Table";
-import Button from "../../components/Button";
-import EmptyState from "../../components/EmptyState";
-import MobileCards from "../../components/MobileCards";
-import PageHeader from "../../components/PageHeader";
+import Loader from "../Loader";
+import Card from "../Card";
+import Table from "../Table";
+import Button from "../Button";
+import EmptyState from "../EmptyState";
+import ResponsiveDataView from "../ResponsiveDataView";
+import PageHeader from "../PageHeader";
 
 export default function RoleRequests() {
   const {
@@ -179,13 +179,7 @@ export default function RoleRequests() {
           <EmptyState title="No pending requests" />
         ) : (
           <>
-            <Table
-              columns={columns}
-              data={rows}
-              renderActions={renderActions}
-            />
-
-            <MobileCards
+            <ResponsiveDataView
               columns={columns}
               data={rows}
               renderActions={renderActions}

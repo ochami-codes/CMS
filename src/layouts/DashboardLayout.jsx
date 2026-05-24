@@ -1,40 +1,77 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import {
+  Outlet,
+  useNavigate,
+} from "react-router-dom";
+
 import { useState } from "react";
+import {
+  MessageCircle,
+} from "lucide-react";
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth }
+from "../context/AuthContext";
 
-import Sidebar from "../components/Sidebar";
-import NotificationBell from "../components/NotificationBell";
+import Sidebar
+from "../components/Sidebar";
 
-import styles from "../styles/layouts/DashboardLayout.module.css";
+import NotificationBell
+from "../components/NotificationBell";
+
+import Badge
+from "../components/Badge";
+
+import useUnreadMessages
+from "../hooks/useUnreadMessages";
+
+import styles
+from "../styles/layouts/DashboardLayout.module.css";
 
 export default function DashboardLayout() {
 
-  const { logout } = useAuth();
-  const navigate = useNavigate();
+  const { logout } =
+    useAuth();
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate =
+    useNavigate();
 
-  const handleLogout = async () => {
-    await logout();
+  const {
+    unreadMessages
+  } = useUnreadMessages();
 
-    navigate("/login", {
-      replace: true
-    });
-  };
+  const [
+    sidebarOpen,
+    setSidebarOpen,
+  ] = useState(false);
+
+  const handleLogout =
+    async () => {
+
+      await logout();
+
+      navigate(
+        "/login",
+        { replace: true }
+      );
+    };
 
   return (
+
     <div className={styles.layout}>
 
       {/* HAMBURGER */}
       <button
-        className={styles.hamburger}
+        className={
+          styles.hamburger
+        }
         onClick={() =>
-          setSidebarOpen(prev => !prev)
+          setSidebarOpen(
+            prev => !prev
+          )
         }
       >
         ☰
       </button>
+
 
       {/* SIDEBAR */}
       <Sidebar
@@ -42,42 +79,104 @@ export default function DashboardLayout() {
         onClose={() =>
           setSidebarOpen(false)
         }
-        onLogout={handleLogout}
+        onLogout={
+          handleLogout
+        }
       />
+
 
       {/* OVERLAY */}
       {sidebarOpen && (
+
         <div
-          className={styles.overlay}
+          className={
+            styles.overlay
+          }
           onClick={() =>
             setSidebarOpen(false)
           }
         />
+
       )}
+
 
       {/* MAIN */}
       <div className={styles.main}>
 
         {/* NAVBAR */}
-        <header className={styles.navbar}>
+        <header
+          className={
+            styles.navbar
+          }
+        >
 
-          <h3 className={styles.title}>
+          <h3
+            className={
+              styles.title
+            }
+          >
             Dashboard
           </h3>
 
-          <div className={styles.icons}>
+
+          <div
+            className={
+              styles.icons
+            }
+          >
+
+            {/* Messages */}
+            <button
+              className={
+                styles.iconBtn
+              }
+              onClick={() =>
+                navigate(
+                  "/dashboard/messages"
+                )
+              }
+            >
+
+              <MessageCircle
+                size={20}
+              />
+
+              {unreadMessages >
+                0 && (
+
+                <Badge
+                  type="danger"
+                >
+                  {
+                    unreadMessages
+                  }
+                </Badge>
+
+              )}
+
+            </button>
+
+
+            {/* Notifications */}
             <NotificationBell />
+
           </div>
 
         </header>
 
+
         {/* PAGE CONTENT */}
-        <section className={styles.page}>
+        <section
+          className={
+            styles.page
+          }
+        >
           <Outlet />
         </section>
 
       </div>
 
     </div>
+
   );
 }

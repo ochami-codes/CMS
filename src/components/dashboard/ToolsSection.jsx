@@ -86,6 +86,7 @@ export default function ToolsSection({
     <section>
 
       <PageHeader
+        level={3}
         title="Tools"
         icon={<Users size={18} />}
       />

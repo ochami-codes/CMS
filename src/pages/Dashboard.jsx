@@ -68,7 +68,6 @@ export default function Dashboard() {
   const churchName = activeChurchName;
 
   const actions = [
-    { key: "message", label: "Messages" },
     {
       key: "request_role",
       label: "Request Role",
@@ -101,7 +100,6 @@ export default function Dashboard() {
       request_role: () => navigate("/myrolerequest"),
       transfer: () => alert("Coming soon"),
       lesson: () => alert("Coming soon"),
-      message: () => navigate("/dashboard/messages"),
     };
 
     map[type]?.();
@@ -132,7 +130,6 @@ export default function Dashboard() {
 
           <QuickActions
             actions={visibleActions}
-            unreadMessages={unreadMessages}
             isAdmin={isAdmin()}
             user={user}
             onAction={handleAction}

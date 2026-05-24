@@ -26,6 +26,7 @@ return(
 <section className={styles.section}>
 
 <PageHeader
+level={3}
 title="Birthday Corner"
 icon={<Gift size={18}/>}
 />

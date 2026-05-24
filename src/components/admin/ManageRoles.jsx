@@ -18,12 +18,12 @@ import {
   useToast,
 } from "../../components/ToastProvider";
 
-import Button from "../../components/Button";
-import Loader from "../../components/Loader";
-import EmptyState from "../../components/EmptyState";
-import PageHeader from "../../components/PageHeader";
+import Button from "../Button";
+import Loader from "../Loader";
+import EmptyState from "../EmptyState";
+import PageHeader from "../PageHeader";
 import SearchBar from "../SearchBar";
-import Table from "../Table";
+import ResponsiveDataView from "../ResponsiveDataView";
 import MobileCards from "../MobileCards";
 import Modal from "../Modal";
 
@@ -393,7 +393,7 @@ export default function ManageRoles() {
 
         <>
 
-          <Table
+          <ResponsiveDataView
             columns={columns}
             data={members}
 
@@ -447,86 +447,6 @@ export default function ManageRoles() {
 
             )}
           />
-
-
-          <div
-            className={
-              styles.mobileList
-            }
-          >
-
-            {members.map(
-              member => (
-
-              <MobileCards
-                key={
-                  member.id
-                }
-
-                columns={
-                  columns
-                }
-
-                data={[
-                  member
-                ]}
-
-                renderActions={
-                  () => (
-
-                  <>
-                    <Button
-                      variant="
-                      secondary
-                      "
-
-                      onClick={() =>
-                        setSelectedMember(
-                          member
-                        )
-                      }
-                    >
-
-                      Manage Roles
-
-                    </Button>
-
-
-                    <Button
-                      variant={
-                        member.active
-                        ? "danger"
-                        : "success"
-                      }
-
-                      loading={
-                        processingId
-                        === member.id
-                      }
-
-                      onClick={() =>
-                        toggleMember(
-                          member
-                        )
-                      }
-                    >
-
-                      {
-                        member.active
-                        ? "Deactivate"
-                        : "Activate"
-                      }
-
-                    </Button>
-
-                  </>
-
-                )}
-              />
-
-            ))}
-
-          </div>
 
         </>
 

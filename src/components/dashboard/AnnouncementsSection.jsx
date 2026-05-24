@@ -17,6 +17,7 @@ export default function AnnouncementsSection({
     <section className={styles.section}>
 
       <PageHeader
+        level={3}
         title="Announcements"
         icon={<Megaphone size={18} />}
       />
