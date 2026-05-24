@@ -1,66 +1,174 @@
 .card {
-  width: 320px;
+  width: 340px;
 
   background: var(--surface);
 
   border: 1px solid var(--border);
-
   border-radius: var(--radius-lg);
 
   box-shadow: var(--shadow-md);
+
+  overflow: hidden;
 }
+
+
+/* HEADER */
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  padding: 1rem;
+  padding: 0.9rem 1rem;
 
   border-bottom: 1px solid var(--border);
+
+  background: var(--surface);
+  position: sticky;
+  top: 0;
 }
+
+.header h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+
+/* ACTIONS */
 
 .actions {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
+}
+
+.actions button {
+  font-size: 0.85rem;
+
+  padding: 0.35rem 0.6rem;
+
+  border-radius: 8px;
+
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.actions button:hover {
+  background: var(--surface-alt);
 }
 
 .closeBtn {
-  background: none;
+  background: transparent;
   border: none;
 
+  font-size: 1.1rem;
+
   cursor: pointer;
+
+  opacity: 0.7;
+
+  transition: 0.2s ease;
 }
+
+.closeBtn:hover {
+  opacity: 1;
+}
+
+
+/* BODY */
 
 .body {
-  max-height: 300px;
+  max-height: 320px;
 
   overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
 }
 
+
+/* ITEM */
+
 .item {
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
 
   border-bottom: 1px solid var(--border);
 
   cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  transition: 0.2s ease;
+
+  position: relative;
 }
 
 .item:hover {
   background: var(--surface-alt);
 }
 
+
+/* unread indicator bar */
+
 .unread {
   font-weight: 600;
+  background: linear-gradient(
+    to right,
+    rgba(0, 120, 255, 0.08),
+    transparent
+  );
 }
 
-.read {
-  opacity: 0.6;
+.unread::before {
+  content: "";
+
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+
+  width: 3px;
+
+  background: var(--primary);
 }
+
+
+/* read */
+
+.read {
+  opacity: 0.75;
+}
+
+
+/* TEXT */
+
+.item p:first-child {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.item p:last-child {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  line-height: 1.4;
+}
+
+
+/* STATES */
 
 .loading,
 .empty {
-  padding: 1rem;
+  padding: 1.2rem 1rem;
   text-align: center;
+
   color: var(--text-light);
+  font-size: 0.9rem;
 }

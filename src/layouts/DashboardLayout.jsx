@@ -74,7 +74,7 @@ export default function DashboardLayout() {
             <button
               className={styles.iconBtn}
               onClick={() =>
-                navigate("/messages")
+                navigate("dashboard/messages")
               }
             >
 

@@ -7,7 +7,6 @@ import Loader from "../components/Loader";
 import DashboardHeader from "../components/dashboard/DashboardHeader";
 import MembershipSection from "../components/dashboard/MembershipSection";
 import QuickActions from "../components/dashboard/QuickActions";
-import ToolsSection from "../components/dashboard/ToolsSection";
 import AnnouncementsSection from "../components/dashboard/AnnouncementsSection";
 import SabbathSection from "../components/dashboard/SabbathSection";
 import BirthdaySection from "../components/dashboard/BirthdaySection";
@@ -134,8 +133,6 @@ export default function Dashboard() {
             user={user}
             onAction={handleAction}
           />
-
-          <ToolsSection canUser={canUser} />
 
           <AnnouncementsSection
             announcements={filteredAnnouncements}

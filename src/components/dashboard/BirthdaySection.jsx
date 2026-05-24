@@ -43,32 +43,39 @@ icon={<Gift size={18}/>}
 
 isBirthday ? (
 
-<p>
+<div className={styles.birthday}>
 
-🎉 Happy Birthday,
-<strong>
- {user.full_name}
-</strong>
+  <div className={styles.birthdayTitle}>
+    🎉 Happy Birthday,
+    <span className={styles.name}>
+      {" "}{user.full_name}
+    </span>
+  </div>
 
-May God's blessings
-be with you today.
+  <p className={styles.birthdayNote}>
+    May God's blessings be with you today.
+  </p>
 
-</p>
+</div>
 
 )
 
 : birthdayTimer ? (
 
-<p>
-  Your birthday in
+<div className={styles.birthday}>
 
-  <strong className={styles.timer}>
-    <span>{birthdayTimer.d}d</span>
-    <span>{birthdayTimer.h}h</span>
-    <span>{birthdayTimer.m}m</span>
-    <span>{birthdayTimer.s}s</span>
-  </strong>
+<p>
+Your birthday is in:
 </p>
+
+<div className={styles.timer}>
+  <span>{birthdayTimer.d}d</span>
+  <span>{birthdayTimer.h}h</span>
+  <span>{birthdayTimer.m}m</span>
+  <span>{birthdayTimer.s}s</span>
+</div>
+
+</div>
 
 )
 
@@ -91,47 +98,29 @@ message="Set your birthday in profile."
 
 {/* TODAY */}
 
-{todayBirthdays.map(person=>(
+{todayBirthdays.map(person => (
 
 <Card key={person.id}>
 
-🎉 Celebrate
-<strong>
-{" "}
+<div className={styles.today}>
+
+<span className={styles.emoji}>
+🎂
+</span>
+
+<div className={styles.message}>
+Celebrate
+<strong className={styles.name}>
 {person.full_name}
 </strong>
-
 today!
+</div>
+
+</div>
 
 </Card>
 
 ))}
-
-
-
-{/* UPCOMING */}
-
-{upcomingBirthdays.map(person=>(
-
-<StatCard
-
-key={person.id}
-
-title={person.full_name}
-
-value={`${person.daysUntil} days`}
-
-icon={<Gift size={18}/>}
-
-/>
-
-))}
-
-
 </div>
-
 </section>
-
-)
-
-}
+)}
