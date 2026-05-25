@@ -20,39 +20,29 @@ import PageHeader from "../PageHeader";
 import EmptyState from "../EmptyState";
 import Loader from "../Loader";
 import Button from "../Button";
-import MobileCards from "../ResponsiveDataView";
-
+import ResponsiveDataView from "../ResponsiveDataView";
 
 export default function MembershipRequests() {
-  const { showToast } =
-    useToast();
+  const { showToast } = useToast();
 
-  const [
-    requests,
-    setRequests,
-  ] = useState([]);
+  const [requests, setRequests] =
+    useState([]);
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [
-    actionLoading,
-    setActionLoading,
-  ] = useState({});
+  const [actionLoading, setActionLoading] =
+    useState({});
 
 
-
-  /* -------------------------
+  /* =======================
      LOAD REQUESTS
-  ------------------------- */
+  ======================= */
 
   const loadRequests =
     useCallback(async () => {
 
       try {
-
         setLoading(true);
 
         const res =
@@ -60,7 +50,7 @@ export default function MembershipRequests() {
             .fetchAll();
 
         setRequests(
-          res.requests || []
+          res?.requests || []
         );
 
       } catch {
@@ -71,9 +61,7 @@ export default function MembershipRequests() {
         );
 
       } finally {
-
         setLoading(false);
-
       }
 
     }, [showToast]);
@@ -84,213 +72,155 @@ export default function MembershipRequests() {
   }, [loadRequests]);
 
 
-
-  /* -------------------------
+  /* =======================
      APPROVE / REJECT
-  ------------------------- */
+  ======================= */
 
-  const handleAction =
-    async (
-      id,
-      action
-    ) => {
+  async function handleAction(
+    id,
+    action
+  ) {
 
-      const status =
-        action ===
-        "approve"
+    const status =
+      action === "approve"
+        ? "approved"
+        : "rejected";
 
-          ? "approved"
-          : "rejected";
+    const key =
+      `${id}-${action}`;
 
-      const key =
-        `${id}-${action}`;
+    try {
 
-      try {
+      setActionLoading(prev => ({
+        ...prev,
+        [key]: true,
+      }));
 
-        setActionLoading(
-          prev => ({
-            ...prev,
-            [key]: true,
-          })
-        );
+      await AdminMembershipAPI.review(
+        id,
+        status
+      );
 
-        await AdminMembershipAPI
-          .review(
-            id,
-            status
-          );
+      // update locally instead
+      setRequests(prev =>
+        prev.map(item =>
+          item.membership_request_id === id
+            ? {
+                ...item,
+                membership_status:
+                  status,
+              }
+            : item
+        )
+      );
 
-        await loadRequests();
+      showToast(
+        status === "approved"
+          ? "Membership approved"
+          : "Membership rejected",
+        "success"
+      );
 
-        showToast(
+    } catch (err) {
 
-          status ===
-          "approved"
-
-            ? "Membership approved"
-
-            : "Membership rejected",
-
-          "success"
-        );
-
-      } catch (err) {
-
-        showToast(
-
-          err?.message ||
-
+      showToast(
+        err?.message ||
           "Action failed",
+        "error"
+      );
 
-          "error"
-        );
+    } finally {
 
-      } finally {
+      setActionLoading(prev => ({
+        ...prev,
+        [key]: false,
+      }));
 
-        setActionLoading(
-          prev => ({
-            ...prev,
-            [key]: false,
-          })
-        );
-
-      }
-
-    };
+    }
+  }
 
 
-
-  /* -------------------------
+  /* =======================
      TABLE DATA
-  ------------------------- */
+  ======================= */
 
   const rows =
-    useMemo(() => (
-
-      requests.map(
-        request => ({
-
+    useMemo(() =>
+      requests.map(request => ({
         id:
-          request
-          .membership_request_id,
+          request.membership_request_id,
 
         name:
-          request
-          .full_name || "-",
+          request.full_name || "-",
 
         email:
-          request
-          .email || "-",
+          request.email || "-",
 
         status:
-
-          request
-          .membership_status ||
-
-          "-",
+          request.membership_status || "-",
 
         requested:
-
-          request
-          .membership_requested_at
-
+          request.membership_requested_at
             ? new Date(
-
-                request
-                .membership_requested_at
-
-              )
-
-              .toLocaleDateString()
-
+                request.membership_requested_at
+              ).toLocaleDateString()
             : "-",
 
-        raw:
-          request,
-
-      }))
-
-    ), [requests]);
+        raw: request,
+      })),
+    [requests]);
 
 
   const columns = [
-
     {
-      key:
-      "name",
-
-      label:
-      "Name",
+      key: "name",
+      label: "Name",
     },
-
     {
-      key:
-      "email",
-
-      label:
-      "Email",
+      key: "email",
+      label: "Email",
     },
-
     {
-      key:
-      "status",
-
-      label:
-      "Status",
+      key: "status",
+      label: "Status",
     },
-
     {
-      key:
-      "requested",
-
-      label:
-      "Requested",
+      key: "requested",
+      label: "Requested",
     },
-
   ];
 
 
-
-  /* -------------------------
-     ACTION BUTTONS
-  ------------------------- */
+  /* =======================
+     ACTIONS
+  ======================= */
 
   const renderActions =
     (row) => {
 
       const id =
-        row.raw
-        .membership_request_id;
+        row.raw.membership_request_id;
 
       const pending =
-
-        row.raw
-        .membership_status ===
-
+        row.raw.membership_status ===
         "requested";
-
 
       if (!pending)
         return (
           <span>
-            No action
+            Processed
           </span>
         );
 
-
       return (
-
         <>
-
           <Button
             size="sm"
-
             loading={
               actionLoading[
-              `${id}-approve`
+                `${id}-approve`
               ]
             }
-
             onClick={() =>
               handleAction(
                 id,
@@ -298,26 +228,17 @@ export default function MembershipRequests() {
               )
             }
           >
-
             Approve
-
           </Button>
 
-
-
           <Button
-            variant="
-            secondary
-            "
-
+            variant="secondary"
             size="sm"
-
             loading={
               actionLoading[
-              `${id}-reject`
+                `${id}-reject`
               ]
             }
-
             onClick={() =>
               handleAction(
                 id,
@@ -325,97 +246,61 @@ export default function MembershipRequests() {
               )
             }
           >
-
             Reject
-
           </Button>
-
         </>
-
       );
-
     };
-
-
-
-  /* -------------------------
-     LOADING
-  ------------------------- */
-
-  if (loading)
-
-    return (
-
-      <Loader
-        message="
-        Loading membership requests...
-        "
-      />
-
-    );
-
 
 
   return (
 
     <>
-
       <PageHeader
-        title="
-        Membership Requests
-        "
-
+        title="Membership Requests"
         subtitle="
-        Approve or reject
-        church membership
-        requests.
+        Approve or reject church
+        membership requests.
         "
       />
 
-
       <Card>
 
-        {!requests.length ? (
+        {loading && (
+          <Loader
+            fullScreen={false}
+            message="
+            Loading membership requests...
+            "
+          />
+        )}
+
+        {!loading &&
+          !requests.length && (
 
           <EmptyState
-
-            title="
-            No requests
-            "
-
+            title="No requests"
             description="
-            No membership
-            requests found.
+            No membership requests found.
             "
           />
 
-        ) : (
+        )}
 
-         <>
+        {!loading &&
+          requests.length > 0 && (
 
-            <ResponsiveDataView
-              columns={
-                columns
-              }
-
-              data={
-                rows
-              }
-
-              renderActions={
-                renderActions
-              }
-            />
-
-
-          </>
+          <ResponsiveDataView
+            columns={columns}
+            data={rows}
+            renderActions={
+              renderActions
+            }
+          />
 
         )}
 
       </Card>
-
     </>
-
   );
-
 }

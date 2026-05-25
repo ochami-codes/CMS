@@ -4,6 +4,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useMemo,
 } from "react";
 
 import { AdminAPI } from "../../utils/api";
@@ -12,7 +13,6 @@ import { useToast } from "../ToastProvider";
 
 import Loader from "../Loader";
 import Card from "../Card";
-import Table from "../Table";
 import Button from "../Button";
 import EmptyState from "../EmptyState";
 import ResponsiveDataView from "../ResponsiveDataView";
@@ -20,172 +20,316 @@ import PageHeader from "../PageHeader";
 
 export default function RoleRequests() {
   const {
-    user,
     authReady,
     activeChurchId,
     hasRole,
   } = useAuth();
 
-  const { showToast } = useToast();
+  const { showToast } =
+    useToast();
 
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [processing, setProcessing] = useState({});
+  const [requests, setRequests] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [processing, setProcessing] =
+    useState({});
 
   const canManageRoles =
     hasRole("admin") ||
     hasRole("elder") ||
     hasRole("pastor");
 
-  /* ---------------- FETCH ---------------- */
 
-  const fetchRequests = useCallback(async () => {
-    if (!authReady || !activeChurchId || !canManageRoles) {
-      setLoading(false);
-      return;
-    }
+  /* ======================
+     LOAD REQUESTS
+  ====================== */
 
-    try {
-      setLoading(true);
-      setError("");
+  const fetchRequests =
+    useCallback(async () => {
 
-      const res = await AdminAPI.fetchRoleRequests();
-      setRequests(res.requests || []);
+      if (
+        !authReady ||
+        !activeChurchId ||
+        !canManageRoles
+      ) {
+        setLoading(false);
+        return;
+      }
 
-    } catch (err) {
-      const msg = err?.message || "Failed loading requests";
+      try {
 
-      setError(msg);
-      showToast(msg, "error");
+        setLoading(true);
 
-    } finally {
-      setLoading(false);
-    }
-  }, [authReady, activeChurchId, canManageRoles, showToast]);
+        const res =
+          await AdminAPI
+            .fetchRoleRequests();
+
+        setRequests(
+          res?.requests || []
+        );
+
+      } catch (err) {
+
+        showToast(
+          err?.message ||
+          "Failed loading requests",
+          "error"
+        );
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    }, [
+      authReady,
+      activeChurchId,
+      canManageRoles,
+      showToast,
+    ]);
+
 
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
 
-  /* ---------------- REVIEW ---------------- */
 
-  const handleReview = async (request, status) => {
-    const key = `${request.id}-${status}`;
+  /* ======================
+     REVIEW REQUEST
+  ====================== */
+
+  async function handleReview(
+    request,
+    status
+  ) {
+
+    const key =
+      `${request.id}-${status}`;
 
     try {
-      setProcessing(prev => ({ ...prev, [key]: true }));
 
-      await AdminAPI.reviewRoleRequest(request.id, status);
+      setProcessing(prev => ({
+        ...prev,
+        [key]: true,
+      }));
 
+      await AdminAPI
+        .reviewRoleRequest(
+          request.id,
+          status
+        );
+
+      // remove immediately
       setRequests(prev =>
-        prev.filter(r => r.id !== request.id)
+        prev.filter(
+          r =>
+            r.id !== request.id
+        )
       );
 
       showToast(
+
         `Request ${
-          status === "approved" ? "approved" : "rejected"
+          status === "approved"
+            ? "approved"
+            : "rejected"
         }`,
+
         "success"
       );
 
     } catch (err) {
+
       showToast(
-        err?.message || "Action failed",
+        err?.message ||
+        "Action failed",
         "error"
       );
 
     } finally {
-      setProcessing(prev => ({ ...prev, [key]: false }));
+
+      setProcessing(prev => ({
+        ...prev,
+        [key]: false,
+      }));
+
     }
-  };
-
-  /* ---------------- GUARDS ---------------- */
-
-  if (!authReady || loading) {
-    return <Loader message="Loading role requests..." />;
   }
 
-  if (!user || !activeChurchId) {
-    return <EmptyState title="No church selected" />;
-  }
 
-  if (!canManageRoles) {
-    return <EmptyState title="No permission" />;
-  }
+  /* ======================
+     TABLE DATA
+  ====================== */
 
-  if (error) {
-    return <EmptyState title="Error" description={error} />;
-  }
+  const rows =
+    useMemo(() =>
+      requests.map(req => ({
+        name:
+          req.full_name || "-",
 
-  /* ---------------- DATA ---------------- */
+        email:
+          req.email || "-",
 
-  const rows = requests.map(req => ({
-    name: req.full_name || "-",
-    email: req.email || "-",
-    role: req.requested_role || "-",
-    date: req.role_requested_at
-      ? new Date(req.role_requested_at).toLocaleDateString()
-      : "-",
-    raw: req,
-  }));
+        role:
+          req.requested_role || "-",
+
+        date:
+          req.role_requested_at
+            ? new Date(
+                req.role_requested_at
+              )
+                .toLocaleDateString()
+            : "-",
+
+        raw: req,
+      })),
+    [requests]);
+
 
   const columns = [
-    { key: "name", label: "Name" },
-    { key: "email", label: "Email" },
-    { key: "role", label: "Requested Role" },
-    { key: "date", label: "Date" },
+    {
+      key: "name",
+      label: "Name",
+    },
+    {
+      key: "email",
+      label: "Email",
+    },
+    {
+      key: "role",
+      label:
+        "Requested Role",
+    },
+    {
+      key: "date",
+      label: "Date",
+    },
   ];
 
-  const renderActions = (row) => {
-    const req = row.raw;
 
-    const approveKey = `${req.id}-approved`;
-    const rejectKey = `${req.id}-rejected`;
+  const renderActions =
+    (row) => {
 
-    return (
-      <>
-        <Button
-          size="sm"
-          loading={processing[approveKey]}
-          onClick={() => handleReview(req, "approved")}
-        >
-          Approve
-        </Button>
+      const req =
+        row.raw;
 
-        <Button
-          size="sm"
-          variant="secondary"
-          loading={processing[rejectKey]}
-          onClick={() => handleReview(req, "rejected")}
-        >
-          Reject
-        </Button>
-      </>
-    );
-  };
+      return (
+        <>
+          <Button
+            size="sm"
+            loading={
+              processing[
+                `${req.id}-approved`
+              ]
+            }
+            onClick={() =>
+              handleReview(
+                req,
+                "approved"
+              )
+            }
+          >
+            Approve
+          </Button>
 
-  /* ---------------- UI ---------------- */
+          <Button
+            size="sm"
+            variant="secondary"
+            loading={
+              processing[
+                `${req.id}-rejected`
+              ]
+            }
+            onClick={() =>
+              handleReview(
+                req,
+                "rejected"
+              )
+            }
+          >
+            Reject
+          </Button>
+        </>
+      );
+    };
+
+
+  const blocked =
+    !authReady ||
+    !activeChurchId ||
+    !canManageRoles;
+
+
+  /* ======================
+     UI
+  ====================== */
 
   return (
     <>
       <PageHeader
         title="Role Requests"
-        subtitle="Approve or reject ministry role requests."
+        subtitle="
+        Approve or reject
+        ministry role requests.
+        "
       />
 
       <Card>
-        {!requests.length ? (
-          <EmptyState title="No pending requests" />
-        ) : (
-          <>
-            <ResponsiveDataView
-              columns={columns}
-              data={rows}
-              renderActions={renderActions}
-            />
-          </>
+
+        {loading && (
+          <Loader
+            fullScreen={false}
+            message="
+            Loading role requests...
+            "
+          />
         )}
+
+        {!loading &&
+          blocked && (
+
+          <EmptyState
+            title="
+            No permission
+            "
+            description="
+            You cannot manage
+            role requests.
+            "
+          />
+
+        )}
+
+        {!loading &&
+          !blocked &&
+          !requests.length && (
+
+          <EmptyState
+            title="
+            No pending requests
+            "
+          />
+
+        )}
+
+        {!loading &&
+          !blocked &&
+          requests.length > 0 && (
+
+          <ResponsiveDataView
+            columns={columns}
+            data={rows}
+            renderActions={
+              renderActions
+            }
+          />
+
+        )}
+
       </Card>
     </>
   );
