@@ -7,6 +7,7 @@ import sdaLogo from "../assets/sda-logo.png";
 import {
   LayoutDashboard,
   Users,
+  LogOut,
   Baby,
   Wallet,
   Church,
@@ -136,16 +137,12 @@ export default function Sidebar({ open, onClose, onLogout }) {
       </nav>
 
       {/* FOOTER */}
-      <div className={styles.footer}>
-
-        <button
-          onClick={onLogout}
-          className={styles.logout}
-        >
-          Logout
-        </button>
-
-      </div>
+     <div className={styles.footer}>
+  <button onClick={onLogout} className={styles.logout}>
+    <LogOut size={18} />
+    <span>Logout</span>
+  </button>
+</div>
 
     </aside>
   );

@@ -87,36 +87,64 @@
   padding: 0.5rem;
 }
 
+
 .link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 
   padding: 0.75rem 1rem;
-
   border-radius: var(--radius-md);
 
   color: var(--text);
+  text-decoration: none;
 
   transition: var(--transition);
 
-  text-decoration: none;
+  position: relative;
 }
 
+/* subtle hover */
 .link:hover {
   background: var(--surface-alt);
+  transform: translateX(2px);
 }
 
+/* ACTIVE STATE — modern “pill highlight” */
 .active {
   background: var(--primary);
   color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
+/* optional accent bar */
+.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  height: 60%;
+  width: 4px;
+  border-radius: 4px;
+  background: white;
+}
+
+/* icon behavior */
 .icon {
   display: flex;
   align-items: center;
+  opacity: 0.85;
+  transition: var(--transition);
 }
 
+.link:hover .icon {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.active .icon {
+  opacity: 1;
+}
 /* FOOTER */
 .footer {
   padding: 1rem;
@@ -125,4 +153,38 @@
 
 .logout {
   width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+
+  padding: 0.75rem 1rem;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  background: transparent;
+  color: var(--text);
+
+  cursor: pointer;
+
+  transition: var(--transition);
+}
+
+/* hover = red tint */
+.logout:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  transform: translateX(2px);
+}
+
+/* icon polish */
+.logout svg {
+  transition: var(--transition);
+}
+
+.logout:hover svg {
+  transform: translateX(-1px);
 }
