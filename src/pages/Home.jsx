@@ -18,160 +18,56 @@ import styles from "../styles/pages/Home.module.css";
 export default function Home() {
   return (
     <div className={styles.container}>
-
-      {/* HERO */}
+      
       <section className={styles.hero}>
-
         <div className={styles.badge}>
-          <FaChurch />
-          Built for churches
+          <FaChurch /> Built for churches
         </div>
 
         <h1>
-          Manage your church
-          <span> simply & securely</span>
+          Church management,<br />
+          <span>made simple</span>
         </h1>
 
         <p>
-          Membership records, departments, treasury,
-          announcements, and church roles —
-          all in one platform.
+          Track members, finances, and ministries in one clean dashboard. 
+          No spreadsheets, no confusion.
         </p>
 
         <div className={styles.buttons}>
-          <Button to="/register">
-            Get Started
-          </Button>
-
-          <Button to="/login">
-            Sign In
-          </Button>
+          <Button to="/register" variant="primary">Get Started</Button>
+          <Button to="/login" variant="ghost">Sign In</Button>
         </div>
-
-<div className={styles.stats}>
-  <Card className={styles.statCard}>
-    <strong>Members</strong>
-    <span>Records & transfers</span>
-  </Card>
-
-  <Card className={styles.statCard}>
-    <strong>Departments</strong>
-    <span>Manage ministries</span>
-  </Card>
-
-  <Card className={styles.statCard}>
-    <strong>Treasury</strong>
-    <span>Track finances</span>
-  </Card>
-</div>
-
       </section>
 
-      {/* HOW IT WORKS */}
       <section>
-
-        <h2 className={styles.sectionTitle}>
-          Getting started is easy
-        </h2>
-
-        <div className={styles.grid}>
-
-          <Card>
-            <FaUserPlus />
-            <h3>Create account</h3>
-            <p>Register your church profile.</p>
-          </Card>
-
-          <Card>
-            <FaEnvelope />
-            <h3>Verify email</h3>
-            <p>Confirm ownership securely.</p>
-          </Card>
-
-          <Card>
-            <FaSignInAlt />
-            <h3>Start managing</h3>
-            <p>Access your dashboard instantly.</p>
-          </Card>
-
+        <div className={styles.sectionHeader}>
+          <h2>Everything you need</h2>
+          <p>Built around how churches actually operate</p>
         </div>
 
+        <div className={styles.grid}>
+          {[
+            { icon: FaClipboardList, title: "Membership", desc: "Registers, baptisms, transfers, and member status in one place." },
+            { icon: FaUsers, title: "Departments", desc: "Organize youth, Sabbath school, music, and other ministries." },
+            { icon: FaMoneyBillWave, title: "Treasury", desc: "Log offerings, expenses, and generate reports instantly." },
+            { icon: FaBullhorn, title: "Announcements", desc: "Send updates to the whole church with one click." },
+            { icon: FaLock, title: "Roles & Access", desc: "Control who sees what with pastor, elder, and clerk roles." },
+          ].map(({ icon: Icon, title, desc }) => (
+            <div key={title} className={styles.card}>
+              <Icon />
+              <h3>{title}</h3>
+              <p>{desc}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
-      {/* FEATURES */}
-     
-
-        <h2 className={styles.sectionTitle}>
-          Everything churches need
-        </h2>
-
-        <div className={styles.grid}>
-
-          <Card>
-            <FaClipboardList />
-            <h3>Church Clerk</h3>
-            <p>
-              Membership registers,
-              baptisms, transfers,
-              missing members.
-            </p>
-          </Card>
-
-          <Card>
-            <FaUsers />
-            <h3>Departments</h3>
-            <p>
-              Youth, Sabbath School,
-              Children, Music & more.
-            </p>
-          </Card>
-
-          <Card>
-            <FaMoneyBillWave />
-            <h3>Treasury</h3>
-            <p>
-              Track offerings,
-              expenses and funds.
-            </p>
-          </Card>
-
-          <Card>
-            <FaBullhorn />
-            <h3>Announcements</h3>
-            <p>
-              Reach the whole church.
-            </p>
-          </Card>
-
-          <Card>
-            <FaLock />
-            <h3>Role Permissions</h3>
-            <p>
-              Pastor, elder,
-              clerk, member access.
-            </p>
-          </Card>
-
-        </div>
-
-
-      {/* CTA */}
       <section className={styles.cta}>
-
-        <h2>
-          Ready to organize your church?
-        </h2>
-
-        <p>
-          Start using the platform today.
-        </p>
-
-        <Button to="/register">
-          Create Account
-        </Button>
-
+        <h2>Ready to get organized?</h2>
+        <p>Set up your church in under 5 minutes</p>
+        <Button to="/register" variant="light">Create Free Account</Button>
       </section>
-
     </div>
   );
 }

@@ -25,11 +25,16 @@ export default function ManageRoles() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+
   const [selectedMember, setSelectedMember] = useState(null);
   const [processingId, setProcessingId] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  // Debounce search input
+  const [reason, setReason] = useState("");
+
+  /* ---------------------------
+     debounce search
+  --------------------------- */
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -38,6 +43,9 @@ export default function ManageRoles() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  /* ---------------------------
+     load members
+  --------------------------- */
   const loadMembers = useCallback(async () => {
     if (!activeChurchId) {
       setLoading(false);
@@ -46,7 +54,11 @@ export default function ManageRoles() {
 
     try {
       setLoading(true);
-      const params = new URLSearchParams({ search: debouncedSearch });
+
+      const params = new URLSearchParams({
+        search: debouncedSearch,
+      });
+
       const res = await AdminAPI.fetchMembers(params.toString());
       setMembers(res.members || []);
     } catch {
@@ -60,16 +72,24 @@ export default function ManageRoles() {
     loadMembers();
   }, [loadMembers]);
 
+  /* ---------------------------
+     toggle member status
+  --------------------------- */
   const toggleMember = async (member) => {
     try {
       setProcessingId(member.id);
 
-      if (member.active) {
-        await AdminAPI.deactivateMember(member.id);
+      if (member.status === "active") {
+        await AdminAPI.suspendMember(member.id, {
+          reason: reason || undefined,
+        });
+      } else if (member.status === "suspended") {
+        await AdminAPI.unsuspendMember(member.id);
       } else {
         await AdminAPI.activateMember(member.id);
       }
 
+      setReason("");
       await loadMembers();
       showToast("Member updated", "success");
     } catch {
@@ -79,12 +99,15 @@ export default function ManageRoles() {
     }
   };
 
-  const closeModal = () => setSelectedMember(null);
+  const closeModal = () => {
+    setSelectedMember(null);
+    setReason("");
+  };
 
   const handleSave = async () => {
     try {
       setSaving(true);
-      // save roles here
+      // role update logic here
       showToast("Roles updated", "success");
       closeModal();
     } catch {
@@ -94,30 +117,74 @@ export default function ManageRoles() {
     }
   };
 
+  /* ---------------------------
+     action helpers
+  --------------------------- */
+  const getActionLabel = (status) => {
+    if (status === "active") return "Suspend";
+    if (status === "suspended") return "Unsuspend";
+    return "Activate";
+  };
+
+  const getActionVariant = (status) => {
+    if (status === "active") return "danger";
+    return "success";
+  };
+
+  /* ---------------------------
+     table columns
+  --------------------------- */
   const columns = useMemo(
     () => [
       { key: "full_name", label: "Member" },
+
       {
         key: "departments",
         label: "Departments",
-        render: (m) => (m.departments?.length? m.departments.join(", ") : "-"),
+        render: (m) =>
+          m.departments?.length
+            ? m.departments.join(", ")
+            : "-",
       },
+
       {
-        key: "active",
+        key: "status",
         label: "Status",
-        render: (m) => (
-          <span className={m.active? styles.active : styles.inactive}>
-            {m.active? "Active" : "Inactive"}
-          </span>
-        ),
+        render: (m) => {
+          if (m.status === "active") {
+            return (
+              <span className={styles.active}>
+                Active
+              </span>
+            );
+          }
+
+          if (m.status === "suspended") {
+            return (
+              <span className={styles.suspended}>
+                Suspended
+              </span>
+            );
+          }
+
+          return (
+            <span className={styles.inactive}>
+              Inactive
+            </span>
+          );
+        },
       },
+
       {
         key: "roles",
         label: "Roles",
         render: (m) => (
           <div className={styles.roles}>
             {(m.roles || []).map((role) => (
-              <span key={role} className={styles.roleBadge}>
+              <span
+                key={role}
+                className={styles.roleBadge}
+              >
                 {getRoleLabel(role)}
               </span>
             ))}
@@ -128,6 +195,9 @@ export default function ManageRoles() {
     [getRoleLabel]
   );
 
+  /* ---------------------------
+     UI
+  --------------------------- */
   return (
     <div className={styles.section}>
       <PageHeader
@@ -139,23 +209,26 @@ export default function ManageRoles() {
         value={search}
         icon={<Search size={16} />}
         placeholder="Search members..."
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) =>
+          setSearch(e.target.value)
+        }
         onClear={() => setSearch("")}
       />
 
       {loading && (
-  <Loader
-    fullScreen={false}
-    message="Loading members..."
-  />
-)}
+        <Loader message="Loading members..." />
+      )}
 
       {!loading && members.length === 0 && (
         <EmptyState
-          title={debouncedSearch? "No members found" : "No members yet"}
+          title={
+            debouncedSearch
+              ? "No members found"
+              : "No members yet"
+          }
           description={
             debouncedSearch
-             ? `No results for "${debouncedSearch}"`
+              ? `No results for "${debouncedSearch}"`
               : undefined
           }
         />
@@ -170,24 +243,35 @@ export default function ManageRoles() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setSelectedMember(m)}
+                onClick={() =>
+                  setSelectedMember(m)
+                }
               >
                 Manage Roles
               </Button>
 
               <Button
-                loading={processingId === m.id}
-                variant={m.active? "danger" : "success"}
+                loading={
+                  processingId === m.id
+                }
+                variant={getActionVariant(
+                  m.status
+                )}
                 size="sm"
-                onClick={() => toggleMember(m)}
+                onClick={() =>
+                  toggleMember(m)
+                }
               >
-                {m.active? "Deactivate" : "Activate"}
+                {getActionLabel(m.status)}
               </Button>
             </>
           )}
         />
       )}
 
+      {/* ---------------------------
+         ROLE MODAL
+      --------------------------- */}
       {selectedMember && (
         <Modal
           open={!!selectedMember}
@@ -196,16 +280,51 @@ export default function ManageRoles() {
           size="lg"
           footer={
             <>
-              <Button variant="secondary" size="sm" onClick={closeModal}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={closeModal}
+              >
                 Cancel
               </Button>
-              <Button onClick={handleSave} size="md" loading={saving}>
+
+              <Button
+                onClick={handleSave}
+                size="md"
+                loading={saving}
+              >
                 Save Changes
               </Button>
             </>
           }
         >
-          {/* Roles UI here */}
+          {/* Optional suspension reason input */}
+          {selectedMember.status === "active" && (
+            <div
+              style={{
+                marginTop: "1rem",
+              }}
+            >
+              <label>
+                Suspension Reason (optional)
+              </label>
+
+              <textarea
+                value={reason}
+                onChange={(e) =>
+                  setReason(e.target.value)
+                }
+                placeholder="e.g. disciplinary action, misuse of system"
+                style={{
+                  width: "100%",
+                  minHeight: "80px",
+                  marginTop: "0.5rem",
+                }}
+              />
+            </div>
+          )}
+
+          {/* Roles UI goes here */}
         </Modal>
       )}
     </div>

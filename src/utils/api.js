@@ -149,11 +149,21 @@ export const AdminAPI = {
   searchProfiles: (query) =>
     request(`/members/profiles/search?q=${encodeURIComponent(query)}`),
 
-  deactivateMember: (memberId) =>
-    request(`/admin/users/${memberId}/deactivate`, { method: "POST" }),
+suspendMember: (memberId, payload = {}) =>
+  request(`/admin/users/${memberId}/suspend`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
 
-  activateMember: (memberId) =>
-    request(`/admin/users/${memberId}/activate`, { method: "POST" }),
+unsuspendMember: (memberId) =>
+  request(`/admin/users/${memberId}/unsuspend`, {
+    method: "POST",
+  }),
+
+activateMember: (memberId) =>
+  request(`/admin/users/${memberId}/activate`, {
+    method: "POST",
+  }),
 
   fetchRoleRequests: () => request("/admin/role-requests"),
   reviewRoleRequest: (id, action) =>

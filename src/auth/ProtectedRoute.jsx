@@ -3,8 +3,9 @@ import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute({
   requiredPermission = null,
+  allowSuspended = false,
 }) {
-  const { user } = useAuth();
+  const { user, isSuspendedMember } = useAuth();
 
   /* -------------------------
      1. Must be logged in
@@ -14,7 +15,14 @@ export default function ProtectedRoute({
   }
 
   /* -------------------------
-     2. Permission check
+     2. Block suspended users
+  ------------------------- */
+  if (isSuspendedMember && !allowSuspended) {
+    return <Navigate to="/suspended" replace />;
+  }
+
+  /* -------------------------
+     3. Permission check
   ------------------------- */
   if (
     requiredPermission &&
@@ -24,8 +32,7 @@ export default function ProtectedRoute({
   }
 
   /* -------------------------
-     3. Allow access
-     (NO onboarding logic here)
+     4. Allow access
   ------------------------- */
   return <Outlet />;
 }

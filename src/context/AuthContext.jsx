@@ -178,7 +178,8 @@ const activeMembership =
 
 const activeMembershipStatus =
   user?.active_membership_status || "guest";
-
+const isSuspendedMember =
+  activeMembershipStatus === "suspended";
 const activeMembershipRequest =
   user?.active_membership_request || null;
 
@@ -194,7 +195,7 @@ const activeMemberships =
   ) || [];
 
 const isActiveMember =
-  activeMembershipStatus === "active";
+  activeMembershipStatus === "active" && !isSuspendedMember;
 
 const isPendingMember =
   activeMembershipRequestStatus === "requested";
@@ -209,12 +210,22 @@ const isGuest =
 const hasAnyMembership =
   activeMemberships.length > 0;
 
-const dashboardMode =
-  isActiveMember
-    ? "member"
-    : isPendingMember
-    ? "requested"
-    : "guest";
+const dashboardMode = isSuspendedMember
+  ? "suspended"
+  : isActiveMember
+  ? "member"
+  : isPendingMember
+  ? "requested"
+  : "guest";
+
+const isAccessBlocked =
+  isSuspendedMember;
+const getAccessState = () => {
+  if (isSuspendedMember) return "suspended";
+  if (isActiveMember) return "active";
+  if (isPendingMember) return "pending";
+  return "guest";
+};
   /* -------------------------------
      Church switching
   ------------------------------- */
@@ -403,7 +414,7 @@ useEffect(() => {
       permission,
       options = {}
     ) => {
-      if (!user) return false;
+      if (!user || isSuspendedMember) return false;
 
       const {
         roles,
@@ -493,7 +504,9 @@ useEffect(() => {
         isGuest,
 
         hasAnyMembership,
-
+        isSuspendedMember,
+        isAccessBlocked,
+        getAccessState,
         dashboardMode,
       }}
     >

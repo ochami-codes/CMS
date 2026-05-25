@@ -20,6 +20,7 @@ import AuthCallback from "./auth/Callback";
 import ChangePasswordSuccess from "./auth/ChangePasswordSuccess";
 
 // Pages
+import SuspendedScreen from "./pages/SuspendedScreen";
 import Home from "./pages/Home";
 import CreateChurch from "./pages/CreateChurch";
 import JoinChurch from "./pages/JoinChurch";
@@ -77,6 +78,7 @@ function App() {
             {/* ========== PUBLIC ========== */}
             <Route element={<PublicLayout />}>
               <Route index element={<Home />} />
+              <Route path="/suspended" element={<SuspendedScreen />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/reset-password" element={<ResetPassword />} />
