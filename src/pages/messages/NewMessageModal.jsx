@@ -6,31 +6,23 @@ import "../../styles/messages.css";
 
 export default function NewMessageModal({ onSelect, onClose }) {
   const { getRoleLabel } = useAuth();
-
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
 
-  // -----------------------------
-  // Load users
-  // -----------------------------
   const loadUsers = async () => {
     try {
       setLoading(true);
-
       const res = await MessagesAPI.getUsers();
-
       const normalized = Array.isArray(res.groups)
         ? res.groups.map((group) => ({
             ...group,
             users: (group.users || []).map((user) => ({
               ...user,
-              full_name:
-                user.full_name ?? user.name ?? "Unknown",
+              full_name: user.full_name ?? user.name ?? "Unknown",
             })),
           }))
         : [];
-
       setGroups(normalized);
     } catch (err) {
       console.error("Failed to load users:", err);
@@ -44,12 +36,8 @@ export default function NewMessageModal({ onSelect, onClose }) {
     loadUsers();
   }, []);
 
-  // -----------------------------
-  // Filter users
-  // -----------------------------
   const filteredGroups = useMemo(() => {
     const q = search.toLowerCase();
-
     return groups
       .map((group) => ({
         ...group,
@@ -60,12 +48,9 @@ export default function NewMessageModal({ onSelect, onClose }) {
       .filter((group) => group.users.length > 0);
   }, [groups, search]);
 
-  // -----------------------------
-  // UI
-  // -----------------------------
   return (
     <motion.div
-      className="modal-overlay"
+      className="modal"
       onClick={onClose}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -73,7 +58,7 @@ export default function NewMessageModal({ onSelect, onClose }) {
       transition={{ duration: 0.2 }}
     >
       <motion.div
-        className="modal-card"
+        className="modal"
         onClick={(e) => e.stopPropagation()}
         initial={{ scale: 0.95, y: 40, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
@@ -81,15 +66,12 @@ export default function NewMessageModal({ onSelect, onClose }) {
         transition={{ duration: 0.25, ease: "easeOut" }}
       >
         {/* Header */}
-        <div className="modal-header">
-          <h3>Start a conversation</h3>
-          <p className="modal-subtitle">
-            Select a member or leader to begin chatting
-          </p>
+        <div className="header">
+          <h3 className="title">Start a conversation</h3>
         </div>
 
         {/* Search */}
-        <div className="modal-search">
+        <div className="modalSearch">
           <input
             type="text"
             placeholder="Search people..."
@@ -99,80 +81,47 @@ export default function NewMessageModal({ onSelect, onClose }) {
         </div>
 
         {/* Body */}
-        <div className="modal-body">
+        <div className="modalList">
           {loading ? (
-            <p className="modal-info">Loading users...</p>
+            <p className="empty">Loading users...</p>
           ) : filteredGroups.length === 0 ? (
-            <p className="modal-info">
-              {search
-                ? "No results found"
-                : "No users available"}
+            <p className="empty">
+              {search ? "No results found" : "No users available"}
             </p>
           ) : (
-            <div className="role-group-list">
-              {filteredGroups.map((group, index) => (
-                <div
-                  key={`${group.type}-${group.role}-${index}`}
-                  className="role-group"
-                >
-                  {/* Title */}
-                  <h4 className="role-title">
-                    {group.type === "leaders"
-                      ? getRoleLabel(group.role)
-                      : "Members"}
-                  </h4>
+            filteredGroups.map((group, index) => (
+              <div key={`${group.type}-${group.role}-${index}`}>
+                <h4 className="title" style={{ padding: "0.75rem 1rem 0" }}>
+                  {group.type === "leaders"
+                    ? getRoleLabel(group.role)
+                    : "Members"}
+                </h4>
 
-                  {/* Users */}
-                  <motion.div
-                    className="role-users"
-                    initial="hidden"
-                    animate="visible"
-                    variants={{
-                      hidden: {},
-                      visible: {
-                        transition: {
-                          staggerChildren: 0.04,
-                        },
-                      },
-                    }}
+                {group.users.map((user) => (
+                  <div
+                    key={user.id}
+                    className="thread"
+                    onClick={() => onSelect(user)}
                   >
-                    {group.users.map((user) => (
-                      <motion.div
-                        key={user.id}
-                        className="role-user"
-                        onClick={() => onSelect(user)}
-                        variants={{
-                          hidden: { opacity: 0, y: 10 },
-                          visible: { opacity: 1, y: 0 },
-                        }}
-                        whileTap={{ scale: 0.97 }}
-                      >
-                        <div className="avatar">
-                          {user.full_name
-                            ?.charAt(0)
-                            ?.toUpperCase() || "U"}
-                        </div>
+                    <div className="avatar">
+                      {user.full_name?.charAt(0)?.toUpperCase() || "U"}
+                    </div>
 
-                        <div className="user-info">
-                          <span className="user-name">
-                            {user.full_name}
-                          </span>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </div>
-              ))}
-            </div>
+                    <div className="threadBody">
+                      <div className="threadTop">
+                        <span className="name">{user.full_name}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))
           )}
         </div>
 
         {/* Footer */}
-        <div className="modal-actions">
-          <button
-            className="btn btn-secondary"
-            onClick={onClose}
-          >
+        <div style={{ padding: "1rem", borderTop: "1px solid var(--border)" }}>
+          <button className="btn btn-secondary" onClick={onClose}>
             Cancel
           </button>
         </div>

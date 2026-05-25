@@ -10,15 +10,9 @@ export default function ChatWindow({
   onBack,
   onThreadCreated,
 }) {
-  // -----------------------------
-  // Auth
-  // -----------------------------
   const { user } = useAuth();
   const currentProfileId = user?.id;
 
-  // -----------------------------
-  // State & Refs
-  // -----------------------------
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,9 +22,6 @@ export default function ChatWindow({
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
-  // -----------------------------
-  // Helpers
-  // -----------------------------
   const formatTime = (date) =>
     new Date(date).toLocaleTimeString([], {
       hour: "2-digit",
@@ -46,13 +37,11 @@ export default function ChatWindow({
 
   const renderStatus = (msg) => {
     const status = getMessageStatus(msg);
-
     if (status === "sent") return "✓";
-    if (status === "delivered") return "✓✓";
+    if (status === "delivered") return "✓";
     if (status === "read") {
-      return <span style={{ color: "blue" }}>✓✓</span>;
+      return <span style={{ color: "blue" }}>✓</span>;
     }
-
     return "✓";
   };
 
@@ -62,30 +51,19 @@ export default function ChatWindow({
     messages.find((m) => !m.is_me)?.sender?.full_name ||
     "Conversation";
 
-  // -----------------------------
-  // Load Messages
-  // -----------------------------
   const loadMessages = async (silent = false) => {
     if (!threadId || !currentProfileId) return;
-
     try {
       if (!silent) setLoading(true);
-
       const res = await MessagesAPI.getConversation(threadId);
-
       const normalized = Array.isArray(res.messages)
         ? res.messages
             .map((m) => ({
               ...m,
-              is_me:
-                String(m.sender_id) === String(currentProfileId),
+              is_me: String(m.sender_id) === String(currentProfileId),
             }))
-            .sort(
-              (a, b) =>
-                new Date(a.created_at) - new Date(b.created_at)
-            )
+            .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
         : [];
-
       setMessages(normalized);
     } catch (err) {
       console.error("Failed to load messages:", err);
@@ -94,9 +72,6 @@ export default function ChatWindow({
     }
   };
 
-  // -----------------------------
-  // Send Message
-  // -----------------------------
   const sendMessage = async () => {
     const trimmed = text.trim();
     if (!trimmed || sending) return;
@@ -110,9 +85,7 @@ export default function ChatWindow({
     }
 
     setSending(true);
-
     const tempId = `temp-${Date.now()}`;
-
     const tempMessage = {
       id: tempId,
       content: trimmed,
@@ -127,14 +100,8 @@ export default function ChatWindow({
 
     try {
       const payload = isReply
-        ? {
-            content: trimmed,
-            thread_id: localThreadId,
-          }
-        : {
-            content: trimmed,
-            recipient_profile_id: recipientId,
-          };
+        ? { content: trimmed, thread_id: localThreadId }
+        : { content: trimmed, recipient_profile_id: recipientId };
 
       const res = await MessagesAPI.send(payload);
 
@@ -148,26 +115,16 @@ export default function ChatWindow({
       }
     } catch (err) {
       console.error("Failed to send message:", err);
-      setMessages((prev) =>
-        prev.filter((m) => m.id !== tempId)
-      );
-      alert(
-        err?.response?.data?.error ||
-          "Failed to send message"
-      );
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      alert(err?.response?.data?.error || "Failed to send message");
     } finally {
       setSending(false);
       inputRef.current?.focus();
     }
   };
 
-  // -----------------------------
-  // Effects
-  // -----------------------------
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
@@ -193,77 +150,50 @@ export default function ChatWindow({
         loadMessages(true);
       }
     };
-
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibility
-    );
-
-    return () =>
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibility
-      );
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, [threadId]);
 
   useEffect(() => {
     if (!threadId) return;
-
     const interval = setInterval(() => {
       loadMessages(true);
     }, 10000);
-
     return () => clearInterval(interval);
   }, [threadId]);
 
-  // -----------------------------
-  // Empty state
-  // -----------------------------
   if (!threadId && !recipient) {
     return (
-      <div className="chat-window empty">
-        <p>
-          Select a conversation or start a new chat
-        </p>
+      <div className="content empty">
+        <p>Select a conversation or start a new chat</p>
       </div>
     );
   }
 
-  // -----------------------------
-  // UI
-  // -----------------------------
   return (
-    <div className="chat-window">
+    <div className="content">
       {/* Header */}
-<div className="chat-header">
-  <div className="chat-header-left">
-    
-    <button className="back-btn" onClick={onBack}>
-  <ArrowLeft size={20} />
-</button>
-    <div className="chat-header-avatar">
-      {otherUserName.charAt(0).toUpperCase()}
-    </div>
+      <div className="chatHeader">
+        <div className="chatLeft">
+          <button className="backBtn" onClick={onBack}>
+            <ArrowLeft size={20} />
+          </button>
+          <div className="avatar">
+            {otherUserName.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div className="chatName">{otherUserName}</div>
+            <div className="chatStatus">Online</div>
+          </div>
+        </div>
+      </div>
 
-    <div className="chat-header-info">
-      <span className="chat-header-name">
-        {otherUserName}
-      </span>
-      <span className="chat-header-status">
-        Online
-      </span>
-    </div>
-
-  </div>
-</div>
       {/* Messages */}
-      <div className="chat-messages">
+      <div className="chatMessages">
         {loading ? (
-          <p className="chat-info">
-            Loading messages...
-          </p>
+          <p className="empty">Loading messages...</p>
         ) : messages.length === 0 ? (
-          <p className="chat-info">
+          <p className="empty">
             {recipient
               ? `Start a chat with ${recipient.full_name}`
               : "No messages yet"}
@@ -272,40 +202,30 @@ export default function ChatWindow({
           messages.map((msg) => (
             <div
               key={msg.id}
-              className={`chat-message ${
-                msg.is_me ? "me" : "other"
-              }`}
+              className={`message ${msg.is_me ? "me" : "other"}`}
             >
-              <div className="chat-bubble">
+              <div className="bubble">
                 {!msg.is_me && (
-                  <span className="chat-sender">
+                  <span className="sender">
                     {msg.sender?.full_name}
                   </span>
                 )}
-
                 <p>{msg.content}</p>
-
-                <div className="chat-meta">
+                <div className="meta">
                   <span className="time">
                     {formatTime(msg.created_at)}
                   </span>
-
-                  {msg.is_me && (
-                    <span className="status">
-                      {renderStatus(msg)}
-                    </span>
-                  )}
+                  {msg.is_me && <span>{renderStatus(msg)}</span>}
                 </div>
               </div>
             </div>
           ))
         )}
-
         <div ref={bottomRef} />
       </div>
 
       {/* Input */}
-      <div className="chat-input">
+      <div className="chatInput">
         <input
           ref={inputRef}
           value={text}
@@ -313,22 +233,13 @@ export default function ChatWindow({
           placeholder="Type message..."
           disabled={sending}
           onKeyDown={(e) => {
-            if (
-              e.key === "Enter" &&
-              !e.shiftKey
-            ) {
+            if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
               sendMessage();
             }
           }}
         />
-
-        <button
-          onClick={sendMessage}
-          disabled={
-            sending || !text.trim()
-          }
-        >
+        <button onClick={sendMessage} disabled={sending || !text.trim()}>
           {sending ? "Sending..." : "Send"}
         </button>
       </div>

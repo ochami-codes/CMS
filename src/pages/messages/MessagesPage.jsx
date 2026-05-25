@@ -8,24 +8,15 @@ import { useAuth } from "../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function MessagesPage() {
-  // -----------------------------
-  // Auth
-  // -----------------------------
   const { user } = useAuth();
   const currentProfileId = user?.id;
 
-  // -----------------------------
-  // State
-  // -----------------------------
   const [activeThreadId, setActiveThreadId] = useState(null);
   const [activeRecipient, setActiveRecipient] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [inbox, setInbox] = useState([]);
   const [view, setView] = useState("inbox"); // inbox | chat
 
-  // -----------------------------
-  // Load Inbox
-  // -----------------------------
   const loadInbox = async () => {
     try {
       const res = await MessagesAPI.getInbox();
@@ -39,22 +30,15 @@ export default function MessagesPage() {
     loadInbox();
   }, []);
 
-  // -----------------------------
-  // Handlers
-  // -----------------------------
   const handleSelectThread = async (thread) => {
     setActiveThreadId(thread.thread_id);
-
     setActiveRecipient({
       id: thread.other_user_id,
       full_name: thread.other_user_name,
     });
-
     setView("chat");
 
-    // Mark as read if needed
     if (thread.unread_count > 0) {
-      // Optimistic UI update
       setInbox((prev) =>
         prev.map((item) =>
           item.thread_id === thread.thread_id
@@ -67,7 +51,7 @@ export default function MessagesPage() {
         await MessagesAPI.markAsRead(thread.thread_id);
       } catch (err) {
         console.error("Failed to mark as read:", err);
-        loadInbox(); // rollback
+        loadInbox();
       }
     }
   };
@@ -76,31 +60,27 @@ export default function MessagesPage() {
     setView("inbox");
   };
 
-const handleRecipientSelect = async (user) => {
-  try {
-    //  check if thread already exists
-    const res = await MessagesAPI.getThreadWith(user.id);
+  const handleRecipientSelect = async (user) => {
+    try {
+      const res = await MessagesAPI.getThreadWith(user.id);
+      setActiveRecipient({
+        id: user.id,
+        full_name: user.full_name,
+      });
 
-    setActiveRecipient({
-      id: user.id,
-      full_name: user.full_name,
-    });
+      if (res.thread_id) {
+        setActiveThreadId(res.thread_id);
+      } else {
+        setActiveThreadId(null);
+      }
 
-    if (res.thread_id) {
-      //  EXISTING CHAT
-      setActiveThreadId(res.thread_id);
-    } else {
-      //  NEW CHAT
-      setActiveThreadId(null);
+      setShowModal(false);
+      setView("chat");
+    } catch (err) {
+      console.error("Failed to check thread:", err);
     }
+  };
 
-    setShowModal(false);
-    setView("chat");
-
-  } catch (err) {
-    console.error("Failed to check thread:", err);
-  }
-};
   const handleThreadCreated = (threadId) => {
     setActiveThreadId(threadId);
     setActiveRecipient(null);
@@ -113,47 +93,45 @@ const handleRecipientSelect = async (user) => {
     setShowModal(true);
   };
 
-  // -----------------------------
-  // UI
-  // -----------------------------
   return (
-    <div className="messages-container">
-      {/* ================= SIDEBAR (INBOX) ================= */}
+    <div className="messages">
+      {/* Sidebar / Inbox */}
       <AnimatePresence mode="wait">
         {view === "inbox" && (
           <motion.div
             key="inbox"
-            className="messages-sidebar"
+            className="sidebar"
             initial={{ x: 0, opacity: 1 }}
             exit={{ x: -50, opacity: 0 }}
             transition={{ duration: 0.25 }}
           >
-            <div className="messages-header">
-              <h3>Message your leaders and other church members</h3>
+            <div className="header">
+              <h3 className="title">
+                Message your leaders and other church members
+              </h3>
 
-              <button
-                className="btn btn-primary"
-                onClick={openNewMessageModal}
-              >
+              <button className="btn btn-primary" onClick={openNewMessageModal}>
                 + New
               </button>
             </div>
 
-            <InboxList
-              inbox={inbox}
-              activeThreadId={activeThreadId}
-              onSelect={handleSelectThread}
-            />
+            <div className="inbox">
+              <InboxList
+                inbox={inbox}
+                activeThreadId={activeThreadId}
+                onSelect={handleSelectThread}
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ================= CHAT ================= */}
+      {/* Chat */}
       <AnimatePresence mode="wait">
         {view === "chat" && (
           <motion.div
             key="chat"
-            className="messages-content"
+            className="content"
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 100, opacity: 0 }}
@@ -170,15 +148,17 @@ const handleRecipientSelect = async (user) => {
         )}
       </AnimatePresence>
 
-      {/* ================= MODAL ================= */}
+      {/* Modal */}
       <AnimatePresence>
-  {showModal && (
-    <NewMessageModal
-      onSelect={handleRecipientSelect}
-      onClose={() => setShowModal(false)}
-    />
-  )}
-</AnimatePresence>
-  </div>
+        {showModal && (
+          <div className="modal">
+            <NewMessageModal
+              onSelect={handleRecipientSelect}
+              onClose={() => setShowModal(false)}
+            />
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

@@ -7,7 +7,13 @@ import { ProfileAPI, AuthAPI } from "../../../utils/api";
 import ProfileForm from "./ProfileForm";
 import SummaryChart from "./SummaryChart";
 import { User, Mail, Phone, Edit3, Lock } from "lucide-react";
+import styles from
+"../../../styles/pages/Profile.module.css";
 
+import Card from "../../../components/Card";
+import Button from "../../../components/Button";
+import Input from "../../../components/Input";
+import StatCard from "../../../components/StatCard";
   /* =========================
 useProfile Hook
 ========================= */
@@ -172,94 +178,177 @@ const profileFields = [
 ];
 
 return (
-<main className="page-container">
+<main className={styles.page}>
 {/* MY ACCOUNT */}  
-  <section className="page-card">
-    <h2 className="card-title">  
-      <User /> My Account  
-    </h2>  
-    <p className="text-muted">Your basic account information.</p>  
+<Card title="My Account">
 
-    <div className="profile-info">  
-      {profileFields.map(({ label, value, Icon }) => (  
-        <div className="profile-item" key={label}>  
-          <Icon className="icon" />  
-          <div>  
-            <p className="label">{label}</p>  
-            <p className="value">{value}</p>  
-          </div>  
-        </div>  
-      ))}  
-    </div>  
-  </section>  
+<div className={styles.profileGrid}>
+
+{profileFields.map(
+({ label,value,Icon }) => (
+
+<div
+key={label}
+className={styles.profileItem}
+>
+
+<Icon className={styles.icon} />
+
+<div>
+<p className={styles.label}>
+{label}
+</p>
+
+<p className={styles.value}>
+{value}
+</p>
+
+</div>
+
+</div>
+
+))}
+
+</div>
+
+</Card>
 
   {/* UPDATE PROFILE */}  
-  <section className="page-card">  
-    <h2 className="card-title">  
-      <Edit3 /> Update Profile  
-    </h2>  
-    <p className="text-muted">Update your personal details below.</p>  
-    <ProfileForm profile={profile} onUpdate={updateProfile} loading={loading} />  
-  </section>  
+ <Card title="Update Profile">
+
+<ProfileForm
+profile={profile}
+onUpdate={updateProfile}
+loading={loading}
+/>
+
+</Card>  
 
   {/* CHANGE PASSWORD */}  
-  <section className="page-card">  
-    <button  
-      type="button"  
-      onClick={() => setShowChangePw((v) => !v)}  
-      aria-expanded={showChangePw}  
-      className="btn-toggle"  
-    >  
-      <Lock /> Change Password {showChangePw ? "▲" : "▼"}  
-    </button>  
+ <Card>
 
-    {showChangePw && (  
-      <form onSubmit={changePassword} className="form-stack">  
-        <input  
-          type="password"  
-          className="input-field"  
-          placeholder="New password"  
-          value={newPassword}  
-          onChange={(e) => setNewPassword(e.target.value)}  
-        />  
-        <input  
-          type="password"  
-          className="input-field"  
-          placeholder="Confirm new password"  
-          value={confirmPassword}  
-          onChange={(e) => setConfirmPassword(e.target.value)}  
-        />  
+<div className={styles.passwordSection}>
 
-        {pwError && <Message type="error">{pwError}</Message>}  
+<Button
+variant="secondary"
+onClick={() =>
+setShowChangePw(v => !v)
+}
+className={styles.toggleBtn}
+>
 
-        <button type="submit" className="btn btn-primary w-full" disabled={pwLoading}>  
-          {pwLoading ? "Updating…" : "Update Password"}  
-        </button>  
-      </form>  
-    )}  
-  </section>  
+<Lock />
+
+Change Password
+
+{showChangePw ? "▲" : "▼"}
+
+</Button>
+
+{showChangePw && (
+
+<form
+onSubmit={changePassword}
+className={styles.passwordForm}
+>
+
+<Input
+type="password"
+label="New Password"
+value={newPassword}
+onChange={(e)=>
+setNewPassword(
+e.target.value
+)
+}
+/>
+
+<Input
+type="password"
+label="Confirm Password"
+value={confirmPassword}
+onChange={(e)=>
+setConfirmPassword(
+e.target.value
+)
+}
+/>
+
+<Button
+type="submit"
+loading={pwLoading}
+fullWidth
+>
+
+Update Password
+
+</Button>
+
+</form>
+
+)}
+
+</div>
+
+</Card>  
 
   {/* CONTRIBUTIONS */}  
-  {contributions && Object.values(contributions).some((v) => v > 0) && (  
-    <section className="stats-grid">  
-      <div className="page-card">  
-        <h3 className="card-subtitle">Contributions</h3>  
-        <ul className="stats-list">  
-          <li>Tithes: KES {contributions.tithes}</li>  
-          <li>Offerings: KES {contributions.offerings}</li>  
-          <li>Camp Offerings: KES {contributions.campOfferings}</li>  
-          <li>Church Development: KES {contributions.churchDevelopment}</li>  
-        </ul>  
-      </div>  
+ {contributions &&
+Object.values(contributions)
+.some(v => v > 0) && (
 
-      <div className="page-card">  
-        <h3 className="card-subtitle">Contributions Breakdown</h3>  
-        <div className="chart-container">  
-          <SummaryChart contributions={contributions} />  
-        </div>  
-      </div>  
-    </section>  
-  )}  
+<div className={styles.statsGrid}>
+
+<StatCard title="Contributions">
+
+<ul className={styles.statsList}>
+
+<li>
+Tithes
+<span>
+KES {contributions.tithes}
+</span>
+</li>
+
+<li>
+Offerings
+<span>
+KES {contributions.offerings}
+</span>
+</li>
+
+<li>
+Camp
+<span>
+KES {contributions.campOfferings}
+</span>
+</li>
+
+<li>
+Development
+<span>
+KES {contributions.churchDevelopment}
+</span>
+</li>
+
+</ul>
+
+</StatCard>
+
+
+<Card title="Breakdown">
+
+<div className={styles.chart}>
+<SummaryChart
+contributions={contributions}
+/>
+</div>
+
+</Card>
+
+</div>
+
+)}  
 </main>
 
 );
