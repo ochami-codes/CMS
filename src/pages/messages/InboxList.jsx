@@ -1,73 +1,145 @@
-import "../../styles/messages.css";
+import styles from  "../../styles/messages/InboxList.module.css";
 
 export default function InboxList({
-  inbox = [],
-  onSelect,
-  activeThreadId,
+ inbox=[],
+ onSelect,
+ activeThreadId,
 }) {
-  const formatTime = (date) => {
-    const d = new Date(date);
-    const now = new Date();
-    const isToday = d.toDateString() === now.toDateString();
 
-    if (isToday) {
-      return d.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    }
-    return d.toLocaleDateString();
-  };
+const formatTime=(date)=>{
+ const d=new Date(date);
+ const now=new Date();
 
-  return (
-    <div className="inbox">
-      {inbox.length === 0 ? (
-        <p className="empty">No conversations yet</p>
-      ) : (
-        inbox.map((thread) => {
-          const isActive = activeThreadId === thread.thread_id;
-          const isUnread = thread.unread_count > 0;
+ if(
+  d.toDateString()===
+  now.toDateString()
+ ){
 
-          return (
-            <div
-              key={thread.thread_id}
-              className={`thread ${isActive ? "active" : ""}`}
-              onClick={() => onSelect(thread)}
-            >
-              {/* Avatar */}
-              <div className="avatar">
-                {thread.other_user_name?.charAt(0)?.toUpperCase() || "U"}
-              </div>
+ return d.toLocaleTimeString(
+ [],
+ {
+  hour:"2-digit",
+  minute:"2-digit"
+ });
 
-              {/* Body */}
-              <div className="threadBody">
-                <div className="threadTop">
-                  <span className="name">
-                    {thread.other_user_name || "Unknown"}
-                  </span>
+ }
 
-                  <span className="time">
-                    {thread.last_message_at &&
-                      formatTime(thread.last_message_at)}
-                  </span>
-                </div>
+ return d.toLocaleDateString();
+};
 
-                <p className="preview">
-                  {thread.last_message?.length > 60
-                    ? thread.last_message.slice(0, 60) + "..."
-                    : thread.last_message || "No content"}
-                </p>
 
-                {isUnread && (
-                  <span className="badge">
-                    {thread.unread_count}
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })
-      )}
-    </div>
-  );
+return(
+
+<div className={styles.list}>
+
+{inbox.length===0 ? (
+
+<div className={styles.empty}>
+ No conversations yet
+</div>
+
+):(
+
+ inbox.map(thread=>{
+
+ const isActive =
+ activeThreadId ===
+ thread.thread_id;
+
+ const isUnread =
+ thread.unread_count > 0;
+
+
+ return(
+
+<div
+
+ key={thread.thread_id}
+
+ onClick={()=>
+   onSelect(thread)
+ }
+
+ className={`
+ ${styles.thread}
+
+ ${isActive
+   ? styles.active
+   : ""
+ }
+ `}
+>
+
+<div className={styles.avatar}>
+
+{thread.other_user_name
+ ?.charAt(0)
+ ?.toUpperCase()
+ || "U"}
+
+</div>
+
+
+<div className={styles.body}>
+
+<div className={styles.top}>
+
+<span className={styles.name}>
+
+{thread.other_user_name
+ || "Unknown"}
+
+</span>
+
+
+<span className={styles.time}>
+
+{thread.last_message_at &&
+ formatTime(
+  thread.last_message_at
+ )}
+
+</span>
+
+</div>
+
+
+<p className={styles.preview}>
+
+{thread.last_message
+ ?.length > 60
+
+ ? thread.last_message
+   .slice(0,60)+"..."
+
+ : thread.last_message
+ || "No content"}
+
+</p>
+
+
+{isUnread && (
+
+<span className={styles.badge}>
+
+{thread.unread_count}
+
+</span>
+
+)}
+
+</div>
+
+</div>
+
+);
+
+})
+
+)}
+
+</div>
+
+);
+
 }

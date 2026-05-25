@@ -1,0 +1,203 @@
+/* ==========================
+   WRAPPER
+========================== */
+
+.list {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+}
+
+
+/* ==========================
+   EMPTY
+========================== */
+
+.empty {
+  flex: 1;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
+
+  padding: 2rem;
+
+  color: var(--text-light);
+}
+
+
+/* ==========================
+   THREAD
+========================== */
+
+.thread {
+
+  display: flex;
+  gap: .85rem;
+
+  padding:
+    1rem 1.1rem;
+
+  cursor: pointer;
+
+  border-bottom:
+    1px solid var(--border);
+
+  transition:
+    background .2s ease;
+}
+
+.thread:hover{
+  background:
+    rgba(0,0,0,.03);
+}
+
+.active{
+  background:
+    var(--primary-light);
+}
+
+
+/* ==========================
+   AVATAR
+========================== */
+
+.avatar{
+
+  width:46px;
+  height:46px;
+
+  flex-shrink:0;
+
+  border-radius:50%;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  font-weight:600;
+
+  background:
+    var(--primary-light);
+
+  color:
+    var(--primary);
+}
+
+
+/* ==========================
+   BODY
+========================== */
+
+.body{
+  flex:1;
+  min-width:0;
+}
+
+.top{
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  gap:.75rem;
+}
+
+.name{
+
+  font-weight:600;
+
+  color:
+    var(--text);
+
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.time{
+
+  font-size:.8rem;
+
+  color:
+    var(--text-light);
+
+  flex-shrink:0;
+}
+
+
+.preview{
+
+  margin-top:.35rem;
+
+  font-size:.92rem;
+  line-height:1.45;
+
+  color:
+    var(--text-light);
+
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+
+/* ==========================
+   BADGE
+========================== */
+
+.badge{
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  min-width:22px;
+  height:22px;
+
+  padding:
+    0 .4rem;
+
+  margin-top:
+    .55rem;
+
+  border-radius:
+    999px;
+
+  background:
+    var(--primary);
+
+  color:white;
+
+  font-size:
+    .75rem;
+
+  font-weight:
+    600;
+}
+
+
+/* ==========================
+   MOBILE
+========================== */
+
+@media(max-width:768px){
+
+.thread{
+  padding:
+   .95rem 1rem;
+}
+
+.avatar{
+  width:42px;
+  height:42px;
+}
+
+.preview{
+  font-size:.88rem;
+}
+
+}

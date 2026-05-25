@@ -1,0 +1,143 @@
+/* ==========================
+   LAYOUT
+========================== */
+
+.page {
+  display: flex;
+  height: calc(100vh - 80px);
+  background: var(--background);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+/* ==========================
+   SIDEBAR
+========================== */
+
+.sidebar {
+  width: 360px;
+  min-width: 320px;
+
+  display: flex;
+  flex-direction: column;
+
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+
+  padding: 1rem 1.25rem;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-weight: 600;
+
+  color: var(--text);
+}
+
+.newBtn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.inbox {
+  flex: 1;
+  overflow-y: auto;
+}
+
+
+/* ==========================
+   CHAT AREA
+========================== */
+
+.content {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  background: var(--surface);
+  min-width: 0;
+}
+
+
+/* ==========================
+   MODAL
+========================== */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+
+  background: rgba(0,0,0,.45);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 1rem;
+
+  z-index: 2000;
+
+  backdrop-filter: blur(4px);
+}
+
+
+/* ==========================
+   MOBILE
+========================== */
+
+@media (max-width: 768px) {
+
+  .page {
+    height: calc(100vh - 70px);
+
+    border-radius: 0;
+    border: none;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: unset;
+    border-right: none;
+  }
+
+  .content {
+    width: 100%;
+  }
+
+  .sidebarHeader {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: .9rem;
+  }
+
+  .newBtn {
+    padding-inline: .85rem;
+  }
+}
+
+
+/* ==========================
+   LARGE SCREENS
+========================== */
+
+@media (min-width: 1200px){
+
+  .sidebar{
+    width:400px;
+  }
+
+}
