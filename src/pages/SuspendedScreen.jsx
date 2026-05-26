@@ -8,6 +8,8 @@ export default function SuspendedScreen() {
   const navigate = useNavigate();
 
   const {
+    isSuspendedMember,
+    dashboardMode,
     activeChurchId,
     activeChurchName,
 
@@ -29,6 +31,14 @@ export default function SuspendedScreen() {
   const canSwitchChurch =
     alternativeMemberships.length > 0;
 
+if (!isSuspendedMember) {
+    return (
+      <Navigate
+        to="/dashboard"
+        replace
+      />
+    );
+  }
   return (
     <div style={styles.wrapper}>
       <div style={styles.card}>
