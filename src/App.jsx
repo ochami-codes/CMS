@@ -132,12 +132,32 @@ function App() {
                   )}
                 />
               </Route>
-            <Route element={<OnboardingLayout />}>
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/create-church" element={<CreateChurch />} />             
-                <Route path="/join-church" element={<JoinChurch />} />
- </Route>
             </Route>
+           <Route element={<ProtectedRoute allowSuspended />}>
+  <Route element={<OnboardingLayout />}>
+
+    <Route
+      path="/suspended"
+      element={<SuspendedScreen />}
+    />
+
+    <Route
+      path="/join-church"
+      element={<JoinChurch />}
+    />
+
+    <Route
+      path="/create-church"
+      element={<CreateChurch />}
+    />
+
+    <Route
+      path="/onboarding"
+      element={<Onboarding />}
+    />
+
+  </Route>
+</Route>
           </Routes>
         </AuthProvider>
       </Router>
