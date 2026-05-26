@@ -1,224 +1,137 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
 import Button from "../components/Button";
 import ChurchSwitcher from "../components/ChurchSwitcher";
 
 export default function SuspendedScreen() {
   const navigate = useNavigate();
-
   const {
     isSuspendedMember,
     dashboardMode,
     activeChurchId,
     activeChurchName,
-
     activeMembership,
     memberships = [],
   } = useAuth();
 
-  const suspensionReason =
-    activeMembership?.status_reason;
+  const suspensionReason = activeMembership?.status_reason;
 
-  // Other active churches user can switch to
-  const alternativeMemberships =
-    memberships.filter(
-      (m) =>
-        m.status === "active" &&
-        m.church_id !== activeChurchId
-    );
+  const alternativeMemberships = memberships.filter(
+    (m) => m.status === "active" && m.church_id !== activeChurchId
+  );
+  const canSwitchChurch = alternativeMemberships.length > 0;
 
-  const canSwitchChurch =
-    alternativeMemberships.length > 0;
-
-if (!isSuspendedMember) {
-    return (
-      <navigate
-        to="/dashboard"
-        replace
-      />
-    );
+  if (!isSuspendedMember) {
+    return <Navigate to="/dashboard" replace />;
   }
+
   return (
     <div style={styles.wrapper}>
       <div style={styles.card}>
-
-        <h1 style={styles.title}>
-          Access Suspended
-        </h1>
+        <h1 style={styles.title}>Access Suspended</h1>
 
         <p style={styles.text}>
-          Your membership in{" "}
-          <strong>{activeChurchName}</strong>{" "}
-          is currently suspended.
+          Your membership in <strong>{activeChurchName}</strong> is currently suspended.
         </p>
 
         {suspensionReason && (
           <div style={styles.reasonBox}>
-            <div style={styles.reasonTitle}>
-              Reason
-            </div>
-
-            <p style={styles.reason}>
-              {suspensionReason}
-            </p>
+            <div style={styles.reasonTitle}>Reason</div>
+            <p style={styles.reason}>{suspensionReason}</p>
           </div>
         )}
 
         <p style={styles.subtext}>
-          Suspension only affects this
-          church membership. Your account
-          remains active.
+          Suspension only affects this church membership. Your account remains active.
         </p>
 
         {canSwitchChurch && (
           <div style={styles.section}>
-
-            <h3 style={styles.sectionTitle}>
-              Switch Church
-            </h3>
-
+            <h3 style={styles.sectionTitle}>Switch Church</h3>
             <p style={styles.helper}>
-              You still have active access
-              in other churches.
+              You still have active access in other churches.
             </p>
-
             <ChurchSwitcher />
           </div>
         )}
 
         <div style={styles.actions}>
-
-          <Button
-            onClick={() =>
-              navigate("/join-church")
-            }
-          >
+          <Button onClick={() => navigate("/join-church")}>
             Join Another Church
           </Button>
-
-          <Button
-            variant="secondary"
-            onClick={() =>
-              navigate("/create-church")
-            }
-          >
+          <Button variant="secondary" onClick={() => navigate("/create-church")}>
             Create Church
           </Button>
-
         </div>
-
       </div>
     </div>
   );
 }
-/* --------------------------------
-   STYLES
--------------------------------- */
 
+/* STYLES */
 const styles = {
   wrapper: {
     minHeight: "100vh",
-
     display: "flex",
-
     justifyContent: "center",
-
     alignItems: "center",
-
     padding: "1.5rem",
-
     background: "#f3f4f6",
   },
-
   card: {
     width: "100%",
-
     maxWidth: "520px",
-
     background: "#fff",
-
     borderRadius: "16px",
-
     padding: "2rem",
-
     textAlign: "center",
-
-    boxShadow:
-      "0 12px 30px rgba(0,0,0,.08)",
+    boxShadow: "0 12px 30px rgba(0,0,0,0.08)",
   },
-
   title: {
     color: "#b91c1c",
-
     marginBottom: "1rem",
-
     fontSize: "1.75rem",
   },
-
   text: {
     color: "#374151",
-
     lineHeight: 1.6,
   },
-
   subtext: {
     marginTop: "1rem",
-
     color: "#6b7280",
-
-    fontSize: ".95rem",
+    fontSize: "0.95rem",
   },
-
   reasonBox: {
     marginTop: "1.5rem",
-
     padding: "1rem",
-
     borderRadius: "10px",
-
     background: "#fef2f2",
-
     textAlign: "left",
   },
-
   reasonTitle: {
     fontWeight: 700,
-
-    marginBottom: ".5rem",
-
+    marginBottom: "0.5rem",
     color: "#991b1b",
   },
-
   reason: {
     margin: 0,
-
     color: "#374151",
   },
-
   section: {
     marginTop: "2rem",
   },
-
   sectionTitle: {
-    marginBottom: ".25rem",
+    marginBottom: "0.25rem",
   },
-
   helper: {
     color: "#6b7280",
-
-    fontSize: ".9rem",
-
+    fontSize: "0.9rem",
     marginBottom: "1rem",
   },
-
   actions: {
     marginTop: "2rem",
-
     display: "flex",
-
     flexDirection: "column",
-
-    gap: ".75rem",
+    gap: "0.75rem",
   },
 };
