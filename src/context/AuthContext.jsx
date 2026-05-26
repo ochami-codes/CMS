@@ -174,10 +174,12 @@ const activeChurchName = user?.active_church_name || null;
 
 
 const activeMembership =
-  user?.active_membership || null;
+  user?.memberships?.find(
+    (m) => m.church_id === activeChurchId
+  ) || null;
 
 const activeMembershipStatus =
-  user?.active_membership_status || "guest";
+  activeMembership?.status || "guest";
 const isSuspendedMember =
   activeMembershipStatus === "suspended";
 const activeMembershipRequest =
