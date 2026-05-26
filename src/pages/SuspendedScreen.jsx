@@ -33,7 +33,7 @@ export default function SuspendedScreen() {
 
 if (!isSuspendedMember) {
     return (
-      <Navigate
+      <navigate
         to="/dashboard"
         replace
       />
