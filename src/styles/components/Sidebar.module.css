@@ -1,151 +1,221 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 999;
+  opacity: 0;
+  animation: fadeIn 0.2s ease forwards;
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
 .sidebar {
   position: fixed;
   left: 0;
   top: 0;
-
   height: 100vh;
   width: 260px;
-
   background: var(--surface);
   border-right: 1px solid var(--border);
-
   display: flex;
   flex-direction: column;
-
-  transition: var(--transition);
-
+  transition: width 0.3s ease, transform 0.3s ease;
   transform: translateX(0);
   z-index: 1000;
 }
 
-/* mobile hidden state */
-.open {
-  transform: translateX(0);
+.sidebar.collapsed {
+  width: 72px;
 }
 
+/* Mobile */
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
   }
 
-  .open {
+  .sidebar.open {
     transform: translateX(0);
+  }
+
+  .sidebar.collapsed {
+    width: 260px; /* ignore collapse on mobile */
   }
 }
 
-/* HEADER */
+/* Header */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   padding: 1rem;
-
   border-bottom: 1px solid var(--border);
+  min-height: 72px;
 }
 
 .brand {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+  overflow: hidden;
 }
 
 .logo {
   width: 40px;
   height: 40px;
+  flex-shrink: 0;
 }
 
 .brandText {
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
 }
 
 .churchName {
   font-size: 0.8rem;
   color: var(--text-light);
+  white-space: nowrap;
 }
 
 .status {
   font-size: 0.75rem;
   color: var(--warning);
+  font-weight: 600;
 }
 
-/* CLOSE BUTTON */
-.closeBtn {
+.headerActions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.closeBtn,
+.collapseBtn {
   background: none;
   border: none;
   cursor: pointer;
+  color: var(--text-light);
+  padding: 0.5rem;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  transition: all 0.2s ease;
+}
 
+.closeBtn:hover,
+.collapseBtn:hover {
+  background: var(--surface-hover);
   color: var(--text);
 }
 
-/* NAV */
+.closeBtn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .closeBtn { display: grid; }
+  .collapseBtn { display: none; }
+}
+
+/* Nav */
 .nav {
   flex: 1;
   overflow-y: auto;
-
-  padding: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
+.nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nav::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.groupLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  padding: 1rem 1rem 0.5rem 1rem;
+}
 
 .link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-
   padding: 0.75rem 1rem;
-  border-radius: var(--radius-md);
-
-  color: var(--text);
+  border-radius: 10px;
+  color: var(--text-light);
   text-decoration: none;
-
-  transition: var(--transition);
-
+  transition: all 0.2s ease;
   position: relative;
+  font-weight: 500;
 }
 
-/* subtle hover */
 .link:hover {
-  background: var(--surface-alt);
-  transform: translateX(2px);
+  background: var(--surface-hover);
+  color: var(--text);
 }
 
-/* ACTIVE STATE — modern “pill highlight” */
-.active {
+.link.active {
   background: var(--primary);
   color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
-/* optional accent bar */
-.active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 20%;
-  height: 60%;
-  width: 4px;
-  border-radius: 4px;
-  background: white;
+.link.active .icon {
+  color: white;
 }
 
-/* icon behavior */
 .icon {
-  display: flex;
-  align-items: center;
-  opacity: 0.85;
-  transition: var(--transition);
+  flex-shrink: 0;
+  color: var(--text-light);
+  transition: color 0.2s ease;
 }
 
 .link:hover .icon {
-  opacity: 1;
-  transform: scale(1.05);
+  color: var(--text);
 }
 
-.active .icon {
-  opacity: 1;
+/* Collapsed state */
+.collapsed .link {
+  justify-content: center;
+  padding: 0.75rem;
 }
-/* FOOTER */
+
+.collapsed .link span,
+.collapsed .groupLabel,
+.collapsed .brandText {
+  display: none;
+}
+
+.collapsed .link:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--surface-elevated);
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin-left: 0.5rem;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1001;
+  font-size: 0.875rem;
+}
+
+/* Footer */
 .footer {
   padding: 1rem;
   border-top: 1px solid var(--border);
@@ -153,38 +223,31 @@
 
 .logout {
   width: 100%;
-
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 0.75rem;
-
   padding: 0.75rem 1rem;
-
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-
+  border-radius: 10px;
   background: transparent;
-  color: var(--text);
-
+  color: var(--text-light);
   cursor: pointer;
-
-  transition: var(--transition);
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
-/* hover = red tint */
 .logout:hover {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.25);
   color: #ef4444;
-  transform: translateX(2px);
 }
 
-/* icon polish */
-.logout svg {
-  transition: var(--transition);
+.collapsed .logout {
+  justify-content: center;
+  padding: 0.75rem;
 }
 
-.logout:hover svg {
-  transform: translateX(-1px);
+.collapsed .logout span {
+  display: none;
 }

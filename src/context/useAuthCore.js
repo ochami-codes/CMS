@@ -96,6 +96,7 @@ export function useAuthCore() {
     authError,
     setAuthError,
     fetchMe,
+    refetchUser: fetchMe,
     login,
     logout,
   };

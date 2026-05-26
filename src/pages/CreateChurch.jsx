@@ -14,9 +14,8 @@ import styles from "../styles/pages/CreateChurch.module.css";
 
 export default function CreateChurch() {
   const navigate = useNavigate();
-
   const { refetchUser } = useAuth();
-  const { showToast } = useToast();
+  const toast = useToast();
 
   const [form, setForm] = useState({
     churchName: "",
@@ -29,61 +28,60 @@ export default function CreateChurch() {
 
   const sanitizeChurchBaseName = (value) =>
     value
-      .replace(/\b(sda|church|seventh day adventist)\b/gi, "")
-      .replace(/\s{2,}/g, " ")
-      .trim();
+     .replace(/\b(sda|church|seventh day adventist)\b/gi, "")
+     .replace(/\s{2,}/g, " ")
+     .trim();
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadConferences = async () => {
       try {
         const res = await AuthAPI.getConferences();
-        setConferences(res?.conferences || []);
+        if (!cancelled) setConferences(res?.conferences?? []);
       } catch {
-        setConferences([]);
+        if (!cancelled) setConferences([]);
       }
     };
 
     loadConferences();
+    return () => { cancelled = true };
   }, []);
 
   const handleChange = (e) => {
-    setForm((p) => ({
-      ...p,
-      [e.target.name]: e.target.value,
-    }));
-    setErrors({});
+    const { name, value } = e.target;
+    setForm(prev => ({...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({...prev, [name]: null }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
 
-    const cleanedName = sanitizeChurchBaseName(form.churchName);
+    const cleanedName = sanitizeChurchBaseName(form.churchName).trim();
 
-    if (!cleanedName) {
-      return setErrors({ churchName: "Church name is required" });
-    }
+    const newErrors = {};
+    if (!cleanedName) newErrors.churchName = "Church name is required";
+    if (!form.conferenceId) newErrors.conferenceId = "Select a conference";
 
-    if (!form.conferenceId) {
-      return setErrors({ conferenceId: "Select a conference" });
+    if (Object.keys(newErrors).length) {
+      setErrors(newErrors);
+      return;
     }
 
     setLoading(true);
-
     try {
       await ChurchAPI.createChurch({
         church_name: cleanedName,
         conference_id: form.conferenceId,
       });
 
-      showToast("Church created successfully 🎉", "success");
-
-      await refetchUser();
+      toast?.showToast?.("Church created successfully 🎉", "success");
+      await refetchUser?.();
       navigate("/dashboard");
     } catch (err) {
-      setErrors({
-        global: err?.message || "Failed to create church",
-      });
+      setErrors({ global: err?.message || "Failed to create church" });
+      toast?.showToast?.(err?.message || "Failed to create church", "error");
     } finally {
       setLoading(false);
     }
@@ -91,22 +89,12 @@ export default function CreateChurch() {
 
   return (
     <div className={styles.container}>
-
-      <PageHeader
-        title="Create Church"
-        subtitle="Set up a new church workspace"
-      />
+      <PageHeader title="Create Church" subtitle="Set up a new church workspace" />
 
       <Card className={styles.card}>
+        {errors.global && <p className={styles.errorGlobal}>{errors.global}</p>}
 
-        {errors.global && (
-          <p className={styles.errorGlobal}>
-            {errors.global}
-          </p>
-        )}
-
-        <form onSubmit={handleSubmit} className={styles.form}>
-
+        <form onSubmit={handleSubmit} className={styles.form} noValidate>
           <Input
             label="Church Name"
             name="churchName"
@@ -114,6 +102,7 @@ export default function CreateChurch() {
             onChange={handleChange}
             placeholder="Maai Mahiu"
             error={errors.churchName}
+            disabled={loading}
           />
 
           <small className={styles.helperText}>
@@ -121,26 +110,20 @@ export default function CreateChurch() {
           </small>
 
           <div className={styles.group}>
-
-            <label className={styles.label}>
+            <label htmlFor="conferenceId" className={styles.label}>
               Conference
             </label>
 
             <select
+              id="conferenceId"
               name="conferenceId"
               value={form.conferenceId}
               onChange={handleChange}
-              className={
-                errors.conferenceId
-                  ? styles.inputError
-                  : styles.select
-              }
+              className={errors.conferenceId? styles.inputError : styles.select}
+              disabled={loading}
             >
-              <option value="">
-                Select conference
-              </option>
-
-              {conferences.map((conf) => (
+              <option value="">Select conference</option>
+              {conferences.map(conf => (
                 <option key={conf.id} value={conf.id}>
                   {conf.name}
                 </option>
@@ -148,27 +131,15 @@ export default function CreateChurch() {
             </select>
 
             {errors.conferenceId && (
-              <p className={styles.errorText}>
-                {errors.conferenceId}
-              </p>
+              <p className={styles.errorText}>{errors.conferenceId}</p>
             )}
-
           </div>
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className={styles.submitBtn}
-          >
-            {loading
-              ? "Creating church..."
-              : "Create Church"}
+          <Button type="submit" disabled={loading} className={styles.submitBtn}>
+            {loading? "Creating church..." : "Create Church"}
           </Button>
-
         </form>
-
       </Card>
-
     </div>
   );
 }

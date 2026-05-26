@@ -66,24 +66,20 @@ export default function Dashboard() {
 
   const churchName = activeChurchName;
 
-  const actions = [
-    {
-      key: "request_role",
-      label: "Request Role",
-      requireActiveMember: true,
-      hideForAdmin: true,
-    },
-    {
-      key: "transfer",
-      label: "Membership Transfer",
-      requireActiveMember: true,
-    },
-    {
-      key: "lesson",
-      label: "Lesson Subscription",
-      requireActiveMember: true,
-    },
-  ];
+const actions = [
+  {
+    key: "request_role",
+    label: "Request Role",
+    description: "Apply for a ministry role",
+    color: "blue"
+  },
+  {
+    key: "transfer",
+    label: "Membership Transfer",
+    description: "Move to another church",
+    color: "purple"
+  },
+];
 
   const visibleActions = actions.filter((a) => {
     if (a.hideForAdmin && isAdmin()) return false;
@@ -126,23 +122,29 @@ export default function Dashboard() {
 
       {dashboardMode === "member" && (
         <div className={styles.grid}>
-
+         <div className={styles.card}>
           <QuickActions
             actions={visibleActions}
             isAdmin={isAdmin()}
             user={user}
             onAction={handleAction}
           />
+          </div>
 
+       <div className={styles.card}>
           <AnnouncementsSection
             announcements={filteredAnnouncements}
           />
+        </div>
 
+        <div className={styles.card}>
           <SabbathSection
             isSabbath={isSabbath}
             sabbathTimer={sabbathTimer}
           />
-
+         </div>
+         
+         <div className={styles.card}>
           <BirthdaySection
             user={user}
             hasBirthday={hasBirthday}
@@ -151,7 +153,7 @@ export default function Dashboard() {
             todayBirthdays={todayBirthdays}
             upcomingBirthdays={upcomingBirthdays}
           />
-
+        </div>
         </div>
       )}
 
