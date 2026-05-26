@@ -49,7 +49,9 @@ export default function Sidebar({ open, onClose, onLogout, collapsed, onToggleCo
             <img src={sdaLogo} alt="SDA Logo" className={styles.logo} />
             {!collapsed && (
               <div className={styles.brandText}>
-                <ChurchSwitcher />
+              <div className={styles.churchSwitcherPortal}> 
+               <ChurchSwitcher />
+                </div>
                 <small className={styles.churchName}>{churchName}</small>
                 {isGuest && <span className={styles.status}>{user.membership_status}</span>}
               </div>
