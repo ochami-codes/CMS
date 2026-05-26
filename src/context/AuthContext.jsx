@@ -502,7 +502,11 @@ useEffect(() => {
         isPendingMember,
         isRejectedMember,
         isGuest,
+        memberships:
+     user?.memberships || [],
 
+   membershipRequests:
+     user?.membership_requests || [],
         hasAnyMembership,
         isSuspendedMember,
         isAccessBlocked,
