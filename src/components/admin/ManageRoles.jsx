@@ -18,7 +18,7 @@ import styles from "../../styles/admin/ManageRoles.module.css";
 const SEARCH_DEBOUNCE_MS = 300;
 
 export default function ManageRoles() {
-  const { activeChurchId, getRoleLabel, isAdmin } = useAuth();
+  const { activeChurchId, getRoleLabel } = useAuth();
   const { showToast } = useToast();
 
   const [members, setMembers] = useState([]);
@@ -33,9 +33,12 @@ export default function ManageRoles() {
   const [saving, setSaving] = useState(false);
 
   const isProtectedMember = useCallback(
-    (member) => isAdmin(member),
-    [isAdmin]
-  );
+  (member) =>
+    (member.roles ?? []).some(
+      (role) => role === "admin" || role === "super_admin"
+    ),
+  []
+);
 
   // Debounce search input
   useEffect(() => {
