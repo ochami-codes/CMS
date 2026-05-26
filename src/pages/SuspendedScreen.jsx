@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-
 import { useAuth } from "../context/AuthContext";
 
 import Button from "../components/Button";
@@ -9,21 +8,26 @@ export default function SuspendedScreen() {
   const navigate = useNavigate();
 
   const {
+    activeChurchId,
     activeChurchName,
+
     activeMembership,
     memberships = [],
   } = useAuth();
 
-  const reason =
+  const suspensionReason =
     activeMembership?.status_reason;
 
-  const hasAlternativeChurch =
-    memberships.some(
+  // Other active churches user can switch to
+  const alternativeMemberships =
+    memberships.filter(
       (m) =>
         m.status === "active" &&
-        m.church_id !==
-          activeMembership?.church_id
+        m.church_id !== activeChurchId
     );
+
+  const canSwitchChurch =
+    alternativeMemberships.length > 0;
 
   return (
     <div style={styles.wrapper}>
@@ -35,20 +39,18 @@ export default function SuspendedScreen() {
 
         <p style={styles.text}>
           Your membership in{" "}
-          <strong>
-            {activeChurchName}
-          </strong>{" "}
+          <strong>{activeChurchName}</strong>{" "}
           is currently suspended.
         </p>
 
-        {reason && (
+        {suspensionReason && (
           <div style={styles.reasonBox}>
             <div style={styles.reasonTitle}>
               Reason
             </div>
 
             <p style={styles.reason}>
-              {reason}
+              {suspensionReason}
             </p>
           </div>
         )}
@@ -56,31 +58,24 @@ export default function SuspendedScreen() {
         <p style={styles.subtext}>
           Suspension only affects this
           church membership. Your account
-          is still active.
+          remains active.
         </p>
 
-        {/* -------------------------
-            SWITCH CHURCH
-        ------------------------- */}
-
-        {hasAlternativeChurch && (
+        {canSwitchChurch && (
           <div style={styles.section}>
+
             <h3 style={styles.sectionTitle}>
               Switch Church
             </h3>
 
             <p style={styles.helper}>
-              You still belong to other
-              churches.
+              You still have active access
+              in other churches.
             </p>
 
             <ChurchSwitcher />
           </div>
         )}
-
-        {/* -------------------------
-            ACTIONS
-        ------------------------- */}
 
         <div style={styles.actions}>
 
@@ -107,7 +102,6 @@ export default function SuspendedScreen() {
     </div>
   );
 }
-
 /* --------------------------------
    STYLES
 -------------------------------- */

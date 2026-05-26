@@ -1,68 +1,57 @@
-import { useMemo, useCallback } from "react";
+import { useCallback } from "react";
 
 export function useAuthMembership(user) {
-  const activeChurchId = user?.active_church_id || null;
-  const activeChurchName = user?.active_church_name || null;
+  const activeChurchId =
+    user?.active_church_id || null;
 
-  const activeMembership = useMemo(() => {
-    return (
-      user?.memberships?.find(
-        (m) => m.church_id === activeChurchId
-      ) || null
-    );
-  }, [user, activeChurchId]);
+  const activeChurchName =
+    user?.active_church_name || null;
+
+  const activeMembership =
+    user?.active_membership || null;
 
   const activeMembershipStatus =
-    activeMembership?.status || "guest";
+    user?.active_membership_status || "guest";
+
+  const activeMembershipRequest =
+    user?.active_membership_request || null;
 
   const isSuspendedMember =
     activeMembershipStatus === "suspended";
 
   const isActiveMember =
-    activeMembershipStatus === "active" && !isSuspendedMember;
-
-  const activeMembershipRequest =
-    user?.active_membership_request || null;
-
-  const activeMembershipRequestStatus =
-    activeMembershipRequest?.status || null;
+    activeMembershipStatus === "active";
 
   const isPendingMember =
-    activeMembershipRequestStatus === "requested";
+    !!activeMembershipRequest;
 
   const isRejectedMember =
-    activeMembershipRequestStatus === "rejected";
+    activeMembershipRequest?.status === "rejected";
 
   const isGuest =
-    !isActiveMember && !isPendingMember;
+    !isActiveMember &&
+    !isPendingMember &&
+    !isSuspendedMember;
 
-  const hasAnyMembership =
-    (user?.memberships || []).length > 0;
-
-  const activeMemberships =
-    (user?.memberships || []).filter(
-      (m) => m.status === "active"
-    );
-
-  const churchRequested =
-    activeMembershipRequest?.churches?.name || null;
-
-  const isAccessBlocked = isSuspendedMember;
-
-  const dashboardMode = isSuspendedMember
-    ? "suspended"
-    : isActiveMember
-    ? "member"
-    : isPendingMember
-    ? "requested"
-    : "guest";
+  const dashboardMode =
+    isSuspendedMember
+      ? "suspended"
+      : isActiveMember
+      ? "member"
+      : isPendingMember
+      ? "requested"
+      : "guest";
 
   const getAccessState = useCallback(() => {
     if (isSuspendedMember) return "suspended";
     if (isActiveMember) return "active";
     if (isPendingMember) return "pending";
     return "guest";
-  }, [isSuspendedMember, isActiveMember, isPendingMember]);
+  }, [
+    isSuspendedMember,
+    isActiveMember,
+    isPendingMember,
+  ]);
 
   return {
     activeChurchId,
@@ -70,22 +59,19 @@ export function useAuthMembership(user) {
 
     activeMembership,
     activeMembershipStatus,
-
     activeMembershipRequest,
-    activeMembershipRequestStatus,
 
-    churchRequested,
+    memberships:
+      user?.memberships || [],
+
+    membershipRequests:
+      user?.membership_requests || [],
 
     isActiveMember,
     isPendingMember,
     isRejectedMember,
     isSuspendedMember,
-
     isGuest,
-    isAccessBlocked,
-
-    hasAnyMembership,
-    activeMemberships,
 
     dashboardMode,
     getAccessState,
