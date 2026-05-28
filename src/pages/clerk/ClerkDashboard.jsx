@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import styles from "../../styles/pages/Clerk.module.css";
 
 import ClerkOverview from "./ClerkOverview";
 import MembersRegister from "./MembersRegister";
@@ -11,17 +11,21 @@ export default function ClerkDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <div className="page-container">
+    <div className={styles.page}>
 
-      <ClerkTabs
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
+      <div className={styles.tabsWrapper}>
+        <ClerkTabs
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      </div>
 
-      {activeTab === "overview" && <ClerkOverview />}
-      {activeTab === "members" && <MembersRegister />}
-      {activeTab === "children" && <ChildrenRegister />}
-      {activeTab === "transfers" && <TransfersRegister />}
+      <div className={styles.content}>
+        {activeTab === "overview" && <ClerkOverview />}
+        {activeTab === "members" && <MembersRegister />}
+        {activeTab === "children" && <ChildrenRegister />}
+        {activeTab === "transfers" && <TransfersRegister />}
+      </div>
 
     </div>
   );

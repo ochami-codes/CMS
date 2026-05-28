@@ -5,8 +5,8 @@ import EmptyState from "../EmptyState";
 import styles from "../../styles/dashboard/AnnouncementsSection.module.css";
 
 export default function AnnouncementsSection({ announcements = [] }) {
-  const isNew = (createdAt) => {
-    const days = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24);
+  const isNew = (created_at) => {
+    const days = (Date.now() - new Date(created_at).getTime()) / (1000 * 60 * 60 * 24);
     return days < 3;
   };
 
@@ -24,11 +24,11 @@ export default function AnnouncementsSection({ announcements = [] }) {
             {announcements.map((announcement) => (
               <article
                 key={announcement.id}
-                className={`${styles.item} ${isNew(announcement.createdAt) ? styles.isNew : ""}`}
+                className={`${styles.item} ${isNew(announcement.created_at) ? styles.isNew : ""}`}
               >
                 <div className={styles.itemHeader}>
                   <h4 className={styles.title}>{announcement.title}</h4>
-                  {isNew(announcement.createdAt) && (
+                  {isNew(announcement.created_at) && (
                     <span className={styles.badge}>New</span>
                   )}
                 </div>
@@ -37,7 +37,7 @@ export default function AnnouncementsSection({ announcements = [] }) {
 
                 <div className={styles.meta}>
                   <Clock size={14} />
-                  <span>{new Date(announcement.createdAt).toLocaleDateString()}</span>
+                  <span>{new Date(announcement.created_at).toLocaleDateString()}</span>
                   {announcement.author && <span>• {announcement.author}</span>}
                 </div>
               </article>

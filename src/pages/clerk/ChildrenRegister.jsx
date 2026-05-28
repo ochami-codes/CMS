@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-
+import ResponsiveDataView from "../../components/ResponsiveDataView";
+import Button from "../../components/Button";
+import ChildrenProfileCard from "../../components/members/ChildrenProfileCard";
+import { Baby } from "lucide-react";
 export default function ChildrenRegister() {
   const [children, setChildren] = useState([]);
-
+  const [selectedChild, setSelectedChild] = useState(null);
   useEffect(() => {
-    // replace with API later
     setChildren([
       {
         id: 1,
@@ -17,39 +19,73 @@ export default function ChildrenRegister() {
     ]);
   }, []);
 
+  const calculateAge = (dob) => {
+    if (!dob) return "-";
+    const diff = new Date() - new Date(dob);
+    return Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
+  };
+
+  const columns = [
+    {
+      key: "name",
+      label: "Name",
+    },
+    {
+      key: "parent_name",
+      label: "Parent",
+    },
+    {
+      key: "parent_phone",
+      label: "Phone",
+    },
+    {
+      key: "gender",
+      label: "Gender",
+    },
+    {
+      key: "dob",
+      label: "Age",
+      render: (value, row) => calculateAge(row.dob),
+    },
+  ];
+
+  const renderActions = (child) => (
+    <div className="actions">
+     <Button
+  variant="primary"
+  size="sm"
+  onClick={() => setSelectedChild(child)}
+>
+  View
+</Button>
+
+      <Button
+       variant="primary"
+       size="sm">
+        Edit
+      </Button>
+    </div>
+  );
+
   return (
     <div className="page-card">
+<h2 className="card-title">
+  <Baby size={18} />
+  Children Register
+</h2>
 
-      <h2 className="card-title">👶 Children Register</h2>
-
-      <div className="table-responsive">
-        <table className="members-table">
-
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Parent</th>
-              <th>Phone</th>
-              <th>Gender</th>
-              <th>DOB</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {children.map((c) => (
-              <tr key={c.id}>
-                <td>{c.name}</td>
-                <td>{c.parent_name}</td>
-                <td>{c.parent_phone}</td>
-                <td>{c.gender}</td>
-                <td>{c.dob}</td>
-              </tr>
-            ))}
-          </tbody>
-
-        </table>
-      </div>
-
+      <ResponsiveDataView
+        columns={columns}
+        data={children}
+        renderActions={renderActions}
+      />
+    {selectedChild && (
+  <ChildrenProfileCard
+    child={selectedChild}
+    onClose={() => setSelectedChild(null)}
+    onEdit={() => console.log("edit", selectedChild)}
+  />
+)}
     </div>
   );
 }

@@ -1,30 +1,41 @@
+import { Users, UserCheck, ArrowLeftRight, UserX } from "lucide-react";
+
+import StatCard from "../../components/StatCard";
+import styles from "../../styles/pages/Clerk.module.css";
+
 export default function ClerkOverview() {
   return (
-    <div className="page-card">
+    <div>
 
-      <h2 className="card-title">📊 Church Overview</h2>
+      <h2 className={styles.overviewTitle}>
+        📊 Church Overview
+      </h2>
 
-      <div className="overview-grid">
+      <div className={styles.statsGrid}>
 
-        <div className="overview-card">
-          <h3>Total Members</h3>
-          <p>--</p>
-        </div>
+        <StatCard
+          title="Total Members"
+          value="--"
+          icon={<Users size={20} />}
+        />
 
-        <div className="overview-card">
-          <h3>Active Members</h3>
-          <p>--</p>
-        </div>
+        <StatCard
+          title="Active Members"
+          value="--"
+          icon={<UserCheck size={20} />}
+        />
 
-        <div className="overview-card">
-          <h3>Pending Transfers</h3>
-          <p>--</p>
-        </div>
+        <StatCard
+          title="Pending Transfers"
+          value="--"
+          icon={<ArrowLeftRight size={20} />}
+        />
 
-        <div className="overview-card">
-          <h3>Missing Members</h3>
-          <p>--</p>
-        </div>
+        <StatCard
+          title="Missing Members"
+          value="--"
+          icon={<UserX size={20} />}
+        />
 
       </div>
 
