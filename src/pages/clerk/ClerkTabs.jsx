@@ -1,34 +1,53 @@
-export default function ClerkTabs({ activeTab, setActiveTab }) {
+import Button from "../../components/Button";
+
+import styles from "../../styles/pages/Clerk.module.css";
+
+export default function ClerkTabs({
+  activeTab,
+  setActiveTab,
+}) {
+
+  const tabs = [
+    {
+      key: "overview",
+      label: "Overview",
+    },
+    {
+      key: "members",
+      label: "Members",
+    },
+    {
+      key: "children",
+      label: "Children",
+    },
+    {
+      key: "transfers",
+      label: "Transfers",
+    },
+  ];
+
   return (
-    <div className="clerk-tabs">
+    <div className={styles.tabs}>
 
-      <button
-        className={activeTab === "overview" ? "active" : ""}
-        onClick={() => setActiveTab("overview")}
-      >
-        Overview
-      </button>
-
-      <button
-        className={activeTab === "members" ? "active" : ""}
-        onClick={() => setActiveTab("members")}
-      >
-        Members
-      </button>
-
-      <button
-        className={activeTab === "children" ? "active" : ""}
-        onClick={() => setActiveTab("children")}
-      >
-        Children
-      </button>
-
-      <button
-        className={activeTab === "transfers" ? "active" : ""}
-        onClick={() => setActiveTab("transfers")}
-      >
-        Transfers
-      </button>
+      {tabs.map((tab) => (
+        <Button
+          key={tab.key}
+          size="sm"
+          variant={
+            activeTab === tab.key
+              ? "primary"
+              : "ghost"
+          }
+          className={
+            styles.tabButton
+          }
+          onClick={() =>
+            setActiveTab(tab.key)
+          }
+        >
+          {tab.label}
+        </Button>
+      ))}
 
     </div>
   );
