@@ -9,18 +9,34 @@ export default function MemberProfileCard({
 }) {
   if (!member) return null;
 
+  const formatDate = (date) => {
+    if (!date) return "-";
+
+    return new Date(date).toLocaleDateString("en-KE", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const formatBaptized = (value) => {
+    if (value === true) return "Yes";
+    if (value === false) return "No";
+    return "-";
+  };
+
   return (
     <div className={styles.overlay}>
       <Card className={styles.modal}>
-        
         {/* Header */}
         <div className={styles.header}>
           <div>
             <h2 className={styles.name}>
-              {member.name}
+              {member.full_name}
             </h2>
+
             <p className={styles.sub}>
-              {member.role} • {member.status}
+              {member.status}
             </p>
           </div>
 
@@ -37,11 +53,33 @@ export default function MemberProfileCard({
           <h3>Basic Information</h3>
 
           <div className={styles.grid}>
-            <div><span>Phone:</span> {member.phone}</div>
-            <div><span>Email:</span> {member.email || "-"}</div>
-            <div><span>Gender:</span> {member.gender}</div>
-            <div><span>DOB:</span> {member.dob || "-"}</div>
-            <div><span>Marital:</span> {member.maritalStatus || "-"}</div>
+            <div>
+              <span>Phone:</span> {member.phone || "-"}
+            </div>
+
+            <div>
+              <span>Email:</span> {member.email || "-"}
+            </div>
+
+            <div>
+              <span>Marital Status:</span>{" "}
+              {member.marital_status || "-"}
+            </div>
+
+            <div>
+              <span>Joined:</span>{" "}
+              {formatDate(member.joined_at)}
+            </div>
+
+            <div>
+              <span>Created:</span>{" "}
+              {formatDate(member.created_at)}
+            </div>
+
+            <div>
+              <span>System User:</span>{" "}
+              {member.is_system_user ? "Yes" : "No"}
+            </div>
           </div>
         </div>
 
@@ -52,20 +90,22 @@ export default function MemberProfileCard({
           <div className={styles.grid}>
             <div>
               <span>Baptized:</span>{" "}
-              {member.baptized ? "Yes" : "No"}
+              {formatBaptized(member.baptized)}
             </div>
 
             <div>
-              <span>Date:</span>{" "}
-              {member.dateOfBaptism || "-"}
+              <span>Baptism Date:</span>{" "}
+              {formatDate(member.baptismal_date)}
             </div>
 
             <div>
-              <span>Type:</span> {member.membershipType}
+              <span>Membership Type:</span>{" "}
+              {member.membership_type || "-"}
             </div>
 
             <div>
-              <span>Status:</span> {member.status}
+              <span>Status:</span>{" "}
+              {member.status || "-"}
             </div>
           </div>
         </div>
@@ -77,17 +117,17 @@ export default function MemberProfileCard({
           <div className={styles.grid}>
             <div>
               <span>Name:</span>{" "}
-              {member.emergencyContact?.name || "-"}
+              {member.emergency_contact_name || "-"}
             </div>
 
             <div>
               <span>Phone:</span>{" "}
-              {member.emergencyContact?.phone || "-"}
+              {member.emergency_contact_phone || "-"}
             </div>
 
             <div>
               <span>Relationship:</span>{" "}
-              {member.emergencyContact?.relationship || "-"}
+              {member.emergency_contact_relationship || "-"}
             </div>
           </div>
         </div>
@@ -108,7 +148,6 @@ export default function MemberProfileCard({
             Close
           </Button>
         </div>
-
       </Card>
     </div>
   );

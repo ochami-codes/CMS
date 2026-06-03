@@ -1,35 +1,32 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 import ResponsiveDataView from "../../components/ResponsiveDataView";
 import Button from "../../components/Button";
 import MemberProfileCard from "../../components/members/MemberProfileCard";
-export default function MembersRegister() {
-  const [members, setMembers] = useState([]);
-  const navigate = useNavigate();
-  const [selectedMember, setSelectedMember] = useState(null);
-  useEffect(() => {
-    setMembers([
-      {
-        id: 1,
-        name: "John Doe",
-        phone: "0712345678",
-        gender: "Male",
-        status: "Active",
-        membershipType: "Baptism",
-        role: "Member",
-        baptized: true,
-      },
-    ]);
-  }, []);
+import EmptyState from "../../components/EmptyState";
+import { Users, RefreshCw } from "lucide-react";
 
+import { useMembers } from "../../hooks/clerk/useMembers";
+
+export default function MembersRegister() {
+  const [selectedMember, setSelectedMember] = useState(null);
+  const {
+    members,
+    loading,
+    error,
+    refetch,
+  } = useMembers();
+
+  /* -------------------------
+     COLUMNS
+  -------------------------- */
   const columns = [
-    { key: "name", label: "Name" },
+    { key: "full_name", label: "Name" },
     { key: "phone", label: "Phone" },
     { key: "gender", label: "Gender" },
     { key: "status", label: "Status" },
-    { key: "membershipType", label: "Type" },
-    { key: "role", label: "Role" },
+    { key: "membership_type", label: "Membership Type" },
+    { key: "primary_role_id", label: "Role" },
     {
       key: "baptized",
       label: "Baptized",
@@ -37,14 +34,11 @@ export default function MembersRegister() {
     },
   ];
 
-  const handleView = (member) => {
-    console.log("View member:", member);
-    // later: navigate(`/members/${member.id}`)
-  };
-
+  /* -------------------------
+     ACTIONS
+  -------------------------- */
   const handleEdit = (member) => {
     console.log("Edit member:", member);
-    // later: navigate(`/members/${member.id}/edit`)
   };
 
   const handleRemove = (member) => {
@@ -53,13 +47,13 @@ export default function MembersRegister() {
 
   const renderActions = (member) => (
     <div className="actions">
-     <Button
-  variant="primary"
-  size="sm"
-  onClick={() => setSelectedMember(member)}
->
-  View
-</Button>
+      <Button
+        variant="primary"
+        size="sm"
+        onClick={() => setSelectedMember(member)}
+      >
+        View
+      </Button>
 
       <Button
         variant="secondary"
@@ -79,23 +73,91 @@ export default function MembersRegister() {
     </div>
   );
 
+  /* -------------------------
+     LOADING STATE
+  -------------------------- */
+  if (loading) {
+    return (
+      <div className="page-card">
+        <h2 className="card-title">
+          <Users size={18} />
+          Members Register
+        </h2>
+
+        <p>Loading members...</p>
+      </div>
+    );
+  }
+
+  /* -------------------------
+     ERROR STATE
+  -------------------------- */
+  if (error) {
+    return (
+      <div className="page-card">
+        <h2 className="card-title">
+          <Users size={18} />
+          Members Register
+        </h2>
+
+        <EmptyState
+          icon={<Users size={28} />}
+          title="Failed to load members"
+          message="Something went wrong while fetching members."
+          action={
+            <Button variant="primary" onClick={refetch}>
+              <RefreshCw size={16} />
+              Retry
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  /* -------------------------
+     EMPTY STATE
+  -------------------------- */
+  if (!members || members.length === 0) {
+    return (
+      <div className="page-card">
+        <h2 className="card-title">
+          <Users size={18} />
+          Members Register
+        </h2>
+
+        <EmptyState
+          icon={<Users size={28} />}
+          title="No members found"
+          message="Start by adding members to the church registry."
+        />
+      </div>
+    );
+  }
+
+  /* -------------------------
+     MAIN VIEW
+  -------------------------- */
   return (
     <div className="page-card">
-      <h2 className="card-title">📋 Members Register</h2>
+      <h2 className="card-title">
+        <Users size={18} />
+        Members Register
+      </h2>
 
       <ResponsiveDataView
         columns={columns}
         data={members}
         renderActions={renderActions}
       />
-{selectedMember && (
-  <MemberProfileCard
-    member={selectedMember}
-    onClose={() => setSelectedMember(null)}
-    onEdit={() => console.log("edit", selectedMember)}
-  />
-)}
-    </div>
 
+      {selectedMember && (
+        <MemberProfileCard
+          member={selectedMember}
+          onClose={() => setSelectedMember(null)}
+          onEdit={() => console.log("edit", selectedMember)}
+        />
+      )}
+    </div>
   );
 }

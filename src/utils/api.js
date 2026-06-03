@@ -52,6 +52,39 @@ export const TreasuryAPI = {
   createTransaction: (payload) => request("/treasury/transactions", { method: "POST", body: JSON.stringify(payload) }),
 };
 
+export const ClerkAPI = {
+  /* -------------------------
+     MEMBERS
+  -------------------------- */
+ getMembers: (params = "") =>
+    request(`/clerk/members${params}`),
+ overview: () => request("/clerk/overview"),
+ addMember: (payload) => request("/clerk/add-member", { method: "POST", body: JSON.stringify(payload) }),
+  /* -------------------------
+     CHILDREN
+  -------------------------- */
+  getChildren: (params = "") =>
+    request(`/clerk/children${params}`),
+addChild: (payload) => request("/clerk/add-child", { method: "POST", body: JSON.stringify(payload) }),
+searchParents: (query) => request(`/clerk/search-parents?q=${encodeURIComponent(query)}`),
+  /* -------------------------
+     TRANSFERS
+  -------------------------- */
+  getTransfers: (params = "") =>
+    request(`/clerk/transfers${params}`),
+
+  createTransfer: (payload) =>
+    request(`/clerk/transfers/create`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  updateTransferStatus: (transferId, payload) =>
+    request(`/clerk/transfers/${transferId}/status`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+};
 /* ======================
    AUTH API
 ====================== */
@@ -300,8 +333,29 @@ export const ChurchAPI = {
   /* -------------------------
      SEARCH CHURCHES
   ------------------------- */
-  searchChurches: (query) =>
-    request(`/churches?search=${encodeURIComponent(query)}`),
+  getChurches: (params = {}) => {
+  const searchParams =
+    new URLSearchParams();
+
+  Object.entries(params).forEach(
+    ([key, value]) => {
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== ""
+      ) {
+        searchParams.append(
+          key,
+          value
+        );
+      }
+    }
+  );
+
+  return request(
+    `/churches?${searchParams.toString()}`
+  );
+},
 
   /* -------------------------
      CREATE CHURCH

@@ -31,7 +31,7 @@ export default function JoinChurch() {
     setLoading(true);
 
     try {
-      const res = await ChurchAPI.searchChurches(query);
+      const res = await ChurchAPI.getChurches({ search: query });
       setResults(res?.churches || []);
     } catch {
       setResults([]);

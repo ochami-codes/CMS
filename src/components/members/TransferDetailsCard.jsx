@@ -1,6 +1,5 @@
 import Card from "../Card";
 import Button from "../Button";
-
 import styles from "../../styles/components/TransferDetails.module.css";
 
 export default function TransferDetailsCard({

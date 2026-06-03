@@ -1,50 +1,56 @@
-import { useState } from "react";
-
+import { useState, useMemo } from "react";
+import  { formatDate }  from "../../utils/formatDate";
 import ResponsiveDataView from "../../components/ResponsiveDataView";
 import Button from "../../components/Button";
-
 import TransferDetailsCard from "../../components/members/TransferDetailsCard";
+import EmptyState from "../../components/EmptyState";
+
+import { useTransfers } from "../../hooks/clerk/useTransfers";
+import { useClerkActions } from "../../hooks/clerk/useClerkActions";
+
+import { RefreshCw, ArrowLeftRight } from "lucide-react";
 
 import styles from "../../styles/pages/Clerk.module.css";
 
 export default function TransfersRegister() {
+  const [selectedTransfer, setSelectedTransfer] = useState(null);
+  const [selectedType, setSelectedType] = useState("in");
 
-  const [selectedTransfer, setSelectedTransfer] =
-    useState(null);
+  const {
+    transfers,
+    loading,
+    error,
+    refetch,
+  } = useTransfers();
 
-  const [selectedType, setSelectedType] =
-    useState("in");
+  const {
+    updateTransferStatus,
+  } = useClerkActions();
 
-  const [transferIns] = useState([
-    {
-      id: 1,
-      name: "Mary Smith",
-      from: "Westlands SDA",
-      to: "Nairobi Central",
-      status: "Pending",
-      date: "2026-05-20",
-      role: "Member",
-      phone: "0712345678",
-      reason:
-        "Relocated closer to Nairobi Central Church.",
-    },
-  ]);
+  /* -------------------------
+     SPLIT TRANSFERS
+  -------------------------- */
+  const transferIns = useMemo(
+    () =>
+      transfers?.filter(
+        (t) =>
+          t.transfer_type === "transfer_in"
+      ) || [],
+    [transfers]
+  );
 
-  const [transferOuts] = useState([
-    {
-      id: 2,
-      name: "John Doe",
-      from: "Nairobi Central",
-      to: "Karen SDA",
-      status: "Approved",
-      date: "2026-05-18",
-      role: "Elder",
-      phone: "0700111222",
-      reason:
-        "Transferred due to family relocation.",
-    },
-  ]);
+  const transferOuts = useMemo(
+    () =>
+      transfers?.filter(
+        (t) =>
+          t.transfer_type === "transfer_out"
+      ) || [],
+    [transfers]
+  );
 
+  /* -------------------------
+     STATUS RENDERER
+  -------------------------- */
   const statusRenderer = (value) => (
     <span
       className={
@@ -55,93 +61,144 @@ export default function TransfersRegister() {
     </span>
   );
 
+  /* -------------------------
+     COLUMNS
+  -------------------------- */
   const transferInColumns = [
-    {
-      key: "name",
-      label: "Name",
-    },
-    {
-      key: "from",
-      label: "From Church",
-    },
+    { key: "member_name", label: "Name" },
+    { key: "source_church_name", label: "From Church" },
     {
       key: "status",
       label: "Status",
       render: statusRenderer,
     },
-    {
-      key: "date",
-      label: "Date",
-    },
+    { key: "created_at",
+       label: "Date",
+       render: formatDate,
+      },
   ];
 
   const transferOutColumns = [
-    {
-      key: "name",
-      label: "Name",
-    },
-    {
-      key: "to",
-      label: "To Church",
-    },
+    { key: "member_name", label: "Name" },
+    { key: "destination_church_name", label: "To Church" },
     {
       key: "status",
       label: "Status",
       render: statusRenderer,
     },
-    {
-      key: "date",
-      label: "Date",
-    },
+    { key: "created_at",
+       label: "Date",
+       render: formatDate,
+      },
   ];
 
-  const handleView = (
-    transfer,
-    type
-  ) => {
+  /* -------------------------
+     ACTIONS
+  -------------------------- */
+  const handleView = (transfer, type) => {
     setSelectedTransfer(transfer);
     setSelectedType(type);
   };
 
-  const handleApprove = (transfer) => {
-    console.log(
-      "Approve transfer:",
-      transfer
-    );
+  const handleApprove = async (transfer) => {
+    await updateTransferStatus(transfer.id, {
+      status: "approved",
+    });
+    refetch();
   };
 
-  const handleReject = (transfer) => {
-    console.log(
-      "Reject transfer:",
-      transfer
-    );
+  const handleReject = async (transfer) => {
+    await updateTransferStatus(transfer.id, {
+      status: "rejected",
+    });
+    refetch();
   };
 
-  const renderActions = (
-    transfer,
-    type
-  ) => (
+  const renderActions = (transfer, type) => (
     <div className={styles.actions}>
       <Button
         variant="primary"
         size="sm"
-        onClick={() =>
-          handleView(
-            transfer,
-            type
-          )
-        }
+        onClick={() => handleView(transfer, type)}
       >
         View
       </Button>
     </div>
   );
 
+  /* -------------------------
+     LOADING
+  -------------------------- */
+  if (loading) {
+    return (
+      <div className={styles.pageCard}>
+        <h2 className={styles.cardTitle}>
+          <ArrowLeftRight size={18} />
+          Transfers Register
+        </h2>
+
+        <p>Loading transfers...</p>
+      </div>
+    );
+  }
+
+  /* -------------------------
+     ERROR
+  -------------------------- */
+  if (error) {
+    return (
+      <div className={styles.pageCard}>
+        <h2 className={styles.cardTitle}>
+          <ArrowLeftRight size={18} />
+          Transfers Register
+        </h2>
+
+        <EmptyState
+          icon={<ArrowLeftRight size={28} />}
+          title="Failed to load transfers"
+          message="Something went wrong while fetching transfer data."
+          action={
+            <Button
+              variant="primary"
+              onClick={refetch}
+            >
+              <RefreshCw size={16} />
+              Retry
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  /* -------------------------
+     EMPTY STATE
+  -------------------------- */
+  if (!transfers || transfers.length === 0) {
+    return (
+      <div className={styles.pageCard}>
+        <h2 className={styles.cardTitle}>
+          <ArrowLeftRight size={18} />
+          Transfers Register
+        </h2>
+
+        <EmptyState
+          icon={<ArrowLeftRight size={28} />}
+          title="No transfers found"
+          message="No transfer requests have been recorded yet."
+        />
+      </div>
+    );
+  }
+
+  /* -------------------------
+     MAIN UI
+  -------------------------- */
   return (
     <div className={styles.pageCard}>
-
       <h2 className={styles.cardTitle}>
-        🔁 Transfers Register
+        <ArrowLeftRight size={18} />
+        Transfers Register
       </h2>
 
       {/* Transfer In */}
@@ -153,11 +210,8 @@ export default function TransfersRegister() {
         <ResponsiveDataView
           columns={transferInColumns}
           data={transferIns}
-          renderActions={(transfer) =>
-            renderActions(
-              transfer,
-              "in"
-            )
+          renderActions={(t) =>
+            renderActions(t, "in")
           }
         />
       </div>
@@ -171,36 +225,26 @@ export default function TransfersRegister() {
         <ResponsiveDataView
           columns={transferOutColumns}
           data={transferOuts}
-          renderActions={(transfer) =>
-            renderActions(
-              transfer,
-              "out"
-            )
+          renderActions={(t) =>
+            renderActions(t, "out")
           }
         />
       </div>
 
-      {/* Transfer Details Modal */}
+      {/* Details Modal */}
       {selectedTransfer && (
         <TransferDetailsCard
           transfer={selectedTransfer}
           type={selectedType}
-          onClose={() =>
-            setSelectedTransfer(null)
-          }
+          onClose={() => setSelectedTransfer(null)}
           onApprove={() =>
-            handleApprove(
-              selectedTransfer
-            )
+            handleApprove(selectedTransfer)
           }
           onReject={() =>
-            handleReject(
-              selectedTransfer
-            )
+            handleReject(selectedTransfer)
           }
         />
       )}
-
     </div>
   );
 }

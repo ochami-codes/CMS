@@ -39,8 +39,10 @@ export default function Table({
                 {columns.map(col => (
 
                   <td key={col.key}>
-                    {row[col.key]}
-                  </td>
+  {col.render
+    ? col.render(row[col.key], row)
+    : row[col.key]}
+</td>
 
                 ))}
 

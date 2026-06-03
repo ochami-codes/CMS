@@ -1,5 +1,6 @@
 // pages/Dashboard.jsx
 
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Loader from "../components/Loader";
@@ -10,11 +11,10 @@ import QuickActions from "../components/dashboard/QuickActions";
 import AnnouncementsSection from "../components/dashboard/AnnouncementsSection";
 import SabbathSection from "../components/dashboard/SabbathSection";
 import BirthdaySection from "../components/dashboard/BirthdaySection";
-
+import TransferRequestModal from "../components/members/TransferRequestModal";
 import { useAuth } from "../context/AuthContext";
 
 import useDashboardData from "../hooks/useDashboardData";
-import useUnreadMessages from "../hooks/useUnreadMessages";
 import useSabbathTimer from "../hooks/useSabbathTimer";
 import useBirthdays from "../hooks/useBirthdays";
 
@@ -25,7 +25,7 @@ import styles from "../styles/dashboard/Dashboard.module.css";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-
+   const [showTransferModal, setShowTransferModal] = useState(false);
   const {
     user,
     activeChurchId,
@@ -47,8 +47,6 @@ export default function Dashboard() {
     user,
     churchId: activeChurchId,
   });
-
-  const { unreadMessages } = useUnreadMessages();
 
   const { isSabbath, timer: sabbathTimer } =
     useSabbathTimer();
@@ -91,11 +89,16 @@ const actions = [
   });
 
   const handleAction = (type) => {
-    const map = {
-      request_role: () => navigate("/myrolerequest"),
-      transfer: () => alert("Coming soon"),
-      lesson: () => alert("Coming soon"),
-    };
+  console.log("ACTION CLICKED:", type);
+
+  const map = {
+    request_role: () => navigate("/myrolerequest"),
+    transfer: () => {
+      console.log("OPENING TRANSFER MODAL");
+      setShowTransferModal(true);
+    },
+    lesson: () => alert("Coming soon"),
+  };
 
     map[type]?.();
   };
@@ -121,42 +124,48 @@ const actions = [
       )}
 
       {dashboardMode === "member" && (
-        <div className={styles.grid}>
-         <div className={styles.card}>
-          <QuickActions
-            actions={visibleActions}
-            isAdmin={isAdmin()}
-            user={user}
-            onAction={handleAction}
-          />
+        <>
+          <div className={styles.grid}>
+            <div className={styles.card}>
+              <QuickActions
+                actions={visibleActions}
+                isAdmin={isAdmin()}
+                user={user}
+                onAction={handleAction}
+              />
+            </div>
+
+            <div className={styles.card}>
+              <AnnouncementsSection
+                announcements={filteredAnnouncements}
+              />
+            </div>
+
+            <div className={styles.card}>
+              <SabbathSection
+                isSabbath={isSabbath}
+                sabbathTimer={sabbathTimer}
+              />
+            </div>
+
+            <div className={styles.card}>
+              <BirthdaySection
+                user={user}
+                hasBirthday={hasBirthday}
+                isBirthday={isBirthday}
+                birthdayTimer={birthdayTimer}
+                todayBirthdays={todayBirthdays}
+                upcomingBirthdays={upcomingBirthdays}
+              />
+            </div>
           </div>
 
-       <div className={styles.card}>
-          <AnnouncementsSection
-            announcements={filteredAnnouncements}
+          <TransferRequestModal
+            isOpen={showTransferModal}
+            onClose={() => setShowTransferModal(false)}
           />
-        </div>
-
-        <div className={styles.card}>
-          <SabbathSection
-            isSabbath={isSabbath}
-            sabbathTimer={sabbathTimer}
-          />
-         </div>
-         
-         <div className={styles.card}>
-          <BirthdaySection
-            user={user}
-            hasBirthday={hasBirthday}
-            isBirthday={isBirthday}
-            birthdayTimer={birthdayTimer}
-            todayBirthdays={todayBirthdays}
-            upcomingBirthdays={upcomingBirthdays}
-          />
-        </div>
-        </div>
+        </>
       )}
-
     </div>
   );
 }

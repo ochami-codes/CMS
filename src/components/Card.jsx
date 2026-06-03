@@ -4,10 +4,13 @@ export default function Card({
   children,
   title,
   className = "",
+  onClick,
 }) {
   return (
     <div
       className={`${styles.card} ${className}`}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
     >
       {title && (
         <h3 className={styles.title}>

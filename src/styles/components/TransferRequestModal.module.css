@@ -1,0 +1,82 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid
+    var(--border-color);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.helperText {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.results {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid
+    var(--border-color);
+  border-radius: 8px;
+  background: var(--card-bg);
+}
+
+.resultItem {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.resultItem:hover {
+  background: var(--hover-bg);
+}
+
+.selectedChurch {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: var(--success-bg);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.linkButton {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.linkButton:hover {
+  text-decoration: underline;
+}

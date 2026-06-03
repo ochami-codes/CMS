@@ -5,8 +5,9 @@ import styles from "../../styles/pages/Clerk.module.css";
 export default function ClerkTabs({
   activeTab,
   setActiveTab,
+  onAddMember,
+  onAddChild,
 }) {
-
   const tabs = [
     {
       key: "overview",
@@ -27,28 +28,43 @@ export default function ClerkTabs({
   ];
 
   return (
-    <div className={styles.tabs}>
+    <div className={styles.tabsContainer}>
+      <div className={styles.tabs}>
+        {tabs.map((tab) => (
+          <Button
+            key={tab.key}
+            size="sm"
+            variant={
+              activeTab === tab.key
+                ? "primary"
+                : "ghost"
+            }
+            className={styles.tabButton}
+            onClick={() =>
+              setActiveTab(tab.key)
+            }
+          >
+            {tab.label}
+          </Button>
+        ))}
+      </div>
 
-      {tabs.map((tab) => (
-        <Button
-          key={tab.key}
-          size="sm"
-          variant={
-            activeTab === tab.key
-              ? "primary"
-              : "ghost"
-          }
-          className={
-            styles.tabButton
-          }
-          onClick={() =>
-            setActiveTab(tab.key)
-          }
-        >
-          {tab.label}
-        </Button>
-      ))}
-
+{activeTab === "members" && (
+  <Button
+    size="sm"
+    variant="primary"
+    onClick={onAddMember}
+  >
+        Add Member
+      </Button> )}
+{activeTab === "children" && (
+  <Button
+    size="sm"
+    variant="primary"
+    onClick={onAddChild}
+  >
+        Add Child
+      </Button> )}
     </div>
   );
 }
