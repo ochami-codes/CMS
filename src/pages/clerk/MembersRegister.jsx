@@ -3,19 +3,24 @@ import { useState } from "react";
 import ResponsiveDataView from "../../components/ResponsiveDataView";
 import Button from "../../components/Button";
 import MemberProfileCard from "../../components/members/MemberProfileCard";
+import EditMemberModal from "../../components/members/EditMemberModal";
 import EmptyState from "../../components/EmptyState";
 import { Users, RefreshCw } from "lucide-react";
-
+import { useClerkActions } from "../../hooks/clerk/useClerkActions";
 import { useMembers } from "../../hooks/clerk/useMembers";
 
 export default function MembersRegister() {
   const [selectedMember, setSelectedMember] = useState(null);
+  const [editingMember, setEditingMember] = useState(null);
   const {
     members,
     loading,
     error,
     refetch,
   } = useMembers();
+  const {
+  updateMember,
+} = useClerkActions();
 
   /* -------------------------
      COLUMNS
@@ -38,12 +43,25 @@ export default function MembersRegister() {
      ACTIONS
   -------------------------- */
   const handleEdit = (member) => {
-    console.log("Edit member:", member);
-  };
+  setEditingMember(member);
+};
+const handleSaveMember = async ({
+  memberId,
+  payload,
+}) => {
+  try {
+    await updateMember(
+      memberId,
+      payload
+    );
 
-  const handleRemove = (member) => {
-    console.log("Remove member:", member);
-  };
+    setEditingMember(null);
+
+    refetch();
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const renderActions = (member) => (
     <div className="actions">
@@ -61,14 +79,6 @@ export default function MembersRegister() {
         onClick={() => handleEdit(member)}
       >
         Edit
-      </Button>
-
-      <Button
-        variant="danger"
-        size="sm"
-        onClick={() => handleRemove(member)}
-      >
-        Remove
       </Button>
     </div>
   );
@@ -151,12 +161,24 @@ export default function MembersRegister() {
         renderActions={renderActions}
       />
 
-      {selectedMember && (
+     {selectedMember && (
         <MemberProfileCard
           member={selectedMember}
           onClose={() => setSelectedMember(null)}
-          onEdit={() => console.log("edit", selectedMember)}
+          onEdit={() => {
+            setEditingMember(selectedMember);
+            setSelectedMember(null);
+          }}
         />
+      )}
+
+      {editingMember && (
+        <EditMemberModal
+  open={!!editingMember}
+  member={editingMember}
+  onClose={() => setEditingMember(null)}
+  onSave={handleSaveMember}
+/>
       )}
     </div>
   );

@@ -1,8 +1,11 @@
 import { useState, useMemo } from "react";
-import  { formatDate }  from "../../utils/formatDate";
+import { formatDate } from "../../utils/formatDate";
+
 import ResponsiveDataView from "../../components/ResponsiveDataView";
 import Button from "../../components/Button";
 import TransferDetailsCard from "../../components/members/TransferDetailsCard";
+import TransferActionModal from "../../components/members/TransferActionModal";
+import TransferRequestModal from "../../components/members/TransferRequestModal";
 import EmptyState from "../../components/EmptyState";
 
 import { useTransfers } from "../../hooks/clerk/useTransfers";
@@ -16,35 +19,24 @@ export default function TransfersRegister() {
   const [selectedTransfer, setSelectedTransfer] = useState(null);
   const [selectedType, setSelectedType] = useState("in");
 
-  const {
-    transfers,
-    loading,
-    error,
-    refetch,
-  } = useTransfers();
+  const [actionType, setActionType] = useState(null);
+  const [notes, setNotes] = useState("");
+  const [openTransferModal, setOpenTransferModal] = useState(false);
 
-  const {
-    updateTransferStatus,
-  } = useClerkActions();
+  const { transfers = [], loading, error, refetch } = useTransfers();
+  const { approveTransfer, rejectTransfer, createTransfer } =
+    useClerkActions();
 
   /* -------------------------
      SPLIT TRANSFERS
   -------------------------- */
   const transferIns = useMemo(
-    () =>
-      transfers?.filter(
-        (t) =>
-          t.transfer_type === "transfer_in"
-      ) || [],
+    () => transfers.filter((t) => t.transfer_type === "transfer_in"),
     [transfers]
   );
 
   const transferOuts = useMemo(
-    () =>
-      transfers?.filter(
-        (t) =>
-          t.transfer_type === "transfer_out"
-      ) || [],
+    () => transfers.filter((t) => t.transfer_type === "transfer_out"),
     [transfers]
   );
 
@@ -52,13 +44,7 @@ export default function TransfersRegister() {
      STATUS RENDERER
   -------------------------- */
   const statusRenderer = (value) => (
-    <span
-      className={
-        styles[`status${value}`]
-      }
-    >
-      {value}
-    </span>
+    <span className={styles[`status${value}`]}>{value}</span>
   );
 
   /* -------------------------
@@ -67,29 +53,15 @@ export default function TransfersRegister() {
   const transferInColumns = [
     { key: "member_name", label: "Name" },
     { key: "source_church_name", label: "From Church" },
-    {
-      key: "status",
-      label: "Status",
-      render: statusRenderer,
-    },
-    { key: "created_at",
-       label: "Date",
-       render: formatDate,
-      },
+    { key: "status", label: "Status", render: statusRenderer },
+    { key: "created_at", label: "Date", render: formatDate },
   ];
 
   const transferOutColumns = [
     { key: "member_name", label: "Name" },
     { key: "destination_church_name", label: "To Church" },
-    {
-      key: "status",
-      label: "Status",
-      render: statusRenderer,
-    },
-    { key: "created_at",
-       label: "Date",
-       render: formatDate,
-      },
+    { key: "status", label: "Status", render: statusRenderer },
+    { key: "created_at", label: "Date", render: formatDate },
   ];
 
   /* -------------------------
@@ -100,17 +72,34 @@ export default function TransfersRegister() {
     setSelectedType(type);
   };
 
-  const handleApprove = async (transfer) => {
-    await updateTransferStatus(transfer.id, {
-      status: "approved",
-    });
+  const openApprove = (transfer) => {
+    setSelectedTransfer(transfer);
+    setActionType("approve");
+  };
+
+  const openReject = (transfer) => {
+    setSelectedTransfer(transfer);
+    setActionType("reject");
+  };
+
+  const handleCreateTransfer = async (payload) => {
+    await createTransfer(payload);
+    setOpenTransferModal(false);
     refetch();
   };
 
-  const handleReject = async (transfer) => {
-    await updateTransferStatus(transfer.id, {
-      status: "rejected",
-    });
+  const handleSubmitAction = async () => {
+    if (!selectedTransfer || !actionType) return;
+
+    if (actionType === "approve") {
+      await approveTransfer(selectedTransfer.id, notes);
+    } else {
+      await rejectTransfer(selectedTransfer.id, notes);
+    }
+
+    setSelectedTransfer(null);
+    setActionType(null);
+    setNotes("");
     refetch();
   };
 
@@ -132,10 +121,19 @@ export default function TransfersRegister() {
   if (loading) {
     return (
       <div className={styles.pageCard}>
-        <h2 className={styles.cardTitle}>
-          <ArrowLeftRight size={18} />
-          Transfers Register
-        </h2>
+        <div className={styles.headerRow}>
+          <h2 className={styles.cardTitle}>
+            <ArrowLeftRight size={18} />
+            Transfers Register
+          </h2>
+
+          <Button
+            variant="primary"
+            onClick={() => setOpenTransferModal(true)}
+          >
+            + Manual Transfer
+          </Button>
+        </div>
 
         <p>Loading transfers...</p>
       </div>
@@ -158,10 +156,7 @@ export default function TransfersRegister() {
           title="Failed to load transfers"
           message="Something went wrong while fetching transfer data."
           action={
-            <Button
-              variant="primary"
-              onClick={refetch}
-            >
+            <Button variant="primary" onClick={refetch}>
               <RefreshCw size={16} />
               Retry
             </Button>
@@ -174,7 +169,7 @@ export default function TransfersRegister() {
   /* -------------------------
      EMPTY STATE
   -------------------------- */
-  if (!transfers || transfers.length === 0) {
+  if (transfers.length === 0) {
     return (
       <div className={styles.pageCard}>
         <h2 className={styles.cardTitle}>
@@ -196,53 +191,74 @@ export default function TransfersRegister() {
   -------------------------- */
   return (
     <div className={styles.pageCard}>
-      <h2 className={styles.cardTitle}>
-        <ArrowLeftRight size={18} />
-        Transfers Register
-      </h2>
+        <div className={styles.headerRow}>
+  <h2 className={styles.cardTitle}>
+    <ArrowLeftRight size={18} />
+    Transfers Register
+  </h2>
+
+  <Button
+    variant="primary"
+    onClick={() => setOpenTransferModal(true)}
+  >
+    + Manual Transfer
+  </Button>
+</div>
 
       {/* Transfer In */}
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>
-          Transfer In
-        </h3>
+        <h3 className={styles.sectionTitle}>Transfer In</h3>
 
         <ResponsiveDataView
           columns={transferInColumns}
           data={transferIns}
-          renderActions={(t) =>
-            renderActions(t, "in")
-          }
+          renderActions={(t) => renderActions(t, "in")}
         />
       </div>
 
       {/* Transfer Out */}
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>
-          Transfer Out
-        </h3>
+        <h3 className={styles.sectionTitle}>Transfer Out</h3>
 
         <ResponsiveDataView
           columns={transferOutColumns}
           data={transferOuts}
-          renderActions={(t) =>
-            renderActions(t, "out")
-          }
+          renderActions={(t) => renderActions(t, "out")}
         />
       </div>
 
       {/* Details Modal */}
-      {selectedTransfer && (
+      {selectedTransfer && !actionType && (
         <TransferDetailsCard
           transfer={selectedTransfer}
           type={selectedType}
           onClose={() => setSelectedTransfer(null)}
-          onApprove={() =>
-            handleApprove(selectedTransfer)
-          }
-          onReject={() =>
-            handleReject(selectedTransfer)
-          }
+          onOpenApproveModal={() => openApprove(selectedTransfer)}
+          onOpenRejectModal={() => openReject(selectedTransfer)}
+        />
+      )}
+
+      {/* Action Modal */}
+      {actionType && selectedTransfer && (
+        <TransferActionModal
+          open={true}
+          action={actionType}
+          notes={notes}
+          setNotes={setNotes}
+          onClose={() => {
+            setActionType(null);
+            setNotes("");
+          }}
+          onSubmit={handleSubmitAction}
+        />
+      )}
+
+      {/* Create Transfer Modal */}
+      {openTransferModal && (
+        <TransferRequestModal
+          isOpen={true}
+          onClose={() => setOpenTransferModal(false)}
+          onSubmit={handleCreateTransfer}
         />
       )}
     </div>

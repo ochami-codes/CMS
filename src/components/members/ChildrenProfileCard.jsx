@@ -12,22 +12,37 @@ export default function ChildrenProfileCard({
   const calculateAge = (dob) => {
     if (!dob) return "-";
     const diff = new Date() - new Date(dob);
-    return Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
+    return Math.floor(
+      diff / (1000 * 60 * 60 * 24 * 365)
+    );
   };
 
   return (
-    <div className={styles.overlay}>
-      <Card className={styles.modal}>
+    <div
+      className={styles.overlay}
+      onClick={onClose}
+    >
+      <Card
+        className={styles.modal}
+        onClick={(e) =>
+          e.stopPropagation()
+        }
+      >
 
-        {/* Header */}
+        {/* HEADER */}
         <div className={styles.header}>
           <div>
             <h2 className={styles.name}>
-              {child.name}
+              {child.full_name ||
+                "Child Name"}
             </h2>
 
             <p className={styles.sub}>
-              {calculateAge(child.dob)} years • {child.gender}
+              {calculateAge(
+                child.date_of_birth
+              )}{" "}
+              years •{" "}
+              {child.gender || "Not set"}
             </p>
           </div>
 
@@ -39,66 +54,127 @@ export default function ChildrenProfileCard({
           </button>
         </div>
 
-        {/* Child Info */}
+        {/* CHILD INFO */}
         <div className={styles.section}>
-          <h3>Child Information</h3>
+          <h3>
+            Child Information
+          </h3>
 
           <div className={styles.grid}>
-            <div>
-              <span>DOB:</span> {child.dob}
+            <div className={styles.item}>
+              <span className={styles.label}>
+                Full Name
+              </span>
+              <span className={styles.value}>
+                {child.full_name || "-"}
+              </span>
             </div>
 
-            <div>
-              <span>Age:</span> {calculateAge(child.dob)}
+            <div className={styles.item}>
+              <span className={styles.label}>
+                Date of Birth
+              </span>
+              <span className={styles.value}>
+                {child.date_of_birth ||
+                  "Not recorded"}
+              </span>
             </div>
 
-            <div>
-              <span>Gender:</span> {child.gender}
+            <div className={styles.item}>
+              <span className={styles.label}>
+                Age
+              </span>
+              <span className={styles.value}>
+                {calculateAge(
+                  child.date_of_birth
+                )}
+              </span>
+            </div>
+
+            <div className={styles.item}>
+              <span className={styles.label}>
+                Gender
+              </span>
+              <span className={styles.value}>
+                {child.gender || "-"}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Guardian Info (MOST IMPORTANT) */}
+        {/* GUARDIAN */}
         <div className={styles.section}>
-          <h3>Guardian Information</h3>
+          <h3>
+            Parent / Guardian
+          </h3>
 
           <div className={styles.grid}>
-            <div>
-              <span>Name:</span> {child.parent_name}
+            <div className={styles.item}>
+              <span className={styles.label}>
+                Name
+              </span>
+              <span className={styles.value}>
+                {child.parent_name ||
+                  "Not assigned"}
+              </span>
             </div>
 
-            <div>
-              <span>Phone:</span> {child.parent_phone}
+            <div className={styles.item}>
+              <span className={styles.label}>
+                Phone
+              </span>
+              <span className={styles.value}>
+                {child.parent_phone ||
+                  "Not available"}
+              </span>
             </div>
 
-            <div>
-              <span>Relationship:</span> {child.relationship || "-"}
+            <div className={styles.item}>
+              <span className={styles.label}>
+                Relationship
+              </span>
+              <span className={styles.value}>
+                {child.relationship || "-"}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Optional Church Info */}
+        {/* SABBATH SCHOOL */}
         <div className={styles.section}>
-          <h3>Sabbath School</h3>
+          <h3>
+            Sabbath School Details
+          </h3>
 
           <div className={styles.grid}>
-            <div>
-              <span>Class:</span> {child.class || "Not assigned"}
+            <div className={styles.item}>
+              <span className={styles.label}>
+                Class
+              </span>
+              <span className={styles.value}>
+                {child.class ||
+                  "Not assigned yet"}
+              </span>
             </div>
 
-            <div>
-              <span>Status:</span> {child.status || "Active"}
+            <div className={styles.item}>
+              <span className={styles.label}>
+                Status
+              </span>
+              <span className={styles.value}>
+                {child.status || "Active"}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Actions */}
+        {/* ACTIONS */}
         <div className={styles.actions}>
           <Button
             variant="secondary"
             onClick={onEdit}
           >
-            Edit
+            Edit Details
           </Button>
 
           <Button

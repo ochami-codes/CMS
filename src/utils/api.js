@@ -71,20 +71,29 @@ searchParents: (query) => request(`/clerk/search-parents?q=${encodeURIComponent(
      TRANSFERS
   -------------------------- */
   getTransfers: (params = "") =>
-    request(`/clerk/transfers${params}`),
+  request(`/clerk/transfers${params}`),
 
-  createTransfer: (payload) =>
-    request(`/clerk/transfers/create`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
+createTransfer: (payload) =>
+  request(`/clerk/transfers/create`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
 
-  updateTransferStatus: (transferId, payload) =>
-    request(`/clerk/transfers/${transferId}/status`, {
-      method: "PUT",
-      body: JSON.stringify(payload),
-    }),
-};
+/* -------------------------
+   WORKFLOW ACTIONS
+-------------------------- */
+
+approveTransfer: (transferId, payload = {}) =>
+  request(`/clerk/transfers/${transferId}/approve`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
+
+rejectTransfer: (transferId, payload = {}) =>
+  request(`/clerk/transfers/${transferId}/reject`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  })};
 /* ======================
    AUTH API
 ====================== */

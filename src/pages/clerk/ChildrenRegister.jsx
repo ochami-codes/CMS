@@ -2,21 +2,22 @@ import { useState } from "react";
 import ResponsiveDataView from "../../components/ResponsiveDataView";
 import Button from "../../components/Button";
 import ChildrenProfileCard from "../../components/members/ChildrenProfileCard";
+import EditChildModal from "../../components/members/EditChildModal";
 import EmptyState from "../../components/EmptyState";
 import { Baby, RefreshCw } from "lucide-react";
-
+import { useClerkActions } from "../../hooks/clerk/useClerkActions";
 import { useChildren } from "../../hooks/clerk/useChildren";
 
 export default function ChildrenRegister() {
   const [selectedChild, setSelectedChild] = useState(null);
-
+  const [editingChild, setEditingChild] = useState(null);
   const {
     children,
     loading,
     error,
     refetch,
   } = useChildren();
-
+  const { updateChild } = useClerkActions();
   /* -------------------------
      AGE CALCULATION
   -------------------------- */
@@ -44,6 +45,26 @@ export default function ChildrenRegister() {
   /* -------------------------
      ACTIONS
   -------------------------- */
+  const handleEdit = (child) => {
+  setEditingChild(child);
+};
+const handleSaveChild = async ({
+  childId,
+  payload,
+}) => {
+  try {
+    await updateChild(
+      childId,
+      payload
+    );
+
+    setEditingChild(null);
+
+    refetch();
+  } catch (err) {
+    console.error(err);
+  }
+};
   const renderActions = (child) => (
     <div className="actions">
       <Button
@@ -57,7 +78,7 @@ export default function ChildrenRegister() {
       <Button
         variant="primary"
         size="sm"
-        onClick={() => console.log("edit", child)}
+        onClick={() => handleEdit(child)}
       >
         Edit
       </Button>
@@ -149,9 +170,18 @@ export default function ChildrenRegister() {
         <ChildrenProfileCard
           child={selectedChild}
           onClose={() => setSelectedChild(null)}
-          onEdit={() => console.log("edit", selectedChild)}
+          onEdit={handleEdit}
         />
       )}
-    </div>
+
+      {editingChild && (
+        <EditChildModal
+          open={!!editingChild}
+          child={editingChild}
+          onClose={() => setEditingChild(null)}
+          onSave={handleSaveChild}
+        />
+      )}
+      </div>
   );
 }

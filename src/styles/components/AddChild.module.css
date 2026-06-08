@@ -1,0 +1,139 @@
+.card {
+  padding: 1.5rem;
+  border-radius: 14px;
+}
+
+/* HEADER */
+.title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* SECTION */
+.section {
+  margin-top: 1.2rem;
+}
+
+.sectionTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.75rem;
+}
+
+/* SEARCH RESULTS */
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+
+  background: #f8fafc;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.resultBtn {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+
+  border: none;
+  background: white;
+
+  border-radius: 8px;
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.resultBtn:hover {
+  background: #eef2ff;
+}
+
+/* SELECTED PARENT */
+.selectedCard {
+  margin-top: 0.75rem;
+  padding: 1rem;
+
+  border-radius: 12px;
+  border: 1px solid #a5f3fc;
+  background: #ecfeff;
+}
+
+.selectedTitle {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+/* INPUTS */
+.input,
+.select,
+.textarea {
+  width: 100%;
+
+  padding: 0.6rem 0.75rem;
+
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+
+  font-size: 0.9rem;
+  outline: none;
+
+  background: white;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+/* FIELD GROUP */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  margin-bottom: 0.9rem;
+}
+
+.label {
+  font-size: 0.8rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+/* DEDICATION */
+.dedicationBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* BUTTON AREA */
+.actions {
+  margin-top: 1rem;
+}
+
+/* SEARCH NOTE */
+.notice {
+  font-size: 0.85rem;
+  color: #64748b;
+}

@@ -1,470 +1,222 @@
-// src/components/members/AddMember.jsx
+import { useEffect, useMemo, useState } from "react";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
-import {
-  memberFields,
-} from "../../utils/memberFields";
-
-import {
-  MembersAPI,
-  DepartmentsAPI,
-  AdminAPI,
-} from "../../utils/api";
+import { memberFields } from "../../utils/memberFields";
+import { MembersAPI, DepartmentsAPI, AdminAPI } from "../../utils/api";
 
 import { useToast } from "../ToastProvider";
 
 import SearchBar from "../SearchBar";
 import Button from "../Button";
 import Card from "../Card";
-import EmptyState from "../EmptyState";
 
-export default function AddMember({
-  department,
-  onMemberAdded,
-}) {
+import styles from "../../styles/components/AddMember.module.css";
+
+export default function AddMember({ department, onMemberAdded }) {
   const { showToast } = useToast();
 
-  const config =
-    memberFields[department];
+  const config = useMemo(() => memberFields[department], [department]);
+  const fields = useMemo(() => config?.fields ?? [], [config]);
 
-  const fields =
-    config?.fields ?? [];
+  const initialState = useMemo(
+    () => Object.fromEntries(fields.map((f) => [f.name, ""])),
+    [fields]
+  );
 
-  const initialState =
-    useMemo(
-      () =>
-        Object.fromEntries(
-          fields.map(f => [
-            f.name,
-            "",
-          ])
-        ),
-      [fields]
-    );
+  const [memberType, setMemberType] = useState("system");
+  const [formData, setFormData] = useState(initialState);
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const [memberType,
-    setMemberType] =
-    useState("system");
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
 
-  const [formData,
-    setFormData] =
-    useState(initialState);
+  const [selectedProfile, setSelectedProfile] = useState(null);
 
-  const [departments,
-    setDepartments] =
-    useState([]);
-
-  const [loading,
-    setLoading] =
-    useState(false);
-
-  const [query,
-    setQuery] =
-    useState("");
-
-  const [results,
-    setResults] =
-    useState([]);
-
-  const [searching,
-    setSearching] =
-    useState(false);
-
-  const [
-    selectedProfile,
-    setSelectedProfile,
-  ] = useState(null);
-
-  /* =====================
-     LOAD DEPARTMENTS
-  ===================== */
-
+  /* LOAD DEPARTMENTS */
   useEffect(() => {
-    const load =
-      async () => {
-        try {
-          const data =
-            await DepartmentsAPI.fetchAll();
-
-          setDepartments(
-            data ?? []
-          );
-
-        } catch {
-          showToast(
-            "Failed loading departments",
-            "error"
-          );
-        }
-      };
-
-    load();
+    (async () => {
+      try {
+        const data = await DepartmentsAPI.fetchAll();
+        setDepartments(data ?? []);
+      } catch {
+        showToast("Failed loading departments", "error");
+      }
+    })();
   }, [showToast]);
 
-  /* =====================
-     SEARCH USERS
-  ===================== */
-
+  /* SEARCH USERS */
   useEffect(() => {
-
-    if (
-      query.trim().length < 2
-    ) {
+    if (query.trim().length < 2) {
       setResults([]);
       return;
     }
 
-    const timer =
-      setTimeout(
-        async () => {
+    const timer = setTimeout(async () => {
+      try {
+        setSearching(true);
 
-          try {
-            setSearching(true);
+        const data = await AdminAPI.searchProfiles(query);
+        setResults(data?.profiles ?? []);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
 
-            const data =
-              await AdminAPI.searchProfiles(
-                query
-              );
-
-            setResults(
-              data?.profiles ?? []
-            );
-
-          } finally {
-            setSearching(false);
-          }
-
-        },
-        300
-      );
-
-    return () =>
-      clearTimeout(timer);
-
+    return () => clearTimeout(timer);
   }, [query]);
 
-  /* =====================
-     INPUT CHANGE
-  ===================== */
+  const updateField = (name, value) =>
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
-  const updateField =
-    (name, value) =>
-      setFormData(prev => ({
-        ...prev,
-        [name]: value,
-      }));
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
+    try {
+      setLoading(true);
 
-  /* =====================
-     SUBMIT
-  ===================== */
+      let payload;
 
-  const handleSubmit =
-    async (e) => {
+      if (memberType === "system") {
+        if (!selectedProfile) throw new Error("Select a user");
 
-      e.preventDefault();
-
-      try {
-        setLoading(true);
-
-        let payload;
-
-        if (
-          memberType ===
-          "system"
-        ) {
-
-          if (
-            !selectedProfile
-          ) {
-            throw Error(
-              "Select a user"
-            );
-          }
-
-          payload = {
-            department,
-            profile_id:
-              selectedProfile.id,
-
-            is_system_user:
-              true,
-          };
-
-        } else {
-
-          payload = {
-            ...formData,
-            department,
-            is_system_user:
-              false,
-          };
-
-        }
-
-        const res =
-          await MembersAPI.add(
-            payload
-          );
-
-        const member =
-          res?.member;
-
-        showToast(
-          "Member added",
-          "success"
-        );
-
-        onMemberAdded?.(
-          member
-        );
-
-        setFormData(
-          initialState
-        );
-
-        setQuery("");
-
-        setSelectedProfile(
-          null
-        );
-
-      } catch (err) {
-
-        showToast(
-          err.message ||
-          "Failed adding member",
-          "error"
-        );
-
-      } finally {
-        setLoading(false);
+        payload = {
+          department,
+          profile_id: selectedProfile.id,
+          is_system_user: true,
+        };
+      } else {
+        payload = {
+          ...formData,
+          department,
+          is_system_user: false,
+        };
       }
-    };
 
+      const res = await MembersAPI.add(payload);
+
+      showToast("Member added", "success");
+      onMemberAdded?.(res?.member);
+
+      setFormData(initialState);
+      setQuery("");
+      setSelectedProfile(null);
+    } catch (err) {
+      showToast(err.message || "Failed adding member", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
+    <Card className={styles.card}>
+      <div className={styles.header}>
+        <h2 className={styles.title}>Add Member</h2>
+        <p className={styles.subtitle}>
+          Add registered users or manual members
+        </p>
+      </div>
 
-<Card>
+      <form className={styles.form} onSubmit={handleSubmit}>
+        {/* MEMBER TYPE */}
+        <select
+          className={styles.select}
+          value={memberType}
+          onChange={(e) => setMemberType(e.target.value)}
+        >
+          <option value="system">System User</option>
+          <option value="manual">Manual Member</option>
+        </select>
 
-      <h2>
-        Add Member
-      </h2>
+        {/* SYSTEM USER */}
+        {memberType === "system" && (
+          <div className={styles.searchBox}>
+            <SearchBar
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search member..."
+              onClear={() => {
+                setQuery("");
+                setSelectedProfile(null);
+              }}
+            />
 
-      <p>
-        Add registered users
-        or manual members
-      </p>
+            {searching && <p>Searching...</p>}
 
-<form onSubmit={handleSubmit}>
+            {results.length > 0 && !selectedProfile && (
+              <div className={styles.results}>
+                {results.map((profile) => (
+                  <button
+                    key={profile.id}
+                    type="button"
+                    className={styles.resultBtn}
+                    onClick={() => {
+                      setSelectedProfile(profile);
+                      setQuery(profile.full_name);
+                      setResults([]);
+                    }}
+                  >
+                    {profile.full_name}
+                  </button>
+                ))}
+              </div>
+            )}
 
-{/* MEMBER TYPE */}
+            {selectedProfile && (
+              <div className={styles.selected}>
+                Selected: {selectedProfile.full_name}
+              </div>
+            )}
+          </div>
+        )}
 
-<select
-value={memberType}
-onChange={(e)=>
-setMemberType(
-e.target.value
-)}
->
+        {/* MANUAL FORM */}
+        {memberType === "manual" &&
+          fields.map((field) => (
+            <div key={field.name} className={styles.fieldGroup}>
+              <label className={styles.label}>{field.label}</label>
 
-<option value="system">
-System User
-</option>
+              {field.type === "select" ? (
+                <select
+                  className={styles.selectField}
+                  value={formData[field.name]}
+                  onChange={(e) =>
+                    updateField(field.name, e.target.value)
+                  }
+                >
+                  <option value="">Select</option>
 
-<option value="manual">
-Manual Member
-</option>
+                  {field.name === "department"
+                    ? departments.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))
+                    : field.options?.map((o) => (
+                        <option key={o} value={o}>
+                          {o}
+                        </option>
+                      ))}
+                </select>
+              ) : (
+                <input
+                  className={styles.input}
+                  type={field.type || "text"}
+                  value={formData[field.name]}
+                  onChange={(e) =>
+                    updateField(field.name, e.target.value)
+                  }
+                />
+              )}
+            </div>
+          ))}
 
-</select>
-
-
-{/* SYSTEM USER */}
-
-{memberType==="system" && (
-
-<>
-
-<SearchBar
-value={query}
-onChange={(e)=>
-setQuery(
-e.target.value
-)}
-placeholder="Search member..."
-onClear={()=>{
-setQuery("");
-setSelectedProfile(
-null
-);
-}}
-/>
-
-{searching && (
-<p>Searching...</p>
-)}
-
-{results.length > 0 &&
-!selectedProfile && (
-
-<div>
-
-{results.map(
-profile => (
-
-<button
-type="button"
-key={profile.id}
-
-onClick={()=>{
-setSelectedProfile(
-profile
-);
-
-setQuery(
-profile.full_name
-);
-
-setResults([]);
-}}
->
-
-{profile.full_name}
-
-</button>
-
-))
-}
-
-</div>
-)}
-
-{selectedProfile && (
-
-<p>
-Selected:
-{" "}
-{selectedProfile.full_name}
-</p>
-
-)}
-
-</>
-
-)}
-
-
-{/* MANUAL FORM */}
-
-{memberType==="manual" &&
-fields.map(field=>(
-
-<div key={field.name}>
-
-<label>
-
-{field.label}
-
-</label>
-
-{field.type==="select" ? (
-
-<select
-
-value={
-formData[
-field.name
-]
-}
-
-onChange={(e)=>
-updateField(
-field.name,
-e.target.value
-)
-}
->
-
-<option value="">
-Select
-</option>
-
-{field.name==="department"
-
-? departments.map(
-d=>(
-<option
-key={d.id}
-value={d.id}
->
-{d.name}
-</option>
-)
-)
-
-: field.options?.map(
-o=>(
-<option
-key={o}
-value={o}
->
-{o}
-</option>
-)
-)}
-
-</select>
-
-) : (
-
-<input
-
-type={
-field.type ||
-"text"
-}
-
-value={
-formData[
-field.name
-]
-}
-
-onChange={(e)=>
-updateField(
-field.name,
-e.target.value
-)
-}
-
-/>
-
-)}
-
-</div>
-
-))}
-
-
-<Button
-type="submit"
-disabled={loading}
->
-
-{loading
-? "Saving..."
-: "Add Member"}
-
-</Button>
-
-</form>
-
-</Card>
-
+        <div className={styles.submitBtn}>
+          <Button type="submit" disabled={loading}>
+            {loading ? "Saving..." : "Add Member"}
+          </Button>
+        </div>
+      </form>
+    </Card>
   );
 }

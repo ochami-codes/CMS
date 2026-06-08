@@ -11,7 +11,6 @@ export default function MemberProfileCard({
 
   const formatDate = (date) => {
     if (!date) return "-";
-
     return new Date(date).toLocaleDateString("en-KE", {
       year: "numeric",
       month: "long",
@@ -26,9 +25,10 @@ export default function MemberProfileCard({
   };
 
   return (
-    <div className={styles.overlay}>
-      <Card className={styles.modal}>
-        {/* Header */}
+    <div className={styles.overlay} onClick={onClose}>
+      <Card className={styles.modal} onClick={(e) => e.stopPropagation()}>
+
+        {/* HEADER */}
         <div className={styles.header}>
           <div>
             <h2 className={styles.name}>
@@ -40,114 +40,134 @@ export default function MemberProfileCard({
             </p>
           </div>
 
-          <button
-            className={styles.close}
-            onClick={onClose}
-          >
+          <button className={styles.close} onClick={onClose}>
             ✕
           </button>
         </div>
 
-        {/* Basic Info */}
+        {/* BASIC INFO */}
         <div className={styles.section}>
           <h3>Basic Information</h3>
 
           <div className={styles.grid}>
-            <div>
-              <span>Phone:</span> {member.phone || "-"}
+            <div className={styles.item}>
+              <span className={styles.label}>Phone</span>
+              <span className={styles.value}>{member.phone || "-"}</span>
             </div>
 
-            <div>
-              <span>Email:</span> {member.email || "-"}
+            <div className={styles.item}>
+              <span className={styles.label}>Email</span>
+              <span className={styles.value}>{member.email || "-"}</span>
             </div>
 
-            <div>
-              <span>Marital Status:</span>{" "}
-              {member.marital_status || "-"}
+            <div className={styles.item}>
+              <span className={styles.label}>Marital Status</span>
+              <span className={styles.value}>
+                {member.marital_status || "-"}
+              </span>
             </div>
 
-            <div>
-              <span>Joined:</span>{" "}
-              {formatDate(member.joined_at)}
+            <div className={styles.item}>
+              <span className={styles.label}>Joined</span>
+              <span className={styles.value}>
+                {formatDate(member.joined_at)}
+              </span>
             </div>
 
-            <div>
-              <span>Created:</span>{" "}
-              {formatDate(member.created_at)}
+            <div className={styles.item}>
+              <span className={styles.label}>Created</span>
+              <span className={styles.value}>
+                {formatDate(member.created_at)}
+              </span>
             </div>
 
-            <div>
-              <span>System User:</span>{" "}
-              {member.is_system_user ? "Yes" : "No"}
+            <div className={styles.item}>
+              <span className={styles.label}>System User</span>
+              <span className={styles.value}>
+                {member.is_system_user ? "Yes" : "No"}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Church Info */}
+        {/* CHURCH INFO */}
         <div className={styles.section}>
           <h3>Church Details</h3>
 
           <div className={styles.grid}>
-            <div>
-              <span>Baptized:</span>{" "}
-              {formatBaptized(member.baptized)}
+            <div className={styles.item}>
+              <span className={styles.label}>Baptized</span>
+              <span className={styles.value}>
+                {formatBaptized(member.baptized)}
+              </span>
             </div>
 
-            <div>
-              <span>Baptism Date:</span>{" "}
-              {formatDate(member.baptismal_date)}
+            <div className={styles.item}>
+              <span className={styles.label}>Baptism Date</span>
+              <span className={styles.value}>
+                {formatDate(member.baptismal_date)}
+              </span>
             </div>
 
-            <div>
-              <span>Membership Type:</span>{" "}
-              {member.membership_type || "-"}
+            <div className={styles.item}>
+              <span className={styles.label}>Membership Type</span>
+              <span className={styles.value}>
+                {member.membership_type || "-"}
+              </span>
             </div>
 
-            <div>
-              <span>Status:</span>{" "}
-              {member.status || "-"}
+            <div className={styles.item}>
+              <span className={styles.label}>Status</span>
+              <span
+                className={`${styles.badge} ${
+                  styles[member.status?.toLowerCase()]
+                }`}
+              >
+                {member.status || "-"}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Emergency Contact */}
+        {/* EMERGENCY */}
         <div className={styles.section}>
           <h3>Emergency Contact</h3>
 
           <div className={styles.grid}>
-            <div>
-              <span>Name:</span>{" "}
-              {member.emergency_contact_name || "-"}
+            <div className={styles.item}>
+              <span className={styles.label}>Name</span>
+              <span className={styles.value}>
+                {member.emergency_contact_name || "-"}
+              </span>
             </div>
 
-            <div>
-              <span>Phone:</span>{" "}
-              {member.emergency_contact_phone || "-"}
+            <div className={styles.item}>
+              <span className={styles.label}>Phone</span>
+              <span className={styles.value}>
+                {member.emergency_contact_phone || "-"}
+              </span>
             </div>
 
-            <div>
-              <span>Relationship:</span>{" "}
-              {member.emergency_contact_relationship || "-"}
+            <div className={styles.item}>
+              <span className={styles.label}>Relationship</span>
+              <span className={styles.value}>
+                {member.emergency_contact_relationship || "-"}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Actions */}
+        {/* ACTIONS */}
         <div className={styles.actions}>
-          <Button
-            variant="secondary"
-            onClick={onEdit}
-          >
+          <Button variant="secondary" onClick={onEdit}>
             Edit
           </Button>
 
-          <Button
-            variant="danger"
-            onClick={onClose}
-          >
+          <Button variant="danger" onClick={onClose}>
             Close
           </Button>
         </div>
+
       </Card>
     </div>
   );
