@@ -56,44 +56,104 @@ export const ClerkAPI = {
   /* -------------------------
      MEMBERS
   -------------------------- */
- getMembers: (params = "") =>
+  getMembers: (params = "") =>
     request(`/clerk/members${params}`),
- overview: () => request("/clerk/overview"),
- addMember: (payload) => request("/clerk/add-member", { method: "POST", body: JSON.stringify(payload) }),
+
+  overview: () =>
+    request("/clerk/overview"),
+
+  addMember: (payload) =>
+    request("/clerk/add-member", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  updateMember: (memberId, payload) =>
+    request(`/clerk/members/${memberId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+
   /* -------------------------
      CHILDREN
   -------------------------- */
   getChildren: (params = "") =>
     request(`/clerk/children${params}`),
-addChild: (payload) => request("/clerk/add-child", { method: "POST", body: JSON.stringify(payload) }),
-searchParents: (query) => request(`/clerk/search-parents?q=${encodeURIComponent(query)}`),
+
+  addChild: (payload) =>
+    request("/clerk/add-child", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  updateChild: (childId, payload) =>
+    request(`/clerk/children/${childId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+
+  searchParents: (query) =>
+    request(
+      `/clerk/search-parents?q=${encodeURIComponent(query)}`
+    ),
+
   /* -------------------------
      TRANSFERS
   -------------------------- */
   getTransfers: (params = "") =>
-  request(`/clerk/transfers${params}`),
+    request(`/clerk/transfers${params}`),
 
-createTransfer: (payload) =>
-  request(`/clerk/transfers/create`, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  }),
+  createTransfer: (payload) =>
+    request(`/clerk/transfers/create`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 
-/* -------------------------
-   WORKFLOW ACTIONS
--------------------------- */
+  /* -------------------------
+     WORKFLOW ACTIONS
+  -------------------------- */
+  approveTransfer: (transferId, payload = {}) =>
+    request(`/clerk/transfers/${transferId}/approve`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 
-approveTransfer: (transferId, payload = {}) =>
-  request(`/clerk/transfers/${transferId}/approve`, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  }),
+  rejectTransfer: (transferId, payload = {}) =>
+    request(`/clerk/transfers/${transferId}/reject`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 
-rejectTransfer: (transferId, payload = {}) =>
-  request(`/clerk/transfers/${transferId}/reject`, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  })};
+  /* -------------------------
+     REPORTS
+  -------------------------- */
+
+  generateReport: async (params) => {
+    const query = new URLSearchParams(params).toString();
+
+    return request(`/clerk/reports/summary?${query}`, {
+      method: "GET",
+    });
+  },
+
+  downloadReport: async (params) => {
+    const query = new URLSearchParams(params).toString();
+
+    const response = await fetch(
+      `/clerk/reports/summary/pdf?${query}`,
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to download report");
+    }
+
+    return await response.blob();
+  },
+};
 /* ======================
    AUTH API
 ====================== */

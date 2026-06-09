@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 
 import Modal from "../Modal";
 import Button from "../Button";
-
 import styles from "../../styles/components/EditMemberModal.module.css";
 
 export default function EditMemberModal({

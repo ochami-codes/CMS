@@ -179,3 +179,101 @@
 .tabButton:hover {
   transform: translateY(-1px);
 }
+.reportCard {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Title */
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* Desktop layout */
+.reportGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.reportGrid label {
+  font-size: 0.85rem;
+  color: #6b7280;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.reportGrid select,
+.reportGrid input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  font-size: 0.9rem;
+}
+
+/* Actions */
+.reportActions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* =========================
+   MOBILE RESPONSIVENESS
+========================= */
+@media (max-width: 768px) {
+  .reportCard {
+    padding: 1rem;
+  }
+
+  .reportGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .sectionTitle {
+    font-size: 1rem;
+  }
+
+  .reportActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .reportActions button,
+  .reportActions a {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .reportCard {
+    padding: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .sectionTitle {
+    font-size: 0.95rem;
+  }
+
+  .reportGrid label {
+    font-size: 0.8rem;
+  }
+
+  .reportGrid select,
+  .reportGrid input {
+    font-size: 0.85rem;
+    padding: 0.55rem 0.7rem;
+  }
+}
