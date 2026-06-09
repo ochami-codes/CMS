@@ -67,7 +67,8 @@ export default function Sidebar({ open, onClose, onLogout, collapsed, onToggleCo
             </button>
           </div>
         </div>
-
+        {/* Scroll area wrapper */}
+      <div className={styles.scrollArea}>
         <nav className={styles.nav}>
           {visibleItems.map((item, idx) => {
             if (item.type === "group") {
@@ -91,6 +92,7 @@ export default function Sidebar({ open, onClose, onLogout, collapsed, onToggleCo
             );
           })}
         </nav>
+        </div>
 
         <div className={styles.footer}>
           <button onClick={onLogout} className={styles.logout} title={collapsed ? "Logout" : undefined}>

@@ -23,7 +23,6 @@
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease, transform 0.3s ease;
-  transform: translateX(0);
   z-index: 1000;
 }
 
@@ -127,6 +126,14 @@ z-index: 2000;
 }
 
 /* Nav */
+.scrollArea {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* nav scrolls inside controlled area */
 .nav {
   flex: 1;
   overflow-y: auto;
@@ -134,6 +141,12 @@ z-index: 2000;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+/* smooth scrolling feel */
+.nav {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 
 .nav::-webkit-scrollbar {
@@ -224,6 +237,10 @@ z-index: 2000;
 .footer {
   padding: 1rem;
   border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--surface);
+  position: sticky;
+  bottom: 0;
 }
 
 .logout {
