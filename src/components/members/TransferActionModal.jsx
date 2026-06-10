@@ -7,6 +7,7 @@ export default function TransferActionModal({
   action,
   onClose,
   onSubmit,
+  loading,
 }) {
   const [notes, setNotes] =
     useState("");
@@ -58,13 +59,14 @@ export default function TransferActionModal({
               ? "secondary"
               : "danger"
           }
+          disabled={ loading }
           onClick={() =>
             onSubmit({
               notes,
             })
           }
         >
-          Confirm
+          {loading ? "Processing..." : "Confirm"}
         </Button>
       </div>
     </Modal>

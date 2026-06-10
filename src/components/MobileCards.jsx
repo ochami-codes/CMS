@@ -29,8 +29,10 @@ export default function MobileCards({
               </small>
 
               <span>
-                {row[col.key]}
-              </span>
+  {col.render
+    ? col.render(row[col.key], row)
+    : row[col.key]}
+</span>
 
             </div>
 

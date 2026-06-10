@@ -7,7 +7,7 @@ import TransferDetailsCard from "../../components/members/TransferDetailsCard";
 import TransferActionModal from "../../components/members/TransferActionModal";
 import TransferRequestModal from "../../components/members/TransferRequestModal";
 import EmptyState from "../../components/EmptyState";
-
+import { useToast } from "../../components/ToastProvider";
 import { useTransfers } from "../../hooks/clerk/useTransfers";
 import { useClerkActions } from "../../hooks/clerk/useClerkActions";
 
@@ -22,10 +22,11 @@ export default function TransfersRegister() {
   const [actionType, setActionType] = useState(null);
   const [notes, setNotes] = useState("");
   const [openTransferModal, setOpenTransferModal] = useState(false);
-
+  const [actionLoading, setActionLoading] = useState(false);
   const { transfers = [], loading, error, refetch } = useTransfers();
   const { approveTransfer, rejectTransfer, createTransfer } =
     useClerkActions();
+  const { showToast } = useToast();
 
   /* -------------------------
      SPLIT TRANSFERS
@@ -83,26 +84,49 @@ export default function TransfersRegister() {
   };
 
   const handleCreateTransfer = async (payload) => {
+  try {
     await createTransfer(payload);
+    showToast("Transfer created successfully", "success");
     setOpenTransferModal(false);
-    refetch();
-  };
+    await refetch();
+  } catch (err) {
+    showToast(err?.message || "Failed to create transfer", "error");
+  }
+};
 
   const handleSubmitAction = async () => {
-    if (!selectedTransfer || !actionType) return;
+  if (!selectedTransfer || !actionType) return;
 
-    if (actionType === "approve") {
+  const isApprove = actionType === "approve";
+
+  try {
+    setActionLoading(true);
+
+    if (isApprove) {
       await approveTransfer(selectedTransfer.id, notes);
     } else {
       await rejectTransfer(selectedTransfer.id, notes);
     }
 
+    showToast(
+      `Transfer ${isApprove ? "approved" : "rejected"} successfully`,
+      "success"
+    );
+
     setSelectedTransfer(null);
     setActionType(null);
     setNotes("");
-    refetch();
-  };
 
+    await refetch();
+  } catch (err) {
+    showToast(
+      err?.message || "Action failed. Please try again.",
+      "error"
+    );
+  } finally {
+    setActionLoading(false);
+  }
+};
   const renderActions = (transfer, type) => (
     <div className={styles.actions}>
       <Button
@@ -250,6 +274,7 @@ export default function TransfersRegister() {
             setNotes("");
           }}
           onSubmit={handleSubmitAction}
+          loading={actionLoading}
         />
       )}
 
