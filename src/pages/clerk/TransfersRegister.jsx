@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { formatDate } from "../../utils/formatDate";
 
 import ResponsiveDataView from "../../components/ResponsiveDataView";
@@ -8,7 +8,8 @@ import TransferActionModal from "../../components/members/TransferActionModal";
 import TransferRequestModal from "../../components/members/TransferRequestModal";
 import EmptyState from "../../components/EmptyState";
 import { useToast } from "../../components/ToastProvider";
-import { useTransfers } from "../../hooks/clerk/useTransfers";
+import { useSourceTransfers } from "../../hooks/clerk/useSourceTransfers";
+import { useDestinationTransfers } from "../../hooks/clerk/useDestinationTransfers";
 import { useClerkActions } from "../../hooks/clerk/useClerkActions";
 
 import { RefreshCw, ArrowLeftRight } from "lucide-react";
@@ -23,23 +24,30 @@ export default function TransfersRegister() {
   const [notes, setNotes] = useState("");
   const [openTransferModal, setOpenTransferModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  const { transfers = [], loading, error, refetch } = useTransfers();
+  const {
+  transfers: sourceTransfers,
+  loading: loadingSource,
+  error: errorSource,
+   refetchSource,
+} = useSourceTransfers();
+
+const {
+  transfers: destinationTransfers,
+  loading: loadingDestination,
+  error: errorDestination,
+ refetchDestination,
+} = useDestinationTransfers();
   const { approveTransfer, rejectTransfer, createTransfer } =
     useClerkActions();
   const { showToast } = useToast();
+  const loading = loadingSource || loadingDestination;
+  const error = errorSource || errorDestination;
+  const transferOuts = sourceTransfers;
+  const transferIns = destinationTransfers;
+  const refetchAll = async () => {
+  await Promise.all([refetchSource(), refetchDestination()]);
+};
 
-  /* -------------------------
-     SPLIT TRANSFERS
-  -------------------------- */
-  const transferIns = useMemo(
-    () => transfers.filter((t) => t.transfer_type === "transfer_in"),
-    [transfers]
-  );
-
-  const transferOuts = useMemo(
-    () => transfers.filter((t) => t.transfer_type === "transfer_out"),
-    [transfers]
-  );
 
   /* -------------------------
      STATUS RENDERER
@@ -88,7 +96,7 @@ export default function TransfersRegister() {
     await createTransfer(payload);
     showToast("Transfer created successfully", "success");
     setOpenTransferModal(false);
-    await refetch();
+    await refetchAll();
   } catch (err) {
     showToast(err?.message || "Failed to create transfer", "error");
   }
@@ -117,7 +125,7 @@ export default function TransfersRegister() {
     setActionType(null);
     setNotes("");
 
-    await refetch();
+    await refetchAll();
   } catch (err) {
     showToast(
       err?.message || "Action failed. Please try again.",
@@ -180,7 +188,7 @@ export default function TransfersRegister() {
           title="Failed to load transfers"
           message="Something went wrong while fetching transfer data."
           action={
-            <Button variant="primary" onClick={refetch}>
+            <Button variant="primary" onClick={refetchAll}>
               <RefreshCw size={16} />
               Retry
             </Button>
@@ -193,7 +201,7 @@ export default function TransfersRegister() {
   /* -------------------------
      EMPTY STATE
   -------------------------- */
-  if (transfers.length === 0) {
+  if (sourceTransfers.length === 0 && destinationTransfers.length === 0) {
     return (
       <div className={styles.pageCard}>
         <h2 className={styles.cardTitle}>

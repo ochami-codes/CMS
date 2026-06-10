@@ -100,8 +100,14 @@ export const ClerkAPI = {
   /* -------------------------
      TRANSFERS
   -------------------------- */
-  getTransfers: (params = "") =>
-    request(`/clerk/transfers${params}`),
+  getSourceTransfers: (params = "") =>
+    request(`/clerk/transfers/source${params}`),
+
+  getDestinationTransfers: (params = "") =>
+    request(`/clerk/transfers/destination${params}`),
+
+  getTransferHistory: (params = "") =>
+    request(`/clerk/transfers/history${params}`),
 
   createTransfer: (payload) =>
     request(`/clerk/transfers/create`, {

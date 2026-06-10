@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ClerkAPI } from "../../utils/api";
 
-export function useTransfers(params = "") {
+export function useSourceTransfers() {
   const [transfers, setTransfers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -9,7 +9,9 @@ export function useTransfers(params = "") {
   const fetchTransfers = async () => {
     try {
       setLoading(true);
-      const data = await ClerkAPI.getTransfers(params);
+      setError(null);
+
+      const data = await ClerkAPI.getSourceTransfers();
       setTransfers(data);
     } catch (err) {
       setError(err);
@@ -20,7 +22,7 @@ export function useTransfers(params = "") {
 
   useEffect(() => {
     fetchTransfers();
-  }, [params]);
+  }, []);
 
   return {
     transfers,
