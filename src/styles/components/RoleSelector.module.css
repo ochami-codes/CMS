@@ -1,0 +1,67 @@
+.roleList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* each role item becomes a selectable card */
+.roleItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  background: #fff;
+}
+
+.roleItem:hover {
+  border-color: #c7d2fe;
+  background: #f9fafb;
+  transform: translateY(-1px);
+}
+
+/* hide native input */
+.roleItem input {
+  display: none;
+}
+
+/* role label text */
+.roleName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+/* custom checkbox indicator */
+.check {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 2px solid #d1d5db;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: all 0.15s ease;
+}
+
+/* checked state */
+.checked {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: white;
+}
+
+/* subtle selected card highlight */
+.selected {
+  border-color: #4f46e5;
+  background: #eef2ff;
+}
