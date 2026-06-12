@@ -32,7 +32,7 @@ export default function ManageRoles() {
   const [suspendTarget, setSuspendTarget] = useState(null);
   const [suspendReason, setSuspendReason] = useState("");
   const [selectedRoles, setSelectedRoles] = useState([]);
-
+  const [primaryRole, setPrimaryRole] = useState("");
   // data hooks
   const {
     members,
@@ -64,15 +64,27 @@ export default function ManageRoles() {
 
   // sync selected roles
   const openRoleModal = (member) => {
-    setSelectedMember(member);
-    setSelectedRoles(member.roles ?? []);
-  };
+  setSelectedMember(member);
 
+  const roles = member.roles ?? [];
+
+  setSelectedRoles(roles);
+  setPrimaryRole(
+    member.primary_role || roles[0] || ""
+  );
+};
 
   const handleSaveRoles = async () => {
-    await updateRoles(selectedMember.id, selectedRoles);
-    setSelectedMember(null);
-  };
+  await updateRoles(
+    selectedMember.id,
+    {
+      roles: selectedRoles,
+      primary_role: primaryRole,
+    }
+  );
+
+  setSelectedMember(null);
+};
 
   const toggleMemberStatus = async (member) => {
     if (isProtectedMember(member)) return showToast("Admins cannot be modified", "error");
@@ -220,13 +232,14 @@ export default function ManageRoles() {
   }
 >
   <RoleSelector
-    roles={roles}
-    loading={rolesLoading}
-    selectedRoles={selectedRoles}
-    onChange={setSelectedRoles}
-    getRoleLabel={getRoleLabel}
-    multiple
-  />
+  roles={roles}
+  loading={rolesLoading}
+  selectedRoles={selectedRoles}
+  primaryRole={primaryRole}
+  onChange={setSelectedRoles}
+  onPrimaryRoleChange={setPrimaryRole}
+  multiple
+/>
 </Modal>
       )}
 

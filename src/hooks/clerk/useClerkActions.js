@@ -85,52 +85,61 @@ export function useClerkActions() {
     }
   };
 
-  /* =========================
+ /* =========================
      REPORTS
   ========================== */
 
-  const generateReport = async (params) => {
-    try {
-      setLoading((p) => ({ ...p, report: true }));
-      setError(null);
+const generateReport = async (params) => {
+  try {
+    setLoading((p) => ({ ...p, report: true }));
+    setError(null);
 
-      // returns blob (PDF or structured data)
-      return await ClerkAPI.generateReport(params);
-    } catch (err) {
-      setError(err);
-      throw err;
-    } finally {
-      setLoading((p) => ({ ...p, report: false }));
-    }
-  };
+    const data = await ClerkAPI.generateReport({
+      ...params,
+      format: "json",
+    });
 
-  const downloadReport = async (params, filename = "church-report.pdf") => {
-    try {
-      setLoading((p) => ({ ...p, report: true }));
-      setError(null);
+    return data;
+  } catch (err) {
+    setError(err);
+    throw err;
+  } finally {
+    setLoading((p) => ({ ...p, report: false }));
+  }
+};
 
-      const blob = await ClerkAPI.generateReport(params);
+const downloadReport = async (
+  params,
+  filename = "church-report.pdf"
+) => {
+  try {
+    setLoading((p) => ({ ...p, report: true }));
+    setError(null);
 
-      const url = window.URL.createObjectURL(blob);
+    const blob = await ClerkAPI.downloadReport({
+      ...params,
+      format: "pdf",
+    });
 
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
+    const url = window.URL.createObjectURL(blob);
 
-      a.remove();
-      window.URL.revokeObjectURL(url);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
 
-      return true;
-    } catch (err) {
-      setError(err);
-      throw err;
-    } finally {
-      setLoading((p) => ({ ...p, report: false }));
-    }
-  };
+    a.remove();
+    window.URL.revokeObjectURL(url);
 
+    return true;
+  } catch (err) {
+    setError(err);
+    throw err;
+  } finally {
+    setLoading((p) => ({ ...p, report: false }));
+  }
+};
   return {
     createTransfer,
     approveTransfer,

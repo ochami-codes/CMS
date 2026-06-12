@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UserPlus, Clock, CheckCircle, XCircle } from "lucide-react";
+import { UserPlus, Clock, CheckCircle, XCircle, ArrowRightLeft } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { MembershipAPI } from "../../utils/api";
 import Card from "../Card";
@@ -11,7 +11,7 @@ export default function MembershipSection() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const { activeMembershipStatus, refetchUser } = useAuth();
+  const { isActiveMember, isPendingMember, isRejectedMember, isTransferred, refetchUser } = useAuth();
 
   const handleRequestMembership = async () => {
     try {
@@ -29,23 +29,29 @@ export default function MembershipSection() {
   };
 
   const statusConfig = {
-    requested: {
+    isPendingMember: {
       icon: Clock,
       title: "Request Pending",
       message: "Your membership request is being reviewed by church admins.",
       className: styles.pending,
     },
-    active: {
+    isActiveMember: {
       icon: CheckCircle,
       title: "Member",
       message: "Your membership is active. You have full access to ministries.",
       className: styles.active,
     },
-    rejected: {
+    isRejectedMember: {
       icon: XCircle,
       title: "Request Declined",
       message: "Your membership request was declined. Contact the church office for details.",
       className: styles.rejected,
+    },
+    isTransferred: {
+      icon: ArrowRightLeft,
+      title: "Membership Transferred",
+      message: "Your membership has been transferred from this church.",
+      className: styles.none,
     },
     none: {
       icon: UserPlus,
@@ -55,9 +61,9 @@ export default function MembershipSection() {
     },
   };
 
-  const config = statusConfig[activeMembershipStatus] || statusConfig.none;
+  const config = statusConfig[isActiveMember, isRejectedMember, isPendingMember, isTransferred] || statusConfig.none;
   const Icon = config.icon;
-  const showButton = activeMembershipStatus!== "requested" && activeMembershipStatus!== "active";
+  const showButton = isPendingMember;
 
   return (
     <section className={styles.section}>

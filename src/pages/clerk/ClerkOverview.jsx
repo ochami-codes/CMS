@@ -19,67 +19,58 @@ import { useClerkActions } from "../../hooks/clerk/useClerkActions";
 export default function ClerkOverview() {
   const { data, loading } = useClerkOverview();
 
-  const {
-    generateReport,
-    downloadReport,
-  } = useClerkActions();
+  const { generateReport, downloadReport } = useClerkActions();
 
   const [reportType, setReportType] = useState("monthly");
   const [year, setYear] = useState(new Date().getFullYear());
-  const [month, setMonth] = useState(new Date().getMonth());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [quarter, setQuarter] = useState(1);
 
   const [reportLoading, setReportLoading] = useState(false);
 
-  /* =========================
-     GENERATE REPORT PREVIEW
-  ========================== */
+  /* -------------------------
+     Build shared params
+  -------------------------- */
+  const buildParams = () => {
+    const params = {
+      period: reportType,
+      year,
+    };
+
+    if (reportType === "monthly") {
+      params.month = month;
+    }
+
+    if (reportType === "quarterly") {
+      params.quarter = quarter;
+    }
+
+    return params;
+  };
+
+  /* -------------------------
+     Preview Report
+  -------------------------- */
   const handleGenerateReport = async () => {
     try {
       setReportLoading(true);
-
-      const params = {
-        type: reportType,
-        year,
-      };
-
-      if (reportType === "monthly") {
-        params.month = month;
-      }
-
-      if (reportType === "quarterly") {
-        params.quarter = quarter;
-      }
-
-      await generateReport(params);
+      await generateReport(buildParams());
     } finally {
       setReportLoading(false);
     }
   };
 
-  /* =========================
-     DOWNLOAD REPORT
-  ========================== */
+  /* -------------------------
+     Download Report
+  -------------------------- */
   const handleDownloadReport = async () => {
     try {
       setReportLoading(true);
 
-      const params = {
-        type: reportType,
-        year,
-      };
-
-      if (reportType === "monthly") {
-        params.month = month;
-      }
-
-      if (reportType === "quarterly") {
-        params.quarter = quarter;
-      }
-
       const filename = `church-report-${reportType}-${year}.pdf`;
 
-      await downloadReport(params, filename);
+      await downloadReport(buildParams(), filename);
+      
     } finally {
       setReportLoading(false);
     }
@@ -95,9 +86,9 @@ export default function ClerkOverview() {
         📊 Church Overview
       </h2>
 
-      {/* =======================
+      {/* -----------------------
           STATS
-      ======================= */}
+      ------------------------ */}
       <div className={styles.statsGrid}>
         <StatCard
           title="Total Members"
@@ -124,9 +115,9 @@ export default function ClerkOverview() {
         />
       </div>
 
-      {/* =======================
+      {/* -----------------------
           REPORT GENERATOR
-      ======================= */}
+      ------------------------ */}
       <div className={styles.reportCard}>
         <h3 className={styles.sectionTitle}>
           <FileText size={18} />
@@ -139,9 +130,7 @@ export default function ClerkOverview() {
             <label>Report Type</label>
             <select
               value={reportType}
-              onChange={(e) =>
-                setReportType(e.target.value)
-              }
+              onChange={(e) => setReportType(e.target.value)}
             >
               <option value="monthly">Monthly</option>
               <option value="quarterly">Quarterly</option>
@@ -155,9 +144,7 @@ export default function ClerkOverview() {
             <input
               type="number"
               value={year}
-              onChange={(e) =>
-                setYear(Number(e.target.value))
-              }
+              onChange={(e) => setYear(Number(e.target.value))}
             />
           </div>
 
@@ -167,16 +154,14 @@ export default function ClerkOverview() {
               <label>Month</label>
               <select
                 value={month}
-                onChange={(e) =>
-                  setMonth(Number(e.target.value))
-                }
+                onChange={(e) => setMonth(Number(e.target.value))}
               >
                 {[
                   "January","February","March","April",
                   "May","June","July","August",
                   "September","October","November","December",
                 ].map((m, i) => (
-                  <option key={i} value={i}>
+                  <option key={i} value={i + 1}>
                     {m}
                   </option>
                 ))}
@@ -190,9 +175,7 @@ export default function ClerkOverview() {
               <label>Quarter</label>
               <select
                 value={quarter}
-                onChange={(e) =>
-                  setQuarter(Number(e.target.value))
-                }
+                onChange={(e) => setQuarter(Number(e.target.value))}
               >
                 <option value={1}>Q1</option>
                 <option value={2}>Q2</option>
@@ -209,9 +192,7 @@ export default function ClerkOverview() {
             onClick={handleGenerateReport}
             disabled={reportLoading}
           >
-            {reportLoading
-              ? "Generating..."
-              : "Preview Report"}
+            {reportLoading ? "Generating..." : "Preview Report"}
           </Button>
 
           <Button

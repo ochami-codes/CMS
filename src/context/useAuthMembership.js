@@ -21,6 +21,8 @@ export function useAuthMembership(user) {
 
   const isActiveMember =
     activeMembershipStatus === "active";
+  const isTransferred =
+    activeMembershipStatus ==="transferred";
 
   const isPendingMember =
     !!activeMembershipRequest;
@@ -68,6 +70,7 @@ export function useAuthMembership(user) {
       user?.membership_requests || [],
 
     isActiveMember,
+    isTransferred,
     isPendingMember,
     isRejectedMember,
     isSuspendedMember,

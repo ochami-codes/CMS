@@ -134,32 +134,45 @@ export const ClerkAPI = {
      REPORTS
   -------------------------- */
 
-  generateReport: async (params) => {
-    const query = new URLSearchParams(params).toString();
+generateReport: async (params) => {
+  const query = new URLSearchParams({
+    ...params,
+    format: "json",
+  }).toString();
 
-    return request(`/clerk/reports/summary?${query}`, {
+  return request(`/clerk/reports/summary?${query}`, {
+    method: "GET",
+  });
+},
+
+downloadReport: async (params) => {
+  const query = new URLSearchParams({
+    ...params,
+    format: "pdf",
+  }).toString();
+
+  const response = await fetch(
+    `/clerk/reports/summary?${query}`,
+    {
       method: "GET",
-    });
-  },
-
-  downloadReport: async (params) => {
-    const query = new URLSearchParams(params).toString();
-
-    const response = await fetch(
-      `/clerk/reports/summary/pdf?${query}`,
-      {
-        method: "GET",
-        credentials: "include",
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to download report");
+      credentials: "include",
     }
+  );
+console.log("Status:", response.status);
+console.log("Content-Type:", response.headers.get("content-type"));
 
-    return await response.blob();
-  },
-};
+const buffer = await response.arrayBuffer();
+
+console.log("Frontend buffer size:", buffer.byteLength);
+
+const bytes = new Uint8Array(buffer.slice(0, 10));
+console.log("Frontend header bytes:", bytes);
+  if (!response.ok) {
+    throw new Error("Failed to download report");
+  }
+
+  return await response.blob();
+}};
 /* ======================
    AUTH API
 ====================== */

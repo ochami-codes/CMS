@@ -34,7 +34,7 @@ export default function Onboarding() {
       {/* ---------------- WELCOME HEADER ---------------- */}
       <PageHeader
         title={`Welcome in Christ, ${user.full_name || "beloved member"} 🙏`}
-        subtitle="We’re glad you’re here. Let’s walk this journey of faith together."
+        subtitle="We’re glad you’re here."
       />
 
       {/* ---------------- ACTIVE MEMBERSHIPS ---------------- */}
@@ -113,11 +113,10 @@ export default function Onboarding() {
       {/* ---------------- EMPTY STATE ---------------- */}
       {!hasAnyMembership && !isPendingMember && !isRejectedMember && (
         <Card className={styles.churchCard}>
-          <h3>Welcome to your new beginning</h3>
+          <h3>Welcome child of God</h3>
 
           <p className={styles.note}>
-            You have not joined a church yet. Take your next step in faith by connecting with a church family
-            or starting a new fellowship.
+            You have not joined a church yet. Take your next step to join an existing church ar create yours.
           </p>
 
           <div className={styles.actionsInline}>

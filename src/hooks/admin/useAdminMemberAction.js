@@ -38,7 +38,7 @@ export function useAdminMemberActions(reload, showToast) {
   const updateRoles = async (id, roles) => {
     try {
       setSaving(true);
-      await AdminAPI.updateMemberRoles(id, { roles });
+      await AdminAPI.updateMemberRoles(id, roles);
       showToast("Roles updated", "success");
       await reload();
     } catch {
