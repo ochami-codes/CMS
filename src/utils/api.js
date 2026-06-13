@@ -146,33 +146,20 @@ generateReport: async (params) => {
 },
 
 downloadReport: async (params) => {
-  const query = new URLSearchParams({
-    ...params,
-    format: "pdf",
-  }).toString();
+    const query = new URLSearchParams({
+      ...params,
+      format: "pdf",
+    }).toString();
 
-  const response = await fetch(
-    `/clerk/reports/summary?${query}`,
-    {
-      method: "GET",
-      credentials: "include",
-    }
-  );
-console.log("Status:", response.status);
-console.log("Content-Type:", response.headers.get("content-type"));
-
-const buffer = await response.arrayBuffer();
-
-console.log("Frontend buffer size:", buffer.byteLength);
-
-const bytes = new Uint8Array(buffer.slice(0, 10));
-console.log("Frontend header bytes:", bytes);
-  if (!response.ok) {
-    throw new Error("Failed to download report");
-  }
-
-  return await response.blob();
-}};
+    return request(
+      `/clerk/reports/summary?${query}`,
+      {
+        method: "GET",
+        credentials: "include",           
+      }
+    );
+  },
+};
 /* ======================
    AUTH API
 ====================== */

@@ -3,11 +3,12 @@ import { ClerkAPI } from "../../utils/api";
 
 export function useClerkActions() {
   const [loading, setLoading] = useState({
-    transfer: false,
-    member: false,
-    child: false,
-    report: false,
-  });
+  transfer: false,
+  member: false,
+  child: false,
+  reportPreview: false,
+  reportDownload: false,
+});
 
   const [error, setError] = useState(null);
 
@@ -91,29 +92,21 @@ export function useClerkActions() {
 
 const generateReport = async (params) => {
   try {
-    setLoading((p) => ({ ...p, report: true }));
+    setLoading((p) => ({ ...p, reportPreview: true }));
     setError(null);
 
-    const data = await ClerkAPI.generateReport({
+    return await ClerkAPI.generateReport({
       ...params,
       format: "json",
     });
-
-    return data;
-  } catch (err) {
-    setError(err);
-    throw err;
   } finally {
-    setLoading((p) => ({ ...p, report: false }));
+    setLoading((p) => ({ ...p, reportPreview: false }));
   }
 };
 
-const downloadReport = async (
-  params,
-  filename = "church-report.pdf"
-) => {
+const downloadReport = async (params, filename = "church-report.pdf") => {
   try {
-    setLoading((p) => ({ ...p, report: true }));
+    setLoading((p) => ({ ...p, reportDownload: true }));
     setError(null);
 
     const blob = await ClerkAPI.downloadReport({
@@ -128,16 +121,13 @@ const downloadReport = async (
     a.download = filename;
     document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
 
-    a.remove();
     window.URL.revokeObjectURL(url);
 
     return true;
-  } catch (err) {
-    setError(err);
-    throw err;
   } finally {
-    setLoading((p) => ({ ...p, report: false }));
+    setLoading((p) => ({ ...p, reportDownload: false }));
   }
 };
   return {

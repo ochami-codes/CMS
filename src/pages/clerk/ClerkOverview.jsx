@@ -52,6 +52,7 @@ export default function ClerkOverview() {
      Preview Report
   -------------------------- */
   const handleGenerateReport = async () => {
+    console.log("preview");
     try {
       setReportLoading(true);
       await generateReport(buildParams());
@@ -64,13 +65,13 @@ export default function ClerkOverview() {
      Download Report
   -------------------------- */
   const handleDownloadReport = async () => {
+    console.log("download");
     try {
       setReportLoading(true);
 
       const filename = `church-report-${reportType}-${year}.pdf`;
 
       await downloadReport(buildParams(), filename);
-      
     } finally {
       setReportLoading(false);
     }

@@ -3,45 +3,58 @@ const API_URL = import.meta.env.VITE_API_URL;
 export async function request(endpoint, options = {}, skipAuth = false) {
   const token = !skipAuth ? localStorage.getItem("access_token") : null;
 
+  const isFormData = options.body instanceof FormData;
+  const isStringBody = typeof options.body === "string";
+
   const headers = {
-    "Content-Type": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
 
+  const res = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers,
+    body:
+      options.body && !isFormData && !isStringBody
+        ? JSON.stringify(options.body)
+        : options.body,
+  });
+
+  const contentType = res.headers.get("content-type");
+
+  // 🚨 HANDLE PDF
+  if (contentType?.includes("application/pdf")) {
+    if (!res.ok) throw new Error("PDF request failed");
+    return await res.blob();
+  }
+
+  // 🚨 HANDLE BINARY
+  if (contentType?.includes("application/octet-stream")) {
+    if (!res.ok) throw new Error("Binary request failed");
+    return await res.blob();
+  }
+
+  // ✅ SAFE JSON PARSING
+  let data = null;
+
   try {
-    const res = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    data = await res.json();
+  } catch {
+    // response might be empty (204) or non-JSON
+  }
 
-    let data;
-    try {
-      data = await res.json();
-    } catch {
-      data = null; // Non-JSON response
-    }
-
-    if (!res.ok) {
-      throw {
-        status: res.status,
-        message:
-          data?.message ||
-          data?.error ||
-          `Request failed with status ${res.status}`,
-        code: data?.code || null,
-        data,
-      };
-    }
-
-    return data;
-  } catch (err) {
-    if (err?.status) throw err;
-
+  // ❌ ERROR HANDLING
+  if (!res.ok) {
     throw {
-      status: 0,
-      message: err?.message || "Network error",
-      data: null,
+      status: res.status,
+      message:
+        data?.message ||
+        data?.error ||
+        `Request failed with status ${res.status}`,
+      data,
     };
   }
+
+  return data;
 }

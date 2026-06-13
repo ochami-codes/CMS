@@ -5,6 +5,7 @@ export default function Button({
   children,
   variant = "primary",
   size = "md",
+  type = "button",
   to,
   fullWidth = false,
   disabled = false,
@@ -37,6 +38,7 @@ export default function Button({
     <button
       className={classes}
       disabled={disabled}
+      type={type}
       {...props}
     >
       {children}
