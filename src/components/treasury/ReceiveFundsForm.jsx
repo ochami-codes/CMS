@@ -46,8 +46,7 @@ export default function ReceiveFundsForm({
     e.preventDefault();
 
     if (loading) return;
-
-    setLoading(true);
+setLoading(true);
 
     try {
       await TreasuryAPI.createTransaction({
