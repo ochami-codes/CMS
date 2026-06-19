@@ -99,6 +99,9 @@ const generateReport = async (params) => {
       ...params,
       format: "json",
     });
+  } catch (err) {
+    setError(err);
+    throw err;
   } finally {
     setLoading((p) => ({ ...p, reportPreview: false }));
   }
@@ -114,6 +117,10 @@ const downloadReport = async (params, filename = "church-report.pdf") => {
       format: "pdf",
     });
 
+    if (!(blob instanceof Blob)) {
+      throw new Error("Invalid response: expected PDF blob");
+    }
+
     const url = window.URL.createObjectURL(blob);
 
     const a = document.createElement("a");
@@ -126,6 +133,9 @@ const downloadReport = async (params, filename = "church-report.pdf") => {
     window.URL.revokeObjectURL(url);
 
     return true;
+  } catch (err) {
+    setError(err);
+    throw err; // optional but useful if caller wants to react
   } finally {
     setLoading((p) => ({ ...p, reportDownload: false }));
   }

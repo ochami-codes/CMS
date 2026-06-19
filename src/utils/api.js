@@ -45,11 +45,35 @@ export const DepartmentsAPI = {
    TREASURY API
 ====================== */
 export const TreasuryAPI = {
-  overview: (params = "") => request(`/treasury/overview${params}`),
-  fundGroups: (params = "") => request(`/treasury/fund-groups${params}`),
-  fundsByGroup: (groupId, params = "") => request(`/treasury/fund-groups/${groupId}/funds${params}`),
-  memberGivingSummary: (params = "") => request(`/treasury/member-giving-summary${params}`),
-  createTransaction: (payload) => request("/treasury/transactions", { method: "POST", body: JSON.stringify(payload) }),
+  /* Dashboard */
+  overview: (params = "") =>
+    request(`/treasury/overview${params}`),
+
+  /* Funds */
+  funds: () => { return request( `/treasury/funds` );
+},
+
+  fundSummary: (id, params = "") =>
+    request(`/treasury/funds/${id}${params}`),
+
+  /* Transactions */
+  transactions: (params = "") =>
+    request(`/treasury/transactions${params}`),
+
+  createTransaction: (payload) =>
+    request("/treasury/transactions", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  /* Members */
+  memberGivingSummary: (params = "") =>
+    request(`/treasury/members${params}`),
+
+  memberGivingHistory: (memberId, params = "") =>
+    request(
+      `/treasury/members/${memberId}${params}`
+    ),
 };
 
 export const ClerkAPI = {

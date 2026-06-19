@@ -12,22 +12,22 @@ import StatCard from "../../components/StatCard";
 import Button from "../../components/Button";
 
 import styles from "../../styles/pages/Clerk.module.css";
-
 import { useClerkOverview } from "../../hooks/clerk/useClerkOverview";
 import { useClerkActions } from "../../hooks/clerk/useClerkActions";
 
 export default function ClerkOverview() {
   const { data, loading } = useClerkOverview();
 
-  const { generateReport, downloadReport } = useClerkActions();
+  const {
+  downloadReport,
+  loading: actionLoading,
+} = useClerkActions();
 
   const [reportType, setReportType] = useState("monthly");
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [quarter, setQuarter] = useState(1);
-
-  const [reportLoading, setReportLoading] = useState(false);
-
+  const reportDownloadLoading = actionLoading.reportDownload;
   /* -------------------------
      Build shared params
   -------------------------- */
@@ -49,32 +49,11 @@ export default function ClerkOverview() {
   };
 
   /* -------------------------
-     Preview Report
-  -------------------------- */
-  const handleGenerateReport = async () => {
-    console.log("preview");
-    try {
-      setReportLoading(true);
-      await generateReport(buildParams());
-    } finally {
-      setReportLoading(false);
-    }
-  };
-
-  /* -------------------------
      Download Report
   -------------------------- */
   const handleDownloadReport = async () => {
-    console.log("download");
-    try {
-      setReportLoading(true);
-
-      const filename = `church-report-${reportType}-${year}.pdf`;
-
-      await downloadReport(buildParams(), filename);
-    } finally {
-      setReportLoading(false);
-    }
+    const filename = `church-report-${reportType}-${year}.pdf`;
+    await downloadReport(buildParams(), filename);
   };
 
   if (loading) {
@@ -188,24 +167,15 @@ export default function ClerkOverview() {
         </div>
 
         {/* ACTIONS */}
-        <div className={styles.reportActions}>
-          <Button
-            onClick={handleGenerateReport}
-            disabled={reportLoading}
-          >
-            {reportLoading ? "Generating..." : "Preview Report"}
-          </Button>
 
-          <Button
-            variant="secondary"
-            onClick={handleDownloadReport}
-            disabled={reportLoading}
-          >
-            <Download size={16} />
-            Download PDF
-          </Button>
+<Button
+  variant="secondary"
+  onClick={handleDownloadReport}
+  disabled={reportDownloadLoading}
+>
+  {reportDownloadLoading ? "Downloading..." : "Download PDF"}
+</Button>
         </div>
-      </div>
-    </div>
+  </div>
   );
-}
+  }

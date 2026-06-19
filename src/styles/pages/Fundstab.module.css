@@ -1,0 +1,103 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* SUMMARY */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+/* GROUP LIST */
+.groupList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* HEADER */
+.groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.groupTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.groupMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+}
+
+.chevron {
+  transition: transform 0.2s ease;
+}
+
+.rotate {
+  transform: rotate(180deg);
+}
+
+/* BODY */
+.groupBody {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* FUNDS */
+.fundList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fundRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.muted {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* DEPARTMENTS */
+.departmentBlock h4 {
+  margin: 0.5rem 0;
+}
+
+.departmentGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.departmentCard {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .summaryGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .departmentGrid {
+    grid-template-columns: 1fr;
+  }
+}

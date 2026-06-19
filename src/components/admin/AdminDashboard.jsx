@@ -1,17 +1,47 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useAuth } from "../../context/AuthContext";
 
 import AdminHeader from "./AdminHeader";
-import AdminTabs from "./AdminTabs";
 import AdminContent from "./AdminContent";
 
+import Tabs from "../Tabs";
 import Loader from "../Loader";
 import Card from "../Card";
 
 import styles from "../../styles/admin/AdminDashboard.module.css";
 
-export default function AdminDashboard() {
+const TABS = (counts) => [
+  {
+    key: "manage",
+    label: "Manage Members",
+  },
+  {
+    key: "membership-requests",
+    label: "Membership Requests",
+    badge: counts.memberships,
+  },
+  {
+    key: "role-requests",
+    label: "Role Requests",
+    badge: counts.roles,
+  },
+];
+
+function CenterMessage({ children }) {
+  return (
+    <div className={styles.center}>
+      <Card>{children}</Card>
+    </div>
+  );
+}
+
+export default function AdminDashboard({
+  counts = {
+    memberships: 0,
+    roles: 0,
+  },
+}) {
   const {
     user,
     authReady,
@@ -21,18 +51,10 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] =
     useState("manage");
 
-  const [pageReady, setPageReady] =
-    useState(false);
-
-  useEffect(() => {
-    if (!authReady) return;
-
-    setPageReady(true);
-  }, [authReady]);
-
   /* -----------------------
-     LOADING AUTH
+     AUTH LOADING
   ----------------------- */
+
   if (!authReady) {
     return (
       <div className={styles.center}>
@@ -42,59 +64,53 @@ export default function AdminDashboard() {
   }
 
   /* -----------------------
-     NOT LOGGED IN
+     NOT SIGNED IN
   ----------------------- */
+
   if (!user) {
     return (
-      <div className={styles.center}>
-        <Card>
-          Please sign in to continue.
-        </Card>
-      </div>
+      <CenterMessage>
+        Please sign in to continue.
+      </CenterMessage>
     );
   }
 
   /* -----------------------
-     PERMISSION CHECK
+     ACCESS CHECK
   ----------------------- */
-  if (!canUser("access_admin_dashboard")) {
+
+  if (
+    !canUser(
+      "access_admin_dashboard"
+    )
+  ) {
     return (
-      <div className={styles.center}>
-        <Card>
-          You do not have permission to access this page.
-        </Card>
-      </div>
+      <CenterMessage>
+        You do not have permission
+        to access this page.
+      </CenterMessage>
     );
   }
 
   /* -----------------------
-     LOCAL LOADING
+     UI
   ----------------------- */
-  if (!pageReady) {
-    return (
-      <div className={styles.center}>
-        <Loader message="Preparing admin dashboard..." />
-      </div>
-    );
-  }
 
-  /* -----------------------
-     MAIN UI
-  ----------------------- */
   return (
     <div className={styles.page}>
-
       <AdminHeader />
 
-      <AdminTabs
+      <Tabs
+        tabs={TABS(counts)}
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        onChange={setActiveTab}
       />
 
       <Card className={styles.content}>
-        <AdminContent activeTab={activeTab} />
+        <AdminContent
+          activeTab={activeTab}
+        />
       </Card>
-
     </div>
   );
 }

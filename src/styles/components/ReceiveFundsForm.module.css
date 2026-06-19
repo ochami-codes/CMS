@@ -1,0 +1,152 @@
+.card {
+  width: 100%;
+}
+
+
+.header {
+  margin-bottom: 1.5rem;
+}
+
+
+.header h2 {
+  margin: 0;
+}
+
+
+.header p {
+  margin-top: .35rem;
+  color: var(--text-muted);
+}
+
+
+
+.form {
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(2, 1fr);
+
+  gap:1rem;
+
+}
+
+
+
+.field {
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:.45rem;
+
+}
+
+
+
+.field label {
+
+  font-size:.9rem;
+
+  font-weight:600;
+
+}
+
+
+
+.field input,
+.field select,
+.field textarea {
+
+  width:100%;
+
+  padding:.75rem;
+
+  border-radius:.6rem;
+
+}
+
+
+
+.field textarea {
+
+  min-height:100px;
+
+  resize:vertical;
+
+}
+
+
+
+.full {
+
+  grid-column:
+    1 / -1;
+
+}
+
+
+
+.actions {
+
+  grid-column:
+    1 / -1;
+
+  display:flex;
+
+  justify-content:flex-end;
+
+  gap:.75rem;
+
+}
+
+
+
+/* Tablet */
+
+@media(max-width:800px){
+
+  .form {
+
+    grid-template-columns:
+      1fr;
+
+  }
+
+
+  .actions {
+
+    flex-direction:column-reverse;
+
+  }
+
+
+  .actions button {
+
+    width:100%;
+
+  }
+
+}
+
+
+
+/* Mobile */
+
+@media(max-width:480px){
+
+  .header h2 {
+
+    font-size:1.2rem;
+
+  }
+
+
+  .card {
+
+    padding:.9rem;
+
+  }
+
+}
