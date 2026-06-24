@@ -3,9 +3,7 @@ import { ChevronDown, Landmark } from "lucide-react";
 
 import Card from "../../components/Card";
 import Button from "../../components/Button";
-
-import styles from "../../styles/pages/FundsTab.module.css";
-
+import styles from "../../styles/pages/Fundstab.module.css";
 export default function FundsTab({ groups = [] }) {
   const [openGroup, setOpenGroup] = useState(null);
 
