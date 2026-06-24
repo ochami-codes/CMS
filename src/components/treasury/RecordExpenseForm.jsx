@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { Save } from "lucide-react";
 import toast from "react-hot-toast";
 
 import Card from "../Card";
 import Button from "../Button";
-
+import useTreasuryFunds from "../../hooks/treasury/useTreasuryFunds";
 import { TreasuryAPI } from "../../utils/api";
 
 import styles from "../../styles/components/RecordExpenseForm.module.css";
@@ -15,36 +15,39 @@ export default function RecordExpenseForm({
   onCancel,
 }) {
 
-  const [funds, setFunds] = useState([]);
+  const fundFilters = useMemo(
+  () => ({
+    group_type: "local",
+  }),
+  []
+);
+
+
+const {
+  funds
+} = useTreasuryFunds(fundFilters);
   const [loading, setLoading] = useState(false);
 
 
   const [form, setForm] = useState({
+
     fund_id: "",
+
     amount: "",
-    paid_to: "",
-    reference: "",
+
+    payee_name: "",
+
+    expense_category: "",
+
+    payment_method: "",
+
     date: new Date()
       .toISOString()
       .split("T")[0],
+
     notes: "",
+
   });
-
-
-
-  useEffect(() => {
-
-    TreasuryAPI.funds()
-      .then(setFunds)
-      .catch(() =>
-        toast.error(
-          "Failed loading funds"
-        )
-      );
-
-  }, []);
-
-
 
   const handleChange = (e) => {
 
@@ -58,9 +61,11 @@ export default function RecordExpenseForm({
 
 
 
+
   const submit = async (e) => {
 
     e.preventDefault();
+
 
     if (loading) return;
 
@@ -72,20 +77,22 @@ export default function RecordExpenseForm({
 
       await TreasuryAPI.createTransaction({
 
+        type: "OUT",
+
         fund_id:
           form.fund_id,
 
         amount:
           Number(form.amount),
 
-        type:
-          "expense",
+        payee_name:
+          form.payee_name,
 
-        external_name:
-          form.paid_to || null,
+        expense_category:
+          form.expense_category,
 
-        reference:
-          form.reference || null,
+        payment_method:
+          form.payment_method,
 
         date:
           form.date,
@@ -104,10 +111,10 @@ export default function RecordExpenseForm({
       onSuccess?.();
 
 
-    } catch(err){
+    } catch(error) {
 
       toast.error(
-        err.message ||
+        error.message ||
         "Failed recording expense"
       );
 
@@ -133,7 +140,7 @@ export default function RecordExpenseForm({
         </h2>
 
         <p>
-          Record money spent by the church
+          Record money spent from a church fund
         </p>
 
       </div>
@@ -147,61 +154,60 @@ export default function RecordExpenseForm({
 
 
 
-        {/* Fund */}
+        {/* FUND */}
 
         <div className={styles.field}>
 
           <label>
-            Fund
+            Pay From Fund
           </label>
+
+          <small>
+            Choose the fund that provided this money
+          </small>
 
 
           <select
 
             name="fund_id"
 
-            value={
-              form.fund_id
-            }
+            value={form.fund_id}
 
-            onChange={
-              handleChange
-            }
+            onChange={handleChange}
 
             required
 
           >
 
             <option value="">
-              Select Fund
+              Select fund
             </option>
 
 
-            {funds.map(f => (
+            {funds.map((fund)=>(
 
               <option
-                key={f.id}
-                value={f.id}
+                key={fund.id}
+                value={fund.id}
               >
-                {f.name}
+                {fund.name}
               </option>
 
             ))}
 
           </select>
 
-
         </div>
 
 
 
 
-        {/* Amount */}
+        {/* AMOUNT */}
 
         <div className={styles.field}>
 
           <label>
-            Amount
+            Amount Spent
           </label>
 
 
@@ -211,17 +217,13 @@ export default function RecordExpenseForm({
 
             name="amount"
 
-            min="1"
+            value={form.amount}
 
-            value={
-              form.amount
-            }
-
-            onChange={
-              handleChange
-            }
+            onChange={handleChange}
 
             placeholder="KES"
+
+            min="1"
 
             required
 
@@ -232,7 +234,7 @@ export default function RecordExpenseForm({
 
 
 
-        {/* Paid To */}
+        {/* PAYEE */}
 
         <div className={styles.field}>
 
@@ -240,20 +242,22 @@ export default function RecordExpenseForm({
             Paid To
           </label>
 
+          <small>
+            Person, company or place that received money
+          </small>
+
 
           <input
 
-            name="paid_to"
+            name="payee_name"
 
-            value={
-              form.paid_to
-            }
+            value={form.payee_name}
 
-            onChange={
-              handleChange
-            }
+            onChange={handleChange}
 
-            placeholder="Supplier / Person"
+            placeholder="e.g. ABC Hardware"
+
+            required
 
           />
 
@@ -262,37 +266,93 @@ export default function RecordExpenseForm({
 
 
 
-        {/* Reference */}
+
+        {/* CATEGORY */}
 
         <div className={styles.field}>
 
+
           <label>
-            Reference
+            Expense Category
           </label>
+
+
+          <small>
+            What was the money used for?
+            Example: Transport, Food, Repairs, Electricity
+          </small>
 
 
           <input
 
-            name="reference"
+            name="expense_category"
 
-            value={
-              form.reference
-            }
+            value={form.expense_category}
 
-            onChange={
-              handleChange
-            }
+            onChange={handleChange}
 
-            placeholder="Receipt / MPESA"
+            placeholder="e.g. Youth camp food"
+
+            required
 
           />
+
 
         </div>
 
 
 
 
-        {/* Date */}
+
+        {/* PAYMENT */}
+
+        <div className={styles.field}>
+
+
+          <label>
+            Payment Method
+          </label>
+
+
+          <select
+
+            name="payment_method"
+
+            value={form.payment_method}
+
+            onChange={handleChange}
+
+          >
+
+            <option value="">
+              Select method
+            </option>
+
+            <option value="cash">
+              Cash
+            </option>
+
+            <option value="bank">
+              Bank
+            </option>
+
+            <option value="mobile_money">
+              Mobile Money
+            </option>
+
+            <option value="cheque">
+              Cheque
+            </option>
+
+          </select>
+
+        </div>
+
+
+
+
+
+        {/* DATE */}
 
         <div className={styles.field}>
 
@@ -300,20 +360,15 @@ export default function RecordExpenseForm({
             Date
           </label>
 
-
           <input
 
             type="date"
 
             name="date"
 
-            value={
-              form.date
-            }
+            value={form.date}
 
-            onChange={
-              handleChange
-            }
+            onChange={handleChange}
 
           />
 
@@ -322,14 +377,15 @@ export default function RecordExpenseForm({
 
 
 
-        {/* Notes */}
+
+        {/* NOTES */}
 
         <div
           className={`${styles.field} ${styles.full}`}
         >
 
           <label>
-            Notes
+            Notes (Optional)
           </label>
 
 
@@ -337,18 +393,13 @@ export default function RecordExpenseForm({
 
             name="notes"
 
-            value={
-              form.notes
-            }
+            value={form.notes}
 
-            onChange={
-              handleChange
-            }
+            onChange={handleChange}
 
-            placeholder="Expense details"
+            placeholder="Add more details if needed"
 
           />
-
 
         </div>
 
@@ -373,8 +424,8 @@ export default function RecordExpenseForm({
 
 
           <Button
-            disabled={loading}
-          >
+          type="submit"
+          disabled={loading}>
 
             <Save size={16}/>
 
@@ -389,11 +440,11 @@ export default function RecordExpenseForm({
         </div>
 
 
-
       </form>
 
 
     </Card>
 
   );
+
 }

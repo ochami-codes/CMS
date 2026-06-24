@@ -178,3 +178,83 @@
   }
 
 }
+/* Form Overlay */
+
+.overlay {
+
+  position: fixed;
+  inset: 0;
+
+  background: rgba(0,0,0,.45);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 1000;
+
+  padding: 1rem;
+
+}
+
+
+
+.modal {
+
+  position: relative;
+
+  background: var(--card-bg);
+
+  width: min(600px, 100%);
+
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  border-radius: 16px;
+
+  padding: 1.5rem;
+
+  box-shadow: 0 20px 50px rgba(0,0,0,.25);
+
+  animation: modalIn .2s ease;
+
+}
+
+
+
+.close {
+
+  position: absolute;
+
+  right: 1rem;
+  top: 1rem;
+
+  border: none;
+  background: transparent;
+
+  cursor: pointer;
+
+  color: var(--text-muted);
+
+}
+
+
+
+@keyframes modalIn {
+
+  from {
+
+    opacity:0;
+    transform: translateY(20px);
+
+  }
+
+  to {
+
+    opacity:1;
+    transform:translateY(0);
+
+  }
+
+}

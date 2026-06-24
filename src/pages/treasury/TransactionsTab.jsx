@@ -3,8 +3,10 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   Download,
-  Landmark
+  Landmark,
+  X,
 } from "lucide-react";
+
 import { useState } from "react";
 
 import Card from "../../components/Card";
@@ -13,20 +15,20 @@ import ResponsiveDataView from "../../components/ResponsiveDataView";
 
 import ReceiveFundsForm from "../../components/treasury/ReceiveFundsForm";
 import RecordExpenseForm from "../../components/treasury/RecordExpenseForm";
-
+import useTreasuryTransactions from "../../hooks/treasury/useTreasuryTransactions";
 import styles from "../../styles/pages/TransactionsTab.module.css";
 
 
 export default function TransactionsTab({
-  transactions = [],
-  summary = {},
   onRefresh,
   onExport,
 }) {
-
-  const [activeForm, setActiveForm] =
-    useState(null);
-
+  const {
+    transactions,
+    summary,
+    refresh,
+  } = useTreasuryTransactions();
+  const [activeForm, setActiveForm] = useState(null);
 
 
   const closeForm = () => {
@@ -36,9 +38,9 @@ export default function TransactionsTab({
 
   const handleSuccess = () => {
     closeForm();
+    refresh();
     onRefresh?.();
   };
-
 
 
   const columns = [
@@ -60,7 +62,6 @@ export default function TransactionsTab({
     {
       key: "type",
       label: "Type",
-
       render: (row) => (
         <span
           className={
@@ -90,13 +91,10 @@ export default function TransactionsTab({
   ];
 
 
-
   return (
 
     <section className={styles.container}>
 
-
-      {/* HEADER */}
 
       <div className={styles.header}>
 
@@ -121,29 +119,21 @@ export default function TransactionsTab({
           Export
         </Button>
 
-
       </div>
 
 
-
-
-
-      {/* QUICK ACTIONS */}
 
       <div className={styles.actions}>
 
 
         <Card
           className={styles.actionCard}
-          onClick={() =>
-            setActiveForm("income")
-          }
+          onClick={() => setActiveForm("income")}
         >
 
           <ArrowDownCircle size={32}/>
 
           <div>
-
             <h3>
               Receive Funds
             </h3>
@@ -151,9 +141,7 @@ export default function TransactionsTab({
             <p>
               Tithe, offerings, contributions
             </p>
-
           </div>
-
 
           <Plus size={18}/>
 
@@ -161,19 +149,14 @@ export default function TransactionsTab({
 
 
 
-
-
         <Card
           className={styles.actionCard}
-          onClick={() =>
-            setActiveForm("expense")
-          }
+          onClick={() => setActiveForm("expense")}
         >
 
           <ArrowUpCircle size={32}/>
 
           <div>
-
             <h3>
               Record Expense
             </h3>
@@ -181,9 +164,7 @@ export default function TransactionsTab({
             <p>
               Payments and spending
             </p>
-
           </div>
-
 
           <Plus size={18}/>
 
@@ -191,21 +172,14 @@ export default function TransactionsTab({
 
 
 
-
-
-
         <Card
           className={styles.actionCard}
-          onClick={() =>
-            setActiveForm("fund")
-          }
+          onClick={() => setActiveForm("fund")}
         >
 
           <Landmark size={32}/>
 
-
           <div>
-
             <h3>
               Add Fund
             </h3>
@@ -213,9 +187,7 @@ export default function TransactionsTab({
             <p>
               Create local or departmental fund
             </p>
-
           </div>
-
 
           <Plus size={18}/>
 
@@ -227,52 +199,50 @@ export default function TransactionsTab({
 
 
 
+      {/* OVERLAY FORM */}
+
+      {activeForm && (
+
+        <div className={styles.overlay}>
+
+
+          <div className={styles.modal}>
+
+
+            <button
+              className={styles.close}
+              onClick={closeForm}
+            >
+              <X size={20}/>
+            </button>
 
 
 
-      {/* FORMS */}
+            {activeForm === "income" && (
 
-      {activeForm === "income" && (
+              <ReceiveFundsForm
+                onSuccess={handleSuccess}
+                onCancel={closeForm}
+              />
 
-        <ReceiveFundsForm
-
-          onSuccess={handleSuccess}
-
-          onCancel={closeForm}
-
-        />
-
-      )}
+            )}
 
 
 
+            {activeForm === "expense" && (
+
+              <RecordExpenseForm
+                onSuccess={handleSuccess}
+                onCancel={closeForm}
+              />
+
+            )}
 
 
-      {activeForm === "expense" && (
-
-        <RecordExpenseForm
-
-          onSuccess={handleSuccess}
-
-          onCancel={closeForm}
-
-        />
-
-      )}
+          </div>
 
 
-
-
-
-      {activeForm === "fund" && (
-
-        <CreateFundForm
-
-          onSuccess={handleSuccess}
-
-          onCancel={closeForm}
-
-        />
+        </div>
 
       )}
 
@@ -280,14 +250,11 @@ export default function TransactionsTab({
 
 
 
-
-      {/* SUMMARY */}
 
       <div className={styles.summary}>
 
 
         <Card>
-
           <span>
             Today's Records
           </span>
@@ -336,9 +303,6 @@ export default function TransactionsTab({
 
 
 
-
-      {/* HISTORY */}
-
       <Card className={styles.history}>
 
         <h3>
@@ -347,12 +311,10 @@ export default function TransactionsTab({
 
 
         <ResponsiveDataView
-
           columns={columns}
-
           data={transactions}
-
         />
+
 
       </Card>
 

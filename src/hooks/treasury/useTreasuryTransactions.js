@@ -1,7 +1,23 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+
 import toast from "react-hot-toast";
 
 import { TreasuryAPI } from "../../utils/api";
+
+
+const DEFAULT_SUMMARY = {
+
+  today_count: 0,
+
+  today_recorded: 0,
+
+  today_expenses: 0,
+
+};
 
 
 export default function useTreasuryTransactions({
@@ -15,12 +31,7 @@ export default function useTreasuryTransactions({
     useState([]);
 
   const [summary, setSummary] =
-    useState({
-      today_count: 0,
-      today_recorded: 0,
-      today_expenses: 0,
-    });
-
+    useState(DEFAULT_SUMMARY);
 
   const [loading, setLoading] =
     useState(true);
@@ -37,30 +48,39 @@ export default function useTreasuryTransactions({
 
         const response =
           await TreasuryAPI.transactions({
+
             start,
             end,
-            fund_id: fundId,
+
+            fund_id:
+              fundId,
+
             type,
+
           });
 
 
+        const {
+          transactions = [],
+          summary = DEFAULT_SUMMARY,
+        } = response.data || {};
+
 
         setTransactions(
-          response.transactions || []
+          transactions
         );
-
 
         setSummary(
-          response.summary || {}
+          summary
         );
 
-
       } catch (error) {
+
+        console.error(error);
 
         toast.error(
           "Failed loading transactions"
         );
-
 
       } finally {
 

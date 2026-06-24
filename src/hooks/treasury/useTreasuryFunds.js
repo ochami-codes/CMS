@@ -1,20 +1,42 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import toast from "react-hot-toast";
 
 import { TreasuryAPI } from "../../utils/api";
 
 
-export default function useTreasuryFunds() {
+export default function useTreasuryFunds(
+  filters = {}
+) {
 
-  const [funds, setFunds] =
-    useState([]);
+  const [funds, setFunds] = useState([]);
 
   const [loading, setLoading] =
     useState(true);
 
 
-  const fetchFunds =
-    useCallback(async () => {
+  const hasFetched = useRef(false);
+
+  const filtersRef = useRef(filters);
+
+
+
+  const fetchFunds = useCallback(
+    async (force = false) => {
+
+
+      if (
+        hasFetched.current &&
+        !force
+      ) {
+        return;
+      }
+
 
       try {
 
@@ -22,19 +44,31 @@ export default function useTreasuryFunds() {
 
 
         const response =
-          await TreasuryAPI.funds();
+          await TreasuryAPI.funds(
+            filtersRef.current
+          );
 
 
         setFunds(
-          response.data || []
+          response?.data ?? []
         );
+
+
+        hasFetched.current = true;
 
 
       } catch (error) {
 
+        console.error(
+          "Treasury funds error:",
+          error
+        );
+
+
         toast.error(
           "Failed loading funds"
         );
+
 
       } finally {
 
@@ -42,19 +76,33 @@ export default function useTreasuryFunds() {
 
       }
 
-    }, []);
+    },
+    []
+  );
+
 
 
 
   useEffect(() => {
+
     fetchFunds();
+
   }, [fetchFunds]);
 
 
 
+
+
   return {
+
     funds,
+
     loading,
-    refresh: fetchFunds,
+
+
+    refresh: () =>
+      fetchFunds(true),
+
   };
+
 }

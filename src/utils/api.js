@@ -44,38 +44,136 @@ export const DepartmentsAPI = {
 /* ======================
    TREASURY API
 ====================== */
-export const TreasuryAPI = {
-  /* Dashboard */
-  overview: (params = "") =>
-    request(`/treasury/overview${params}`),
 
-  /* Funds */
-  funds: () => { return request( `/treasury/funds` );
-},
+const buildQuery = (filters = {}) => {
 
-  fundSummary: (id, params = "") =>
-    request(`/treasury/funds/${id}${params}`),
+  const params =
+    new URLSearchParams();
 
-  /* Transactions */
-  transactions: (params = "") =>
-    request(`/treasury/transactions${params}`),
+  Object.entries(filters)
+    .forEach(([key, value]) => {
 
-  createTransaction: (payload) =>
-    request("/treasury/transactions", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== ""
+      ) {
+        params.append(
+          key,
+          value
+        );
+      }
 
-  /* Members */
-  memberGivingSummary: (params = "") =>
-    request(`/treasury/members${params}`),
+    });
 
-  memberGivingHistory: (memberId, params = "") =>
-    request(
-      `/treasury/members/${memberId}${params}`
-    ),
+  return params.toString();
 };
 
+
+export const TreasuryAPI = {
+
+  /* Dashboard */
+
+  overview: (filters = {}) => {
+
+    const query =
+      buildQuery(filters);
+
+    return request(
+      `/treasury/overview${
+        query ? `?${query}` : ""
+      }`
+    );
+
+  },
+
+
+
+  /* Funds */
+
+  funds: (filters = {}) => {
+
+    const query =
+      buildQuery(filters);
+
+    return request(
+      `/treasury/funds${
+        query ? `?${query}` : ""
+      }`
+    );
+
+  },
+
+
+  fundSummary: (fundId) =>
+    request(
+      `/treasury/funds/${fundId}/summary`
+    ),
+
+/* Transactions */
+
+transactions: (filters = {}) => {
+
+  const query =
+    buildQuery(filters);
+
+  return request(
+    `/treasury/transactions${
+      query ? `?${query}` : ""
+    }`,
+    {
+      method: "GET",
+    }
+  );
+
+},
+
+
+createTransaction: (payload) =>
+  request(
+    "/treasury/transactions",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  ),
+
+
+  /* Members */
+
+  memberGivingSummary: (
+    filters = {}
+  ) => {
+
+    const query =
+      buildQuery(filters);
+
+    return request(
+      `/treasury/members${
+        query ? `?${query}` : ""
+      }`
+    );
+
+  },
+
+
+  memberGivingHistory: (
+    memberId,
+    filters = {}
+  ) => {
+
+    const query =
+      buildQuery(filters);
+
+    return request(
+      `/treasury/members/${memberId}${
+        query ? `?${query}` : ""
+      }`
+    );
+
+  },
+
+};
 export const ClerkAPI = {
   /* -------------------------
      MEMBERS

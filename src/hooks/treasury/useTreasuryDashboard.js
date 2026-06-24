@@ -6,8 +6,6 @@ export function useTreasuryDashboard(params = {}) {
   const [data, setData] = useState({
     overview: null,
     members: [],
-    groups: [],
-    transactions: [],
   });
 
   const [loading, setLoading] = useState(true);
@@ -19,17 +17,14 @@ export function useTreasuryDashboard(params = {}) {
     setError(null);
 
     try {
-      const [overview, members, groups] = await Promise.all([
+      const [overview, members] = await Promise.all([
         TreasuryAPI.overview(params),
         TreasuryAPI.memberGivingSummary(params),
-        TreasuryAPI.fundGroups(params),
       ]);
 
       setData({
         overview: overview || null,
         members: members || [],
-        groups: groups || [],
-        transactions: [],
       });
 
     } catch (err) {
