@@ -1,0 +1,238 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  justify-content: flex-end;
+
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.drawer {
+  width: min(900px, 100%);
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow-y: auto;
+
+  border-radius: 0;
+  padding: 2rem;
+}
+
+/* ---------- Header ---------- */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+
+  padding-bottom: 1.5rem;
+  margin-bottom: 2rem;
+
+  border-bottom: 1px solid var(--border-color);
+}
+
+.name {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.sub {
+  margin-top: 0.35rem;
+  color: var(--text-secondary);
+}
+
+.close {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 2.5rem;
+  height: 2.5rem;
+
+  border: none;
+  border-radius: 50%;
+
+  background: transparent;
+  cursor: pointer;
+
+  transition: background 0.2s ease;
+}
+
+.close:hover {
+  background: var(--surface-hover);
+}
+
+/* ---------- Summary Cards ---------- */
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+
+  margin-bottom: 2rem;
+}
+
+.summaryCard {
+  padding: 1.25rem;
+}
+
+.summaryCard h4 {
+  margin: 0;
+  margin-bottom: .5rem;
+
+  color: var(--text-secondary);
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.summaryCard p {
+  margin: 0;
+
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+/* ---------- Sections ---------- */
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 1rem;
+
+  margin-bottom: 1rem;
+}
+
+.sectionHeader h3 {
+  margin: 0;
+}
+
+/* ---------- Period Select ---------- */
+
+.select {
+  padding: .65rem .9rem;
+
+  border: 1px solid var(--border-color);
+  border-radius: .5rem;
+
+  background: white;
+  font: inherit;
+
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* ---------- Fund Summary ---------- */
+
+.summaryTable {
+  padding: 0;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 1rem 1.25rem;
+
+  border-bottom: 1px solid var(--border-color);
+}
+
+.totalRow:last-child {
+  border-bottom: none;
+}
+
+.totalRow span {
+  color: var(--text-secondary);
+}
+
+.totalRow strong {
+  font-weight: 700;
+}
+
+.grandTotal {
+  background: var(--surface-alt);
+  font-size: 1.05rem;
+}
+
+/* ---------- Footer ---------- */
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+
+  margin-top: auto;
+  padding-top: 2rem;
+
+  border-top: 1px solid var(--border-color);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 768px) {
+  .drawer {
+    width: 100%;
+    padding: 1.25rem;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryCard {
+    text-align: center;
+  }
+
+  .summaryCard p {
+    font-size: 1.4rem;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .select {
+    width: 100%;
+  }
+
+  .totalRow {
+    padding: .9rem 1rem;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: white;
+}
+
+.actions {
+  position: sticky;
+  bottom: 0;
+  background: white;
+}

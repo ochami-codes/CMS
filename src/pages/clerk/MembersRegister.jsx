@@ -31,7 +31,6 @@ export default function MembersRegister() {
     { key: "gender", label: "Gender" },
     { key: "status", label: "Status" },
     { key: "membership_type", label: "Membership Type" },
-    { key: "primary_role_id", label: "Role" },
     {
       key: "baptized",
       label: "Baptized",

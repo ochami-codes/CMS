@@ -1,108 +1,24 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-
-import toast from "react-hot-toast";
-
+import { useQuery } from "@tanstack/react-query";
 import { TreasuryAPI } from "../../utils/api";
-
 
 export default function useTreasuryFunds(
   filters = {}
 ) {
+  const query = useQuery({
+    queryKey: [
+      "treasury-funds",
+      filters,
+    ],
 
-  const [funds, setFunds] = useState([]);
+    queryFn: () =>
+      TreasuryAPI.funds(filters),
 
-  const [loading, setLoading] =
-    useState(true);
-
-
-  const hasFetched = useRef(false);
-
-  const filtersRef = useRef(filters);
-
-
-
-  const fetchFunds = useCallback(
-    async (force = false) => {
-
-
-      if (
-        hasFetched.current &&
-        !force
-      ) {
-        return;
-      }
-
-
-      try {
-
-        setLoading(true);
-
-
-        const response =
-          await TreasuryAPI.funds(
-            filtersRef.current
-          );
-
-
-        setFunds(
-          response?.data ?? []
-        );
-
-
-        hasFetched.current = true;
-
-
-      } catch (error) {
-
-        console.error(
-          "Treasury funds error:",
-          error
-        );
-
-
-        toast.error(
-          "Failed loading funds"
-        );
-
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    },
-    []
-  );
-
-
-
-
-  useEffect(() => {
-
-    fetchFunds();
-
-  }, [fetchFunds]);
-
-
-
-
+    staleTime:
+      5 * 60 * 1000,
+  });
 
   return {
-
-    funds,
-
-    loading,
-
-
-    refresh: () =>
-      fetchFunds(true),
-
+    ...query,
+    funds: query.data ?? [],
   };
-
 }

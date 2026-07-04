@@ -1,151 +1,284 @@
-import { useMemo, useState } from "react";
-import { ChevronDown, Landmark } from "lucide-react";
+import { useState } from "react";
+import {
+  Landmark,
+  ChevronDown,
+} from "lucide-react";
 
 import Card from "../../components/Card";
 import Button from "../../components/Button";
-import styles from "../../styles/pages/Fundstab.module.css";
-export default function FundsTab({ groups = [] }) {
-  const [openGroup, setOpenGroup] = useState(null);
+import Remittance from "../../components/treasury/Remittance";
+import RemittanceHistory from "../../components/treasury/RemittanceHistory";
+import useTreasuryFundsSummary from "../../hooks/treasury/useTreasuryFundSummary";
+import useRemittances from "../../hooks/treasury/useRemittances";
+import styles from "../../styles/pages/FundsTab.module.css";
 
-  /* ---------------- SUMMARY ---------------- */
-  const summary = useMemo(() => {
-    let total = 0;
+export default function FundsTab() {
+  const [
+    showRemittance,
+    setShowRemittance,
+  ] = useState(false);
 
-    groups.forEach((g) => {
-      total += g.total_balance || 0;
+  const [
+    showRemittanceHistory,
+    setShowRemittanceHistory,
+  ] = useState(false);
+
+  const [expanded, setExpanded] =
+    useState({
+      trust: true,
+      local: false,
+      department: false,
     });
 
-    return {
-      totalFunds: groups.length,
-      totalBalance: total,
-    };
-  }, [groups]);
+  const {
+    remittances,
+    isLoading,
+    remit,
+    cancel,
+  } = useRemittances();
 
-  return (
-    <section className={styles.container}>
+  const {
+    summary,
+    trustFunds,
+    localFunds,
+    departmentFunds,
+    unremittedMonths,
+  } = useTreasuryFundsSummary();
 
-      {/* SUMMARY CARDS */}
-      <div className={styles.summaryGrid}>
-        <Card>
-          <h3>Total Funds</h3>
-          <p>{summary.totalFunds}</p>
-        </Card>
+  const toggle = key =>
+    setExpanded(prev => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
 
-        <Card>
-          <h3>Total Balance</h3>
-          <p>KES {summary.totalBalance.toLocaleString()}</p>
-        </Card>
+  const handleRemit = async payload => {
+    try {
+      await remit.mutateAsync(payload);
+      setShowRemittance(false);
+    } catch (error) {
+      console.error(
+        "Failed to remit funds:",
+        error
+      );
+    }
+  };
 
-        <Card>
-          <h3>Active Groups</h3>
-          <p>{groups.length}</p>
-        </Card>
+  const handleCancel = async remittanceId => {
+    try {
+      await cancel.mutateAsync(
+        remittanceId
+      );
+    } catch (error) {
+      console.error(
+        "Failed to cancel remittance:",
+        error
+      );
+    }
+  };
 
-        <Card>
-          <h3>Departments</h3>
-          <p>
-            {groups.reduce(
-              (acc, g) => acc + (g.departments?.length || 0),
-              0
-            )}
-          </p>
-        </Card>
-      </div>
+  const renderFunds = funds => (
+    <div className={styles.fundList}>
+      {funds.map(fund => (
+        <div
+          key={fund.id}
+          className={styles.fundRow}
+        >
+          <div>
+            <strong>{fund.name}</strong>
 
-      {/* FUND GROUPS */}
-      <div className={styles.groupList}>
-        {groups.map((group) => {
-          const isOpen = openGroup === group.group_id;
-
-          return (
-            <Card key={group.group_id}>
-
-              {/* GROUP HEADER */}
-              <div
-                className={styles.groupHeader}
-                onClick={() =>
-                  setOpenGroup(isOpen ? null : group.group_id)
+            {fund.description && (
+              <p
+                className={
+                  styles.description
                 }
               >
-                <div className={styles.groupTitle}>
-                  <Landmark size={16} />
-                  <h3>{group.group_name}</h3>
-                </div>
+                {fund.description}
+              </p>
+            )}
+          </div>
 
-                <div className={styles.groupMeta}>
-                  <span>
-                    KES {group.total_balance?.toLocaleString()}
-                  </span>
+          <strong>
+            KES{" "}
+            {Number(
+              fund.balance
+            ).toLocaleString()}
+          </strong>
+        </div>
+      ))}
+    </div>
+  );
 
-                  <ChevronDown
-                    className={`${styles.chevron} ${
-                      isOpen ? styles.rotate : ""
-                    }`}
-                    size={18}
-                  />
-                </div>
-              </div>
+  const renderSection = ({
+    keyName,
+    title,
+    balance,
+    funds,
+    footer,
+  }) => (
+    <Card className={styles.section}>
+      <button
+        type="button"
+        className={styles.sectionHeader}
+        onClick={() => toggle(keyName)}
+      >
+        <div className={styles.title}>
+          <Landmark size={18} />
+          <h2>{title}</h2>
+        </div>
 
-              {/* EXPANDED CONTENT */}
-              {isOpen && (
-                <div className={styles.groupBody}>
+        <div className={styles.right}>
+          <span>
+            KES{" "}
+            {balance.toLocaleString()}
+          </span>
 
-                  {/* FUND LIST */}
-                  <div className={styles.fundList}>
-                    {group.funds?.map((fund) => (
-                      <div
-                        key={fund.fund_id}
-                        className={styles.fundRow}
-                      >
-                        <div>
-                          <strong>{fund.fund_name}</strong>
-                          <p className={styles.muted}>
-                            {fund.description || "No description"}
-                          </p>
-                        </div>
+          <ChevronDown
+            size={18}
+            className={
+              expanded[keyName]
+                ? styles.expanded
+                : ""
+            }
+          />
+        </div>
+      </button>
 
-                        <span>
-                          KES{" "}
-                          {fund.balance?.toLocaleString()}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+      {expanded[keyName] && (
+        <>
+          {renderFunds(funds)}
 
-                  {/* DEPARTMENTS */}
-                  {group.departments?.length > 0 && (
-                    <div className={styles.departmentBlock}>
-                      <h4>Departmental Funds</h4>
+          {footer && (
+            <div
+              className={
+                styles.sectionFooter
+              }
+            >
+              {footer}
+            </div>
+          )}
+        </>
+      )}
+    </Card>
+  );
 
-                      <div className={styles.departmentGrid}>
-                        {group.departments.map((d) => (
-                          <div
-                            key={d.department_id}
-                            className={styles.departmentCard}
-                          >
-                            <h5>{d.name}</h5>
-                            <p>
-                              KES{" "}
-                              {d.balance?.toLocaleString()}
-                            </p>
+  return (
+    <>
+      <section className={styles.container}>
+        <div
+          className={
+            styles.summaryGrid
+          }
+        >
+          <Card>
+            <h3>Total Church Funds</h3>
+            <p>
+              KES{" "}
+              {summary.overallBalance.toLocaleString()}
+            </p>
+          </Card>
 
-                            <Button size="sm" variant="secondary">
-                              View
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+          <Card>
+            <h3>Trust Funds</h3>
+            <p>
+              KES{" "}
+              {summary.trustBalance.toLocaleString()}
+            </p>
+          </Card>
 
-                </div>
-              )}
+          <Card>
+            <h3>Local Funds</h3>
+            <p>
+              KES{" "}
+              {summary.localBalance.toLocaleString()}
+            </p>
+          </Card>
 
-            </Card>
-          );
+          <Card>
+            <h3>
+              Pending Remittance
+            </h3>
+            <p>
+              KES{" "}
+              {summary.pendingRemittance.toLocaleString()}
+            </p>
+          </Card>
+        </div>
+
+        {renderSection({
+          keyName: "trust",
+          title: "Trust Funds",
+          balance: summary.trustBalance,
+          funds: trustFunds,
+          footer: (
+            <div
+              className={
+                styles.actions
+              }
+            >
+              <Button
+                disabled={
+                  summary.pendingRemittance ===
+                  0
+                }
+                onClick={() =>
+                  setShowRemittance(true)
+                }
+              >
+                Remit Trust Funds
+              </Button>
+
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  setShowRemittanceHistory(
+                    true
+                  )
+                }
+              >
+                Remittance History
+              </Button>
+            </div>
+          ),
         })}
-      </div>
 
-    </section>
+        {renderSection({
+          keyName: "local",
+          title: "Local Funds",
+          balance: summary.localBalance,
+          funds: localFunds,
+        })}
+
+        {departmentFunds.length > 0 &&
+          renderSection({
+            keyName: "department",
+            title:
+              "Departmental Funds",
+            balance:
+              summary.departmentBalance,
+            funds: departmentFunds,
+          })}
+      </section>
+
+      <Remittance
+        open={showRemittance}
+        onClose={() =>
+          setShowRemittance(false)
+        }
+        months={unremittedMonths}
+        onSubmit={handleRemit}
+      />
+
+      <RemittanceHistory
+        open={showRemittanceHistory}
+        onClose={() =>
+          setShowRemittanceHistory(
+            false
+          )
+        }
+        remittances={remittances}
+        loading={isLoading}
+        onCancel={handleCancel}
+      />
+    </>
   );
 }

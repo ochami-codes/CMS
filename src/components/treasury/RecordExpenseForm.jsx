@@ -24,7 +24,7 @@ export default function RecordExpenseForm({
 
 
 const {
-  funds
+  data: funds = [],
 } = useTreasuryFunds(fundFilters);
   const [loading, setLoading] = useState(false);
 

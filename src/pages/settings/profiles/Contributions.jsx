@@ -1,27 +1,101 @@
-import React from "react";
+import { formatDate } from "../../../utils/formatDate";
+import styles from "../../../styles/profiles/Contribution.module.css";
+import ResponsiveDataView from "../../../components/ResponsiveDataView";
+export default function Contributions({
+  summary = {},
+  transactions = [],
+}) {
+  const recentTransactions = transactions.slice(0, 5);
 
-export default function Contributions({ contributions }) {
+const transactionColumns = [
+  {
+    key: "fund",
+    label: "Fund",
+  },
+  {
+    key: "date",
+    label: "Date",
+    render: (value) => formatDate(value),
+  },
+  {
+    key: "amount",
+    label: "Amount",
+    render: (value) =>
+      `KES ${Number(value).toLocaleString()}`,
+  },
+];
   return (
-    <div className="card">
-      <h3 className="text-lg font-semibold mb-3">Contributions Summary</h3>
-      <ul className="space-y-2">
-        <li>
-          <span className="label">Tithes:</span>{" "}
-          <span className="value">{contributions.tithes}</span>
-        </li>
-        <li>
-          <span className="label">Offerings:</span>{" "}
-          <span className="value">{contributions.offerings}</span>
-        </li>
-        <li>
-          <span className="label">Camp Offerings:</span>{" "}
-          <span className="value">{contributions.campOfferings}</span>
-        </li>
-        <li>
-          <span className="label">Church Development:</span>{" "}
-          <span className="value">{contributions.churchDevelopment}</span>
-        </li>
-      </ul>
-    </div>
+    <section className={styles.card}>
+
+      <h3 className={styles.title}>
+        Contributions Summary
+      </h3>
+
+      <div className={styles.list}>
+
+        {(summary.fundTotals ?? []).map((fund) => (
+
+          <div
+            key={fund.fund_id}
+            className={styles.row}
+          >
+            <span className={styles.label}>
+              {fund.fund_name}
+            </span>
+
+            <span className={styles.value}>
+              KES {Number(fund.total).toLocaleString()}
+            </span>
+
+          </div>
+
+        ))}
+
+      </div>
+
+      <div className={styles.divider}>
+
+        <div className={styles.row}>
+          <span>Total Giving</span>
+
+          <strong>
+            KES {Number(summary.totalGiving ?? 0).toLocaleString()}
+          </strong>
+        </div>
+
+        <div className={styles.row}>
+          <span>Contributions</span>
+
+          <strong>
+            {summary.contributions ?? 0}
+          </strong>
+        </div>
+
+      </div>
+
+      <div className={styles.history}>
+
+  <h4 className={styles.subtitle}>
+    Recent Contributions
+  </h4>
+
+  {recentTransactions.length === 0 ? (
+
+    <p className={styles.empty}>
+      No recent contributions.
+    </p>
+
+  ) : (
+
+    <ResponsiveDataView
+      columns={transactionColumns}
+      data={recentTransactions}
+    />
+
+  )}
+
+</div>
+
+    </section>
   );
 }

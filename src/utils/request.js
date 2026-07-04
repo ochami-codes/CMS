@@ -56,5 +56,5 @@ export async function request(endpoint, options = {}, skipAuth = false) {
     };
   }
 
-  return data;
+  return data?.data ?? data;
 }

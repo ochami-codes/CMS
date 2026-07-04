@@ -1,103 +1,164 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
-/* SUMMARY */
+/* ===========================
+   SUMMARY
+=========================== */
+
 .summaryGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
 }
 
-/* GROUP LIST */
-.groupList {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.summaryGrid h3 {
+  margin: 0;
+  font-size: .9rem;
+  color: #616977;
+  font-weight: 500;
 }
 
-/* HEADER */
-.groupHeader {
+.summaryGrid p {
+  margin: .5rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* ===========================
+   SECTIONS
+=========================== */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
+  user-select: none;
 }
 
-.groupTitle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.groupMeta {
+.title,
+.right {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-weight: 500;
 }
 
-.chevron {
+.right svg {
   transition: transform 0.2s ease;
 }
 
-.rotate {
+.expanded {
   transform: rotate(180deg);
 }
 
-/* BODY */
-.groupBody {
-  margin-top: 1rem;
+.sectionHeader > div {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  gap: .6rem;
 }
 
-/* FUNDS */
+.sectionHeader h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.sectionHeader span {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/* ===========================
+   FUND LIST
+=========================== */
+
 .fundList {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
 }
 
 .fundRow {
   display: flex;
   justify-content: space-between;
-  padding: 0.5rem;
-  border-bottom: 1px solid #eee;
+  align-items: flex-start;
+  gap: 1rem;
+
+  padding: .9rem 0;
+  border-bottom: 1px solid #ececec;
 }
 
-.muted {
-  font-size: 0.85rem;
+.fundRow:last-child {
+  border-bottom: none;
+}
+
+.fundRow strong {
+  display: block;
+}
+
+.description {
+  margin-top: .25rem;
+  font-size: .85rem;
   color: #6b7280;
 }
 
-/* DEPARTMENTS */
-.departmentBlock h4 {
-  margin: 0.5rem 0;
+/* ===========================
+   FOOTER
+=========================== */
+
+.sectionFooter {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
 }
 
-.departmentGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
+.actions {
+  display: flex;
+  gap: .75rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
+/* ===========================
+   RESPONSIVE
+=========================== */
 
-.departmentCard {
-  border: 1px solid #e5e7eb;
-  padding: 0.75rem;
-  border-radius: 8px;
-}
+@media (max-width: 992px) {
 
-/* MOBILE */
-@media (max-width: 768px) {
   .summaryGrid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .departmentGrid {
+}
+
+@media (max-width: 640px) {
+
+  .summaryGrid {
     grid-template-columns: 1fr;
   }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .fundRow {
+    flex-direction: column;
+    gap: .4rem;
+  }
+
+  .sectionFooter {
+    justify-content: stretch;
+  }
+
+  .sectionFooter button {
+    width: 100%;
+  }
+
 }

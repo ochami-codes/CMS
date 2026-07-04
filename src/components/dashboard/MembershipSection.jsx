@@ -61,9 +61,24 @@ export default function MembershipSection() {
     },
   };
 
-  const config = statusConfig[isActiveMember, isRejectedMember, isPendingMember, isTransferred] || statusConfig.none;
-  const Icon = config.icon;
-  const showButton = isPendingMember;
+  const config =
+  isActiveMember
+    ? statusConfig.isActiveMember
+    : isRejectedMember
+    ? statusConfig.isRejectedMember
+    : isPendingMember
+    ? statusConfig.isPendingMember
+    : isTransferred
+    ? statusConfig.isTransferred
+    : statusConfig.none;
+
+const Icon = config.icon;
+
+const showButton =
+  !isActiveMember &&
+  !isPendingMember &&
+  !isRejectedMember &&
+  !isTransferred;
 
   return (
     <section className={styles.section}>

@@ -1,29 +1,45 @@
-import Card from "../../components/Card"; 
+import Card from "../../components/Card";
 import StatCard from "../../components/StatCard";
 import Button from "../../components/Button";
-import styles  from "../../styles/pages/TreasuryOverview.module.css";
+
+import styles from "../../styles/pages/TreasuryOverview.module.css";
+
 export default function TreasuryOverview({
   overview,
+  isFetching = false,
+
   onDownloadMonthly,
   onDownloadMembers,
   onExportExcel,
   onPrint,
 }) {
-  if (!overview) return null;
+  if (!overview) {
+    return (
+      <Card>
+        <p>No treasury data available.</p>
+      </Card>
+    );
+  }
 
   return (
     <section className={styles.container}>
       <Card>
         <div className={styles.snapshot}>
           <div className={styles.header}>
-            <h2 className={styles.title}>Treasury Overview</h2>
+            <div className={styles.heading}>
+  <h2 className={styles.title}>
+    Treasury Overview
+  </h2>
+
+  {isFetching && (
+    <span className={styles.updating}>
+      Updating…
+    </span>
+  )}
+</div>
 
             <p className={styles.summary}>
-              Last Sabbath tithe was{" "}
-              <strong>
-                KES {overview.last_sabbath_tithe?.toLocaleString()}
-              </strong>
-              . Local funds currently stand at{" "}
+              Local funds currently stand at{" "}
               <strong>
                 KES {overview.total_local_funds?.toLocaleString()}
               </strong>{" "}
@@ -37,39 +53,30 @@ export default function TreasuryOverview({
 
           <div className={styles.statsGrid}>
             <StatCard
-              title="Tithe"
-              value={`KES ${overview.tithe?.toLocaleString()}`}
-            />
+  title="Available Local Balance"
+  value={`KES ${overview.available_local_balance?.toLocaleString()}`}
+/>
 
-            <StatCard
-              title="Combined Offerings"
-              value={`KES ${overview.combined_offerings?.toLocaleString()}`}
-            />
+<StatCard
+  title="Local Funds"
+  value={`KES ${overview.total_local_funds?.toLocaleString()}`}
+/>
 
-            <StatCard
-              title="Expenses"
-              value={`KES ${overview.expenses?.toLocaleString()}`}
-            />
+<StatCard
+  title="Trust Funds"
+  value={`KES ${overview.total_trust_funds?.toLocaleString()}`}
+/>
 
-            <StatCard
-              title="Local Funds"
-              value={`KES ${overview.total_local_funds?.toLocaleString()}`}
-            />
+<StatCard
+  title="Unremitted Trust Funds"
+  value={`KES ${overview.unremitted_trust_funds?.toLocaleString()}`}
+/>
 
-            <StatCard
-              title="Trust Funds"
-              value={`KES ${overview.total_trust_funds?.toLocaleString()}`}
-            />
+<StatCard
+  title="Monthly Expenses"
+  value={`KES ${overview.monthly_expenses?.toLocaleString()}`}
+/>
 
-            <StatCard
-              title="Camp Offerings"
-              value={`KES ${overview.camp_offerings?.toLocaleString()}`}
-            />
-
-            <StatCard
-              title="Church Development"
-              value={`KES ${overview.church_development?.toLocaleString()}`}
-            />
           </div>
         </div>
       </Card>
@@ -77,11 +84,13 @@ export default function TreasuryOverview({
       <Card>
         <div className={styles.reports}>
           <div className={styles.reportHeader}>
-            <h2 className={styles.reportTitle}>Reports</h2>
+            <h2 className={styles.reportTitle}>
+              Reports
+            </h2>
 
             <p className={styles.reportDescription}>
-              Generate treasury reports, export financial data, and prepare
-              documents for board meetings and audits.
+              Generate treasury reports, export financial data,
+              and prepare documents for board meetings and audits.
             </p>
           </div>
 
@@ -98,10 +107,6 @@ export default function TreasuryOverview({
           <div className={styles.reportActions}>
             <Button onClick={onDownloadMonthly}>
               Monthly Treasury Report
-            </Button>
-
-            <Button onClick={onDownloadMembers}>
-              Member Giving Report
             </Button>
 
             <Button

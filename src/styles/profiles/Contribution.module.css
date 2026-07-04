@@ -1,0 +1,52 @@
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.title {
+  margin: 0 0 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.label {
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.value {
+  color: #111827;
+  font-weight: 600;
+}
+
+.divider {
+  border-top: 1px solid #e5e7eb;
+  margin: 0.5rem 0;
+  padding-top: 0.75rem;
+}
+
+.total {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.empty {
+  color: #6b7280;
+  font-style: italic;
+}

@@ -1,55 +1,40 @@
-import { useCallback, useEffect, useState } from "react";
-import { TreasuryAPI } from "../../utils/api";
+import { useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
+import { TreasuryAPI } from "../../utils/api";
+
 export function useTreasuryDashboard(params = {}) {
-  const [data, setData] = useState({
-    overview: null,
-    members: [],
+  const query = useQuery({
+    queryKey: ["treasury-dashboard", params],
+
+    queryFn: async () => {
+      const data =
+        await TreasuryAPI.overview(params);
+
+      return {
+        overview:  data ?? null,
+      };
+    },
+
+    staleTime: 5 * 60 * 1000,
+
+    onError: (error) => {
+      console.error(error);
+      toast.error("Failed to load treasury data");
+    },
   });
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  /* ---------------- FETCH DATA ---------------- */
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const [overview, members] = await Promise.all([
-        TreasuryAPI.overview(params),
-        TreasuryAPI.memberGivingSummary(params),
-      ]);
-
-      setData({
-        overview: overview || null,
-        members: members || [],
-      });
-
-    } catch (err) {
-      console.error(err);
-      setError(err);
-      toast.error("Failed to load treasury data");
-    } finally {
-      setLoading(false);
-    }
-  }, [JSON.stringify(params)]);
-
-  /* ---------------- INITIAL LOAD ---------------- */
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  /* ---------------- REFRESH ---------------- */
-  const refresh = useCallback(() => {
-    fetchData();
-  }, [fetchData]);
-
   return {
-    data,
-    loading,
-    error,
-    refresh,
+    data: query.data ?? {
+      overview: null,
+    },
+
+    loading: query.isPending,
+    error: query.error,
+
+    refresh: query.refetch,
+
+    isFetching: query.isFetching,
+    isRefetching: query.isRefetching,
   };
 }

@@ -37,11 +37,10 @@ export default function ReceiveFundsForm({
   const [loading, setLoading] =
     useState(false);
 
-
   const {
-    funds = [],
+     data: funds = [],
   } = useTreasuryFunds();
-
+console.log("Funds data:", funds)
 
   const {
     members = [],

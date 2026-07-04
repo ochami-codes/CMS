@@ -3,6 +3,7 @@ import styles from "../styles/components/Card.module.css";
 export default function Card({
   children,
   title,
+  action,
   className = "",
   onClick,
 }) {
@@ -13,9 +14,13 @@ export default function Card({
       role={onClick ? "button" : undefined}
     >
       {title && (
-        <h3 className={styles.title}>
-          {title}
-        </h3>
+        <div className={styles.header}>
+          <h3 className={styles.title}>
+            {title}
+          </h3>
+
+          {action}
+        </div>
       )}
 
       {children}

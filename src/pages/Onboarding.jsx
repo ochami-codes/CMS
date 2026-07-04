@@ -116,7 +116,7 @@ export default function Onboarding() {
           <h3>Welcome child of God</h3>
 
           <p className={styles.note}>
-            You have not joined a church yet. Take your next step to join an existing church ar create yours.
+            You have not joined a church yet. Take your next step to join an existing church or create yours.
           </p>
 
           <div className={styles.actionsInline}>

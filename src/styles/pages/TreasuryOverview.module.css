@@ -1,8 +1,13 @@
 .container {
   display: grid;
-  grid-template-columns: 2fr 340px;
   gap: 1.5rem;
-  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .container {
+    grid-template-columns: minmax(0, 2fr) 360px;
+    align-items: start;
+  }
 }
 
 .snapshot {
@@ -12,20 +17,32 @@
 }
 
 .header {
-  border-bottom: 1px solid var(--border-color, #e5e7eb);
-  padding-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
 }
 
 .title {
-  margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.75rem;
   font-weight: 700;
 }
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
 
+.updating {
+  padding: .35rem .75rem;
+  border-radius: 999px;
+  font-size: .8rem;
+  background: var(--surface-secondary);
+}
 .summary {
-  margin-top: 0.5rem;
-  color: var(--text-muted, #6b7280);
-  line-height: 1.6;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 65ch;
 }
 
 .summary strong {
@@ -35,14 +52,16 @@
 
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .reports {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
+  position: sticky;
+  top: 1.5rem;
 }
 
 .reportHeader {
@@ -73,24 +92,23 @@
 }
 
 .quickInfo {
-  padding: 1rem;
-  border-radius: 0.75rem;
-  background: var(--surface-secondary, #f8fafc);
-  border: 1px solid var(--border-color, #e5e7eb);
+  padding: 1.25rem;
+  border-radius: .75rem;
+  background: var(--surface-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
 }
 
 .quickInfoLabel {
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted, #6b7280);
+  font-size: .85rem;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: .08em;
 }
 
 .quickInfoValue {
-  margin-top: 0.35rem;
-  font-size: 1.4rem;
+  font-size: 2rem;
   font-weight: 700;
 }
 
@@ -111,5 +129,16 @@
 
   .reportTitle {
     font-size: 1rem;
+  }
+}
+@media (max-width: 640px) {
+  .reportActions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .75rem;
+  }
+
+  .reportActions button {
+    width: 100%;
   }
 }

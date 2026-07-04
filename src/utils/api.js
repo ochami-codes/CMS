@@ -1,5 +1,27 @@
 import { request } from "./request";
+const buildQuery = (filters = {}) => {
 
+  const params =
+    new URLSearchParams();
+
+  Object.entries(filters)
+    .forEach(([key, value]) => {
+
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== ""
+      ) {
+        params.append(
+          key,
+          value
+        );
+      }
+
+    });
+
+  return params.toString();
+};
 /* ======================
    CHILDREN API
 ====================== */
@@ -36,142 +58,161 @@ export const MembersAPI = {
 /* ======================
    DEPARTMENTS API
 ====================== */
+
 export const DepartmentsAPI = {
-  fetchAll: () => request("/departments"),
-  fetchById: (id) => request(`/departments/${id}`),
+
+  fetch: (filters = {}) => {
+
+    const query =
+      buildQuery(filters);
+
+    return request(
+      `/departments${
+        query ? `?${query}` : ""
+      }`
+    );
+
+  },
+
+  fetchById: (id) =>
+    request(`/departments/${id}`),
+
 };
 
 /* ======================
    TREASURY API
 ====================== */
 
-const buildQuery = (filters = {}) => {
-
-  const params =
-    new URLSearchParams();
-
-  Object.entries(filters)
-    .forEach(([key, value]) => {
-
-      if (
-        value !== undefined &&
-        value !== null &&
-        value !== ""
-      ) {
-        params.append(
-          key,
-          value
-        );
-      }
-
-    });
-
-  return params.toString();
-};
-
-
 export const TreasuryAPI = {
 
   /* Dashboard */
 
-  overview: (filters = {}) => {
-
-    const query =
-      buildQuery(filters);
+  overview(filters = {}) {
+    const query = buildQuery(filters);
 
     return request(
       `/treasury/overview${
         query ? `?${query}` : ""
       }`
     );
-
   },
-
-
 
   /* Funds */
 
-  funds: (filters = {}) => {
+  createFund(payload) {
+    return request(
+      "/treasury/funds",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
+  },
 
-    const query =
-      buildQuery(filters);
+  funds(filters = {}) {
+    const query = buildQuery(filters);
 
     return request(
       `/treasury/funds${
         query ? `?${query}` : ""
       }`
     );
-
   },
 
+  fundsSummary(filters = {}) {
+    const query = buildQuery(filters);
 
-  fundSummary: (fundId) =>
-    request(
-      `/treasury/funds/${fundId}/summary`
-    ),
+    return request(
+      `/treasury/funds/summary${
+        query ? `?${query}` : ""
+      }`
+    );
+  },
 
-/* Transactions */
+  /* Remittances */
+ remittances: (filters = {}) => {
+  const query = buildQuery(filters);
 
-transactions: (filters = {}) => {
+  return request(
+    `/treasury/funds/remittances${
+      query ? `?${query}` : ""
+    }`
+  );
+},
+
+  remitFunds(payload) {
+    return request(
+      "/treasury/funds/remit",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
+  },
+
+  cancelRemittance(remittanceId) {
+    return request(
+      `/treasury/funds/remit/${remittanceId}/cancel`,
+      {
+        method: "PATCH",
+      }
+    );
+  },
+
+  /* Transactions */
+
+  transactions(filters = {}) {
+    const query = buildQuery(filters);
+
+    return request(
+      `/treasury/transactions${
+        query ? `?${query}` : ""
+      }`
+    );
+  },
+
+  createTransaction(payload) {
+    return request(
+      "/treasury/transactions",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
+  },
+
+  /* Member Giving */
+
+/* Logged-in member */
+myGivingLedger(filters = {}) {
 
   const query =
     buildQuery(filters);
 
   return request(
-    `/treasury/transactions${
+    `/treasury/me/ledger${
       query ? `?${query}` : ""
-    }`,
-    {
-      method: "GET",
-    }
+    }`
   );
 
 },
 
+/* Treasurer/Admin */
+memberGivingLedger(
+  memberId,
+  filters = {}
+) {
 
-createTransaction: (payload) =>
-  request(
-    "/treasury/transactions",
-    {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }
-  ),
+  const query =
+    buildQuery(filters);
 
+  return request(
+    `/treasury/members/${memberId}/ledger${
+      query ? `?${query}` : ""
+    }`
+  );
 
-  /* Members */
-
-  memberGivingSummary: (
-    filters = {}
-  ) => {
-
-    const query =
-      buildQuery(filters);
-
-    return request(
-      `/treasury/members${
-        query ? `?${query}` : ""
-      }`
-    );
-
-  },
-
-
-  memberGivingHistory: (
-    memberId,
-    filters = {}
-  ) => {
-
-    const query =
-      buildQuery(filters);
-
-    return request(
-      `/treasury/members/${memberId}${
-        query ? `?${query}` : ""
-      }`
-    );
-
-  },
+},
 
 };
 export const ClerkAPI = {

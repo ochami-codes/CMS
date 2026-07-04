@@ -5,8 +5,8 @@ import Input from "../../components/Input";
 import Button from "../../components/Button";
 import Loader from "../../components/Loader";
 import { isStrongPassword } from "../../utils/validators";
-
 import { AuthAPI } from "../../utils/api";
+import styles from "../../styles/profiles/ChangePassword.module.css";
 
 export default function ChangePassword() {
   const navigate = useNavigate();
@@ -62,11 +62,11 @@ export default function ChangePassword() {
   if (loading) return <Loader message="Updating password… God is faithful." />;
 
   return (
-    <main className="page-container">
-      <section className="page-card">
-        <h1 className="page-title text-center">Change Password</h1>
+    <main className={styles.page}>
+      <section className={styles.card}>
+        <h1 className={styles.title}>Change Password</h1>
 
-        <form onSubmit={handleSubmit} className="form-stack">
+        <form onSubmit={handleSubmit} className={styles.form}>
           <Input
             label="New password"
             type="password"
@@ -78,10 +78,10 @@ export default function ChangePassword() {
 
           {passwordStrength && (
             <p
-              className={`form-helper ${
+              className={`${styles.helper} ${
                 passwordStrength.includes("Strong")
-                  ? "text-success"
-                  : "text-warning"
+                  ? styles.success
+                  : styles.warning
               }`}
             >
               {passwordStrength}
@@ -97,22 +97,25 @@ export default function ChangePassword() {
             required
           />
 
-          {error && <p className="form-error text-center">{error}</p>}
+          {error && <p className={styles.error}>{error}</p>}
 
-          <Button type="submit" className="w-full">
-            Update Password
-          </Button>
+          <div className={styles.actions}>
+            <Button type="submit" className={styles.button}>
+              Update Password
+            </Button>
 
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => navigate("/dashboard/profiles")}
-            className="w-full"
-          >
-            Cancel
-          </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => navigate("/dashboard/profiles")}
+              className={styles.button}
+            >
+              Cancel
+            </Button>
+          </div>
         </form>
       </section>
     </main>
   );
 }
+

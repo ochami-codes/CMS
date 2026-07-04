@@ -1,118 +1,144 @@
 import { useMemo, useState } from "react";
-import { Search, Download } from "lucide-react";
+import { Search } from "lucide-react";
 
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import ResponsiveDataView from "../../components/ResponsiveDataView";
+import MemberLedgerDrawer from "../../components/treasury/MemberLedgerDrawer";
+
 
 import styles from "../../styles/pages/MemberGivingTab.module.css";
 
 export default function MemberGivingTab({
   members = [],
 }) {
-  const [query, setQuery] = useState("");
 
-  /* ---------------- FILTERED DATA ---------------- */
-  const filtered = useMemo(() => {
-    if (!query) return members;
+  const [query, setQuery] =
+    useState("");
 
-    return members.filter((m) =>
-      m.full_name.toLowerCase().includes(query.toLowerCase())
-    );
-  }, [query, members]);
+  const [selectedMember, setSelectedMember] =
+    useState(null);
 
-  /* ---------------- SUMMARY ---------------- */
-  const summary = useMemo(() => {
-    const totalMembers = members.length;
 
-    const active = members.filter(
-      (m) => m.total_tithe > 0
-    ).length;
+  const filteredMembers =
+    useMemo(() => {
 
-    const totalGiving = members.reduce(
-      (sum, m) => sum + (m.total_tithe || 0) + (m.total_offering || 0),
-      0
-    );
+      const search =
+        query.trim().toLowerCase();
 
-    const avg = totalMembers
-      ? totalGiving / totalMembers
-      : 0;
+      if (!search) {
+        return members;
+      }
 
-    return {
-      totalMembers,
-      active,
-      totalGiving,
-      avg,
-    };
-  }, [members]);
+      return members.filter((member) =>
+        [
+          member.full_name,
+          member.phone,
+          member.member_number,
+        ]
+          .filter(Boolean)
+          .some((value) =>
+            String(value)
+              .toLowerCase()
+              .includes(search)
+          )
+      );
 
-  /* ---------------- TABLE CONFIG ---------------- */
+    }, [
+      members,
+      query,
+    ]);
+
+
   const columns = [
-    { key: "full_name", label: "Member" },
-    { key: "total_tithe", label: "Tithe" },
-    { key: "total_offering", label: "Offering" },
-    { key: "last_contribution", label: "Last Given" },
-    { key: "status", label: "Status" },
+    {
+      key: "full_name",
+      label: "Member",
+    },
+    {
+      key: "phone",
+      label: "Phone",
+    },
   ];
 
+
   return (
-    <section className={styles.container}>
+    <>
 
-      {/* SUMMARY CARDS */}
-      <div className={styles.summaryGrid}>
-        <Card>
-          <h3>Total Members</h3>
-          <p>{summary.totalMembers}</p>
-        </Card>
+      <section className={styles.container}>
 
-        <Card>
-          <h3>Active Givers</h3>
-          <p>{summary.active}</p>
-        </Card>
+        <div className={styles.intro}>
 
-        <Card>
-          <h3>Total Giving</h3>
-          <p>KES {summary.totalGiving.toLocaleString()}</p>
-        </Card>
+          <h2>
+            Member Giving
+          </h2>
 
-        <Card>
-          <h3>Avg per Member</h3>
-          <p>KES {summary.avg.toFixed(0)}</p>
-        </Card>
-      </div>
+          <p>
+            Search members and view their
+            complete giving ledger, including
+            tithe, offerings and other
+            contributions.
+          </p>
 
-      {/* FILTERS */}
-      <div className={styles.actionsBar}>
-
-        <div className={styles.searchBox}>
-          <Search size={16} />
-          <input
-            placeholder="Search member..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
         </div>
 
-        <Button variant="secondary">
-          <Download size={16} />
-          Export PDF
-        </Button>
 
-      </div>
+        <Card>
 
-      {/* TABLE (RESPONSIVE CORE) */}
-      <Card>
-        <ResponsiveDataView
-          columns={columns}
-          data={filtered}
-          renderActions={(row) => (
-            <Button size="sm">
-              View
-            </Button>
-          )}
-        />
-      </Card>
+          <div className={styles.actionsBar}>
 
-    </section>
+            <div className={styles.searchBox}>
+
+              <Search size={16} />
+
+              <input
+                value={query}
+                placeholder="Search member..."
+                onChange={(e) =>
+                  setQuery(e.target.value)
+                }
+              />
+
+            </div>
+
+          </div>
+
+
+          <ResponsiveDataView
+            columns={columns}
+            data={filteredMembers}
+            emptyMessage="No matching members found."
+            renderActions={(member) => (
+              <Button
+                size="sm"
+                onClick={() =>
+                  setSelectedMember(member)
+                }
+              >
+                Ledger
+              </Button>
+            )}
+          />
+
+        </Card>
+
+      </section>
+
+
+      <MemberLedgerDrawer
+        member={selectedMember}
+        onClose={() =>
+          setSelectedMember(null)
+        }
+        onExport={() => {
+          // TODO
+        }}
+        onPrint={() => {
+          // TODO
+        }}
+      />
+
+    </>
   );
+
 }

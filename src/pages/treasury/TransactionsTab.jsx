@@ -5,6 +5,7 @@ import {
   Download,
   Landmark,
   X,
+  ChevronDown,
 } from "lucide-react";
 
 import { useState } from "react";
@@ -12,9 +13,10 @@ import { useState } from "react";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import ResponsiveDataView from "../../components/ResponsiveDataView";
-
+import { formatDate } from "../../utils/formatDate";
 import ReceiveFundsForm from "../../components/treasury/ReceiveFundsForm";
 import RecordExpenseForm from "../../components/treasury/RecordExpenseForm";
+import AddFundForm from "../../components/treasury/AddFundForm";
 import useTreasuryTransactions from "../../hooks/treasury/useTreasuryTransactions";
 import styles from "../../styles/pages/TransactionsTab.module.css";
 
@@ -47,6 +49,10 @@ export default function TransactionsTab({
     {
       key: "transaction_date",
       label: "Date",
+      render: (value) =>
+        formatDate(value, {
+          month: "long",
+        }),
     },
 
     {
@@ -60,27 +66,11 @@ export default function TransactionsTab({
     },
 
     {
-      key: "type",
-      label: "Type",
-      render: (row) => (
-        <span
-          className={
-            row.type === "income"
-              ? styles.income
-              : styles.expense
-          }
-        >
-          {row.type}
-        </span>
-      ),
-    },
-
-    {
       key: "amount",
       label: "Amount",
 
       render: (row) =>
-        `KES ${Number(row.amount)
+        `KES ${Number(row)
           .toLocaleString()}`,
     },
 
@@ -109,15 +99,6 @@ export default function TransactionsTab({
           </p>
 
         </div>
-
-
-        <Button
-          variant="secondary"
-          onClick={onExport}
-        >
-          <Download size={16}/>
-          Export
-        </Button>
 
       </div>
 
@@ -237,6 +218,14 @@ export default function TransactionsTab({
               />
 
             )}
+            {activeForm === "fund" && (
+
+  <AddFundForm
+    onSuccess={handleSuccess}
+    onCancel={closeForm}
+  />
+
+)}
 
 
           </div>

@@ -1,12 +1,9 @@
+// src/profiles/ProfileForm.jsx
 import React, { useState, useEffect } from "react";
 import Toast from "../../../components/Toast";
-import "../../../styles/pages/Profile.module.css";
-export default function ProfileForm({
-  profile,
-  onUpdate,
-  loading,
-  message,
-}) {
+import styles from "../../../styles/profiles/ProfileForm.module.css";
+
+export default function ProfileForm({ profile, onUpdate, loading, message }) {
   const [localProfile, setLocalProfile] = useState(profile);
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState(null);
@@ -66,7 +63,7 @@ export default function ProfileForm({
   };
 
   return (
-    <div className="card">
+    <div className={styles.card}>
       {toast && (
         <Toast
           message={toast.text}
@@ -75,72 +72,63 @@ export default function ProfileForm({
         />
       )}
 
-      {/* HEADER (now controlled by CSS, not Tailwind) */}
-      <h2>Edit Profile</h2>
+      <h2 className={styles.title}>Edit Profile</h2>
 
-      <form onSubmit={handleSubmit} className="form-stack">
+      <form onSubmit={handleSubmit} className={styles.form}>
         {/* FULL NAME */}
-        <div className="form-group">
-          <label htmlFor="fullName">Full Name</label>
-
+        <div className={styles.group}>
+          <label htmlFor="fullName" className={styles.label}>
+            Full Name
+          </label>
           <input
             id="fullName"
             name="fullName"
             type="text"
             value={localProfile.fullName || ""}
             onChange={handleChange}
-            className="input-field"
+            className={styles.input}
           />
-
-          {errors.fullName && (
-            <p className="message-error">{errors.fullName}</p>
-          )}
+          {errors.fullName && <p className={styles.error}>{errors.fullName}</p>}
         </div>
 
         {/* PHONE */}
-        <div className="form-group">
-          <label htmlFor="phone">Phone Number</label>
-
+        <div className={styles.group}>
+          <label htmlFor="phone" className={styles.label}>
+            Phone Number
+          </label>
           <input
             id="phone"
             name="phone"
             type="text"
             value={localProfile.phone || ""}
             onChange={handleChange}
-            className="input-field"
+            className={styles.input}
           />
-
-          {errors.phone && (
-            <p className="message-error">{errors.phone}</p>
-          )}
+          {errors.phone && <p className={styles.error}>{errors.phone}</p>}
         </div>
 
         {/* EMAIL */}
-        <div className="form-group">
-          <label htmlFor="email">Email Address</label>
-
+        <div className={styles.group}>
+          <label htmlFor="email" className={styles.label}>
+            Email Address
+          </label>
           <input
             id="email"
             name="email"
             type="email"
             value={localProfile.email || ""}
             onChange={handleChange}
-            className="input-field"
+            className={styles.input}
           />
-
-          {errors.email && (
-            <p className="message-error">{errors.email}</p>
-          )}
+          {errors.email && <p className={styles.error}>{errors.email}</p>}
         </div>
 
         {/* SUBMIT */}
-        <button
-          type="submit"
-          className="btn btn-primary"
-          disabled={loading}
-        >
-          {loading ? "Saving..." : "Save Changes"}
-        </button>
+        <div className={styles.actions}>
+          <button type="submit" className={styles.button} disabled={loading}>
+            {loading ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
       </form>
     </div>
   );
