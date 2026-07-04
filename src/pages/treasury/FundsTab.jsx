@@ -10,7 +10,7 @@ import Remittance from "../../components/treasury/Remittance";
 import RemittanceHistory from "../../components/treasury/RemittanceHistory";
 import useTreasuryFundsSummary from "../../hooks/treasury/useTreasuryFundSummary";
 import useRemittances from "../../hooks/treasury/useRemittances";
-import styles from "../../styles/pages/FundsTab.module.css";
+import styles from "../../styles/pages/Fundstab.module.css";
 
 export default function FundsTab() {
   const [
