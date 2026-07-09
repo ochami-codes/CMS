@@ -1,152 +1,116 @@
-// src/components/members/MemberList.jsx
-import { useEffect, useState, useCallback } from "react";
-import { useToast } from "../ToastProvider";
-import { MembersAPI } from "../../utils/api";
-import { memberFields } from "../../utils/memberFields";
+import Button from "../Button";
+import Card from "../Card";
+import Loader from "../Loader";
+import ResponsiveDataView from "../ResponsiveDataView";
 
-import Table from "../Table";
-import MobileCards from "../MobileCards";
+import useDepartmentMembers from "../../hooks/members/useDepartmentMembers";
+import useDeleteMember from "../../hooks/members/useDeleteMember";
+
+import styles from "../../styles/components/MemberList.module.css";
 
 export default function MemberList({
-  department,
-  refreshKey,
-  currentUser,
+  departmentId,
+  title = "Members",
+  subtitle = "Registered members in this department.",
 }) {
-  const { showToast } = useToast();
+  const {
+  members,
+  loading,
+  error,
+  refresh,
+} = useDepartmentMembers(departmentId);
+  const {
+    deleteMember,
+    loading: deleting,
+  } = useDeleteMember();
 
-  const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState(null);
+  const columns = [
+    {
+      key: "full_name",
+      label: "Name",
+    },
+    {
+      key: "phone",
+      label: "Phone",
+    },
+    {
+      key: "gender",
+      label: "Gender",
+    },
+  ];
 
-  const config = memberFields[department];
-  const fields = config?.fields ?? [];
-
-  /* ---------------- FETCH ---------------- */
-  const loadMembers = useCallback(async () => {
-    if (!department) return;
-
-    setLoading(true);
-    try {
-      const res = await MembersAPI.fetchAll(department);
-      setMembers(Array.isArray(res?.members) ? res.members : []);
-    } catch (err) {
-      console.error(err);
-      showToast(err.message || "Failed to fetch members", "error");
-      setMembers([]);
-    } finally {
-      setLoading(false);
+  const handleDelete = async (memberId) => {
+    if (
+      !window.confirm(
+        "Delete this member from the department?"
+      )
+    ) {
+      return;
     }
-  }, [department, showToast]);
 
-  useEffect(() => {
-    loadMembers();
-  }, [loadMembers, refreshKey]);
-
-  /* ---------------- ACTIONS ---------------- */
-  const canEdit = ["Admin", "Clerk"].includes(currentUser?.role);
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this member?")) return;
-
-    setDeletingId(id);
-
-    try {
-      await MembersAPI.remove(id);
-      setMembers((prev) => prev.filter((m) => m.id !== id));
-      showToast("Member deleted", "success");
-    } catch (err) {
-      console.error(err);
-      showToast(err.message || "Delete failed", "error");
-    } finally {
-      setDeletingId(null);
-    }
+    await deleteMember({
+  memberId,
+  departmentId,
+});
   };
-
-  const handleEdit = (id) => {
-    if (!canEdit) return;
-    window.location.href = `/members/${department}/edit/${id}`;
-  };
-
-  /* ---------------- GUARDS ---------------- */
-  if (!department) {
-    return (
-      <div className="card">
-        <h2 className="card-title">Members</h2>
-        <p className="card-subtitle">No department selected.</p>
-      </div>
-    );
-  }
-
-  if (!config) {
-    return (
-      <div className="card">
-        <h2 className="card-title">Members</h2>
-        <p className="card-subtitle">Invalid department config.</p>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
-      <div className="card">
-        <p>Loading members…</p>
-      </div>
+      <Card className={styles.loading}>
+        <Loader message="Loading members..."
+        fullScreen={false} />
+      </Card>
     );
   }
 
-  /* ---------------- TABLE DATA ---------------- */
-  const columns = [
-    ...fields.map((f) => ({
-      key: f.name,
-      label: f.label,
-    })),
-  ];
+  if (error) {
+    return (
+      <Card className={styles.loading}>
+        <p>
+          Failed to load members.
+        </p>
 
-  const renderActions = (member) => (
-    <div className="table-actions">
-      {canEdit && (
-        <button
-          className="btn btn-secondary btn-sm"
-          onClick={() => handleEdit(member.id)}
-        >
-          Edit
-        </button>
-      )}
+        <Button onClick={refresh}>
+          Retry
+        </Button>
+      </Card>
+    );
+  }
 
-      <button
-        className="btn btn-danger btn-sm"
-        onClick={() => handleDelete(member.id)}
-        disabled={deletingId === member.id}
-      >
-        {deletingId === member.id ? "Deleting…" : "Delete"}
-      </button>
-    </div>
-  );
-
-  /* ---------------- UI ---------------- */
   return (
-    <div className="card">
-      <h2 className="card-title">
-        {members[0]?.department_name ?? department} Members
-      </h2>
+    <Card className={styles.card}>
+      <header className={styles.header}>
+        <div>
+          <h2 className={styles.title}>
+            {title}
+          </h2>
 
-      <p className="card-subtitle">
-        Registered members in this department.
-      </p>
+          <p className={styles.subtitle}>
+            {subtitle}
+          </p>
+        </div>
 
-      {/* DESKTOP */}
-      <Table
+        <span className={styles.count}>
+          {members.length}
+        </span>
+      </header>
+
+      <ResponsiveDataView
         columns={columns}
         data={members}
-        renderActions={renderActions}
+        renderActions={(member) => (
+          <Button
+  size="sm"
+  variant="danger"
+  disabled={deleting}
+  onClick={() =>
+    handleDelete(member.id)
+  }
+>
+  Remove
+</Button>
+        )}
       />
-
-      {/* MOBILE */}
-      <MobileCards
-        columns={columns}
-        data={members}
-        renderActions={renderActions}
-      />
-    </div>
+    </Card>
   );
 }

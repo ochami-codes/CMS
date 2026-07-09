@@ -14,7 +14,7 @@ import BirthdaySection from "../components/dashboard/BirthdaySection";
 import TransferRequestModal from "../components/members/TransferRequestModal";
 import { useAuth } from "../context/AuthContext";
 
-import useDashboardData from "../hooks/useDashboardData";
+import useDashboardData from "../hooks/dashboard/useDashboardData";
 import useSabbathTimer from "../hooks/useSabbathTimer";
 import useBirthdays from "../hooks/useBirthdays";
 

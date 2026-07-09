@@ -16,8 +16,6 @@ import styles from "../../styles/components/MemberLedgerDrawer.module.css";
 export default function MemberLedgerDrawer({
   member,
   onClose,
-  onExport,
-  onPrint,
 }) {
 
   const [period, setPeriod] =
@@ -55,7 +53,7 @@ export default function MemberLedgerDrawer({
   if (!member) {
     return null;
   }
-
+  
 
   return (
 
@@ -100,6 +98,12 @@ export default function MemberLedgerDrawer({
 
 
         <section className={styles.summaryGrid}>
+          {loading ? (
+            <div className={styles.loaderContainer}>
+              <div>Loading...</div>
+            </div>
+          ) : (
+            <>
 
           <Card className={styles.summaryCard}>
             <h4>Contributions</h4>
@@ -128,7 +132,8 @@ export default function MemberLedgerDrawer({
                 .toLocaleString()}
             </p>
           </Card>
-
+</>
+            )}
         </section>
 
 

@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 
-import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
 import Attendance from "../../components/members/Attendance";
 
@@ -11,9 +10,7 @@ export default function AmoDashboard() {
   const { user } = useAuth(); // use normalized user
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const handleMemberAdded = () => {
-    setRefreshKey((prev) => prev + 1);
-  };
+
 
   return (
     <main className="page-container space-y-6">
@@ -50,13 +47,7 @@ export default function AmoDashboard() {
         </div>
       </section>
 
-      {/* Add Member Form */}
-      <section className="page-card">
-        <AddMember
-          department="amo"
-          onMemberAdded={handleMemberAdded}
-        />
-      </section>
+    
 
       {/* Member List */}
       <section className="page-card">

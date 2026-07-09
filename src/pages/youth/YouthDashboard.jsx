@@ -1,20 +1,11 @@
-// src/pages/youth/YouthDashboard.jsx
-import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
 
-import AddMember from "../../components/members/AddMember";
+import { useAuth } from "../../context/AuthContext";
 import MemberList from "../../components/members/MemberList";
 import Attendance from "../../components/members/Attendance";
 
 
 export default function YouthDashboard() {
   const { user } = useAuth(); // use normalized user
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const handleMemberAdded = () => {
-    setRefreshKey((prev) => prev + 1);
-  };
-
   return (
     <main className="page-container space-y-6">
 
@@ -50,20 +41,13 @@ export default function YouthDashboard() {
         </div>
       </section>
 
-      {/* Add Member Form */}
-      <section className="page-card">
-        <AddMember
-          department="youth"
-          onMemberAdded={handleMemberAdded}
-        />
-      </section>
+
 
       {/* Member List */}
       <section className="page-card">
         <MemberList
           department="youth"
-          refreshKey={refreshKey}
-          currentUser={user} // now uses normalized user
+         currentUser={user} // now uses normalized user
         />
       </section>
 

@@ -1,77 +1,99 @@
-// src/pages/choir/ChoirDashboard.jsx
 import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
+import {
+  Megaphone,
+  Users,
+} from "lucide-react";
+
+import RequirePermission from "../../components/RequirePermission";
+import Tabs from "../../components/Tabs";
+
+import useDepartmentId from "../../hooks/departments/useDepartmentId";
 
 import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
-import Attendance from "../../components/members/Attendance";
+import Announcements from "../../components/announcements/Announcements";
 
+import styles from "../../styles/pages/ChoirDashboard.module.css";
+
+const tabs = [
+  {
+    key: "members",
+    label: "Members",
+    Icon: Users,
+  },
+  {
+    key: "announcements",
+    label: "Announcements",
+    Icon: Megaphone,
+  },
+];
 
 export default function ChoirDashboard() {
-  const { user } = useAuth(); // use normalized user
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [activeTab, setActiveTab] =
+    useState("members");
 
-  const handleMemberAdded = () => {
-    setRefreshKey((prev) => prev + 1);
-  };
+  const {
+    departmentId,
+    loading,
+  } = useDepartmentId("music");
+
+  if (loading) {
+    return (
+      <main className="page-container">
+        <p>Loading...</p>
+      </main>
+    );
+  }
 
   return (
-    <main className="page-container space-y-6">
+    <RequirePermission permission="manage_choir">
+      <main className={`page-container ${styles.page}`}>
+        <header className={styles.header}>
+          <div>
+            <h1 className={styles.title}>
+              Music Department
+            </h1>
 
-      {/* Page Header */}
-      <header className="page-header">
-        <h1 className="page-title">Choir Department</h1>
-        <p className="text-muted">
-          Manage choir members, programs, and attendance records.
-        </p>
-      </header>
+            <p className={styles.subtitle}>
+              Oversee the church's music ministry by
+              managing music department members,
+              including the choir, and publishing
+              announcements for all music-related
+              activities, rehearsals, and programs.
+            </p>
+          </div>
+        </header>
 
-      {/* Overview Cards */}
-      <section className="stats-grid">
-        <div className="page-card">
-          <h3 className="card-subtitle">Choir Members</h3>
-          <p className="text-muted">
-            Register and manage choir membership.
-          </p>
-        </div>
-
-        <div className="page-card">
-          <h3 className="card-subtitle">Programs & Activities</h3>
-          <p className="text-muted">
-            Track choir events, fellowships, and outreach.
-          </p>
-        </div>
-
-        <div className="page-card">
-          <h3 className="card-subtitle">Attendance</h3>
-          <p className="text-muted">
-            Record Sabbath and program attendance.
-          </p>
-        </div>
-      </section>
-
-      {/* Add Member Form */}
-      <section className="page-card">
-        <AddMember
-          department="choir"
-          onMemberAdded={handleMemberAdded}
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onChange={setActiveTab}
         />
-      </section>
 
-      {/* Member List */}
-      <section className="page-card">
-        <MemberList
-          department="choir"
-          refreshKey={refreshKey}
-          currentUser={user} // now uses normalized user
-        />
-      </section>
+        <section className={styles.content}>
+          {activeTab === "members" && (
+            <div className={styles.members}>
+              <AddMember
+                departmentId={departmentId}
+              />
 
-     /* {/* Attendance */}
-      <section className="page-card">
-        <Attendance department="choir" />
-      </section>*/
+              <MemberList
+                departmentId={departmentId}
+                title="Music Department Members"
+                subtitle="Manage everyone serving in the music ministry, including choir members."
+              />
+            </div>
+          )}
 
-    </main>
+          {activeTab === "announcements" && (
+            <Announcements
+              departmentId={departmentId}
+              title="Music Department Announcements"
+              subtitle="Share rehearsal schedules, music programs, and other updates with all members of the music department."
+            />
+          )}
+        </section>
+      </main>
+    </RequirePermission>
   );
 }

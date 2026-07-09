@@ -47,12 +47,48 @@ export const ProfileAPI = {
 /* ======================
    MEMBERS API
 ====================== */
+
 export const MembersAPI = {
-  fetchAll: (department = "") =>
-    request(department ? `/members?department=${encodeURIComponent(department)}` : "/members"),
-  add: (payload) => request("/members", { method: "POST", body: JSON.stringify(payload) }),
-  update: (id, updates) => request(`/members/${id}`, { method: "PUT", body: JSON.stringify(updates) }),
-  remove: (id) => request(`/members/${id}`, { method: "DELETE" }),
+  fetchAll: ({
+    departmentId,
+    search,
+  } = {}) => {
+    const params = new URLSearchParams();
+
+    if (departmentId) {
+      params.set(
+        "department",
+        departmentId
+      );
+    }
+
+    if (search?.trim()) {
+      params.set(
+        "search",
+        search.trim()
+      );
+    }
+
+    const query = params.toString();
+
+    return request(
+      query
+        ? `/members?${query}`
+        : "/members"
+    );
+  },
+
+  addToDepartment: (payload) =>
+    request("/members", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  remove: (payload) =>
+    request("/members", {
+      method: "DELETE",
+      body: JSON.stringify(payload),
+    }),
 };
 
 /* ======================
@@ -60,23 +96,27 @@ export const MembersAPI = {
 ====================== */
 
 export const DepartmentsAPI = {
+  fetch: async (filters = {}) => {
+    const query = buildQuery(filters);
 
-  fetch: (filters = {}) => {
+    const url = `/departments${
+      query ? `?${query}` : ""
+    }`;
 
-    const query =
-      buildQuery(filters);
+    console.log("Departments request:", url);
 
-    return request(
-      `/departments${
-        query ? `?${query}` : ""
-      }`
+    const response = await request(url);
+
+    console.log(
+      "Departments response:",
+      response
     );
 
+    return response;
   },
 
   fetchById: (id) =>
     request(`/departments/${id}`),
-
 };
 
 /* ======================
@@ -399,7 +439,7 @@ export const DashboardAPI = {
 ====================== */
 export const OverviewAPI = {
   admin: () => request("/admin/overview"),
-  fetchPastorOverview: () => request("/pastor/overview"),
+  fetchPastorOverview: () => request("/pastor/dashboard"),
 };
 
 /* ======================

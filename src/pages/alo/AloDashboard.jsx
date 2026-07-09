@@ -1,19 +1,11 @@
-// src/pages/alo/AloDashboard.jsx
-import { useState } from "react";
+// src/pages/alo/AloDashbo
 import { useAuth } from "../../context/AuthContext";
-
-import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
 import Attendance from "../../components/members/Attendance";
 
 
 export default function AloDashboard() {
   const { user } = useAuth(); // use normalized user
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const handleMemberAdded = () => {
-    setRefreshKey((prev) => prev + 1);
-  };
 
   return (
     <main className="page-container space-y-6">
@@ -50,19 +42,12 @@ export default function AloDashboard() {
         </div>
       </section>
 
-      {/* Add Member Form */}
-      <section className="page-card">
-        <AddMember
-          department="alo"
-          onMemberAdded={handleMemberAdded}
-        />
-      </section>
 
       {/* Member List */}
       <section className="page-card">
         <MemberList
           department="alo"
-          refreshKey={refreshKey}
+
           currentUser={user} // now uses normalized user
         />
       </section>

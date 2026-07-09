@@ -1,0 +1,64 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ---------- Header ---------- */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.title {
+  margin: 0;
+
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ---------- Content ---------- */
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ---------- Loading / Error ---------- */
+
+.loadingWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  min-height: 60vh;
+  padding: 2rem;
+
+  text-align: center;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 768px) {
+  .page {
+    gap: 1.25rem;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .subtitle {
+    font-size: .95rem;
+  }
+}

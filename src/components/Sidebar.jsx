@@ -12,7 +12,7 @@ const SIDEBAR_ITEMS = [
   { label: "Pastor", path: "/dashboard/pastor", icon: Church, permission: "access_pastor_dashboard" },
   { label: "Treasury", path: "/dashboard/treasury", icon: Wallet, permission: "access_treasury_dashboard" },
   { label: "Communication", path: "/dashboard/communication", icon: Megaphone, permission: "access_media_dashboard" },
-  { label: "Choir", path: "/dashboard/choir", icon: Music, permission: "access_choir_dashboard" },
+  { label: "Music", path: "/dashboard/choir", icon: Music, permission: "access_music_dashboard" },
   { label: "Youth", path: "/dashboard/youth", icon: Users, permission: "access_youth_dashboard" },
   { label: "Children", path: "/dashboard/children", icon: Baby, permission: "access_children_dashboard" },
   { label: "ALO", path: "/dashboard/alo", icon: BookOpen, permission: "access_alo_dashboard" },

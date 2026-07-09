@@ -1,78 +1,122 @@
-// src/pages/pastor/PastorDashboard.jsx
-import { useEffect, useState } from "react";
-import { useToast } from "../../components/ToastProvider";
+import { useState } from "react";
+import {
+  LayoutDashboard,
+  Building2,
+  Landmark,
+  Users,
+} from "lucide-react";
 
-import { OverviewAPI } from "../../utils/api";
+import RequirePermission from "../../components/RequirePermission";
+import Tabs from "../../components/Tabs";
+import Loader from "../../components/Loader";
+import usePastorDashboard from "../../hooks/pastor/usePastorDashboard";
+
+import PastorOverview from "./PastorOverview";
+import PastorDepartments from "./PastorDepartments";
+import PastorTreasury from "./PastorTreasury";
+import PastorMembers from "./PastorMembers";
+
+import styles from "../../styles/pages/PastorDashboard.module.css";
+
+const tabs = [
+  {
+    key: "overview",
+    label: "Overview",
+    Icon: LayoutDashboard,
+  },
+  {
+    key: "departments",
+    label: "Departments",
+    Icon: Building2,
+  },
+  {
+    key: "treasury",
+    label: "Treasury",
+    Icon: Landmark,
+  },
+  {
+    key: "members",
+    label: "Members",
+    Icon: Users,
+  },
+];
 
 export default function PastorDashboard() {
-  const { showToast } = useToast();
+  const [activeTab, setActiveTab] =
+    useState("overview");
 
-  const [overview, setOverview] = useState({});
-  const [loading, setLoading] = useState(true);
+  const {
+    data,
+    loading,
+    error,
+    refresh,
+    isFetching,
+  } = usePastorDashboard();
 
-  /* ---------------- Load overview ---------------- */
-  const loadOverview = async () => {
-    setLoading(true);
+  if (loading) {
+    return <Loader message="Loading dashboard..."
+    fullScreen={false} />;
+  }
 
-    try {
-      const data = await OverviewAPI.fetchPastorOverview();
-      setOverview(data ?? {});
-    } catch (err) {
-      console.error("Pastor dashboard load error:", err);
-      showToast(err.message || "Failed to load dashboard", "error", 4000);
-      setOverview({});
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadOverview();
-  }, []);
-
-  if (loading) return <p>Loading dashboard…</p>;
-
-  const cards = [
-    {
-      title: "Youth Department",
-      value: overview.youth ?? 0,
-    },
-    {
-      title: "Children Department",
-      value: overview.children ?? 0,
-    },
-  ];
+  if (error) {
+    return (
+      <ErrorState
+        title="Failed to load dashboard."
+        onRetry={refresh}
+      />
+    );
+  }
 
   return (
-    <div className="dashboard-content">
+    <RequirePermission permission="view_dashboard">
+      <main
+        className={`page-container ${styles.page}`}
+      >
+        <header className={styles.header}>
+          <h1 className={styles.title}>
+            Pastor Dashboard
+          </h1>
 
-      {/* ======================
-         PAGE HEADER
-      ====================== */}
-      <div className="card">
-        <h2 className="card-title">Pastor Dashboard</h2>
-        <p className="card-subtitle">
-          Overview of church departments and members.
-        </p>
-      </div>
+          <p className={styles.subtitle}>
+            View church departments, treasury,
+            and membership insights.
+          </p>
+        </header>
 
-      {/* ======================
-         STATS GRID
-      ====================== */}
-      <div className="stats-grid">
-        {cards.map((card) => (
-          <div key={card.title} className="stat-card card">
-            <h3>{card.title}</h3>
-            <p>Total members: {card.value}</p>
-          </div>
-        ))}
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+        />
 
-        <div className="stat-card card">
-          <h3>Reports</h3>
-          <p>Generate overall church reports and attendance summaries.</p>
-        </div>
-      </div>
+        <section className={styles.content}>
+          {activeTab === "overview" && (
+            <PastorOverview
+              overview={data.overview}
+              isFetching={isFetching}
+            />
+          )}
 
-    </div>
+          {activeTab === "departments" && (
+            <PastorDepartments
+              departments={data.departments}
+            />
+          )}
+
+          {activeTab === "treasury" && (
+            <PastorTreasury
+              treasury={data.treasury}
+            />
+          )}
+
+          {activeTab === "members" && (
+            <PastorMembers
+              summary={data.members.summary}
+              members={data.members.list}
+            />
+          )}
+        </section>
+      </main>
+    </RequirePermission>
   );
 }

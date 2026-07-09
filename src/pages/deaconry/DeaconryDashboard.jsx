@@ -1,19 +1,11 @@
-// src/pages/deaconry/DeaconryDashboard.jsx
-import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
 
-import AddMember from "../../components/members/AddMember";
+import { useAuth } from "../../context/AuthContext";
 import MemberList from "../../components/members/MemberList";
 import Attendance from "../../components/members/Attendance";
 
 
 export default function DeaconryDashboard() {
   const { user } = useAuth(); // use normalized user
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const handleMemberAdded = () => {
-    setRefreshKey((prev) => prev + 1);
-  };
 
   return (
     <main className="page-container space-y-6">
@@ -50,19 +42,11 @@ export default function DeaconryDashboard() {
         </div>
       </section>
 
-      {/* Add Member Form */}
-      <section className="page-card">
-        <AddMember
-          department="deaconry"
-          onMemberAdded={handleMemberAdded}
-        />
-      </section>
 
       {/* Member List */}
       <section className="page-card">
         <MemberList
           department="deaconry"
-          refreshKey={refreshKey}
           currentUser={user} // now uses normalized user
         />
       </section>

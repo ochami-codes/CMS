@@ -130,12 +130,6 @@ export default function MemberGivingTab({
         onClose={() =>
           setSelectedMember(null)
         }
-        onExport={() => {
-          // TODO
-        }}
-        onPrint={() => {
-          // TODO
-        }}
       />
 
     </>
