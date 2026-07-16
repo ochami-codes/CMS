@@ -22,18 +22,6 @@ const buildQuery = (filters = {}) => {
 
   return params.toString();
 };
-/* ======================
-   CHILDREN API
-====================== */
-export const ChildrenAPI = {
-  fetchAll: (churchId) =>
-    request(`/children?churchId=${encodeURIComponent(churchId)}`),
-  add: (childData) =>
-    request("/children", { method: "POST", body: JSON.stringify(childData) }),
-  update: (id, childData) =>
-    request(`/children/${id}`, { method: "PUT", body: JSON.stringify(childData) }),
-  delete: (id) => request(`/children/${id}`, { method: "DELETE" }),
-};
 
 /* ======================
    PROFILE API
@@ -386,32 +374,215 @@ getConferences: () => request("/conferences"),
 /* ======================
    ATTENDANCE API
 ====================== */
-export const AttendanceAPI = {
-  fetch: (department, date) =>
-    request(`/attendance?department=${encodeURIComponent(department)}&date=${date}`),
-  save: (records) =>
-    request("/attendance", { method: "POST", body: JSON.stringify({ records }) }),
-  summary: (department, period) =>
-    request(`/attendance/summary?department=${encodeURIComponent(department)}&period=${period}`),
-};
 
+export const AttendanceAPI = {
+  fetch: ({
+    departmentId,
+    attendanceDate,
+  } = {}) => {
+    const params = new URLSearchParams();
+
+    if (departmentId) {
+      params.set(
+        "departmentId",
+        departmentId
+      );
+    }
+
+    if (attendanceDate) {
+      params.set(
+        "attendanceDate",
+        attendanceDate
+      );
+    }
+
+    const query = params.toString();
+
+    return request(
+      query
+        ? `/attendance?${query}`
+        : "/attendance"
+    );
+  },
+
+  save: (payload) =>
+    request("/attendance", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  summary: ({
+    departmentId,
+    period,
+  } = {}) => {
+    const params = new URLSearchParams();
+
+    if (departmentId) {
+      params.set(
+        "departmentId",
+        departmentId
+      );
+    }
+
+    if (period) {
+      params.set(
+        "period",
+        period
+      );
+    }
+
+    const query = params.toString();
+
+    return request(
+      query
+        ? `/attendance/summary?${query}`
+        : "/attendance/summary"
+    );
+  },
+};
+/* ======================
+   SABBATH SCHOOL API
+====================== */
+
+export const SabbathSchoolAPI = {
+  /* Lesson Guides */
+
+  getLessonGuides() {
+    return request(
+      "/sabbath-school/lesson-guides"
+    );
+  },
+
+  createLessonGuide(data) {
+  return request(
+    "/sabbath-school/lesson-guides",
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+},
+
+createMyLessonGuide(data) {
+  return request(
+    "/sabbath-school/lesson-guides/me",
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+},
+
+  updateLessonGuide(id, data) {
+    return request(
+      `/sabbath-school/lesson-guides/${id}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }
+    );
+  },
+
+  deleteLessonGuide(id) {
+    return request(
+      `/sabbath-school/lesson-guides/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
+  },
+
+ /* Attendance */
+
+getAttendance(departmentId) {
+  return request(
+    `/sabbath-school/${departmentId}/attendance`
+  );
+},
+
+saveAttendance(departmentId, data) {
+  return request(
+    `/sabbath-school/${departmentId}/attendance`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+},
+
+  deleteAttendance(sessionId) {
+    return request(
+      `/attendance/${sessionId}`,
+      {
+        method: "DELETE",
+      }
+    );
+  },
+  /* Offerings */
+
+getOfferings(departmentId) {
+  return request(
+    `/sabbath-school/${departmentId}/finances`
+  );
+},
+
+saveOfferings(departmentId, data) {
+  return request(
+    `/sabbath-school/finances`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+},
+
+deleteOfferings(sessionId) {
+  return request(
+    `/finances/${sessionId}`,
+    {
+      method: "DELETE",
+    }
+  );
+},
+};
 /* ======================
    ANNOUNCEMENTS / COMMUNICATION API
 ====================== */
 export const AnnouncementsAPI = {
-  fetch: (churchId, limit = 5) =>
-    request(`/dashboard/announcements?churchId=${churchId}&limit=${limit}`),
-  create: (payload) =>
-    request("/dashboard/announcements", { method: "POST", body: JSON.stringify(payload) }),
-  remove: (id) => request(`/dashboard/announcements/${id}`, { method: "DELETE" }),
-};
+  fetchChurch(limit = 5) {
+    return request(
+      `/dashboard/announcements/church?limit=${limit}`
+    );
+  },
 
-export const CommunicationAPI = {
-  fetchAnnouncements: (churchId) => AnnouncementsAPI.fetch(churchId),
-  addAnnouncement: (payload) => AnnouncementsAPI.create(payload),
-  deleteAnnouncement: (id) => AnnouncementsAPI.remove(id),
-};
+  fetchDepartment(
+    departmentId,
+    limit = 5
+  ) {
+    return request(
+      `/dashboard/announcements/department/${departmentId}?limit=${limit}`
+    );
+  },
 
+  create(payload) {
+    return request(
+      "/dashboard/announcements",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
+  },
+
+  remove(id) {
+    return request(
+      `/dashboard/announcements/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
+  },
+};
 /* ======================
    DASHBOARD API
 ====================== */

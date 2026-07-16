@@ -1,0 +1,60 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.loading {
+  min-height: 220px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.subtitle {
+  margin-top: 0.35rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.count {
+  min-width: 44px;
+  height: 44px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 999px;
+
+  background: var(--primary-light);
+  color: var(--primary-color);
+
+  font-weight: 700;
+}
+
+.empty {
+  padding: 3rem 1rem;
+  text-align: center;
+
+  border: 2px dashed var(--border-color);
+  border-radius: 0.75rem;
+}
+
+.empty h3 {
+  margin: 0 0 0.75rem;
+}
+
+.empty p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}

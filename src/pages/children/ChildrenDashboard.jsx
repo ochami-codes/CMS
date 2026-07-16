@@ -1,68 +1,114 @@
-// src/pages/departments/ChildrenDashboard.jsx
-import { useEffect, useState } from "react";
-import { useToast } from "../../components/ToastProvider";
-import ChildrenList from "../../components/children/ChildrenList";
-import { ChildrenAPI } from "../../utils/api";
+import { useState } from "react";
+import {
+  Users,
+  ClipboardCheck,
+} from "lucide-react";
 
 import RequirePermission from "../../components/RequirePermission";
+import Tabs from "../../components/Tabs";
+import Card from "../../components/Card";
+import ChildrenList from "../../components/children/ChildrenList";
+import ChildrenAttendance from "../../components/children/ChildrenAttendance";
+import useDepartmentId from "../../hooks/departments/useDepartmentId";
+import useChildren from "../../hooks/clerk/useChildren";
+
+import styles from "../../styles/pages/ChildrenDashboard.module.css";
+
+const tabs = [
+  {
+    key: "register",
+    label: "Children Register",
+    Icon: Users,
+  },
+  {
+    key: "attendance",
+    label: "Attendance",
+    Icon: ClipboardCheck,
+  },
+];
 
 export default function ChildrenDashboard() {
-  const { showToast } = useToast();
+  const [activeTab, setActiveTab] =
+    useState("register");
 
-  const [children, setChildren] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshToggle, setRefreshToggle] = useState(false);
+  const {
+    children,
+    loading,
+    error,
+    refresh,
+  } = useChildren();
 
-  const loadChildren = async () => {
-    setLoading(true);
-
-    try {
-      const data = await ChildrenAPI.fetchAll();
-      setChildren(data || []);
-    } catch (err) {
-      console.error(err);
-      showToast("Failed to load children", "error");
-      setChildren([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadChildren();
-  }, [refreshToggle]);
-
-  const refreshChildren = () => {
-    setRefreshToggle((prev) => !prev);
-    showToast("Children list refreshed", "success");
-  };
+   const {
+      departmentId,
+      loading: deptLoading
+    } = useDepartmentId("children");
+     if (deptLoading) {
+    return (
+      <main className="page-container">
+        <p>Loading...</p>
+      </main>
+    );
+  }
 
   return (
     <RequirePermission permission="manage_children">
-      <div className="dashboard-content">
+      <main
+        className={`page-container ${styles.page}`}
+      >
+        <header className={styles.header}>
+          <div>
+            <h1 className={styles.title}>
+              Children Department
+            </h1>
 
-        {/* ======================
-           PAGE HEADER
-        ====================== */}
-        <div className="card">
-          <h2 className="card-title">Children Department</h2>
-          <p className="card-subtitle">
-            Manage children records, parents’ contacts, and attendance.
+            <p className={styles.subtitle}>
+              View registered children and
+              record Sabbath attendance for
+              your department.
+            </p>
+          </div>
+        </header>
+
+        <Card className={styles.notice}>
+          <h3 className={styles.noticeTitle}>
+            Clerk Managed Register
+          </h3>
+
+          <p className={styles.noticeText}>
+            Only children registered by the
+            Church Clerk appear in this list.
+            If a child's name is missing,
+            kindly request the Clerk to add
+            them before recording attendance.
           </p>
-        </div>
+        </Card>
 
-        {/* ======================
-           CHILDREN LIST
-        ====================== */}
-        <div className="card">
-          <ChildrenList
-            children={children}
-            loading={loading}
-            onRefresh={refreshChildren}
-          />
-        </div>
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+        />
 
-      </div>
+        <section className={styles.content}>
+          {activeTab === "register" && (
+            <ChildrenList
+              children={children}
+              loading={loading}
+              error={error}
+              onRefresh={refresh}
+            />
+          )}
+
+          {activeTab ===
+            "attendance" && (
+            <ChildrenAttendance
+              departmentId={departmentId}
+              children={children}
+              loading={loading}
+            />
+          )}
+        </section>
+      </main>
     </RequirePermission>
   );
 }

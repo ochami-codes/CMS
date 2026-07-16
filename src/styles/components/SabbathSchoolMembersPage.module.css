@@ -1,0 +1,35 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 48rem;
+}
+
+.state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 16rem;
+}
+
+.retry {
+  margin-top: 1rem;
+}

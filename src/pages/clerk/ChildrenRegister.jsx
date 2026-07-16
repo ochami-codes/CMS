@@ -6,7 +6,7 @@ import EditChildModal from "../../components/members/EditChildModal";
 import EmptyState from "../../components/EmptyState";
 import { Baby, RefreshCw } from "lucide-react";
 import { useClerkActions } from "../../hooks/clerk/useClerkActions";
-import { useChildren } from "../../hooks/clerk/useChildren";
+import  useChildren  from "../../hooks/clerk/useChildren";
 
 export default function ChildrenRegister() {
   const [selectedChild, setSelectedChild] = useState(null);

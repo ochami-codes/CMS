@@ -9,13 +9,21 @@ export default function useAnnouncements({
   enabled = true,
 } = {}) {
   const query = useQuery({
-    queryKey: ["announcements"],
+    queryKey: [
+      "announcements",
+      departmentId ?? "church",
+      limit,
+    ],
 
     queryFn: () =>
-      AnnouncementsAPI.fetch({
-        departmentId,
-        limit,
-      }),
+      departmentId
+        ? AnnouncementsAPI.fetchDepartment(
+            departmentId,
+            limit
+          )
+        : AnnouncementsAPI.fetchChurch(
+            limit
+          ),
 
     enabled,
 

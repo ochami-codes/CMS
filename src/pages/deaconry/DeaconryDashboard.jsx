@@ -1,61 +1,98 @@
+import { useState } from "react";
+import {
+  Megaphone,
+  Users,
+} from "lucide-react";
 
-import { useAuth } from "../../context/AuthContext";
+import RequirePermission from "../../components/RequirePermission";
+import Tabs from "../../components/Tabs";
+
+import useDepartmentId from "../../hooks/departments/useDepartmentId";
+
+import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
-import Attendance from "../../components/members/Attendance";
+import Announcements from "../../components/announcements/Announcements";
 
+import styles from "../../styles/pages/SharedPages.module.css";
+
+const tabs = [
+  {
+    key: "members",
+    label: "Members",
+    Icon: Users,
+  },
+  {
+    key: "announcements",
+    label: "Announcements",
+    Icon: Megaphone,
+  },
+];
 
 export default function DeaconryDashboard() {
-  const { user } = useAuth(); // use normalized user
+  const [activeTab, setActiveTab] =
+    useState("members");
+
+  const {
+    departmentId,
+    loading,
+  } = useDepartmentId("deaconry");
+
+  if (loading) {
+    return (
+      <main className="page-container">
+        <p>Loading...</p>
+      </main>
+    );
+  }
 
   return (
-    <main className="page-container space-y-6">
+    <RequirePermission permission="manage_deaconry">
+      <main className={`page-container ${styles.page}`}>
+        <header className={styles.header}>
+          <div>
+            <h1 className={styles.title}>
+              Deaconry Department
+            </h1>
 
-      {/* Page Header */}
-      <header className="page-header">
-        <h1 className="page-title">Deaconry Department</h1>
-        <p className="text-muted">
-          Manage deaconry members, programs, and attendance records.
-        </p>
-      </header>
+            <p className={styles.subtitle}>
+              Oversee the church's deaconry ministry by
+              managing deaconry department members and publishing
+              announcements for all deaconry-related
+              activities, meetings, and programs.
+            </p>
+          </div>
+        </header>
 
-      {/* Overview Cards */}
-      <section className="stats-grid">
-        <div className="page-card">
-          <h3 className="card-subtitle">Deaconry Members</h3>
-          <p className="text-muted">
-            Register and manage deaconry membership.
-          </p>
-        </div>
-
-        <div className="page-card">
-          <h3 className="card-subtitle">Programs & Activities</h3>
-          <p className="text-muted">
-            Track Deaconry events, fellowships, and outreach.
-          </p>
-        </div>
-
-        <div className="page-card">
-          <h3 className="card-subtitle">Attendance</h3>
-          <p className="text-muted">
-            Record Sabbath and program attendance.
-          </p>
-        </div>
-      </section>
-
-
-      {/* Member List */}
-      <section className="page-card">
-        <MemberList
-          department="deaconry"
-          currentUser={user} // now uses normalized user
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onChange={setActiveTab}
         />
-      </section>
 
-     /* {/* Attendance */}
-      <section className="page-card">
-        <Attendance department="deaconry" />
-      </section>*/
+        <section className={styles.content}>
+          {activeTab === "members" && (
+            <div className={styles.members}>
+              <AddMember
+                departmentId={departmentId}
+              />
 
-    </main>
+              <MemberList
+                departmentId={departmentId}
+                title="Deaconry Department Members"
+                subtitle="Manage everyone serving in the deaconry."
+              />
+            </div>
+          )}
+
+          {activeTab === "announcements" && (
+            <Announcements
+              departmentId={departmentId}
+              title="Deaconry Department Announcements"
+              subtitle="Share rehearsal schedules, deaconry programs, and other updates with all deaconry members."
+            />
+          )}
+        </section>
+      </main>
+    </RequirePermission>
   );
 }

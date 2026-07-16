@@ -9,7 +9,7 @@ export default function MemberProfileCard({
 }) {
   if (!member) return null;
 
-  const formatDate = (date) => {
+  const te = (date) => {
     if (!date) return "-";
     return new Date(date).toLocaleDateString("en-KE", {
       year: "numeric",
@@ -70,14 +70,14 @@ export default function MemberProfileCard({
             <div className={styles.item}>
               <span className={styles.label}>Joined</span>
               <span className={styles.value}>
-                {formatDate(member.joined_at)}
+                {te(member.joined_at)}
               </span>
             </div>
 
             <div className={styles.item}>
               <span className={styles.label}>Created</span>
               <span className={styles.value}>
-                {formatDate(member.created_at)}
+                {te(member.created_at)}
               </span>
             </div>
 
@@ -105,7 +105,7 @@ export default function MemberProfileCard({
             <div className={styles.item}>
               <span className={styles.label}>Baptism Date</span>
               <span className={styles.value}>
-                {formatDate(member.baptismal_date)}
+                {te(member.baptismal_date)}
               </span>
             </div>
 

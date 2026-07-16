@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+
 import { TreasuryAPI } from "../../utils/api";
 
 const defaultData = {
@@ -16,11 +17,25 @@ const defaultData = {
   unremittedMonths: [],
 };
 
-export default function useTreasuryFundsSummary() {
+export default function useTreasuryFundsSummary({
+  departmentId,
+  enabled = true,
+} = {}) {
   const query = useQuery({
-    queryKey: ["treasury-funds-summary"],
-    queryFn: TreasuryAPI.fundsSummary,
-    staleTime: 5 * 60 * 1000,
+    queryKey: [
+      "treasury-funds-summary",
+      departmentId,
+    ],
+
+    queryFn: () =>
+      TreasuryAPI.fundsSummary({
+        departmentId,
+      }),
+
+    enabled,
+
+    staleTime:
+      5 * 60 * 1000,
   });
 
   return {

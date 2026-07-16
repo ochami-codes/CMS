@@ -1,61 +1,98 @@
+import { useState } from "react";
+import {
+  Megaphone,
+  Users,
+} from "lucide-react";
 
-import { useAuth } from "../../context/AuthContext";
+import RequirePermission from "../../components/RequirePermission";
+import Tabs from "../../components/Tabs";
+
+import useDepartmentId from "../../hooks/departments/useDepartmentId";
+
+import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
-import Attendance from "../../components/members/Attendance";
+import Announcements from "../../components/announcements/Announcements";
 
+import styles from "../../styles/pages/SharedPages.module.css";
 
-export default function YouthDashboard() {
-  const { user } = useAuth(); // use normalized user
+const tabs = [
+  {
+    key: "members",
+    label: "Members",
+    Icon: Users,
+  },
+  {
+    key: "announcements",
+    label: "Announcements",
+    Icon: Megaphone,
+  },
+];
+
+export default function ChoirDashboard() {
+  const [activeTab, setActiveTab] =
+    useState("members");
+
+  const {
+    departmentId,
+    loading,
+  } = useDepartmentId("youth");
+
+  if (loading) {
+    return (
+      <main className="page-container">
+        <p>Loading...</p>
+      </main>
+    );
+  }
+
   return (
-    <main className="page-container space-y-6">
+    <RequirePermission permission="manage_youth">
+      <main className={`page-container ${styles.page}`}>
+        <header className={styles.header}>
+          <div>
+            <h1 className={styles.title}>
+              Youth Department
+            </h1>
 
-      {/* Page Header */}
-      <header className="page-header">
-        <h1 className="page-title">Youth Department</h1>
-        <p className="text-muted">
-          Manage youth members, programs, and attendance records.
-        </p>
-      </header>
+            <p className={styles.subtitle}>
+              Oversee the church's youth ministry by
+              managing youth department members and publishing
+              announcements for all youth-related
+              activities, meetings, and programs.
+            </p>
+          </div>
+        </header>
 
-      {/* Overview Cards */}
-      <section className="stats-grid">
-        <div className="page-card">
-          <h3 className="card-subtitle">Youth Members</h3>
-          <p className="text-muted">
-            Register and manage youth membership.
-          </p>
-        </div>
-
-        <div className="page-card">
-          <h3 className="card-subtitle">Programs & Activities</h3>
-          <p className="text-muted">
-            Track youth events, fellowships, and outreach.
-          </p>
-        </div>
-
-        <div className="page-card">
-          <h3 className="card-subtitle">Attendance</h3>
-          <p className="text-muted">
-            Record Sabbath and program attendance.
-          </p>
-        </div>
-      </section>
-
-
-
-      {/* Member List */}
-      <section className="page-card">
-        <MemberList
-          department="youth"
-         currentUser={user} // now uses normalized user
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onChange={setActiveTab}
         />
-      </section>
 
-/*      {/* Attendance */}
-      <section className="page-card">
-        <Attendance department="youth" />
-      </section>
-*/
-    </main>
+        <section className={styles.content}>
+          {activeTab === "members" && (
+            <div className={styles.members}>
+              <AddMember
+                departmentId={departmentId}
+              />
+
+              <MemberList
+                departmentId={departmentId}
+                title="Youth Department Members"
+                subtitle="Manage everyone serving in the youth ministry, including choir members."
+              />
+            </div>
+          )}
+
+          {activeTab === "announcements" && (
+            <Announcements
+              departmentId={departmentId}
+              title="Youth Department Announcements"
+              subtitle="Share rehearsal schedules, youth programs, and other updates with all members of the youth department."
+            />
+          )}
+        </section>
+      </main>
+    </RequirePermission>
   );
 }

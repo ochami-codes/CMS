@@ -13,7 +13,7 @@ import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
 import Announcements from "../../components/announcements/Announcements";
 
-import styles from "../../styles/pages/ChoirDashboard.module.css";
+import styles from "../../styles/pages/SharedPages.module.css";
 
 const tabs = [
   {
@@ -51,12 +51,12 @@ export default function ChoirDashboard() {
         <header className={styles.header}>
           <div>
             <h1 className={styles.title}>
-              Music Department
+              Choir Department
             </h1>
 
             <p className={styles.subtitle}>
-              Oversee the church's music ministry by
-              managing music department members,
+              Oversee the church's choir ministry by
+              managing choir   department members,
               including the choir, and publishing
               announcements for all music-related
               activities, rehearsals, and programs.
