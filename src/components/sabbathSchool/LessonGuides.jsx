@@ -6,7 +6,7 @@ import Loader from "../Loader";
 import ResponsiveDataView from "../ResponsiveDataView";
 import LessonGuideModal from "./LessonGuideModal";
 
-import useLessonGuides from "../../hooks/sabbathSchool/useLessonGuides";
+import useLessonGuides from "../../hooks/SabbathSchool/useLessonGuides";
 
 import styles from "../../styles/components/LessonGuidesPage.module.css";
 
