@@ -4,7 +4,7 @@ import Card from "../Card";
 import Button from "../Button";
 import Loader from "../Loader";
 import ResponsiveDataView from "../ResponsiveDataView";
-import useSabbathSchoolAttendance from "../../hooks/sabbathSchool/useSabbathSchoolAttendance";
+import useSabbathSchoolAttendance from "../../hooks/SabbathSchool/useSabbathSchoolAttendance";
 import { formatDate } from "../../utils/formatDate";
 import styles from "../../styles/components/SabbathSchoolAttendancePage.module.css";
 
