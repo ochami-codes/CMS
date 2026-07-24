@@ -14,149 +14,329 @@ export default function Onboarding() {
   const {
     user,
     switchChurch,
-    isActiveMember,
-    isPendingMember,
-    isRejectedMember,
-    churchRequested,
-    hasAnyMembership,
   } = useAuth();
+console.log("user", user);
+  if (!user) {
+    return <Loader fullScreen={false} />;
+  }
 
-  if (!user) return <Loader />;
+  // -----------------------------------------
+  // User data
+  // -----------------------------------------
 
-  async function handleOpenChurch(churchId) {
-    const success = await switchChurch(churchId);
-    if (success) navigate("/dashboard");
+  const churches =
+    user.churches ?? [];
+
+  const membershipRequests =
+    user.membershipRequests ?? [];
+
+  // -----------------------------------------
+  // Membership state
+  // -----------------------------------------
+
+  const activeChurches =
+    churches.filter(
+      (church) =>
+        church.status === "active"
+    );
+
+  const pendingRequests =
+    membershipRequests.filter(
+      (request) =>
+        request.status === "pending"
+    );
+
+  const rejectedRequests =
+    membershipRequests.filter(
+      (request) =>
+        request.status === "rejected"
+    );
+
+  const hasActiveChurches =
+    activeChurches.length > 0;
+
+  const hasPendingRequests =
+    pendingRequests.length > 0;
+
+  const hasRejectedRequests =
+    rejectedRequests.length > 0;
+
+  // -----------------------------------------
+  // Open church
+  // -----------------------------------------
+
+  async function handleOpenChurch(
+    churchId
+  ) {
+    const success =
+      await switchChurch(churchId);
+
+    if (success) {
+      navigate("/dashboard");
+    }
   }
 
   return (
     <div className={styles.container}>
-
-      {/* ---------------- WELCOME HEADER ---------------- */}
       <PageHeader
-        title={`Welcome in Christ, ${user.full_name || "beloved member"} 🙏`}
-        subtitle="We’re glad you’re here."
+        title={`Welcome, ${
+          user.full_name || "Member"
+        } 🙏`}
+        subtitle="Choose a church to continue."
       />
 
-      {/* ---------------- ACTIVE MEMBERSHIPS ---------------- */}
-      {isActiveMember && hasAnyMembership && (
+      {/* -------------------------
+          Active Churches
+      ------------------------- */}
+
+      {hasActiveChurches && (
         <section>
-          <h2 className={styles.title}>Your Church Family</h2>
+          <h2 className={styles.title}>
+            Your Churches
+          </h2>
 
           <div className={styles.grid}>
-            {user.memberships
-              .filter((m) => m.status === "active")
-              .map((m) => (
-                <Card key={m.id} className={styles.churchCard}>
-                  <h3>{m.church_name}</h3>
+            {activeChurches.map(
+              (church) => (
+                <Card
+                  key={church.id}
+                  className={
+                    styles.churchCard
+                  }
+                >
+                  <h3>
+                    {church.name}
+                  </h3>
 
-                  <p className={styles.statusSuccess}>
-                    You are an active member
+                  <p
+                    className={
+                      styles.statusSuccess
+                    }
+                  >
+                    Active Member
                   </p>
 
-                  <p className={styles.note}>
-                    Step into your church space to continue fellowship, service, and growth.
-                  </p>
-
-                  <Button onClick={() => handleOpenChurch(m.church_id)}>
+                  <Button
+                    onClick={() =>
+                      handleOpenChurch(
+                        church.id
+                      )
+                    }
+                  >
                     Enter Church
                   </Button>
                 </Card>
-              ))}
+              )
+            )}
           </div>
         </section>
       )}
 
-      {/* ---------------- PENDING REQUEST ---------------- */}
-      {isPendingMember && (
+      {/* -------------------------
+          Pending Requests
+      ------------------------- */}
+
+      {hasPendingRequests && (
         <section>
-          <h2 className={styles.title}>Your Membership Journey</h2>
+          <h2 className={styles.title}>
+            Pending Membership Requests
+          </h2>
 
-          <Card className={styles.churchCard}>
-            <h3>{churchRequested}</h3>
+          <div className={styles.grid}>
+            {pendingRequests.map(
+              (request) => (
+                <Card
+                  key={request.id}
+                  className={
+                    styles.churchCard
+                  }
+                >
+                  <h3>
+                    {request.church?.name ??
+                      "Church"}
+                  </h3>
 
-            <p className={styles.statusPending}>
-              Awaiting Confirmation
-            </p>
+                  <p
+                    className={
+                      styles.statusPending
+                    }
+                  >
+                    Membership Pending
+                  </p>
 
-            <p className={styles.note}>
-              Your request has been received and is being prayerfully reviewed by church leadership.
-              You will be notified once it is approved.
-            </p>
-          </Card>
+                  <p
+                    className={
+                      styles.note
+                    }
+                  >
+                    Your request is awaiting
+                    approval.
+                  </p>
+                </Card>
+              )
+            )}
+          </div>
         </section>
       )}
 
-      {/* ---------------- REJECTED REQUEST ---------------- */}
-      {isRejectedMember && (
+      {/* -------------------------
+          Rejected Requests
+      ------------------------- */}
+
+      {hasRejectedRequests && (
         <section>
-          <h2 className={styles.title}>Membership Update</h2>
+          <h2 className={styles.title}>
+            Membership Requests
+          </h2>
 
-          <Card className={styles.churchCard}>
-            <h3>{churchRequested}</h3>
+          <div className={styles.grid}>
+            {rejectedRequests.map(
+              (request) => (
+                <Card
+                  key={request.id}
+                  className={
+                    styles.churchCard
+                  }
+                >
+                  <h3>
+                    {request.church?.name ??
+                      "Church"}
+                  </h3>
 
-            <p className={styles.statusError}>
-              Request Not Approved
-            </p>
+                  <p
+                    className={
+                      styles.statusError
+                    }
+                  >
+                    Request Declined
+                  </p>
 
-            <p className={styles.note}>
-              Don’t be discouraged. You are still welcome to continue your journey by joining another church
-              or submitting a new request.
-            </p>
-
-            <Button onClick={() => navigate("/join-church")}>
-              Try Again
-            </Button>
-          </Card>
+                  <Button
+                    onClick={() =>
+                      navigate(
+                        "/join-church"
+                      )
+                    }
+                  >
+                    Try Another Church
+                  </Button>
+                </Card>
+              )
+            )}
+          </div>
         </section>
       )}
 
-      {/* ---------------- EMPTY STATE ---------------- */}
-      {!hasAnyMembership && !isPendingMember && !isRejectedMember && (
-        <Card className={styles.churchCard}>
-          <h3>Welcome child of God</h3>
+      {/* -------------------------
+          No Membership / Requests
+      ------------------------- */}
 
-          <p className={styles.note}>
-            You have not joined a church yet. Take your next step to join an existing church or create yours.
-          </p>
+      {!hasActiveChurches &&
+        !hasPendingRequests &&
+        !hasRejectedRequests && (
+          <Card
+            className={
+              styles.churchCard
+            }
+          >
+            <h3>
+              Get Started
+            </h3>
 
-          <div className={styles.actionsInline}>
-            <Button onClick={() => navigate("/join-church")}>
+            <p
+              className={
+                styles.note
+              }
+            >
+              Join an existing church or
+              create a new one.
+            </p>
+
+            <div
+              className={
+                styles.actionsInline
+              }
+            >
+              <Button
+                onClick={() =>
+                  navigate(
+                    "/join-church"
+                  )
+                }
+              >
+                Join a Church
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() =>
+                  navigate(
+                    "/create-church"
+                  )
+                }
+              >
+                Create Church
+              </Button>
+            </div>
+          </Card>
+        )}
+
+      {/* -------------------------
+          Church Actions
+      ------------------------- */}
+
+      {(hasActiveChurches ||
+        hasPendingRequests ||
+        hasRejectedRequests) && (
+        <div
+          className={
+            styles.actions
+          }
+        >
+          <Card>
+            <h3>
               Join a Church
+            </h3>
+
+            <p>
+              Find and join another
+              church.
+            </p>
+
+            <Button
+              onClick={() =>
+                navigate(
+                  "/join-church"
+                )
+              }
+            >
+              Explore Churches
             </Button>
+          </Card>
+
+          <Card>
+            <h3>
+              Create a Church
+            </h3>
+
+            <p>
+              Start a new church
+              community.
+            </p>
 
             <Button
               variant="outline"
-              onClick={() => navigate("/create-church")}
+              onClick={() =>
+                navigate(
+                  "/create-church"
+                )
+              }
             >
               Create Church
             </Button>
-          </div>
-        </Card>
+          </Card>
+        </div>
       )}
-
-      {/* ---------------- ACTIONS ---------------- */}
-      <div className={styles.actions}>
-        <Card>
-          <h3>Join a Church</h3>
-          <p>Connect with an existing church family and begin fellowship.</p>
-
-          <Button onClick={() => navigate("/join-church")}>
-            Explore Churches
-          </Button>
-        </Card>
-
-        <Card>
-          <h3>Create a Church</h3>
-          <p>Start a new ministry and build a faith community.</p>
-
-          <Button
-            variant="outline"
-            onClick={() => navigate("/create-church")}
-          >
-            Start Church
-          </Button>
-        </Card>
-      </div>
     </div>
   );
 }

@@ -1,15 +1,12 @@
 // src/pages/admin/MembershipRequests.jsx
 
 import {
-  useEffect,
-  useState,
   useMemo,
-  useCallback,
 } from "react";
 
 import {
-  AdminMembershipAPI,
-} from "../../utils/api";
+  useMembershipRequests,
+} from "../../hooks/admin/useMembershipRequests";
 
 import {
   useToast,
@@ -25,52 +22,13 @@ import ResponsiveDataView from "../ResponsiveDataView";
 export default function MembershipRequests() {
   const { showToast } = useToast();
 
-  const [requests, setRequests] =
-    useState([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [actionLoading, setActionLoading] =
-    useState({});
-
-
-  /* =======================
-     LOAD REQUESTS
-  ======================= */
-
-  const loadRequests =
-    useCallback(async () => {
-
-      try {
-        setLoading(true);
-
-        const res =
-          await AdminMembershipAPI
-            .fetchAll();
-
-        setRequests(
-          res?.requests || []
-        );
-
-      } catch {
-
-        showToast(
-          "Failed loading membership requests",
-          "error"
-        );
-
-      } finally {
-        setLoading(false);
-      }
-
-    }, [showToast]);
-
-
-  useEffect(() => {
-    loadRequests();
-  }, [loadRequests]);
-
+  const {
+  requests,
+  isLoading,
+  reviewRequest,
+  isReviewing,
+  reviewVariables,
+} = useMembershipRequests();
 
   /* =======================
      APPROVE / REJECT
@@ -80,39 +38,16 @@ export default function MembershipRequests() {
     id,
     action
   ) {
-
     const status =
       action === "approve"
         ? "approved"
         : "rejected";
 
-    const key =
-      `${id}-${action}`;
-
     try {
-
-      setActionLoading(prev => ({
-        ...prev,
-        [key]: true,
-      }));
-
-      await AdminMembershipAPI.review(
+      await reviewRequest({
         id,
-        status
-      );
-
-      // update locally instead
-      setRequests(prev =>
-        prev.map(item =>
-          item.membership_request_id === id
-            ? {
-                ...item,
-                membership_status:
-                  status,
-              }
-            : item
-        )
-      );
+        action,
+      });
 
       showToast(
         status === "approved"
@@ -120,33 +55,22 @@ export default function MembershipRequests() {
           : "Membership rejected",
         "success"
       );
-
     } catch (err) {
-
       showToast(
         err?.message ||
           "Action failed",
         "error"
       );
-
-    } finally {
-
-      setActionLoading(prev => ({
-        ...prev,
-        [key]: false,
-      }));
-
     }
   }
-
 
   /* =======================
      TABLE DATA
   ======================= */
 
-  const rows =
-    useMemo(() =>
-      requests.map(request => ({
+  const rows = useMemo(
+    () =>
+      requests.map((request) => ({
         id:
           request.membership_request_id,
 
@@ -168,8 +92,8 @@ export default function MembershipRequests() {
 
         raw: request,
       })),
-    [requests]);
-
+    [requests]
+  );
 
   const columns = [
     {
@@ -190,116 +114,106 @@ export default function MembershipRequests() {
     },
   ];
 
-
   /* =======================
      ACTIONS
   ======================= */
 
-  const renderActions =
-    (row) => {
+  const renderActions = (row) => {
+    const id =
+      row.raw.membership_request_id;
 
-      const id =
-        row.raw.membership_request_id;
+    const pending =
+      row.raw.membership_status ===
+      "requested";
 
-      const pending =
-        row.raw.membership_status ===
-        "requested";
-
-      if (!pending)
-        return (
-          <span>
-            Processed
-          </span>
-        );
-
+    if (!pending) {
       return (
-        <>
-          <Button
-            size="sm"
-            loading={
-              actionLoading[
-                `${id}-approve`
-              ]
-            }
-            onClick={() =>
-              handleAction(
-                id,
-                "approve"
-              )
-            }
-          >
-            Approve
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            loading={
-              actionLoading[
-                `${id}-reject`
-              ]
-            }
-            onClick={() =>
-              handleAction(
-                id,
-                "reject"
-              )
-            }
-          >
-            Reject
-          </Button>
-        </>
+        <span>
+          Processed
+        </span>
       );
-    };
+    }
 
+    return (
+      <>
+        <Button
+          size="sm"
+          loading={
+  isReviewing &&
+  reviewVariables?.id === id &&
+  reviewVariables?.action === "approve"
+}
+          onClick={() =>
+            handleAction(
+              id,
+              "approve"
+            )
+          }
+        >
+          Approve
+        </Button>
+
+        <Button
+          variant="secondary"
+          size="sm"
+        loading={
+  isReviewing &&
+  reviewVariables?.id === id &&
+  reviewVariables?.action === "reject"
+}
+          onClick={() =>
+            handleAction(
+              id,
+              "reject"
+            )
+          }
+        >
+          Reject
+        </Button>
+      </>
+    );
+  };
 
   return (
-
     <>
       <PageHeader
         title="Membership Requests"
         subtitle="
-        Approve or reject church
-        membership requests.
+          Approve or reject church
+          membership requests.
         "
       />
 
       <Card>
-
-        {loading && (
+        {isLoading && (
           <Loader
             fullScreen={false}
             message="
-            Loading membership requests...
+              Loading membership requests...
             "
           />
         )}
 
-        {!loading &&
+        {!isLoading &&
           !requests.length && (
+            <EmptyState
+              title="No requests"
+              description="
+                No membership requests found.
+              "
+            />
+          )}
 
-          <EmptyState
-            title="No requests"
-            description="
-            No membership requests found.
-            "
-          />
-
-        )}
-
-        {!loading &&
+        {!isLoading &&
           requests.length > 0 && (
-
-          <ResponsiveDataView
-            columns={columns}
-            data={rows}
-            renderActions={
-              renderActions
-            }
-          />
-
-        )}
-
+            <ResponsiveDataView
+              columns={columns}
+              data={rows}
+              renderActions={
+                renderActions
+              }
+            />
+          )}
       </Card>
     </>
   );

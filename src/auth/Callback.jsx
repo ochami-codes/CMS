@@ -1,51 +1,107 @@
 import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
+
 import { useAuth } from "../context/AuthContext";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { refetchUser, user } = useAuth();
+
+  const {
+    refetchUser,
+  } = useAuth();
 
   useEffect(() => {
-    const handleAuth = async () => {
-      const type = params.get("type");
-      const origin = params.get("origin");
+    let cancelled = false;
 
-      // Ignore password flows
-      if (origin === "reset" || origin === "change-password") {
+    const handleAuth = async () => {
+      const type =
+        params.get("type");
+
+      const origin =
+        params.get("origin");
+
+      /* -------------------------
+         Ignore password flows
+      ------------------------- */
+
+      if (
+        origin === "reset" ||
+        origin === "change-password" ||
+        type === "recovery"
+      ) {
         return;
       }
 
       try {
-        // 🔥 IMPORTANT: fetch user after Supabase sets session
-        const refreshedUser = await refetchUser();
+        /* -------------------------
+           Refresh User
+        ------------------------- */
 
-        // If no user → fallback to login
+        const {
+          data: refreshedUser,
+        } = await refetchUser();
+
+        if (cancelled) return;
+
+        /* -------------------------
+           No Authenticated User
+        ------------------------- */
+
         if (!refreshedUser) {
-          navigate("/login", { replace: true });
+          navigate("/login", {
+            replace: true,
+          });
+
           return;
         }
 
-        // 🧠 Check if user has an active membership
-        const hasActiveChurch = refreshedUser.memberships?.some(
-          (m) => m.status === "active"
-        );
+        /* -------------------------
+           Check Active Membership
+        ------------------------- */
+
+        const hasActiveChurch =
+          refreshedUser.churches?.some(
+            (church) =>
+              church.status === "active"
+          );
 
         if (hasActiveChurch) {
-          navigate("/dashboard", { replace: true });
+          navigate("/dashboard", {
+            replace: true,
+          });
         } else {
-          navigate("/onboarding", { replace: true });
+          navigate("/onboarding", {
+            replace: true,
+          });
         }
-
       } catch (err) {
-        console.error("Auth callback error:", err);
-        navigate("/login", { replace: true });
+        console.error(
+          "Auth callback error:",
+          err
+        );
+
+        if (!cancelled) {
+          navigate("/login", {
+            replace: true,
+          });
+        }
       }
     };
 
     handleAuth();
-  }, [params, navigate, refetchUser]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    params,
+    navigate,
+    refetchUser,
+  ]);
 
   return (
     <div className="h-screen flex items-center justify-center px-4">

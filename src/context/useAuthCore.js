@@ -1,103 +1,253 @@
-import { useState, useEffect, useCallback } from "react";
-import { AuthAPI, RolesAPI } from "../utils/api";
-import { normalizeRole } from "../config/roles.js";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
-export function useAuthCore() {
-  const [user, setUser] = useState(null);
-  const [authReady, setAuthReady] = useState(false);
-  const [authError, setAuthError] = useState(null);
+import { AuthAPI } from "../utils/api";
+import { normalizeRole } from "../config/roles";
 
-  const fetchMe = useCallback(async () => {
-    try {
-      const data = await AuthAPI.me();
+/* -------------------------
+   Normalize User
+------------------------- */
 
-      if (!data?.user) {
-        setUser(null);
-        return null;
-      }
+function normalizeUser(data) {
+  if (!data?.user) return null;
 
-      const normalizedUser = {
-        ...data.user,
-        profileId: data.user.id,
-        authUserId: data.user.auth_user_id,
-        roles: (data.user.roles || []).map(normalizeRole),
-        permissions: data.user.permissions || [],
-        memberships: data.user.memberships || [],
-        membership_requests: data.user.membership_requests || [],
-        active_membership: data.user.active_membership || null,
-        active_membership_request: data.user.active_membership_request || null,
-        active_membership_status:
-          data.user.active_membership_status || "guest",
-        active_church_name: data.user.active_church_name || null,
-        active_church_id: data.user.active_church_id || null,
-      };
-
-      setUser(normalizedUser);
-      return normalizedUser;
-    } catch (err) {
-      console.error("fetchMe failed:", err);
-      localStorage.removeItem("access_token");
-      setUser(null);
-      return null;
-    }
-  }, []);
-
-  const login = async ({ email, password }) => {
-    setAuthError(null);
-    setAuthReady(false);
-
-    try {
-      const data = await AuthAPI.login({ email, password });
-
-      if (!data?.access_token) {
-        throw new Error("Login failed");
-      }
-
-      localStorage.setItem("access_token", data.access_token);
-
-      const realUser = await fetchMe();
-
-      if (!realUser) {
-        throw new Error("Failed to load user");
-      }
-    } catch (err) {
-      setAuthError(err.message || "Login failed");
-      throw err;
-    } finally {
-      setAuthReady(true);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await AuthAPI.logout();
-    } catch {}
-
-    localStorage.removeItem("access_token");
-    setUser(null);
-  };
-
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-
-    if (!token) {
-      setUser(null);
-      setAuthReady(true);
-      return;
-    }
-
-    fetchMe().finally(() => setAuthReady(true));
-  }, [fetchMe]);
+  const user = data.user;
+  const activeChurch = user.active_church ?? null;
 
   return {
+    // -------------------------
+    // Identity
+    // -------------------------
+
+    id: user.id,
+
+    profileId: user.id,
+
+    authUserId:
+      user.auth_user_id,
+
+    email: user.email,
+
+    fullName:
+      user.full_name,
+
+    // -------------------------
+    // Churches
+    // -------------------------
+
+    churches:
+      user.churches || [],
+
+    // -------------------------
+    // Membership Requests
+    // -------------------------
+
+    membershipRequests:
+      user.membership_requests || [],
+
+    // -------------------------
+    // Active Church
+    // -------------------------
+
+    activeChurch: activeChurch
+      ? {
+          id: activeChurch.id,
+
+          name: activeChurch.name,
+
+          membershipId:
+            activeChurch.membershipId,
+
+          status:
+            activeChurch.status,
+
+          roles:
+            (activeChurch.roles || [])
+              .map(normalizeRole),
+
+          permissions:
+            activeChurch.permissions || [],
+
+          departments:
+            activeChurch.departments || [],
+        }
+      : null,
+
+    // -------------------------
+    // Active Church Context
+    // -------------------------
+
+    activeChurchId:
+      user.active_church_id,
+
+    activeChurchName:
+      user.active_church_name,
+
+    activeMemberId:
+      user.active_member_id,
+
+    activeMembershipStatus:
+      user.active_membership_status,
+
+    // -------------------------
+    // Membership State
+    // -------------------------
+
+    isMember:
+      user.is_member ?? false,
+
+    isPending:
+      user.is_pending ?? false,
+
+    isSuspended:
+      user.is_suspended ?? false,
+  };
+}
+
+/* -------------------------
+   Auth Core
+------------------------- */
+
+export function useAuthCore() {
+  const queryClient =
+    useQueryClient();
+
+  /* -------------------------
+     Current User
+  ------------------------- */
+
+  const {
+    data: user = null,
+
+    isLoading,
+
+    isFetched,
+
+    error: authError,
+
+    refetch: refetchUser,
+  } = useQuery({
+    queryKey: ["me"],
+
+    enabled:
+      !!localStorage.getItem(
+        "access_token"
+      ),
+
+    retry: false,
+
+    queryFn: async () => {
+      try {
+        const data =
+          await AuthAPI.me();
+
+        return normalizeUser(data);
+      } catch (err) {
+        localStorage.removeItem(
+          "access_token"
+        );
+
+        throw err;
+      }
+    },
+  });
+
+  /* -------------------------
+     Login
+  ------------------------- */
+
+  const loginMutation =
+    useMutation({
+      mutationFn: ({
+        email,
+        password,
+      }) =>
+        AuthAPI.login({
+          email,
+          password,
+        }),
+
+      onSuccess: async (data) => {
+        if (!data?.access_token) {
+          throw new Error(
+            "Login failed"
+          );
+        }
+
+        localStorage.setItem(
+          "access_token",
+          data.access_token
+        );
+
+        await queryClient.invalidateQueries(
+          {
+            queryKey: ["me"],
+          }
+        );
+      },
+    });
+
+  /* -------------------------
+     Client-Side Logout
+  ------------------------- */
+
+  const logout = () => {
+    localStorage.removeItem(
+      "access_token"
+    );
+
+    queryClient.setQueryData(
+      ["me"],
+      null
+    );
+
+    queryClient.removeQueries({
+      queryKey: ["me"],
+    });
+  };
+
+  return {
+    /* -------------------------
+       User
+    ------------------------- */
+
     user,
-    setUser,
-    authReady,
-    authError,
-    setAuthError,
-    fetchMe,
-    refetchUser: fetchMe,
-    login,
+
+    /* -------------------------
+       Auth State
+    ------------------------- */
+
+    authReady:
+      isFetched,
+
+    authLoading:
+      isLoading,
+
+    authError:
+      authError?.message ?? null,
+
+    /* -------------------------
+       Auth Actions
+    ------------------------- */
+
+    login:
+      loginMutation.mutateAsync,
+
     logout,
+
+    /* -------------------------
+       User Utilities
+    ------------------------- */
+
+    refetchUser,
+
+    setUser: (user) =>
+      queryClient.setQueryData(
+        ["me"],
+        user
+      ),
   };
 }

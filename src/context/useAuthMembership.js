@@ -1,39 +1,97 @@
 import { useCallback } from "react";
 
 export function useAuthMembership(user) {
+  // -----------------------------------------
+  // Active church
+  // -----------------------------------------
+
+  const activeChurch =
+    user?.activeChurch ?? null;
+
   const activeChurchId =
-    user?.active_church_id || null;
+    user?.activeChurchId ??
+    activeChurch?.id ??
+    null;
 
   const activeChurchName =
-    user?.active_church_name || null;
+    user?.activeChurchName ??
+    activeChurch?.name ??
+    null;
 
-  const activeMembership =
-    user?.active_membership || null;
+  // -----------------------------------------
+  // All churches
+  // -----------------------------------------
 
-  const activeMembershipStatus =
-    user?.active_membership_status || "guest";
+  const churches =
+    user?.churches ?? [];
 
-  const activeMembershipRequest =
-    user?.active_membership_request || null;
+  // -----------------------------------------
+  // Membership requests
+  // -----------------------------------------
 
-  const isSuspendedMember =
-    activeMembershipStatus === "suspended";
+  const membershipRequests =
+    user?.membershipRequests ?? [];
+
+  // -----------------------------------------
+  // Membership state
+  // -----------------------------------------
+
+  const status =
+    user?.activeMembershipStatus ??
+    activeChurch?.status ??
+    "none";
 
   const isActiveMember =
-    activeMembershipStatus === "active";
-  const isTransferred =
-    activeMembershipStatus ==="transferred";
+    user?.isMember ??
+    status === "active";
 
   const isPendingMember =
-    !!activeMembershipRequest;
+    user?.isPending ??
+    status === "pending";
+
+  const isSuspendedMember =
+    user?.isSuspended ??
+    status === "suspended";
+
+  const isTransferred =
+    status === "transferred";
+
+  // -----------------------------------------
+  // Active membership request
+  // -----------------------------------------
+
+  const activeMembershipRequest =
+    membershipRequests.find(
+      (request) =>
+        request.church_id ===
+          activeChurchId &&
+        request.status === "pending"
+    ) ?? null;
+
+  // -----------------------------------------
+  // Rejected membership
+  // -----------------------------------------
 
   const isRejectedMember =
-    activeMembershipRequest?.status === "rejected";
+    membershipRequests.some(
+      (request) =>
+        request.church_id ===
+          activeChurchId &&
+        request.status === "rejected"
+    );
+
+  // -----------------------------------------
+  // Guest
+  // -----------------------------------------
 
   const isGuest =
     !isActiveMember &&
     !isPendingMember &&
     !isSuspendedMember;
+
+  // -----------------------------------------
+  // Dashboard mode
+  // -----------------------------------------
 
   const dashboardMode =
     isSuspendedMember
@@ -44,39 +102,53 @@ export function useAuthMembership(user) {
       ? "requested"
       : "guest";
 
-  const getAccessState = useCallback(() => {
-    if (isSuspendedMember) return "suspended";
-    if (isActiveMember) return "active";
-    if (isPendingMember) return "pending";
-    return "guest";
-  }, [
-    isSuspendedMember,
-    isActiveMember,
-    isPendingMember,
-  ]);
+  // -----------------------------------------
+  // Access state
+  // -----------------------------------------
+
+  const getAccessState =
+    useCallback(() => {
+      if (isSuspendedMember) {
+        return "suspended";
+      }
+
+      if (isActiveMember) {
+        return "active";
+      }
+
+      if (isPendingMember) {
+        return "pending";
+      }
+
+      return "guest";
+    }, [
+      isSuspendedMember,
+      isActiveMember,
+      isPendingMember,
+    ]);
 
   return {
+
+    activeChurch,
     activeChurchId,
     activeChurchName,
+    churches,
 
-    activeMembership,
-    activeMembershipStatus,
+    membershipRequests,
     activeMembershipRequest,
 
-    memberships:
-      user?.memberships || [],
-
-    membershipRequests:
-      user?.membership_requests || [],
-
+    departments:
+      activeChurch?.departments ?? [],
+    status,
     isActiveMember,
     isTransferred,
     isPendingMember,
     isRejectedMember,
     isSuspendedMember,
     isGuest,
-
     dashboardMode,
+
     getAccessState,
   };
 }
+

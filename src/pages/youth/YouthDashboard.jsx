@@ -6,7 +6,7 @@ import {
 
 import RequirePermission from "../../components/RequirePermission";
 import Tabs from "../../components/Tabs";
-
+import Loader from "../../components/Loader";
 import useDepartmentId from "../../hooks/departments/useDepartmentId";
 
 import AddMember from "../../components/members/AddMember";
@@ -38,12 +38,10 @@ export default function ChoirDashboard() {
   } = useDepartmentId("youth");
 
   if (loading) {
-    return (
-      <main className="page-container">
-        <p>Loading...</p>
-      </main>
-    );
-  }
+      return (
+        < Loader message="Loading Dashboard..."  fullScreen={true}/>
+          );
+    }
 
   return (
     <RequirePermission permission="manage_youth">

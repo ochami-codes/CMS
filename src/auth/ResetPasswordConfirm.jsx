@@ -4,6 +4,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { isStrongPassword } from "../utils/validators";
 
+import { useUpdatePassword } from "../hooks/auth/useUpdatePassword";
+
 import Input from "../components/Input";
 import Button from "../components/Button";
 import Loader from "../components/Loader";
@@ -11,7 +13,6 @@ import Loader from "../components/Loader";
 import styles from "../styles/pages/ResetPasswordConfirm.module.css";
 
 export default function ResetPasswordConfirm() {
-
   const navigate = useNavigate();
 
   const [sessionReady, setSessionReady] = useState(false);
@@ -20,12 +21,15 @@ export default function ResetPasswordConfirm() {
   const [confirm, setConfirm] = useState("");
 
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+
+  const {
+    mutate: updatePassword,
+    isPending,
+  } = useUpdatePassword();
 
   /* ------------------ session setup ------------------ */
 
   useEffect(() => {
-
     const hash = window.location.hash.replace("#", "");
     const params = new URLSearchParams(hash);
 
@@ -38,7 +42,10 @@ export default function ResetPasswordConfirm() {
     }
 
     supabase.auth
-      .setSession({ access_token, refresh_token })
+      .setSession({
+        access_token,
+        refresh_token,
+      })
       .then(({ error }) => {
         if (error) {
           setError("Invalid or expired password reset link.");
@@ -47,24 +54,24 @@ export default function ResetPasswordConfirm() {
 
         setSessionReady(true);
       });
-
   }, []);
 
   /* ------------------ submit ------------------ */
 
-  const handleSubmit = async (e) => {
-
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (loading) return;
+    if (isPending) return;
 
     setError("");
 
+    /* Password confirmation */
     if (password !== confirm) {
       setError("Passwords do not match.");
       return;
     }
 
+    /* Password strength */
     if (!isStrongPassword(password)) {
       setError(
         "Password must be at least 6 characters and include letters and numbers."
@@ -72,23 +79,22 @@ export default function ResetPasswordConfirm() {
       return;
     }
 
-    setLoading(true);
+    /* Update password */
+    updatePassword(password, {
+      onSuccess: async () => {
+        await supabase.auth.signOut();
 
-    const { error } =
-      await supabase.auth.updateUser({
-        password,
-      });
+        navigate("/login", {
+          replace: true,
+        });
+      },
 
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-      return;
-    }
-
-    await supabase.auth.signOut();
-
-    navigate("/login", {
-      replace: true,
+      onError: (err) => {
+        setError(
+          err?.message ||
+            "Unable to update your password. Please try again."
+        );
+      },
     });
   };
 
@@ -97,9 +103,7 @@ export default function ResetPasswordConfirm() {
   if (error && !sessionReady) {
     return (
       <div className={styles.container}>
-
         <div className={styles.card}>
-
           <p className={styles.error}>
             {error}
           </p>
@@ -110,9 +114,7 @@ export default function ResetPasswordConfirm() {
           >
             Back to Login
           </Link>
-
         </div>
-
       </div>
     );
   }
@@ -121,7 +123,7 @@ export default function ResetPasswordConfirm() {
 
   if (!sessionReady) {
     return (
-      <Loader message="Verifying reset link… God loves you!" />
+      <Loader message="Verifying reset link… God loves you!" fullScreen={false} />
     );
   }
 
@@ -129,9 +131,7 @@ export default function ResetPasswordConfirm() {
 
   return (
     <div className={styles.container}>
-
       <div className={styles.card}>
-
         <h2 className={styles.title}>
           Set New Password
         </h2>
@@ -144,7 +144,6 @@ export default function ResetPasswordConfirm() {
           onSubmit={handleSubmit}
           className={styles.form}
         >
-
           <Input
             type="password"
             label="New password"
@@ -173,29 +172,24 @@ export default function ResetPasswordConfirm() {
 
           <Button
             type="submit"
-            disabled={loading}
+            loading={isPending}
             className="btn-primary w-full"
           >
-            {loading
+            {isPending
               ? "Updating…"
               : "Update Password"}
           </Button>
-
         </form>
 
         <div className={styles.footer}>
-
           <Link
             to="/login"
             className={styles.link}
           >
             Back to Login
           </Link>
-
         </div>
-
       </div>
-
     </div>
   );
 }

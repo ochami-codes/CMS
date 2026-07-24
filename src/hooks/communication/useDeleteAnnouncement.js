@@ -7,21 +7,37 @@ import toast from "react-hot-toast";
 import { AnnouncementsAPI } from "../../utils/api";
 
 export default function useDeleteAnnouncement() {
-
   const queryClient =
     useQueryClient();
 
   const mutation = useMutation({
-    mutationFn:
-      AnnouncementsAPI.remove,
+    mutationFn: ({
+      departmentId,
+      announcementId,
+    }) =>
+      departmentId != null
+        ? AnnouncementsAPI.deleteDepartment(
+            departmentId,
+            announcementId
+          )
+        : AnnouncementsAPI.deleteChurch(
+            announcementId
+          ),
 
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       toast.success(
         "Announcement deleted"
       );
 
       queryClient.invalidateQueries({
-        queryKey: ["announcements"],
+        queryKey: [
+          "announcements",
+          {
+            departmentId:
+              variables.departmentId ??
+              null,
+          },
+        ],
       });
     },
 

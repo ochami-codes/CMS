@@ -8,7 +8,7 @@ import {
 
 import RequirePermission from "../../components/RequirePermission";
 import Tabs from "../../components/Tabs";
-
+import Loader from "../../components/Loader";
 import useDepartmentId from "../../hooks/departments/useDepartmentId";
 
 import MembersPage from "../../components/sabbathSchool/MembersPage";
@@ -52,13 +52,11 @@ export default function SabbathSchoolDashboard() {
     "sabbath-school"
   );
 
-  if (loading) {
-    return (
-      <main className="page-container">
-        <p>Loading...</p>
-      </main>
-    );
-  }
+ if (loading) {
+     return (
+       < Loader message="Loading Dashboard..."  fullScreen={true}/>
+         );
+   }
 
   return (
     <RequirePermission permission="manage_sabbath_school">

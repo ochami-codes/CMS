@@ -16,12 +16,16 @@ import styles from "../styles/pages/JoinChurch.module.css";
 
 export default function JoinChurch() {
   const navigate = useNavigate();
-  const { switchChurch } = useAuth();
+
+  const {
+    switchChurch,
+    isSwitchingChurch,
+    switchChurchError,
+  } = useAuth();
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [openingChurchId, setOpeningChurchId] = useState(null);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -31,7 +35,10 @@ export default function JoinChurch() {
     setLoading(true);
 
     try {
-      const res = await ChurchAPI.getChurches({ search: query });
+      const res = await ChurchAPI.getChurches({
+        search: query,
+      });
+
       setResults(res?.churches || []);
     } catch {
       setResults([]);
@@ -42,33 +49,39 @@ export default function JoinChurch() {
 
   const handleOpenChurch = async (churchId) => {
     try {
-      setOpeningChurchId(churchId);
-
       await switchChurch(churchId);
 
+      // switchChurch automatically calls refetchUser()
+      // after the church switch succeeds.
       navigate("/dashboard");
-    } finally {
-      setOpeningChurchId(null);
+    } catch (err) {
+      console.error("Failed to open church:", err);
     }
   };
 
-  if (openingChurchId) {
+  if (isSwitchingChurch) {
     return <Loader message="Opening church..." />;
   }
 
   return (
     <div className={styles.container}>
-
       <PageHeader
         title="Find Your Church"
         subtitle="Search for your church or create a new one"
       />
 
+      {switchChurchError && (
+        <Card className={styles.error}>
+          <p>{switchChurchError}</p>
+        </Card>
+      )}
+
       {/* SEARCH */}
       <Card className={styles.searchCard}>
-
-        <form onSubmit={handleSearch} className={styles.form}>
-
+        <form
+          onSubmit={handleSearch}
+          className={styles.form}
+        >
           <Input
             label="Search Church"
             value={query}
@@ -82,84 +95,73 @@ export default function JoinChurch() {
             className={styles.searchBtn}
           >
             <FaSearch />
-            {loading ? "Searching..." : "Search"}
+
+            {loading
+              ? "Searching..."
+              : "Search"}
           </Button>
-
         </form>
-
       </Card>
 
       {/* RESULTS */}
       {results.length > 0 && (
-
         <section>
-
           <h2 className={styles.title}>
             Results
           </h2>
 
           <div className={styles.grid}>
+            {results.map((church) => (
+              <Card
+                key={church.id}
+                className={styles.resultCard}
+              >
+                <FaChurch className={styles.icon} />
 
-            {results.map((church) => {
+                <h3>{church.name}</h3>
 
-              const isOpening =
-                openingChurchId === church.id;
+                <p className={styles.code}>
+                  Code: {church.church_code}
+                </p>
 
-              return (
-                <Card
-                  key={church.id}
-                  className={styles.resultCard}
+                <Button
+                  onClick={() =>
+                    handleOpenChurch(church.id)
+                  }
+                  disabled={isSwitchingChurch}
                 >
-
-                  <FaChurch className={styles.icon} />
-
-                  <h3>{church.name}</h3>
-
-                  <p className={styles.code}>
-                    Code: {church.church_code}
-                  </p>
-
-                  <Button
-                    onClick={() =>
-                      handleOpenChurch(church.id)
-                    }
-                    disabled={isOpening}
-                  >
-                    {isOpening
-                      ? "Opening..."
-                      : "Open Church"}
-                  </Button>
-
-                </Card>
-              );
-            })}
-
+                  {isSwitchingChurch
+                    ? "Opening..."
+                    : "Open Church"}
+                </Button>
+              </Card>
+            ))}
           </div>
-
         </section>
-
       )}
 
       {/* EMPTY STATE */}
-      {!loading && query && results.length === 0 && (
+      {!loading &&
+        query &&
+        results.length === 0 && (
+          <Card className={styles.empty}>
+            <h3>No churches found</h3>
 
-        <Card className={styles.empty}>
+            <p>
+              Try a different search or create a
+              new church.
+            </p>
 
-          <h3>No churches found</h3>
-
-          <p>Try a different search or create a new church.</p>
-
-          <Button
-            variant="outline"
-            onClick={() => navigate("/create-church")}
-          >
-            ➕ Create Church
-          </Button>
-
-        </Card>
-
-      )}
-
+            <Button
+              variant="outline"
+              onClick={() =>
+                navigate("/create-church")
+              }
+            >
+              ➕ Create Church
+            </Button>
+          </Card>
+        )}
     </div>
   );
 }

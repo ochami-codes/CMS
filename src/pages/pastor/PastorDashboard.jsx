@@ -10,7 +10,7 @@ import RequirePermission from "../../components/RequirePermission";
 import Tabs from "../../components/Tabs";
 import Loader from "../../components/Loader";
 import usePastorDashboard from "../../hooks/pastor/usePastorDashboard";
-
+import ErrorState from "../../components/ErrorState";
 import PastorOverview from "./PastorOverview";
 import PastorDepartments from "./PastorDepartments";
 import PastorTreasury from "./PastorTreasury";

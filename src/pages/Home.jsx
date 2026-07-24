@@ -1,59 +1,91 @@
-import { Link } from "react-router-dom";
 import {
   FaUsers,
   FaMoneyBillWave,
   FaBullhorn,
-  FaLock,
-  FaUserPlus,
-  FaEnvelope,
-  FaSignInAlt,
-  FaChurch,
+  FaShieldAlt,
+  FaSitemap,
   FaClipboardList,
+  FaChurch,
 } from "react-icons/fa";
 
 import Button from "../components/Button";
-import Card from "../components/Card";
 import styles from "../styles/pages/Home.module.css";
 
 export default function Home() {
+  const features = [
+    {
+      icon: FaShieldAlt,
+      title: "Secure & Protected",
+      desc: "Strong authentication and secure access keep your church data protected.",
+    },
+    {
+      icon: FaSitemap,
+      title: "Smart Authorization",
+      desc: "Give leaders the right access based on their roles and responsibilities.",
+    },
+    {
+      icon: FaUsers,
+      title: "Department Management",
+      desc: "Manage ministries, departments, leaders, and members from one place.",
+    },
+    {
+      icon: FaMoneyBillWave,
+      title: "Treasury Management",
+      desc: "Track offerings, income, expenses, and financial records with confidence.",
+    },
+    {
+      icon: FaBullhorn,
+      title: "Church Announcements",
+      desc: "Keep members informed with timely announcements and important updates.",
+    },
+    {
+      icon: FaClipboardList,
+      title: "Clerk Management",
+      desc: "Organize membership records, transfers, baptisms, and church information.",
+    },
+  ];
+
   return (
     <div className={styles.container}>
-      
+      {/* Hero */}
       <section className={styles.hero}>
         <div className={styles.badge}>
-          <FaChurch /> Built for churches
+          <FaChurch />
+          Built for churches
         </div>
 
         <h1>
-          Church management,<br />
-          <span>made simple</span>
+          Your church.<br />
+          <span>Better organized.</span>
         </h1>
 
         <p>
-          Track members, finances, and ministries in one clean dashboard. 
-          No spreadsheets, no confusion.
+          A secure, all-in-one platform for managing church members,
+          departments, finances, announcements, and leadership access.
         </p>
 
         <div className={styles.buttons}>
-          <Button to="/register" variant="primary">Get Started</Button>
-          <Button to="/login" variant="ghost">Sign In</Button>
+          <Button to="/register" variant="primary">
+            Get Started
+          </Button>
+
+          <Button to="/login" variant="ghost">
+            Sign In
+          </Button>
         </div>
       </section>
 
+      {/* Features */}
       <section>
         <div className={styles.sectionHeader}>
-          <h2>Everything you need</h2>
-          <p>Built around how churches actually operate</p>
+          <h2>Everything your church needs</h2>
+          <p>
+            Simple tools. Secure access. Better church administration.
+          </p>
         </div>
 
         <div className={styles.grid}>
-          {[
-            { icon: FaClipboardList, title: "Membership", desc: "Registers, baptisms, transfers, and member status in one place." },
-            { icon: FaUsers, title: "Departments", desc: "Organize youth, Sabbath school, music, and other ministries." },
-            { icon: FaMoneyBillWave, title: "Treasury", desc: "Log offerings, expenses, and generate reports instantly." },
-            { icon: FaBullhorn, title: "Announcements", desc: "Send updates to the whole church with one click." },
-            { icon: FaLock, title: "Roles & Access", desc: "Control who sees what with pastor, elder, and clerk roles." },
-          ].map(({ icon: Icon, title, desc }) => (
+          {features.map(({ icon: Icon, title, desc }) => (
             <div key={title} className={styles.card}>
               <Icon />
               <h3>{title}</h3>
@@ -63,10 +95,17 @@ export default function Home() {
         </div>
       </section>
 
+      {/* CTA */}
       <section className={styles.cta}>
-        <h2>Ready to get organized?</h2>
-        <p>Set up your church in under 5 minutes</p>
-        <Button to="/register" variant="light">Create Free Account</Button>
+        <h2>Bring your church management together.</h2>
+
+        <p>
+          Manage your church operations securely from one place.
+        </p>
+
+        <Button to="/register" variant="light">
+          Get Started
+        </Button>
       </section>
     </div>
   );

@@ -1,38 +1,50 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AdminAPI } from "../../utils/api";
 
 export function useAdminMembers(activeChurchId, search) {
-  const [members, setMembers] = useState([]);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const query = useQuery({
+    queryKey: ["admin", "members", activeChurchId],
 
-  const loadMembers = async (searchValue) => {
-    if (!activeChurchId) return;
+    queryFn: async () => {
+      const res = await AdminAPI.fetchMembers();
+      return res.members ?? [];
+    },
 
-    try {
-      if (!members.length) setInitialLoading(true);
-      else setRefreshing(true);
+    enabled: Boolean(activeChurchId),
+  });
 
-      const params = new URLSearchParams({ search: searchValue || "" });
+  const members = useMemo(() => {
+    const allMembers = query.data ?? [];
+    const searchTerm = search?.trim().toLowerCase();
 
-      const res = await AdminAPI.fetchMembers(params.toString());
-      setMembers(res.members ?? []);
-    } catch {
-      throw new Error("Failed to load members");
-    } finally {
-      setInitialLoading(false);
-      setRefreshing(false);
+    if (!searchTerm) {
+      return allMembers;
     }
-  };
 
-  useEffect(() => {
-    loadMembers(search);
-  }, [activeChurchId, search]);
+    return allMembers.filter((member) => {
+      const searchableFields = [
+        member.full_name,
+        member.status,
+        ...(member.departments ?? []),
+        ...(member.roles ?? []),
+      ];
+
+      return searchableFields.some((value) =>
+        String(value).toLowerCase().includes(searchTerm)
+      );
+    });
+  }, [query.data, search]);
 
   return {
     members,
-    initialLoading,
-    refreshing,
-    reload: () => loadMembers(search),
+
+    initialLoading: query.isPending,
+
+    refreshing: query.isFetching && !query.isPending,
+
+    reload: query.refetch,
+
+    error: query.error,
   };
 }

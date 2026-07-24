@@ -1,4 +1,8 @@
-import { createContext, useContext, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+} from "react";
 
 import { useAuthCore } from "./useAuthCore";
 import { useAuthRoles } from "./useAuthRoles";
@@ -10,11 +14,17 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const core = useAuthCore();
-  const roles = useAuthRoles(core.user);
-  const membership = useAuthMembership(core.user);
-  const church = useChurchSwitch(core.fetchMe);
 
-  useAuthRealtime(core.profileId, core.fetchMe, core.authReady);
+  const roles = useAuthRoles(core.user);
+
+  const membership = useAuthMembership(core.user);
+
+  const church = useChurchSwitch();
+
+  useAuthRealtime(
+    core.profileId,
+    core.authReady
+  );
 
   const value = useMemo(
     () => ({
@@ -33,4 +43,5 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () =>
+  useContext(AuthContext);

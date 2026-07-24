@@ -3,15 +3,9 @@ import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute({
   requiredPermission = null,
-
   allowSuspended = false,
-
-  guestOnly = false,
 }) {
-  const {
-    user,
-    isSuspendedMember,
-  } = useAuth();
+  const { user } = useAuth();
 
   /* -------------------------
      1. Must be logged in
@@ -27,12 +21,27 @@ export default function ProtectedRoute({
   }
 
   /* -------------------------
-     2. Allow routes usable
-        while suspended
+     2. Active Church Context
   ------------------------- */
 
+  const activeChurch =
+    user.activeChurch;
+
+  const status =
+    activeChurch?.status ?? "none";
+
+  const permissions =
+    activeChurch?.permissions ?? [];
+
+  /* -------------------------
+     3. Suspended Members
+  ------------------------- */
+
+  const isSuspended =
+    status === "suspended";
+
   if (
-    isSuspendedMember &&
+    isSuspended &&
     !allowSuspended
   ) {
     return (
@@ -44,12 +53,12 @@ export default function ProtectedRoute({
   }
 
   /* -------------------------
-     3. Permission check
+     4. Permission Check
   ------------------------- */
 
   if (
     requiredPermission &&
-    !user.permissions?.includes(
+    !permissions.includes(
       requiredPermission
     )
   ) {

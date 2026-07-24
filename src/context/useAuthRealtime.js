@@ -1,7 +1,14 @@
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+
 import { supabase } from "../supabaseClient";
 
-export function useAuthRealtime(profileId, fetchMe, authReady) {
+export function useAuthRealtime(
+  profileId,
+  authReady
+) {
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     if (!authReady || !profileId) return;
 
@@ -15,8 +22,10 @@ export function useAuthRealtime(profileId, fetchMe, authReady) {
           table: "profiles",
           filter: `id=eq.${profileId}`,
         },
-        async () => {
-          await fetchMe();
+        () => {
+          queryClient.invalidateQueries({
+            queryKey: ["me"],
+          });
         }
       )
       .subscribe();
@@ -24,5 +33,9 @@ export function useAuthRealtime(profileId, fetchMe, authReady) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [authReady, profileId, fetchMe]);
+  }, [
+    authReady,
+    profileId,
+    queryClient,
+  ]);
 }

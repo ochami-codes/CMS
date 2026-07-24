@@ -1,93 +1,63 @@
 // src/components/members/MyRoleRequests.jsx
-import { useState, useEffect, useMemo } from "react";
+
+import { useMemo, useState } from "react";
 import { Shield } from "lucide-react";
 
-import { RoleRequestsAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
-import { useRoles } from "../../hooks/admin/useRoles"; 
+import { useRoles } from "../../hooks/admin/useRoles";
+import { useMyRoleRequests } from "../../hooks/members/useMyRoleRequests";
 
 import Card from "../Card";
 import RoleSelector from "../RoleSelector";
 
+import styles from "../../styles/components/MyRoleRequests.module.css";
+
 export default function MyRoleRequests() {
   const { user, getRoleLabel } = useAuth();
-  const { roles, loading: rolesLoading } = useRoles(); 
+  const { roles, loading: rolesLoading } = useRoles();
+  const {
+    requests,
+    loading,
+    submitting,
+    submitRequest,
+  } = useMyRoleRequests(user?.id);
 
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [selectedRole, setSelectedRole] = useState([]);
 
-  /* ---------------- LOAD ---------------- */
-  const loadRequests = async () => {
-    if (!user?.id) return;
+  const availableRoles = useMemo(
+    () => roles.filter((role) => role.name !== "admin"),
+    [roles]
+  );
+
+  const handleSubmit = async () => {
+    const role = selectedRole[0];
+    if (!role) return;
 
     try {
-      setLoading(true);
-
-      const data = await RoleRequestsAPI.fetchMyRequests();
-
-      setRequests(Array.isArray(data) ? data : data?.requests ?? []);
-    } catch (err) {
-      console.error(err);
-      setRequests([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadRequests();
-  }, [user]);
-
-  /* ---------------- SUBMIT ---------------- */
-  const submitRequest = async () => {
-    const roleToSubmit = selectedRole[0];
-
-    if (!roleToSubmit) return;
-
-    try {
-      setSubmitting(true);
-
-      await RoleRequestsAPI.submit(roleToSubmit);
-
+      await submitRequest(role);
       setSelectedRole([]);
-      await loadRequests();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSubmitting(false);
+    } catch (error) {
+      console.error(error);
     }
   };
-
-  /* ---------------- HELPERS ---------------- */
-  const availableRoles = useMemo(() => {
-    return roles.filter((r) => r.name !== "admin");
-  }, [roles]);
 
   const statusClass = (status) => {
     switch (status) {
       case "approved":
-        return "status-success";
+        return styles.statusSuccess;
       case "rejected":
-        return "status-danger";
+        return styles.statusDanger;
       default:
-        return "status-warning";
+        return styles.statusWarning;
     }
   };
 
-  /* ---------------- STATES ---------------- */
   if (loading || rolesLoading) {
-    return (
-      <Card title="Role Requests">
-        Loading requests...
-      </Card>
-    );
+    return <Card title="Role Requests">Loading requests...</Card>;
   }
 
-  /* ---------------- UI ---------------- */
   return (
-    <div className="space-y-4">
+    <div className={styles.container}>
       <Card
         title="Role Requests"
         subtitle="Request additional permissions within your church"
@@ -95,20 +65,19 @@ export default function MyRoleRequests() {
       />
 
       <Card title="Request New Role">
-        <div className="form-group">
+        <div className={styles.formGroup}>
           <RoleSelector
             roles={availableRoles}
             selectedRoles={selectedRole}
             onChange={setSelectedRole}
-            getRoleLabel={getRoleLabel}
             multiple={false}
           />
         </div>
 
         <button
-          onClick={submitRequest}
+          onClick={handleSubmit}
           disabled={!selectedRole.length || submitting}
-          className="btn btn-primary"
+          className={styles.btnPrimary}
         >
           {submitting ? "Submitting..." : "Send Request"}
         </button>
@@ -116,30 +85,25 @@ export default function MyRoleRequests() {
 
       <Card title="My Requests">
         {!requests.length ? (
-          <p className="text-muted">No role requests yet</p>
+          <p className={styles.textMuted}>No role requests yet</p>
         ) : (
-          <div className="list">
-            {requests.map((r) => (
+          <div className={styles.list}>
+            {requests.map((request) => (
               <div
-                key={r.id}
-                className="list-item flex justify-between items-center"
+                key={request.id}
+                className={`${styles.listItem} ${styles.flexBetween}`}
               >
                 <div>
-                  <div className="font-medium">
-                    {getRoleLabel(r.requested_role)}
+                  <div className={styles.roleName}>
+                    {getRoleLabel(request.requested_role)}
                   </div>
-
-                  <small className="text-muted">
-                    {new Date(r.role_requested_at).toLocaleDateString()}
+                  <small className={styles.textMuted}>
+                    {new Date(request.role_requested_at).toLocaleDateString()}
                   </small>
                 </div>
 
-                <span
-                  className={`status-label ${statusClass(
-                    r.role_request_status
-                  )}`}
-                >
-                  {r.role_request_status}
+                <span className={`${styles.statusLabel} ${statusClass(request.role_request_status)}`}>
+                  {request.role_request_status}
                 </span>
               </div>
             ))}

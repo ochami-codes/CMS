@@ -4,30 +4,40 @@ import {
 } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-import { useAuth } from "../../context/AuthContext";
 import { AnnouncementsAPI } from "../../utils/api";
 
 export default function useCreateAnnouncement() {
-  const { user } = useAuth();
-
   const queryClient =
     useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: (payload) =>
-      AnnouncementsAPI.create({
-        ...payload,
-        churchId:
-          user?.church_id,
-      }),
+    mutationFn: ({
+      departmentId,
+      ...payload
+    }) =>
+      departmentId != null
+        ? AnnouncementsAPI.createDepartment(
+            departmentId,
+            payload
+          )
+        : AnnouncementsAPI.createChurch(
+            payload
+          ),
 
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       toast.success(
         "Announcement published"
       );
 
       queryClient.invalidateQueries({
-        queryKey: ["announcements"],
+        queryKey: [
+          "announcements",
+          {
+            departmentId:
+              variables.departmentId ??
+              null,
+          },
+        ],
       });
     },
 

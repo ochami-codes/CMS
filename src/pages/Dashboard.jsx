@@ -25,136 +25,316 @@ import styles from "../styles/dashboard/Dashboard.module.css";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [showTransferModal, setShowTransferModal] = useState(false);
-  const [showLessonModal, setShowLessonModal] = useState(false);
+
+  const [
+    showTransferModal,
+    setShowTransferModal,
+  ] = useState(false);
+
+  const [
+    showLessonModal,
+    setShowLessonModal,
+  ] = useState(false);
 
   const {
     user,
-    activeChurchId,
-    activeChurchName,
     isAdmin,
     canUser,
+
+    // Membership context
+    activeChurch,
+    activeChurchId,
+    activeChurchName,
     dashboardMode,
   } = useAuth();
+
+  if (!user) {
+    return null;
+  }
+
+  /* -------------------------
+     Active Church Context
+  ------------------------- */
+
+  const churchName =
+    activeChurchName ??
+    activeChurch?.name ??
+    "Seventh-day Adventist Church";
+
+  /* -------------------------
+     Dashboard Data
+  ------------------------- */
 
   const {
     loading,
     initialized,
     verse,
-    announcements,
+    churchAnnouncements,
+    departmentAnnouncements,
     birthday,
     todayBirthdays,
     upcomingBirthdays,
-  } = useDashboardData({ user, churchId: activeChurchId });
+  } = useDashboardData({
+    user,
+    churchId: activeChurchId,
+  });
 
-  const { isSabbath, timer: sabbathTimer } = useSabbathTimer();
-  const { hasBirthday, isBirthday, birthdayTimer } = useBirthdays(birthday);
+  const {
+    isSabbath,
+    timer: sabbathTimer,
+  } = useSabbathTimer();
 
-  const greeting = getGreeting(user);
-  const filteredAnnouncements = filterAnnouncements(announcements, user);
-  const churchName = activeChurchName;
+  const {
+    hasBirthday,
+    isBirthday,
+    birthdayTimer,
+  } = useBirthdays(birthday);
+
+  /* -------------------------
+     Derived Data
+  ------------------------- */
+
+  const greeting =
+    getGreeting(user);
+
+  const filteredAnnouncements =
+    filterAnnouncements(
+      departmentAnnouncements,
+      user
+    );
+
+  /* -------------------------
+     Quick Actions
+  ------------------------- */
 
   const actions = [
     {
       key: "request_role",
       label: "Request Role",
-      description: "Apply for a ministry role",
+      description:
+        "Apply for a ministry role",
       color: "blue",
+
+      // Only active members
+      requireActiveMember: true,
     },
     {
       key: "transfer",
-      label: "Membership Transfer",
-      description: "Move to another church",
+      label:
+        "Membership Transfer",
+      description:
+        "Move to another church",
       color: "purple",
+
+      // Only active members
+      requireActiveMember: true,
     },
     {
       key: "lesson",
-      label: "Subscribe for Lesson",
-      description: "Request Sabbath School guides",
+      label:
+        "Subscribe for Lesson",
+      description:
+        "Request Sabbath School guides",
       color: "blue",
+
+      // Only active members
+      requireActiveMember: true,
     },
   ];
 
-  const visibleActions = actions.filter((a) => {
-    if (a.hideForAdmin && isAdmin()) return false;
-    return canUser(a.permission, {
-      roles: a.roles,
-      requireActiveMember: a.requireActiveMember,
+  const visibleActions =
+    actions.filter((action) => {
+      if (
+        action.hideForAdmin &&
+        isAdmin()
+      ) {
+        return false;
+      }
+
+      return canUser(
+        action.permission,
+        {
+          roles: action.roles,
+          requireActiveMember:
+            action.requireActiveMember,
+        }
+      );
     });
-  });
+
+  /* -------------------------
+     Action Handler
+  ------------------------- */
 
   const handleAction = (type) => {
-    const map = {
-      request_role: () => navigate("/myrolerequest"),
-      transfer: () => setShowTransferModal(true),
-      lesson: () => setShowLessonModal(true),
+    const actionMap = {
+      request_role: () =>
+        navigate("/myrolerequest"),
+
+      transfer: () =>
+        setShowTransferModal(true),
+
+      lesson: () =>
+        setShowLessonModal(true),
     };
-    map[type]?.();
+
+    actionMap[type]?.();
   };
 
-  if (!user) return null;
+  /* -------------------------
+     Initial Loading
+  ------------------------- */
 
-  if (loading && !initialized) {
-    return <Loader message="Loading dashboard..." />;
+  if (
+    loading &&
+    !initialized
+  ) {
+    return (
+      <Loader
+        message="Loading dashboard..."
+      />
+    );
   }
 
   return (
-    <div className={styles.dashboard}>
+    <div
+      className={
+        styles.dashboard
+      }
+    >
       <DashboardHeader
         churchName={churchName}
         greeting={greeting}
         verse={verse}
       />
 
-      {(dashboardMode === "guest" || dashboardMode === "requested") && (
+      {/* -------------------------
+          Guest / Pending
+      ------------------------- */}
+
+      {(dashboardMode === "guest" ||
+        dashboardMode ===
+          "requested") && (
         <MembershipSection />
       )}
 
-      {dashboardMode === "member" && (
+      {/* -------------------------
+          Active Member
+      ------------------------- */}
+
+      {dashboardMode ===
+        "member" && (
         <>
-          <div className={styles.grid}>
-            <div className={styles.card}>
+          <div
+            className={
+              styles.grid
+            }
+          >
+            <div
+              className={
+                styles.card
+              }
+            >
               <QuickActions
-                actions={visibleActions}
+                actions={
+                  visibleActions
+                }
                 isAdmin={isAdmin()}
                 user={user}
-                onAction={handleAction}
+                onAction={
+                  handleAction
+                }
               />
             </div>
 
-            <div className={styles.card}>
-              <AnnouncementsSection announcements={filteredAnnouncements} />
+            <div
+              className={
+                styles.card
+              }
+            >
+              <AnnouncementsSection
+                churchAnnouncements={
+                  churchAnnouncements
+                }
+                departmentAnnouncements={
+                  filteredAnnouncements
+                }
+              />
             </div>
 
-            <div className={styles.card}>
-              <SabbathSection isSabbath={isSabbath} sabbathTimer={sabbathTimer} />
+            <div
+              className={
+                styles.card
+              }
+            >
+              <SabbathSection
+                isSabbath={
+                  isSabbath
+                }
+                sabbathTimer={
+                  sabbathTimer
+                }
+              />
             </div>
 
-            <div className={styles.card}>
+            <div
+              className={
+                styles.card
+              }
+            >
               <BirthdaySection
                 user={user}
-                hasBirthday={hasBirthday}
-                isBirthday={isBirthday}
-                birthdayTimer={birthdayTimer}
-                todayBirthdays={todayBirthdays}
-                upcomingBirthdays={upcomingBirthdays}
+                hasBirthday={
+                  hasBirthday
+                }
+                isBirthday={
+                  isBirthday
+                }
+                birthdayTimer={
+                  birthdayTimer
+                }
+                todayBirthdays={
+                  todayBirthdays
+                }
+                upcomingBirthdays={
+                  upcomingBirthdays
+                }
               />
             </div>
           </div>
 
           <TransferRequestModal
-            isOpen={showTransferModal}
-            onClose={() => setShowTransferModal(false)}
+            isOpen={
+              showTransferModal
+            }
+            onClose={() =>
+              setShowTransferModal(
+                false
+              )
+            }
           />
 
           <LessonGuideModal
-            open={showLessonModal}
-            onClose={() => setShowLessonModal(false)}
-            mode={"member"}
+            open={
+              showLessonModal
+            }
+            onClose={() =>
+              setShowLessonModal(
+                false
+              )
+            }
+            mode="member"
           />
         </>
+      )}
+
+      {/* -------------------------
+          Suspended
+      ------------------------- */}
+
+      {dashboardMode ===
+        "suspended" && (
+        <MembershipSection />
       )}
     </div>
   );
 }
-

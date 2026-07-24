@@ -59,14 +59,8 @@ export default function BirthdaySection({
             </div>
             <div className={styles.todayContent}>
               <p>
-                Celebrate <strong>{person.full_name}</strong> today!
+                Celebrate <strong>{person.full_name}</strong>, it's their birthday!
               </p>
-              <button 
-                className={styles.wishBtn}
-                onClick={() => alert(`Wish sent to ${person.full_name}`)}
-              >
-                Send wish 🎂
-              </button>
             </div>
           </Card>
         ))}

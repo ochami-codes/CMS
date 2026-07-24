@@ -41,7 +41,6 @@ export default function Announcements({
     deleteAnnouncement,
     loading: deleting,
   } = useDeleteAnnouncement();
-console.log("announcements", announcements);
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -55,22 +54,25 @@ console.log("announcements", announcements);
     setMessage("");
   };
 
-  const handleDelete = async (id) => {
-    if (
-      !window.confirm(
-        "Delete this announcement?"
-      )
-    ) {
-      return;
-    }
+  const handleDelete = async (announcementId) => {
+  if (
+    !window.confirm(
+      "Delete this announcement?"
+    )
+  ) {
+    return;
+  }
 
-    await deleteAnnouncement(id);
-  };
+  await deleteAnnouncement({
+    announcementId,
+    departmentId,
+  });
+};
 
   if (loading) {
     return (
       <div className={styles.loading}>
-        <Loader message="Loading announcements..." />
+        <Loader message="Loading announcements..." fullScreen={false} />
       </div>
     );
   }
@@ -142,7 +144,7 @@ console.log("announcements", announcements);
 
             <Button
               type="submit"
-              disabled={creating}
+              loading={creating}
             >
               {creating
                 ? "Publishing..."
@@ -209,7 +211,7 @@ console.log("announcements", announcements);
                     <Button
                       size="sm"
                       variant="danger"
-                      disabled={
+                      loading={
                         deleting
                       }
                       onClick={() =>

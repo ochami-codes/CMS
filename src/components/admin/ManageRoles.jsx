@@ -10,10 +10,8 @@ import EmptyState from "../EmptyState";
 import PageHeader from "../PageHeader";
 import SearchBar from "../SearchBar";
 import ResponsiveDataView from "../ResponsiveDataView";
-import Modal from "../Modal";
-import RoleSelector from "../RoleSelector";
-
-import { useDebouncedValue } from "../../hooks/admin/useDebouncedValue";
+import ManageRolesModal from "./ManageRolesModal";
+import SuspendMemberModal from "./SuspendMemberModal";
 import { useAdminMembers } from "../../hooks/admin/useAdminMembers";
 import { useRoles } from "../../hooks/admin/useRoles";
 import { useAdminMemberActions } from "../../hooks/admin/useAdminMemberAction";
@@ -24,117 +22,78 @@ export default function ManageRoles() {
   const { activeChurchId, getRoleLabel } = useAuth();
   const { showToast } = useToast();
 
-  // UI state only
+  // UI state
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search, 300);
-
   const [selectedMember, setSelectedMember] = useState(null);
   const [suspendTarget, setSuspendTarget] = useState(null);
-  const [suspendReason, setSuspendReason] = useState("");
-  const [selectedRoles, setSelectedRoles] = useState([]);
-  const [primaryRole, setPrimaryRole] = useState("");
-  // data hooks
-  const {
-    members,
-    initialLoading,
-    refreshing,
-    reload,
-  } = useAdminMembers(activeChurchId, debouncedSearch);
 
+  // Data hooks
+  const { members, initialLoading, refreshing } = useAdminMembers(activeChurchId, search);
   const { roles, loading: rolesLoading } = useRoles();
 
   const {
     processingId,
-    setProcessingId,
     saving,
     suspendMember,
     unsuspendMember,
     activateMember,
     updateRoles,
-  } = useAdminMemberActions(reload, showToast);
+  } = useAdminMemberActions(activeChurchId, showToast);
 
-  // protected members
+  // Helpers
   const isProtectedMember = useCallback(
-    (member) =>
-      (member.roles ?? []).some(
-        (role) => role === "admin" || role === "super_admin"
-      ),
+    (member) => (member.roles ?? []).includes("admin"),
     []
   );
 
-  // sync selected roles
-  const openRoleModal = (member) => {
-  setSelectedMember(member);
-
-  const roles = member.roles ?? [];
-
-  setSelectedRoles(roles);
-  setPrimaryRole(
-    member.primary_role || roles[0] || ""
-  );
-};
-
-  const handleSaveRoles = async () => {
-  await updateRoles(
-    selectedMember.id,
-    {
-      roles: selectedRoles,
-      primary_role: primaryRole,
-    }
-  );
-
-  setSelectedMember(null);
-};
-
-  const toggleMemberStatus = async (member) => {
-    if (isProtectedMember(member)) return showToast("Admins cannot be modified", "error");
-
-    setProcessingId(member.id);
-
-    try {
-      if (member.status === "active") {
-        setSuspendTarget(member);
-      } else if (member.status === "suspended") {
-        await unsuspendMember(member.id);
-      } else {
-        await activateMember(member.id);
-      }
-    } finally {
-      setProcessingId(null);
-    }
+  const handleSaveRoles = async ({memberId, roles}) => {
+    await updateRoles({memberId, roles});
+    setSelectedMember(null);
   };
 
-  const handleSuspendConfirm = async () => {
-    if (!suspendTarget) return;
-
-    await suspendMember(suspendTarget.id, suspendReason);
-
+  const handleSuspendConfirm = async ({ memberId, reason }) => {
+    await suspendMember({memberId, reason});
     setSuspendTarget(null);
-    setSuspendReason("");
+  };
+
+  const toggleMemberStatus = async (member) => {
+    if (isProtectedMember(member)) {
+      return showToast("Admins cannot be modified", "error");
+    }
+
+    if (member.status === "active") {
+      setSuspendTarget(member);
+    } else if (member.status === "suspended") {
+      await unsuspendMember({memberId: member.id});
+    } else {
+      await activateMember({memberId: member.id});
+    }
   };
 
   const columns = [
-    { key: "full_name", label: "Member" },
+    {
+      key: "full_name",
+      label: "Member",
+    },
     {
       key: "departments",
       label: "Departments",
-      render: (m) => m.departments?.length ? m.departments.join(", ") : "—",
+      render: (departments) =>
+        departments?.length ? departments.join(", ") : "—",
     },
     {
       key: "status",
       label: "Status",
-      render: (m) => (
-        <span className={styles[m.status]}>
-          {m.status}
-        </span>
+      render: (status) => (
+        <span className={styles[status]}>{status}</span>
       ),
     },
     {
       key: "roles",
       label: "Roles",
-      render: (m) => (
+      render: (roles) => (
         <div className={styles.roles}>
-          {(m.roles ?? []).map((role) => (
+          {(roles ?? []).map((role) => (
             <span key={role} className={styles.roleBadge}>
               {getRoleLabel(role)}
             </span>
@@ -159,16 +118,14 @@ export default function ManageRoles() {
         onClear={() => setSearch("")}
       />
 
-      {initialLoading && <Loader
-       fullScreen={false}
-       message="Loading members..." />}
+      {initialLoading && (
+        <Loader fullScreen={false} message="Loading members..." />
+      )}
 
       {!initialLoading && members.length === 0 && (
         <EmptyState
-          title={debouncedSearch ? "No members found" : "No members yet"}
-          description={
-            debouncedSearch ? `No results for "${debouncedSearch}"` : undefined
-          }
+          title={search ? "No members found" : "No members yet"}
+          description={search ? `No results for "${search}"` : undefined}
         />
       )}
 
@@ -183,11 +140,10 @@ export default function ManageRoles() {
                 variant="secondary"
                 size="sm"
                 disabled={isProtectedMember(m)}
-                onClick={() => openRoleModal(m)}
+                onClick={() => setSelectedMember(m)}
               >
                 Manage Roles
               </Button>
-
               <Button
                 loading={processingId === m.id}
                 variant={m.status === "active" ? "danger" : "success"}
@@ -207,77 +163,22 @@ export default function ManageRoles() {
       )}
 
       {/* Role Modal */}
-      {selectedMember && (
-        <Modal
-  open
-  onClose={() => setSelectedMember(null)}
-  title={`Manage Roles: ${selectedMember.full_name}`}
-  size="lg"
-  footer={
-    <>
-      <Button
-        variant="secondary"
-        onClick={() => setSelectedMember(null)}
-      >
-        Cancel
-      </Button>
-
-      <Button
-        loading={saving}
-        onClick={handleSaveRoles}
-      >
-        Save Changes
-      </Button>
-    </>
-  }
->
-  <RoleSelector
-  roles={roles}
-  loading={rolesLoading}
-  selectedRoles={selectedRoles}
-  primaryRole={primaryRole}
-  onChange={setSelectedRoles}
-  onPrimaryRoleChange={setPrimaryRole}
-  multiple
-/>
-</Modal>
-      )}
+      <ManageRolesModal
+        member={selectedMember}
+        roles={roles}
+        rolesLoading={rolesLoading}
+        saving={saving}
+        onClose={() => setSelectedMember(null)}
+        onSave={handleSaveRoles}
+      />
 
       {/* Suspend Modal */}
-      {suspendTarget && (
-        <Modal
-          open
-          onClose={() => {
-            setSuspendTarget(null);
-            setSuspendReason("");
-          }}
-          title={`Suspend ${suspendTarget.full_name}`}
-          footer={
-            <>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setSuspendTarget(null);
-                  setSuspendReason("");
-                }}
-              >
-                Cancel
-              </Button>
-              <Button variant="danger" onClick={handleSuspendConfirm}>
-                Confirm Suspend
-              </Button>
-            </>
-          }
-        >
-          <textarea
-            value={suspendReason}
-            onChange={(e) => setSuspendReason(e.target.value)}
-            placeholder="Reason (optional)"
-            rows={4}
-            style={{ width: "100%" }}
-          />
-        </Modal>
-      )}
+      <SuspendMemberModal
+        member={suspendTarget}
+        onClose={() => setSuspendTarget(null)}
+        onConfirm={handleSuspendConfirm}
+      />
     </div>
   );
 }
+

@@ -62,7 +62,7 @@ export default function TreasuryDashboard() {
     return (
       <div className={styles.loadingWrapper}>
         <Loader message="Loading treasury data..." 
-                fullScreen={false} />     
+                fullScreen={true} />     
       </div>
     );
   }

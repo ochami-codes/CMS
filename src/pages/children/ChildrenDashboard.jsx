@@ -6,6 +6,7 @@ import {
 
 import RequirePermission from "../../components/RequirePermission";
 import Tabs from "../../components/Tabs";
+import Loader from "../../components/Loader";
 import Card from "../../components/Card";
 import ChildrenList from "../../components/children/ChildrenList";
 import ChildrenAttendance from "../../components/children/ChildrenAttendance";
@@ -42,13 +43,11 @@ export default function ChildrenDashboard() {
       departmentId,
       loading: deptLoading
     } = useDepartmentId("children");
-     if (deptLoading) {
-    return (
-      <main className="page-container">
-        <p>Loading...</p>
-      </main>
-    );
-  }
+    if (deptLoading) {
+        return (
+          < Loader message="Loading Dashboard..."  fullScreen={true}/>
+            );
+      }
 
   return (
     <RequirePermission permission="manage_children">

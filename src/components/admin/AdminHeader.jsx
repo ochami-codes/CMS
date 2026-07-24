@@ -1,24 +1,40 @@
+import {
+  Users,
+  ShieldCheck,
+  UserCog,
+} from "lucide-react";
+
 import Card from "../Card";
 import styles from "../../styles/admin/AdminHeader.module.css";
 
 export default function AdminHeader() {
   return (
     <Card className={styles.card}>
+      <div className={styles.header}>
+        <div>
+          <h2 className={styles.title}>Admin Dashboard</h2>
+          <p className={styles.subtitle}>
+            Manage members, roles, and access.
+          </p>
+        </div>
+      </div>
 
-      <h2 className={styles.title}>
-        Welcome, Admin!
-      </h2>
+      <div className={styles.features}>
+        <div className={styles.feature}>
+          <Users size={18} />
+          <span>Members</span>
+        </div>
 
-      <p className={styles.subtitle}>
-        Use this dashboard to:
-      </p>
+        <div className={styles.feature}>
+          <ShieldCheck size={18} />
+          <span>Permissions</span>
+        </div>
 
-      <ul className={styles.list}>
-        <li>Manage church members</li>
-        <li>Approve or reject role requests</li>
-        <li>Assign roles and permissions</li>
-      </ul>
-
+        <div className={styles.feature}>
+          <UserCog size={18} />
+          <span>Roles</span>
+        </div>
+      </div>
     </Card>
   );
 }

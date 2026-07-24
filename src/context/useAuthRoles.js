@@ -1,101 +1,282 @@
-import { useState, useCallback } from "react";
+import { useMemo, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+
 import { RolesAPI } from "../utils/api";
-import { normalizeRole } from "../config/roles.js";
+import { normalizeRole } from "../config/roles";
 
 export function useAuthRoles(user) {
-  const [rolesData, setRolesData] = useState({
-    roles: [],
-    roleLabels: {},
-    requestableRoles: [],
-    allRoles: [],
-    allPermissions: [],
+  /* -------------------------
+     Available Roles
+  ------------------------- */
+
+  const {
+    data: roles = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["roles"],
+
+    queryFn: async () => {
+      const { roles = [] } =
+        await RolesAPI.getAll();
+
+      return roles.map((role) => ({
+        name:
+          normalizeRole(role.name),
+
+        label:
+          role.label ?? role.name,
+
+        permissions:
+          role.permissions ?? [],
+
+        requestable:
+          role.requestable ?? false,
+      }));
+    },
+
+    enabled: !!user,
+
+    staleTime:
+      1000 * 60 * 10,
   });
 
-  const fetchRoles = useCallback(async () => {
-    try {
-      const data = await RolesAPI.getAll();
+  /* -------------------------
+     Active Church Authorization
+  ------------------------- */
 
-      const roles = (data.roles || []).map((r) => ({
-        name: normalizeRole(r.name),
-        label: r.label || r.name,
-        requestable: r.requestable ?? false,
-        permissions: r.permissions || [],
-      }));
+  const activeChurch =
+    user?.activeChurch ?? null;
 
-      const roleLabels = roles.reduce((acc, r) => {
-        acc[r.name] = r.label;
-        return acc;
-      }, {});
+  const userRoles =
+    activeChurch?.roles ?? [];
 
-      const allPermissions = [
-        ...new Set(roles.flatMap((r) => r.permissions)),
-      ];
+  const userPermissions =
+    activeChurch?.permissions ?? [];
 
-      const requestableRoles = (data.requestable_roles || []).map(normalizeRole);
-      const allRoles = (data.all_roles || []).map(normalizeRole);
+  /* -------------------------
+     Active Membership State
+  ------------------------- */
 
-      setRolesData({
-        roles,
-        roleLabels,
-        requestableRoles,
-        allRoles,
-        allPermissions,
-      });
-    } catch (err) {
-      console.error("Failed to load roles:", err);
-    }
-  }, []);
+  const activeMembershipStatus =
+    user?.activeMembershipStatus ??
+    "none";
+
+  const isActiveMember =
+    user?.isMember ?? false;
+
+  const isPendingMember =
+    user?.isPending ?? false;
+
+  const isSuspendedMember =
+    user?.isSuspended ?? false;
+
+  /* -------------------------
+     Role Metadata
+  ------------------------- */
+
+  const roleLabels = useMemo(
+    () =>
+      Object.fromEntries(
+        roles.map((role) => [
+          role.name,
+          role.label,
+        ])
+      ),
+    [roles]
+  );
+
+  const requestableRoles = useMemo(
+    () =>
+      roles
+        .filter(
+          (role) => role.requestable
+        )
+        .map(
+          (role) => role.name
+        ),
+    [roles]
+  );
+
+  const allRoles = useMemo(
+    () =>
+      roles.map(
+        (role) => role.name
+      ),
+    [roles]
+  );
+
+  const allPermissions = useMemo(
+    () => [
+      ...new Set(
+        roles.flatMap(
+          (role) =>
+            role.permissions
+        )
+      ),
+    ],
+    [roles]
+  );
+
+  const rolesData = useMemo(
+    () => ({
+      roles,
+      roleLabels,
+      requestableRoles,
+      allRoles,
+      allPermissions,
+    }),
+    [
+      roles,
+      roleLabels,
+      requestableRoles,
+      allRoles,
+      allPermissions,
+    ]
+  );
+
+  /* -------------------------
+     Role Checks
+  ------------------------- */
 
   const isAdmin = useCallback(
-    () => user?.roles?.includes("admin") ?? false,
-    [user]
+    () =>
+      userRoles.includes(
+        "admin"
+      ),
+    [userRoles]
   );
 
   const hasRole = useCallback(
-    (role) => user?.roles?.includes(normalizeRole(role)) ?? false,
-    [user]
+    (role) =>
+      userRoles.includes(
+        normalizeRole(role)
+      ),
+    [userRoles]
   );
+
+  /* -------------------------
+     Permission Check
+  ------------------------- */
 
   const canUser = useCallback(
-    (permission, options = {}) => {
-      if (!user) return false;
-
-      const { roles, requireActiveMember = false } = options;
-
-      if (requireActiveMember) {
-        // NOTE: membership check will come later hook
-        if (!user?.active_membership_status === "active") {
-          return false;
-        }
+    (
+      permission,
+      options = {}
+    ) => {
+      // No authenticated user
+      if (!user) {
+        return false;
       }
 
-      if (roles?.length) {
-        const hasRoleMatch = roles.some((r) =>
-          user.roles.includes(normalizeRole(r))
-        );
+      const {
+        roles: requiredRoles,
+        requireActiveMember = false,
+      } = options;
 
-        if (!hasRoleMatch) return false;
+      /* -------------------------
+         Require Active Membership
+      ------------------------- */
+
+      if (
+        requireActiveMember &&
+        !isActiveMember
+      ) {
+        return false;
       }
 
-      if (isAdmin()) return true;
+      /* -------------------------
+         Require Specific Roles
+      ------------------------- */
 
-      if (permission) {
-        return user.permissions.includes(permission);
+      if (
+        requiredRoles?.length &&
+        !requiredRoles.some(
+          (role) =>
+            userRoles.includes(
+              normalizeRole(role)
+            )
+        )
+      ) {
+        return false;
       }
 
-      return true;
+      /* -------------------------
+         Admin Bypass
+      ------------------------- */
+
+      if (isAdmin()) {
+        return true;
+      }
+
+      /* -------------------------
+         Permission Check
+      ------------------------- */
+
+      return permission
+        ? userPermissions.includes(
+            permission
+          )
+        : true;
     },
-    [user, isAdmin]
+    [
+      user,
+      userRoles,
+      userPermissions,
+      isActiveMember,
+      isAdmin,
+    ]
   );
 
-  const getRoleLabel = useCallback(
-    (role) => rolesData.roleLabels[normalizeRole(role)] || role,
-    [rolesData]
-  );
+  /* -------------------------
+     Role Label
+  ------------------------- */
+
+  const getRoleLabel =
+    useCallback(
+      (role) =>
+        roleLabels[
+          normalizeRole(role)
+        ] ?? role,
+      [roleLabels]
+    );
 
   return {
+    /* -------------------------
+       Available Role Definitions
+    ------------------------- */
+
     rolesData,
-    fetchRoles,
+
+    /* -------------------------
+       Query State
+    ------------------------- */
+
+    isLoading,
+    error,
+    refetch,
+
+    /* -------------------------
+       Active Church Authorization
+    ------------------------- */
+
+    userRoles,
+    userPermissions,
+
+    /* -------------------------
+       Active Membership
+    ------------------------- */
+
+    activeMembershipStatus,
+    isActiveMember,
+    isPendingMember,
+    isSuspendedMember,
+
+    /* -------------------------
+       Utilities
+    ------------------------- */
+
     isAdmin,
     hasRole,
     canUser,

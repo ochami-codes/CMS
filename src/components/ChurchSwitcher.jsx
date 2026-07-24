@@ -16,54 +16,101 @@ import { useAuth } from "../context/AuthContext";
 import styles from "../styles/components/ChurchSwitcher.module.css";
 
 export default function ChurchSwitcher() {
-
   const {
     user,
     switchChurch,
     activeChurchId,
-    activeMembership,
+    activeChurchName,
   } = useAuth();
 
   const navigate = useNavigate();
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] =
+    useState(false);
 
-  const [switchingChurchId, setSwitchingChurchId] = useState(null);
+  const [
+    switchingChurchId,
+    setSwitchingChurchId,
+  ] = useState(null);
 
-  const dropdownRef = useRef(null);
+  const dropdownRef =
+    useRef(null);
 
-  const memberships = user?.memberships || [];
+  /* -------------------------
+     User Churches
+  ------------------------- */
 
-  /* close on outside click */
+  const churches =
+    user?.churches ?? [];
+
+  /* -------------------------
+     Close on Outside Click
+  ------------------------- */
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(e.target)
+        !dropdownRef.current.contains(
+          e.target
+        )
       ) {
         setOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
 
     return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
   }, []);
 
-  const handleSwitch = async (churchId) => {
-    try {
-      setSwitchingChurchId(churchId);
+  /* -------------------------
+     Switch Church
+  ------------------------- */
 
-      await switchChurch(churchId);
+  const handleSwitch = async (
+    churchId
+  ) => {
+    // Already active
+    if (
+      churchId === activeChurchId
+    ) {
+      setOpen(false);
+      return;
+    }
+
+    try {
+      setSwitchingChurchId(
+        churchId
+      );
+
+      await switchChurch(
+        churchId
+      );
 
       setOpen(false);
     } catch (err) {
-      console.error("Switch failed:", err);
+      console.error(
+        "Switch failed:",
+        err
+      );
     } finally {
-      setSwitchingChurchId(null);
+      setSwitchingChurchId(
+        null
+      );
     }
   };
+
+  /* -------------------------
+     Navigation
+  ------------------------- */
 
   const goJoin = () => {
     setOpen(false);
@@ -76,85 +123,161 @@ export default function ChurchSwitcher() {
   };
 
   return (
-    <div className={styles.wrapper} ref={dropdownRef}>
+    <div
+      className={styles.wrapper}
+      ref={dropdownRef}
+    >
+      {/* -------------------------
+          Trigger
+      ------------------------- */}
 
-      {/* TRIGGER */}
       <button
         className={styles.trigger}
-        onClick={() => setOpen(prev => !prev)}
+        onClick={() =>
+          setOpen(
+            (prev) => !prev
+          )
+        }
       >
-        <span className={styles.name}>
-          {activeMembership?.churches?.name || "Select Church"}
+        <span
+          className={styles.name}
+        >
+          {activeChurchName ??
+            "Select Church"}
         </span>
 
-        <span className={styles.arrow}>
+        <span
+          className={styles.arrow}
+        >
           ▾
         </span>
       </button>
 
-      {/* DROPDOWN */}
-      {open && (
-        <div className={styles.dropdown}>
+      {/* -------------------------
+          Dropdown
+      ------------------------- */}
 
-          <div className={styles.sectionTitle}>
+      {open && (
+        <div
+          className={
+            styles.dropdown
+          }
+        >
+          <div
+            className={
+              styles.sectionTitle
+            }
+          >
             Your Churches
           </div>
 
-          {memberships.length > 0 ? (
-            memberships.map((m) => {
-              const isActive = m.church_id === activeChurchId;
-              const isSwitching = switchingChurchId === m.church_id;
+          {churches.length > 0 ? (
+            churches.map(
+              (church) => {
+                const isActive =
+                  church.id ===
+                  activeChurchId;
 
-              return (
-                <button
-                  key={m.church_id}
-                  className={`${styles.item} ${
-                    isActive ? styles.active : ""
-                  }`}
-                  disabled={isSwitching}
-                  onClick={() => handleSwitch(m.church_id)}
-                >
+                const isSwitching =
+                  switchingChurchId ===
+                  church.id;
 
-                  <div>
-                    <div className={styles.itemName}>
-                      {m?.churches?.name || "Unnamed Church"}
+                return (
+                  <button
+                    key={church.id}
+                    className={`${
+                      styles.item
+                    } ${
+                      isActive
+                        ? styles.active
+                        : ""
+                    }`}
+                    disabled={
+                      isSwitching
+                    }
+                    onClick={() =>
+                      handleSwitch(
+                        church.id
+                      )
+                    }
+                  >
+                    <div>
+                      <div
+                        className={
+                          styles.itemName
+                        }
+                      >
+                        {church.name ??
+                          "Unnamed Church"}
+                      </div>
+
+                      <div
+                        className={
+                          styles.itemStatus
+                        }
+                      >
+                        {church.status ??
+                          "unknown"}
+                      </div>
                     </div>
 
-                    <div className={styles.itemStatus}>
-                      {m.status}
+                    <div
+                      className={
+                        styles.icon
+                      }
+                    >
+                      {isSwitching ? (
+                        <Loader2
+                          size={16}
+                          className={
+                            styles.spin
+                          }
+                        />
+                      ) : isActive ? (
+                        <Check
+                          size={16}
+                        />
+                      ) : null}
                     </div>
-                  </div>
-
-                  <div className={styles.icon}>
-                    {isSwitching ? (
-                      <Loader2 size={16} className={styles.spin} />
-                    ) : isActive ? (
-                      <Check size={16} />
-                    ) : null}
-                  </div>
-
-                </button>
-              );
-            })
+                  </button>
+                );
+              }
+            )
           ) : (
-            <div className={styles.empty}>
+            <div
+              className={
+                styles.empty
+              }
+            >
               No churches yet
             </div>
           )}
 
-          <div className={styles.divider} />
+          <div
+            className={
+              styles.divider
+            }
+          />
 
-          <button className={styles.action} onClick={goJoin}>
+          <button
+            className={
+              styles.action
+            }
+            onClick={goJoin}
+          >
             ➕ Join Church
           </button>
 
-          <button className={styles.action} onClick={goCreate}>
+          <button
+            className={
+              styles.action
+            }
+            onClick={goCreate}
+          >
             🏗 Create Church
           </button>
-
         </div>
       )}
-
     </div>
   );
 }

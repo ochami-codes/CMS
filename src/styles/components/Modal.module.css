@@ -1,116 +1,152 @@
 /* Overlay */
 
-.overlay{
-position:fixed;
-inset:0;
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
 
-background:
-rgba(
-0,0,0,.55
-);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 
-display:flex;
-justify-content:center;
-align-items:center;
+  padding: 2rem 1rem;
 
-padding:1rem;
+  background: rgba(0, 0, 0, 0.55);
 
-z-index:1000;
+  overflow-y: auto;
 }
 
 
 /* Modal */
 
-.modal{
-background:white;
+.modal {
+  width: 100%;
+  max-height: calc(100vh - 4rem);
 
-border-radius:16px;
+  display: flex;
+  flex-direction: column;
 
-width:100%;
+  background: white;
+  border-radius: 16px;
 
-max-height:
-90vh;
+  overflow: hidden;
 
-display:flex;
-flex-direction:
-column;
-
-overflow:hidden;
+  margin: auto 0;
 }
 
 
 /* Sizes */
 
-.sm{
-max-width:400px;
+.sm {
+  max-width: 400px;
 }
 
-.md{
-max-width:600px;
+.md {
+  max-width: 600px;
 }
 
-.lg{
-max-width:900px;
+.lg {
+  max-width: 900px;
 }
 
-.full{
-max-width:1200px;
+.full {
+  max-width: 1200px;
 }
 
 
 /* Header */
 
-.header{
-display:flex;
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-justify-content:
-space-between;
+  flex-shrink: 0;
 
-align-items:center;
+  padding: 1rem 1.25rem;
 
-padding:1rem;
-
-border-bottom:
-1px solid #eee;
+  border-bottom: 1px solid #eee;
 }
 
-.close{
-border:none;
+.close {
+  display: grid;
+  place-items: center;
 
-background:none;
+  width: 32px;
+  height: 32px;
 
-cursor:pointer;
+  border: none;
+  border-radius: 8px;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  transition: background 0.2s ease;
+}
+
+.close:hover {
+  background: #f3f4f6;
 }
 
 
 /* Body */
 
-.body{
-padding:1rem;
+.body {
+  flex: 1;
 
-overflow-y:auto;
+  min-height: 0;
 
-display:flex;
+  padding: 1.25rem;
 
-flex-direction:column;
+  overflow-y: auto;
 
-gap:1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 
 /* Footer */
 
-.footer{
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
 
-padding:1rem;
+  flex-shrink: 0;
 
-border-top:
-1px solid #eee;
+  padding: 1rem 1.25rem;
 
-display:flex;
+  border-top: 1px solid #eee;
 
-justify-content:flex-end;
+  background: white;
+}
 
-gap:.75rem;
 
+/* Mobile */
+
+@media (max-width: 768px) {
+  .overlay {
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .modal {
+    max-height: calc(100vh - 2rem);
+    border-radius: 12px;
+  }
+
+  .header {
+    padding: 0.9rem 1rem;
+  }
+
+  .body {
+    padding: 1rem;
+  }
+
+  .footer {
+    padding: 0.9rem 1rem;
+  }
 }

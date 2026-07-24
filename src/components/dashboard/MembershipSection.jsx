@@ -1,32 +1,14 @@
-import { useState } from "react";
 import { UserPlus, Clock, CheckCircle, XCircle, ArrowRightLeft } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
-import { MembershipAPI } from "../../utils/api";
 import Card from "../Card";
 import Button from "../Button";
 import PageHeader from "../PageHeader";
 import styles from "../../styles/dashboard/MembershipSection.module.css";
+import { useAuth } from "../../context/AuthContext";
+import { useMembershipRequest } from "../../hooks/dashboard/useMembershipRequests";
 
 export default function MembershipSection() {
-  const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const { isActiveMember, isPendingMember, isRejectedMember, isTransferred, refetchUser } = useAuth();
-
-  const handleRequestMembership = async () => {
-    try {
-      setLoading(true);
-      setSuccessMessage("");
-      setErrorMessage("");
-      await MembershipAPI.submit({});
-      await refetchUser();
-      setSuccessMessage("Membership request submitted 🙏");
-    } catch (err) {
-      setErrorMessage(err?.response?.data?.message || "Request failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { isActiveMember, isPendingMember, isRejectedMember, isTransferred } = useAuth();
+  const { requestMembership, isRequesting } = useMembershipRequest();
 
   const statusConfig = {
     isPendingMember: {
@@ -62,23 +44,23 @@ export default function MembershipSection() {
   };
 
   const config =
-  isActiveMember
-    ? statusConfig.isActiveMember
-    : isRejectedMember
-    ? statusConfig.isRejectedMember
-    : isPendingMember
-    ? statusConfig.isPendingMember
-    : isTransferred
-    ? statusConfig.isTransferred
-    : statusConfig.none;
+    isActiveMember
+      ? statusConfig.isActiveMember
+      : isRejectedMember
+      ? statusConfig.isRejectedMember
+      : isPendingMember
+      ? statusConfig.isPendingMember
+      : isTransferred
+      ? statusConfig.isTransferred
+      : statusConfig.none;
 
-const Icon = config.icon;
+  const Icon = config.icon;
 
-const showButton =
-  !isActiveMember &&
-  !isPendingMember &&
-  !isRejectedMember &&
-  !isTransferred;
+  const showButton =
+    !isActiveMember &&
+    !isPendingMember &&
+    !isRejectedMember &&
+    !isTransferred;
 
   return (
     <section className={styles.section}>
@@ -99,18 +81,18 @@ const showButton =
           {showButton && (
             <Button
               variant="primary"
-              disabled={loading}
-              onClick={handleRequestMembership}
+              disabled={isRequesting}
+              onClick={() => requestMembership()}
               className={styles.btn}
             >
-              {loading? "Sending request..." : "Request Membership"}
+              {isRequesting ? "Sending request..." : "Request Membership"}
             </Button>
           )}
-
-          {successMessage && <p className={styles.success}>{successMessage}</p>}
-          {errorMessage && <p className={styles.error}>{errorMessage}</p>}
         </div>
       </Card>
     </section>
   );
 }
+
+
+

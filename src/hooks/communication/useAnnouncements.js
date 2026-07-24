@@ -4,26 +4,28 @@ import toast from "react-hot-toast";
 import { AnnouncementsAPI } from "../../utils/api";
 
 export default function useAnnouncements({
-  departmentId,
+  type = "church",
   limit = 20,
   enabled = true,
 } = {}) {
   const query = useQuery({
     queryKey: [
       "announcements",
-      departmentId ?? "church",
+      type,
       limit,
     ],
 
-    queryFn: () =>
-      departmentId
-        ? AnnouncementsAPI.fetchDepartment(
-            departmentId,
-            limit
-          )
-        : AnnouncementsAPI.fetchChurch(
-            limit
-          ),
+    queryFn: () => {
+      if (type === "departments") {
+        return AnnouncementsAPI.fetchMyDepartments(
+          limit
+        );
+      }
+
+      return AnnouncementsAPI.fetchChurch(
+        limit
+      );
+    },
 
     enabled,
 

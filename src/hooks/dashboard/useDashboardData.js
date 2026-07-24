@@ -29,44 +29,47 @@ export default function useDashboardData({
     });
 
   return {
-    loading:
-      verseQuery.loading ||
-      announcementsQuery.loading ||
-      birthdaysQuery.loading ||
-      membershipQuery.loading,
+  loading:
+    verseQuery.loading ||
+    announcementsQuery.loading ||
+    birthdaysQuery.loading ||
+    membershipQuery.loading,
 
-    initialized: true,
+  initialized: true,
 
-    verse: verseQuery.verse,
+  verse: verseQuery.verse,
 
-    announcements:
-      announcementsQuery.announcements,
+  churchAnnouncements:
+    announcementsQuery.churchAnnouncements,
 
-    birthday:
-      birthdaysQuery.birthday,
+  departmentAnnouncements:
+    announcementsQuery.departmentAnnouncements,
 
-    todayBirthdays:
-      birthdaysQuery.todayBirthdays,
+  birthday:
+    birthdaysQuery.birthday,
 
-    upcomingBirthdays:
-      birthdaysQuery.upcomingBirthdays,
+  todayBirthdays:
+    birthdaysQuery.todayBirthdays,
 
-    membership:
-      membershipQuery.membership,
+  upcomingBirthdays:
+    birthdaysQuery.upcomingBirthdays,
 
-    refresh: async () => {
-      await Promise.all([
-        verseQuery.refresh(),
-        announcementsQuery.refresh(),
-        birthdaysQuery.refresh(),
-        membershipQuery.refresh(),
-      ]);
-    },
+  membership:
+    membershipQuery.membership,
 
-    isFetching:
-      verseQuery.isFetching ||
-      announcementsQuery.isFetching ||
-      birthdaysQuery.isFetching ||
-      membershipQuery.isFetching,
-  };
+  refresh: async () => {
+    await Promise.all([
+      verseQuery.refresh(),
+      announcementsQuery.refresh(),
+      birthdaysQuery.refresh(),
+      membershipQuery.refresh(),
+    ]);
+  },
+
+  isFetching:
+    verseQuery.isFetching ||
+    announcementsQuery.isFetching ||
+    birthdaysQuery.isFetching ||
+    membershipQuery.isFetching,
+};
 }

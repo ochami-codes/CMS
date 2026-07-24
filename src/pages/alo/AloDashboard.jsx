@@ -6,7 +6,7 @@ import {
 
 import RequirePermission from "../../components/RequirePermission";
 import Tabs from "../../components/Tabs";
-
+import Loader from "../../components/Loader";
 import useDepartmentId from "../../hooks/departments/useDepartmentId";
 
 import AddMember from "../../components/members/AddMember";
@@ -39,10 +39,8 @@ export default function AloDashboard() {
 
   if (loading) {
     return (
-      <main className="page-container">
-        <p>Loading...</p>
-      </main>
-    );
+      < Loader message="Loading Dashboard..."  fullScreen={true}/>
+        );
   }
 
   return (

@@ -87,11 +87,9 @@ export const DepartmentsAPI = {
   fetch: async (filters = {}) => {
     const query = buildQuery(filters);
 
-    const url = `/departments${
+    const url = `/reusables/departments${
       query ? `?${query}` : ""
     }`;
-
-    console.log("Departments request:", url);
 
     const response = await request(url);
 
@@ -104,7 +102,7 @@ export const DepartmentsAPI = {
   },
 
   fetchById: (id) =>
-    request(`/departments/${id}`),
+    request(`/reusables/departments/${id}`),
 };
 
 /* ======================
@@ -356,19 +354,20 @@ downloadReport: async (params) => {
 ====================== */
 export const AuthAPI = {
   me: () => request("/auth/me"),
+ 
   login: (payload) => request("/auth/login", { method: "POST", body: JSON.stringify(payload) }),
+ 
   register: (payload) => request("/auth/register", { method: "POST", body: JSON.stringify(payload) }),
-  logout: () => request("/auth/logout", { method: "POST" }),
-  callback: ({ access_token, refresh_token, type }) =>
-    request(`/auth/callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`),
-
+ 
   resendVerification: (email) =>
-    request("/auth/resend-verification", { method: "POST", body: JSON.stringify({ email }) }),
+    request("/auth/verification/resend", { method: "POST", body: JSON.stringify({ email }) }),
+ 
   resetPassword: (email) =>
-    request("/auth/reset-password", { method: "POST", body: JSON.stringify({ email }) }),
+    request("/auth/password/reset", { method: "POST", body: JSON.stringify({ email }) }),
   changePassword: (newPassword) =>
-    request("/auth/change-password", { method: "POST", body: JSON.stringify({ newPassword }) }),
-getConferences: () => request("/conferences"),
+    request("/auth/password/change", { method: "POST", body: JSON.stringify({ newPassword }) }),
+
+  getConferences: () => request("/reusables/conferences"),
 };
 
 /* ======================
@@ -551,22 +550,21 @@ deleteOfferings(sessionId) {
 export const AnnouncementsAPI = {
   fetchChurch(limit = 5) {
     return request(
-      `/dashboard/announcements/church?limit=${limit}`
+      `/announcements/church?limit=${limit}`
     );
   },
 
-  fetchDepartment(
-    departmentId,
+  fetchMyDepartments(
     limit = 5
   ) {
     return request(
-      `/dashboard/announcements/department/${departmentId}?limit=${limit}`
+      `/announcements/departments/mine?limit=${limit}`
     );
   },
 
-  create(payload) {
+  createChurch(payload) {
     return request(
-      "/dashboard/announcements",
+      "/announcements/church",
       {
         method: "POST",
         body: JSON.stringify(payload),
@@ -574,9 +572,34 @@ export const AnnouncementsAPI = {
     );
   },
 
-  remove(id) {
+  createDepartment(
+    departmentId,
+    payload
+  ) {
     return request(
-      `/dashboard/announcements/${id}`,
+      `/announcements/departments/${departmentId}`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
+  },
+
+  deleteChurch(announcementId) {
+    return request(
+      `/announcements/church/${announcementId}`,
+      {
+        method: "DELETE",
+      }
+    );
+  },
+
+  deleteDepartment(
+    departmentId,
+    announcementId
+  ) {
+    return request(
+      `/announcements/departments/${departmentId}/${announcementId}`,
       {
         method: "DELETE",
       }
@@ -588,28 +611,27 @@ export const AnnouncementsAPI = {
 ====================== */
 export const DashboardAPI = {
   dailyVerse: async () => {
-    try { return await request("/dashboard/daily-verse"); }
+    try { return await request("/dashboard/daily/verse"); }
     catch { return { reference: "Psalm 118:24", text: "This is the day the Lord has made; let us rejoice and be glad in it." }; }
   },
   myBirthday: async () => {
-    try { return await request("/dashboard/my-birthday"); }
+    try { return await request("/dashboard/birthdays/mine"); }
     catch { return { full_name: "Child of God", birthday: null, isBirthday: false }; }
   },
   todaysBirthdays: async (churchId) => {
-    try { return churchId ? await request(`/dashboard/todays-birthdays?church_id=${churchId}`) : await request("/dashboard/todays-birthdays"); }
+    try { return churchId ? await request(`/dashboard/birthdays/today?church_id=${churchId}`) : await request("/dashboard/todays-birthdays"); }
     catch { return []; }
   },
   upcomingBirthdays: async (churchId, daysAhead = 30) => {
-    try { return churchId ? await request(`/dashboard/upcoming-birthdays?church_id=${churchId}&days=${daysAhead}`) : []; }
+    try { return churchId ? await request(`/dashboard/birthdays/upcoming?church_id=${churchId}&days=${daysAhead}`) : []; }
     catch { return []; }
   },
 };
 
 /* ======================
-   ADMIN / OVERVIEW API
+    OVERVIEW API
 ====================== */
 export const OverviewAPI = {
-  admin: () => request("/admin/overview"),
   fetchPastorOverview: () => request("/pastor/dashboard"),
 };
 
@@ -617,41 +639,28 @@ export const OverviewAPI = {
    ADMIN API
 ====================== */
 export const AdminAPI = {
-  fetchMembers: (params = "") => request(`/members?${params}`),
+  fetchMembers: () => request("/admin/members"),
 
-  updateMemberRoles: async (memberId, data) =>
-  request(`/admin/role-requests/${memberId}/roles`, {
+  updateMemberRoles: async ({memberId, roles}) =>
+  request(`/admin/roles/${memberId}/update`, {
     method: "PUT",
     body: JSON.stringify({
-      roles: data.roles,
-      primary_role: data.primary_role,
+      roles
     }),
   }),
 
   searchProfiles: (query) =>
     request(`/members/profiles/search?q=${encodeURIComponent(query)}`),
 
-suspendMember: (memberId, payload = {}) =>
-  request(`/admin/users/${memberId}/suspend`, {
+suspendMember: ({memberId, reason}) =>
+  request(`/admin/members/${memberId}?action=suspend`, {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({reason}),
   }),
 
-unsuspendMember: (memberId) =>
-  request(`/admin/users/${memberId}/unsuspend`, {
+unsuspendMember: ({memberId}) =>
+  request(`/admin/members/${memberId}?action=activate`, {
     method: "POST",
-  }),
-
-activateMember: (memberId) =>
-  request(`/admin/users/${memberId}/activate`, {
-    method: "POST",
-  }),
-
-  fetchRoleRequests: () => request("/admin/role-requests"),
-  reviewRoleRequest: (id, action) =>
-  request(`/admin/role-requests/${id}/review`, {
-    method: "POST",
-    body: JSON.stringify({ action }), // "approved" | "rejected"
   }),
 };
 /* ======================
@@ -659,12 +668,11 @@ activateMember: (memberId) =>
 ====================== */
 export const RoleRequestsAPI = {
   submit: (requested_role) =>
-    request("/role-requests", { method: "POST", body: JSON.stringify({ requested_role }), headers: { "Content-Type": "application/json" } }),
-  fetchPending: () => request("/admin/role-requests"),
-  approve: (id) => request(`/admin/role-requests/${id}/approve`, { method: "POST" }),
-  reject: (id) => request(`/admin/role-requests/${id}/reject`, { method: "POST" }),
-  pendingCount: () => request("/admin/role-requests/pending-count"),
-  fetchMyRequests: () => request("/role-requests/my-requests"),
+    request("/role-requests", { method: "POST", body: JSON.stringify({ requested_role })}),
+  fetchPending: () => request("/role-requests"),
+  reviewRoleRequest: (requestId, action) => request(`/role-requests/${requestId}/review`, { method: "POST", body: JSON.stringify({action}) }),
+  pendingCount: () => request("/role-requests/pending/count"),
+  fetchMyRequests: () => request("/role-requests/mine"),
 };
 
 /* ======================
@@ -689,11 +697,11 @@ export const MembershipAPI = {
 export const AdminMembershipAPI = {
   // Get all pending user requests
   fetchAll: () =>
-    request("/admin/membership-requests"),
+    request("/membership-requests"),
 
   // Review (approve / reject) request
   review: (requestId, action) =>
-    request(`/admin/membership-requests/${requestId}/review`, {
+    request(`/membership-requests/${requestId}/review`, {
       method: "POST",
       body: JSON.stringify({ action }), // "approved" | "rejected"
     }),
@@ -712,11 +720,11 @@ export const NotificationsAPI = {
 
   // Mark a single notification as read
   markAsRead: (id) =>
-    request(`/notifications/${id}/read`, { method: "PATCH" }),
+    request(`/notifications/read/${id}`, { method: "PATCH" }),
 
   // Mark all notifications as read
   markAllAsRead: () =>
-    request("/notifications/read-all", { method: "PATCH" }),
+    request("/notifications/read", { method: "PATCH" }),
 };
 /* ======================
    MESSAGES API
@@ -766,18 +774,12 @@ export const MessagesAPI = {
       }),
     }),
 };
-/* ======================
-   ADMIN DASHBOARD API
-====================== */
-export const AdminDashboardAPI = {
-  fetchAll: () => request("/admin/dashboard"),
-};
 
 /* ======================
    CHURCH API
 ====================== */
 export const ChurchAPI = {
-  getById: (id) => request(`/churches/${id}`),
+  getById: (id) => request(`/reusables/church/${id}`),
 
   /* -------------------------
      SEARCH CHURCHES
@@ -802,7 +804,7 @@ export const ChurchAPI = {
   );
 
   return request(
-    `/churches?${searchParams.toString()}`
+    `/reusables/churches?${searchParams.toString()}`
   );
 },
 
@@ -810,7 +812,7 @@ export const ChurchAPI = {
      CREATE CHURCH
   ------------------------- */
   createChurch: ({ church_name, conference_id }) =>
-    request("/create-church", {
+    request("/reusables/church", {
       method: "POST",
       body: JSON.stringify({
         church_name,
@@ -822,7 +824,7 @@ export const ChurchAPI = {
      SET ACTIVE CHURCH
   ------------------------- */
   setActiveChurch: ({ church_id }) =>
-    request("/active-church", {
+    request("/reusables/switch-church", {
       method: "POST",
       body: JSON.stringify({
         church_id,
@@ -833,7 +835,7 @@ export const ChurchAPI = {
    ROLES API
 ====================== */
 export const RolesAPI = {
-  getAll: () => request("/roles"),
+  getAll: () => request("/reusables/roles"),
 };
 /* ======================
    LEGACY / HELPERS

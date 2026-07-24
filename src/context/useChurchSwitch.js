@@ -1,24 +1,39 @@
-import { useCallback } from "react";
+import {
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+
 import { ChurchAPI } from "../utils/api";
 
-export function useChurchSwitch(fetchMe) {
-  const switchChurch = useCallback(
-    async (churchId) => {
-      try {
-        await ChurchAPI.setActiveChurch({
-          church_id: churchId,
-        });
+export function useChurchSwitch() {
+  const queryClient = useQueryClient();
 
-        await fetchMe();
+  const switchChurchMutation = useMutation({
+    mutationFn: (churchId) =>
+      ChurchAPI.setActiveChurch({
+        church_id: churchId,
+      }),
 
-        return true;
-      } catch (err) {
-        console.error("Switch church failed:", err);
-        return false;
-      }
+    onSuccess: async () => {
+      await queryClient.refetchQueries({
+        queryKey: ["me"],
+      });
     },
-    [fetchMe]
-  );
+  });
 
-  return { switchChurch };
+  return {
+    switchChurch: switchChurchMutation.mutateAsync,
+
+    isSwitchingChurch:
+      switchChurchMutation.isPending,
+
+    switchChurchError:
+      switchChurchMutation.error?.message ?? null,
+
+    switchChurchSuccess:
+      switchChurchMutation.isSuccess,
+
+    resetSwitchChurch:
+      switchChurchMutation.reset,
+  };
 }
