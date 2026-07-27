@@ -5,7 +5,7 @@ import Card from "../Card";
 import Button from "../Button";
 import Input from "../Input";
 import Select from "../Select";
-
+import ErrorState from "../ErrorState";
 import useMembers from "../../hooks/members/useMembers";
 import useLessonGuides from "../../hooks/SabbathSchool/useLessonGuides";
 
@@ -45,8 +45,7 @@ export default function LessonGuideModal({
   });
 
   const [subscriberType, setSubscriberType] = useState("member");
-
-const [memberId, setMemberId] = useState("");
+  const [memberId, setMemberId] = useState("");
   const [nameOverride, setNameOverride] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [lessonType, setLessonType] = useState("adult");
@@ -55,52 +54,33 @@ const [memberId, setMemberId] = useState("");
   const [remarks, setRemarks] = useState("");
 
   const submitting = creating || creatingMySubscription;
-  const { members } = useMembers({
-  enabled: isLeader,
-});
+  const { members, isError, refresh } = useMembers({
+    enabled: isLeader,
+  });
 
-const memberOptions = members.map(
-  (member) => ({
+  const memberOptions = members.map((member) => ({
     value: member.id,
     label: member.full_name,
-  })
-);
+  }));
+
   const subscriberTypeOptions = [
-  {
-    value: "member",
-    label: "Existing Member",
-  },
-  {
-    value: "manual",
-    label: "Enter Manually",
-  },
-];
+    { value: "member", label: "Existing Member" },
+    { value: "manual", label: "Enter Manually" },
+  ];
 
   async function handleSubmit(e) {
     e.preventDefault();
 
     if (isLeader) {
       await createSubscription({
-  memberId:
-    subscriberType === "member"
-      ? memberId
-      : null,
-
-  nameOverride:
-    subscriberType === "manual"
-      ? nameOverride
-      : null,
-
-  phoneNumber:
-    subscriberType === "manual"
-      ? phoneNumber
-      : null,
-
-  lessonType,
-  year,
-  quarter,
-  remarks,
-});
+        memberId: subscriberType === "member" ? memberId : null,
+        nameOverride: subscriberType === "manual" ? nameOverride : null,
+        phoneNumber: subscriberType === "manual" ? phoneNumber : null,
+        lessonType,
+        year,
+        quarter,
+        remarks,
+      });
     } else {
       await createMySubscription({
         lessonType,
@@ -116,94 +96,92 @@ const memberOptions = members.map(
   return (
     <Modal open={open} onClose={onClose} title="Lesson Guide Subscription" size="md">
       <Card>
-        <form onSubmit={handleSubmit} className={styles.form}>
-          {isLeader && (
-           <>
-  <Select
-    label="Subscriber"
-    value={subscriberType}
-    options={subscriberTypeOptions}
-    onChange={(e) => {
-      setSubscriberType(e.target.value);
-      setMemberId("");
-      setNameOverride("");
-      setPhoneNumber("");
-    }}
-  />
-
-  {subscriberType === "member" ? (
-    <Select
-      label="Member"
-      value={memberId}
-      options={memberOptions}
-      placeholder="Select a member"
-      onChange={(e) =>
-        setMemberId(e.target.value)
-      }
-    />
-  ) : (
-    <>
-      <Input
-        label="Name"
-        value={nameOverride}
-        onChange={(e) =>
-          setNameOverride(
-            e.target.value
-          )
-        }
-      />
-
-      <Input
-        label="Phone Number"
-        value={phoneNumber}
-        onChange={(e) =>
-          setPhoneNumber(
-            e.target.value
-          )
-        }
-      />
-    </>
-  )}
-</>
-          )}
-
-          <Select
-            label="Lesson Type"
-            value={lessonType}
-            options={lessonTypeOptions}
-            onChange={(e) => setLessonType(e.target.value)}
+        {isLeader && isError ? (
+          <ErrorState
+            message="Failed to load members."
+            onRetry={refresh}
           />
+        ) : (
+          <form onSubmit={handleSubmit} className={styles.form}>
+            {isLeader && (
+              <>
+                <Select
+                  label="Subscriber"
+                  value={subscriberType}
+                  options={subscriberTypeOptions}
+                  onChange={(e) => {
+                    setSubscriberType(e.target.value);
+                    setMemberId("");
+                    setNameOverride("");
+                    setPhoneNumber("");
+                  }}
+                />
 
-          <Input
-            type="number"
-            label="Year"
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-          />
+                {subscriberType === "member" ? (
+                  <Select
+                    label="Member"
+                    value={memberId}
+                    options={memberOptions}
+                    placeholder="Select a member"
+                    onChange={(e) => setMemberId(e.target.value)}
+                  />
+                ) : (
+                  <>
+                    <Input
+                      label="Name"
+                      value={nameOverride}
+                      onChange={(e) => setNameOverride(e.target.value)}
+                    />
 
-          <Select
-            label="Quarter"
-            value={quarter}
-            options={quarterOptions}
-            onChange={(e) => setQuarter(Number(e.target.value))}
-          />
+                    <Input
+                      label="Phone Number"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                    />
+                  </>
+                )}
+              </>
+            )}
 
-          <Input
-            label="Remarks"
-            value={remarks}
-            onChange={(e) => setRemarks(e.target.value)}
-          />
+            <Select
+              label="Lesson Type"
+              value={lessonType}
+              options={lessonTypeOptions}
+              onChange={(e) => setLessonType(e.target.value)}
+            />
 
-          <div className={styles.actions}>
-            <Button type="button" variant="secondary" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" loading={submitting}>
-              Subscribe
-            </Button>
-          </div>
-        </form>
+            <Input
+              type="number"
+              label="Year"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+            />
+
+            <Select
+              label="Quarter"
+              value={quarter}
+              options={quarterOptions}
+              onChange={(e) => setQuarter(Number(e.target.value))}
+            />
+
+            <Input
+              label="Remarks"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+            />
+
+            <div className={styles.actions}>
+              <Button type="button" variant="secondary" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" loading={submitting}>
+                Subscribe
+              </Button>
+            </div>
+          </form>
+        )}
       </Card>
     </Modal>
   );
 }
+

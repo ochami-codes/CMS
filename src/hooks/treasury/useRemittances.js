@@ -6,24 +6,64 @@ import useCancelRemittance from "./useCancelRemittance";
 
 export default function useRemittances() {
   const query = useQuery({
-    queryKey: ["treasury-remittances"],
+    queryKey: [
+      "treasury-remittances",
+    ],
 
     queryFn: () =>
       TreasuryAPI.remittances(),
 
-    staleTime: 5 * 60 * 1000,
+    staleTime:
+      5 * 60 * 1000,
   });
 
+  const remit =
+    useRemitFunds();
+
+  const cancel =
+    useCancelRemittance();
+
   return {
-    ...query,
+    /* =========================
+       DATA
+    ========================== */
 
     remittances:
       query.data ?? [],
 
-    remit:
-      useRemitFunds(),
+    /* =========================
+       QUERY STATE
+    ========================== */
 
-    cancel:
-      useCancelRemittance(),
+    loading:
+      query.isLoading,
+
+    isFetching:
+      query.isFetching,
+
+    isError:
+      query.isError,
+
+    error:
+      query.error,
+
+    /* =========================
+       QUERY ACTION
+    ========================== */
+
+    refresh:
+      query.refetch,
+
+    /* =========================
+       REMIT MUTATION
+    ========================== */
+
+    remit,
+
+    /* =========================
+       CANCEL MUTATION
+    ========================== */
+
+    cancel,
   };
 }

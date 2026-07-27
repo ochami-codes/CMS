@@ -1,15 +1,13 @@
+// src/pages/admin/TreasuryDashboard.jsx
+
 import { useState } from "react";
-import {
-  Landmark,
-  LayoutDashboard,
-  Receipt,
-  Users,
-} from "lucide-react";
+import { Landmark, LayoutDashboard, Receipt, Users } from "lucide-react";
 
 import Loader from "../../components/Loader";
 import RequirePermission from "../../components/RequirePermission";
 import Tabs from "../../components/Tabs";
 import Button from "../../components/Button";
+import ErrorState from "../../components/ErrorState";
 
 import { useTreasuryDashboard } from "../../hooks/treasury/useTreasuryDashboard";
 import { useMembers } from "../../hooks/clerk/useMembers";
@@ -22,111 +20,95 @@ import FundsTab from "./FundsTab";
 import styles from "../../styles/pages/TreasuryDashboard.module.css";
 
 const tabs = [
-  {
-    key: "overview",
-    label: "Overview",
-    Icon: LayoutDashboard,
-  },
-  {
-    key: "transactions",
-    label: "Transactions",
-    Icon: Receipt,
-  },
-  {
-    key: "members",
-    label: "Members",
-    Icon: Users,
-  },
-  {
-    key: "funds",
-    label: "Funds",
-    Icon: Landmark,
-  },
+  { key: "overview", label: "Overview", Icon: LayoutDashboard },
+  { key: "transactions", label: "Transactions", Icon: Receipt },
+  { key: "members", label: "Members", Icon: Users },
+  { key: "funds", label: "Funds", Icon: Landmark },
 ];
 
 export default function TreasuryDashboard() {
   const {
     data,
-    loading,
+    loading: treasuryLoading,
+    isError: treasuryError,
     error,
     refresh,
     isFetching,
   } = useTreasuryDashboard();
+
   const {
-    members = []
+    members,
+    loading: membersLoading,
+    isError: membersError,
+    error: membersErrorDetails,
   } = useMembers();
-  const [activeTab, setActiveTab] =
-    useState("overview");
 
-  if (loading) {
+  const [activeTab, setActiveTab] = useState("overview");
+
+  /* -------------------------
+     LOADING STATE
+  -------------------------- */
+  if (treasuryLoading || membersLoading) {
     return (
       <div className={styles.loadingWrapper}>
-        <Loader message="Loading treasury data..." 
-                fullScreen={true} />     
+        <Loader message="Loading treasury data..." fullScreen />
       </div>
     );
   }
 
-  if (error) {
+  /* -------------------------
+     ERROR STATE
+  -------------------------- */
+  if (treasuryError || membersError) {
     return (
       <div className={styles.loadingWrapper}>
-        <p>Failed to load treasury dashboard.</p>
-
-        <Button onClick={refresh}>
-          Retry
-        </Button>
+        <ErrorState
+          title="Failed to load treasury dashboard"
+          message={
+            error?.message ||
+            membersErrorDetails?.message ||
+            "Something went wrong while fetching data."
+          }
+          onRetry={refresh}
+        />
       </div>
     );
   }
 
+  /* -------------------------
+     MAIN VIEW
+  -------------------------- */
   return (
     <RequirePermission permission="view_finances">
       <main className={`page-container ${styles.page}`}>
+        {/* Header */}
         <header className={styles.header}>
           <div className={styles.headerContent}>
-            <h1 className={styles.title}>
-              Treasury Management
-            </h1>
-
+            <h1 className={styles.title}>Treasury Management</h1>
             <p className={styles.subtitle}>
-              Manage church finances, member giving,
-              fund balances, transactions, and
-              treasury reporting.
+              Manage church finances, member giving, fund balances, transactions, and treasury
+              reporting.
             </p>
           </div>
         </header>
 
-        <Tabs
-          activeTab={activeTab}
-          onChange={setActiveTab}
-          tabs={tabs}
-        />
+        {/* Tabs */}
+        <Tabs activeTab={activeTab} onChange={setActiveTab} tabs={tabs} />
 
+        {/* Content */}
         <section className={styles.content}>
           <div className={styles.tabPanel}>
             {activeTab === "overview" && (
-              <TreasuryOverview
-                overview={data.overview}
-                isFetching={isFetching}
-              />
+              <TreasuryOverview overview={data.overview} isFetching={isFetching} />
             )}
 
             {activeTab === "transactions" && (
-              <TransactionsTab
-                onTransactionAdded={refresh}
-              />
+              <TransactionsTab onTransactionAdded={refresh} />
             )}
 
-            {activeTab === "members" && (
-              <MemberGivingTab
-                members={members}
-              />
-            )}
+            {activeTab === "members" && <MemberGivingTab members={members} />}
 
-            {activeTab === "funds" && (
-              <FundsTab
-              />
-            )}
+            {activeTab === "funds" && <FundsTab />}
           </div>
         </section>
       </main>

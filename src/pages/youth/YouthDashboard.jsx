@@ -1,14 +1,11 @@
 import { useState } from "react";
-import {
-  Megaphone,
-  Users,
-} from "lucide-react";
+import { Megaphone, Users } from "lucide-react";
 
 import RequirePermission from "../../components/RequirePermission";
 import Tabs from "../../components/Tabs";
 import Loader from "../../components/Loader";
 import useDepartmentId from "../../hooks/departments/useDepartmentId";
-
+import ErrorState from "../../components/ErrorState";
 import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
 import Announcements from "../../components/announcements/Announcements";
@@ -16,64 +13,42 @@ import Announcements from "../../components/announcements/Announcements";
 import styles from "../../styles/pages/SharedPages.module.css";
 
 const tabs = [
-  {
-    key: "members",
-    label: "Members",
-    Icon: Users,
-  },
-  {
-    key: "announcements",
-    label: "Announcements",
-    Icon: Megaphone,
-  },
+  { key: "members", label: "Members", Icon: Users },
+  { key: "announcements", label: "Announcements", Icon: Megaphone },
 ];
 
-export default function ChoirDashboard() {
-  const [activeTab, setActiveTab] =
-    useState("members");
+export default function YouthDashboard() {
+  const [activeTab, setActiveTab] = useState("members");
 
-  const {
-    departmentId,
-    loading,
-  } = useDepartmentId("youth");
+  const { departmentId, loading, isError } = useDepartmentId("youth");
 
   if (loading) {
-      return (
-        < Loader message="Loading Dashboard..."  fullScreen={true}/>
-          );
-    }
+    return <Loader message="Loading Dashboard..." fullScreen />;
+  }
+
+  if (isError) {
+    return <ErrorState message="Failed to load department data." />;
+  }
 
   return (
     <RequirePermission permission="manage_youth">
       <main className={`page-container ${styles.page}`}>
         <header className={styles.header}>
           <div>
-            <h1 className={styles.title}>
-              Youth Department
-            </h1>
-
+            <h1 className={styles.title}>Youth Department</h1>
             <p className={styles.subtitle}>
-              Oversee the church's youth ministry by
-              managing youth department members and publishing
-              announcements for all youth-related
-              activities, meetings, and programs.
+              Oversee the church's youth ministry by managing youth department members and publishing
+              announcements for all youth-related activities, meetings, and programs.
             </p>
           </div>
         </header>
 
-        <Tabs
-          tabs={tabs}
-          activeTab={activeTab}
-          onChange={setActiveTab}
-        />
+        <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
         <section className={styles.content}>
           {activeTab === "members" && (
             <div className={styles.members}>
-              <AddMember
-                departmentId={departmentId}
-              />
-
+              <AddMember departmentId={departmentId} />
               <MemberList
                 departmentId={departmentId}
                 title="Youth Department Members"
@@ -94,3 +69,4 @@ export default function ChoirDashboard() {
     </RequirePermission>
   );
 }
+

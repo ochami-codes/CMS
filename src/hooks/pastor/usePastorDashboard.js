@@ -1,6 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import toast from "react-hot-toast";
-
 import { OverviewAPI } from "../../utils/api";
 
 const defaultData = {
@@ -47,25 +45,20 @@ export default function usePastorDashboard() {
     },
 
     staleTime: 5 * 60 * 1000,
-
-    onError: (error) => {
-      console.error(error);
-
-      toast.error(
-        "Failed to load pastor dashboard"
-      );
-    },
   });
 
   return {
+    // Data
     data: query.data ?? defaultData,
 
-    loading: query.isPending,
+    // Query state
+    loading: query.isLoading,
+    isError: query.isError,
     error: query.error,
-
-    refresh: query.refetch,
-
     isFetching: query.isFetching,
     isRefetching: query.isRefetching,
+
+    // Query action
+    refresh: query.refetch,
   };
 }

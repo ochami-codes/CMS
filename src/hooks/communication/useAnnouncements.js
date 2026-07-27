@@ -55,6 +55,8 @@ export default function useAnnouncements({
 
     error:
       query.error,
+    isError:
+       query.isError,  
 
     refresh:
       query.refetch,

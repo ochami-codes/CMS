@@ -38,9 +38,39 @@ export default function useTreasuryFundsSummary({
       5 * 60 * 1000,
   });
 
-  return {
-    ...query,
+  const data = {
     ...defaultData,
     ...(query.data ?? {}),
+  };
+
+  return {
+    /* =========================
+       DATA
+    ========================== */
+
+    ...data,
+
+    /* =========================
+       QUERY STATE
+    ========================== */
+
+    loading:
+      query.isLoading,
+
+    isFetching:
+      query.isFetching,
+
+    isError:
+      query.isError,
+
+    error:
+      query.error,
+
+    /* =========================
+       QUERY ACTION
+    ========================== */
+
+    refresh:
+      query.refetch,
   };
 }

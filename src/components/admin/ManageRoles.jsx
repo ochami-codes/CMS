@@ -11,6 +11,7 @@ import PageHeader from "../PageHeader";
 import SearchBar from "../SearchBar";
 import ResponsiveDataView from "../ResponsiveDataView";
 import ManageRolesModal from "./ManageRolesModal";
+import ErrorState from "../../components/ErrorState"
 import SuspendMemberModal from "./SuspendMemberModal";
 import { useAdminMembers } from "../../hooks/admin/useAdminMembers";
 import { useRoles } from "../../hooks/admin/useRoles";
@@ -28,8 +29,24 @@ export default function ManageRoles() {
   const [suspendTarget, setSuspendTarget] = useState(null);
 
   // Data hooks
-  const { members, initialLoading, refreshing } = useAdminMembers(activeChurchId, search);
-  const { roles, loading: rolesLoading } = useRoles();
+  const {
+  members,
+  initialLoading,
+  refreshing,
+  isError: membersIsError,
+  error: membersError,
+  refetch: refetchMembers,
+} = useAdminMembers(
+  activeChurchId,
+  search
+);
+  const {
+  roles,
+  loading: rolesLoading,
+  isError: rolesIsError,
+  error: rolesError,
+  refetch: refetchRoles,
+} = useRoles();
 
   const {
     processingId,
@@ -117,19 +134,35 @@ export default function ManageRoles() {
         onChange={(e) => setSearch(e.target.value)}
         onClear={() => setSearch("")}
       />
+      {!initialLoading && membersIsError && (
+  <ErrorState
+    title="Unable to load members"
+    message={
+      membersError?.message ??
+      "We couldn't load the members. Please try again."
+    }
+    onRetry={refetchMembers}
+  />
+)}
 
-      {initialLoading && (
-        <Loader fullScreen={false} message="Loading members..." />
-      )}
+     {!initialLoading &&
+  !membersIsError &&
+  members.length === 0 && (
+    <EmptyState
+      title={
+        search
+          ? "No members found"
+          : "No members yet"
+      }
+      description={
+        search
+          ? `No results for "${search}"`
+          : undefined
+      }
+    />
+  )}
 
-      {!initialLoading && members.length === 0 && (
-        <EmptyState
-          title={search ? "No members found" : "No members yet"}
-          description={search ? `No results for "${search}"` : undefined}
-        />
-      )}
-
-      {!initialLoading && members.length > 0 && (
+      {!initialLoading && !membersIsError && members.length > 0 && (
         <ResponsiveDataView
           columns={columns}
           data={members}
@@ -164,13 +197,16 @@ export default function ManageRoles() {
 
       {/* Role Modal */}
       <ManageRolesModal
-        member={selectedMember}
-        roles={roles}
-        rolesLoading={rolesLoading}
-        saving={saving}
-        onClose={() => setSelectedMember(null)}
-        onSave={handleSaveRoles}
-      />
+  member={selectedMember}
+  roles={roles}
+  rolesLoading={rolesLoading}
+  rolesError={rolesError}
+  rolesIsError={rolesIsError}
+  onRetryRoles={refetchRoles}
+  saving={saving}
+  onClose={() => setSelectedMember(null)}
+  onSave={handleSaveRoles}
+/>
 
       {/* Suspend Modal */}
       <SuspendMemberModal
@@ -181,4 +217,3 @@ export default function ManageRoles() {
     </div>
   );
 }
-

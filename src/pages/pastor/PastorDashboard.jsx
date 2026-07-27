@@ -9,8 +9,8 @@ import {
 import RequirePermission from "../../components/RequirePermission";
 import Tabs from "../../components/Tabs";
 import Loader from "../../components/Loader";
-import usePastorDashboard from "../../hooks/pastor/usePastorDashboard";
 import ErrorState from "../../components/ErrorState";
+import usePastorDashboard from "../../hooks/pastor/usePastorDashboard";
 import PastorOverview from "./PastorOverview";
 import PastorDepartments from "./PastorDepartments";
 import PastorTreasury from "./PastorTreasury";
@@ -19,46 +19,22 @@ import PastorMembers from "./PastorMembers";
 import styles from "../../styles/pages/PastorDashboard.module.css";
 
 const tabs = [
-  {
-    key: "overview",
-    label: "Overview",
-    Icon: LayoutDashboard,
-  },
-  {
-    key: "departments",
-    label: "Departments",
-    Icon: Building2,
-  },
-  {
-    key: "treasury",
-    label: "Treasury",
-    Icon: Landmark,
-  },
-  {
-    key: "members",
-    label: "Members",
-    Icon: Users,
-  },
+  { key: "overview", label: "Overview", Icon: LayoutDashboard },
+  { key: "departments", label: "Departments", Icon: Building2 },
+  { key: "treasury", label: "Treasury", Icon: Landmark },
+  { key: "members", label: "Members", Icon: Users },
 ];
 
 export default function PastorDashboard() {
-  const [activeTab, setActiveTab] =
-    useState("overview");
+  const [activeTab, setActiveTab] = useState("overview");
 
-  const {
-    data,
-    loading,
-    error,
-    refresh,
-    isFetching,
-  } = usePastorDashboard();
+  const { data, loading, refresh, isFetching, isError } = usePastorDashboard();
 
   if (loading) {
-    return <Loader message="Loading dashboard..."
-    fullScreen={false} />;
+    return <Loader message="Loading dashboard..." fullScreen={false} />;
   }
 
-  if (error) {
+  if (isError) {
     return (
       <ErrorState
         title="Failed to load dashboard."
@@ -69,17 +45,11 @@ export default function PastorDashboard() {
 
   return (
     <RequirePermission permission="view_dashboard">
-      <main
-        className={`page-container ${styles.page}`}
-      >
+      <main className={`page-container ${styles.page}`}>
         <header className={styles.header}>
-          <h1 className={styles.title}>
-            Pastor Dashboard
-          </h1>
-
+          <h1 className={styles.title}>Pastor Dashboard</h1>
           <p className={styles.subtitle}>
-            View church departments, treasury,
-            and membership insights.
+            View church departments, treasury, and membership insights.
           </p>
         </header>
 
@@ -98,15 +68,11 @@ export default function PastorDashboard() {
           )}
 
           {activeTab === "departments" && (
-            <PastorDepartments
-              departments={data.departments}
-            />
+            <PastorDepartments departments={data.departments} />
           )}
 
           {activeTab === "treasury" && (
-            <PastorTreasury
-              treasury={data.treasury}
-            />
+            <PastorTreasury treasury={data.treasury} />
           )}
 
           {activeTab === "members" && (

@@ -45,6 +45,9 @@ export default function useChildren({
     error:
       query.error,
 
+    isError:
+       query.isError,  
+
     refresh:
       query.refetch,
 

@@ -10,6 +10,7 @@ import { useRoleRequests } from "../../hooks/admin/useRoleRequests";
 import Loader from "../Loader";
 import Card from "../Card";
 import Button from "../Button";
+import ErrorState from "../ErrorState";
 import EmptyState from "../EmptyState";
 import ResponsiveDataView from "../ResponsiveDataView";
 import PageHeader from "../PageHeader";
@@ -49,6 +50,9 @@ export default function RoleRequests() {
   const {
     requests,
     isLoading,
+    error,
+    isError,
+    refetch,
     reviewRequest,
     isReviewing,
     reviewingRequestId,
@@ -232,7 +236,16 @@ export default function RoleRequests() {
           />
         )}
 
-
+        {!isLoading && isError && (
+        <ErrorState
+          title="Unable to load membership requests"
+          message={
+            error?.message ??
+            "We couldn't load membership requests. Please try again."
+          }
+          onRetry={refetch}
+        />
+      )}
         {!isLoading &&
           blocked && (
 

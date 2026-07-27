@@ -1,31 +1,21 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ClerkAPI } from "../../utils/api";
 
 export function useMembers(params = "") {
-  const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchMembers = async () => {
-    try {
-      setLoading(true);
-      const data = await ClerkAPI.getMembers(params);
-      setMembers(data);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchMembers();
-  }, [params]);
+  const query = useQuery({
+    queryKey: ["clerk", "members", params],
+    queryFn: () => ClerkAPI.getMembers(params),
+  });
 
   return {
-    members,
-    loading,
-    error,
-    refetch: fetchMembers,
+    members: query.data ?? [],
+
+    // Query state
+    loading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+
+    // Query action
+    refetch: query.refetch,
   };
 }

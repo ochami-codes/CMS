@@ -5,32 +5,17 @@ import { DepartmentsAPI } from "../utils/api";
 export default function useDepartments(
   filters = {}
 ) {
-  const {
-    data,
-    isLoading,
-    isFetching,
-    error,
-    refetch,
-  } = useQuery({
+  const query = useQuery({
     queryKey: [
       "departments",
       filters,
     ],
 
     queryFn: async () => {
-      console.log(
-        "Departments queryFn running"
-      );
-
       const response =
         await DepartmentsAPI.fetch(
           filters
         );
-
-      console.log(
-        "Departments response:",
-        response
-      );
 
       return (
         response?.departments ?? []
@@ -42,15 +27,34 @@ export default function useDepartments(
   });
 
   return {
+    /* =========================
+       DATA
+    ========================== */
+
     departments:
-      data ?? [],
+      query.data ?? [],
+
+    /* =========================
+       QUERY STATE
+    ========================== */
 
     loading:
-      isLoading || isFetching,
+      query.isLoading,
 
-    error,
+    isFetching:
+      query.isFetching,
+
+    isError:
+      query.isError,
+
+    error:
+      query.error,
+
+    /* =========================
+       QUERY ACTION
+    ========================== */
 
     refresh:
-      refetch,
+      query.refetch,
   };
 }

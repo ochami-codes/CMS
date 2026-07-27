@@ -1,11 +1,11 @@
 import { useState } from "react";
-import toast from "react-hot-toast";
 
 import Card from "../Card";
 import Button from "../Button";
+import ErrorState from "../ErrorState";
 
-import { TreasuryAPI } from "../../utils/api";
 import useDepartments from "../../hooks/useDepartment";
+import useCreateFund from "../../hooks/treasury/useCreateFund";
 
 import styles from "../../styles/components/AddFundForm.module.css";
 
@@ -16,44 +16,58 @@ export default function AddFundForm({
   const {
     departments,
     loading: departmentsLoading,
+    isError: departmentsError,
+    error: departmentsErrorDetails,
+    refresh,
   } = useDepartments();
-console.log(departments);
+
+  const {
+    createFund,
+    creating,
+  } = useCreateFund();
+
   const [form, setForm] = useState({
     name: "",
     department_id: "",
   });
 
-  const [loading, setLoading] = useState(false);
-
-  function handleChange(e) {
-    const { name, value } = e.target;
+  const handleChange = (e) => {
+    const {
+      name,
+      value,
+    } = e.target;
 
     setForm((prev) => ({
       ...prev,
       [name]: value,
     }));
-  }
+  };
 
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setLoading(true);
+    await createFund({
+      name: form.name,
+      department_id:
+        form.department_id || null,
+    });
 
-    try {
-      await TreasuryAPI.createFund({
-        name: form.name,
-        department_id: form.department_id || null,
-      });
+    onSuccess?.();
+  };
 
-      toast.success("Fund created successfully.");
-      onSuccess?.();
-    } catch (error) {
-      toast.error(
-        error.message || "Failed to create fund."
-      );
-    } finally {
-      setLoading(false);
-    }
+  if (departmentsError) {
+    return (
+      <Card className={styles.card}>
+        <ErrorState
+          title="Unable to load departments"
+          message={
+            departmentsErrorDetails?.message ??
+            "Failed to load departments."
+          }
+          onRetry={refresh}
+        />
+      </Card>
+    );
   }
 
   return (
@@ -105,19 +119,21 @@ console.log(departments);
               General Church Fund
             </option>
 
-            {departments.map((department) => (
-              <option
-                key={department.id}
-                value={department.id}
-              >
-                {department.name}
-              </option>
-            ))}
+            {departments.map(
+              (department) => (
+                <option
+                  key={department.id}
+                  value={department.id}
+                >
+                  {department.name}
+                </option>
+              )
+            )}
           </select>
 
           <span className={styles.help}>
-            Leave this empty if the fund belongs to
-            the whole church.
+            Leave this empty if the fund belongs
+            to the whole church.
           </span>
         </div>
 
@@ -126,18 +142,16 @@ console.log(departments);
             type="button"
             variant="secondary"
             onClick={onCancel}
-            disabled={loading}
+            disabled={creating}
           >
             Cancel
           </Button>
 
           <Button
             type="submit"
-            disabled={loading}
+            loading={creating}
           >
-            {loading
-              ? "Creating..."
-              : "Create Fund"}
+            Create Fund
           </Button>
         </div>
       </form>

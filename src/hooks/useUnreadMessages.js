@@ -1,51 +1,59 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+
 import { MessagesAPI } from "../utils/api";
 
 export default function useUnreadMessages() {
-  const [unreadMessages, setUnreadMessages] =
-    useState(0);
+  const query = useQuery({
+    queryKey: [
+      "messages",
+      "unread-count",
+    ],
 
-  // =========================
-  // FETCH FUNCTION
-  // =========================
-
-  const fetchUnread = async () => {
-    try {
-      const res =
+    queryFn: async () => {
+      const response =
         await MessagesAPI.getUnreadCount();
 
-      setUnreadMessages(
-        res?.count || 0
-      );
+      return response?.count ?? 0;
+    },
 
-    } catch (err) {
-      console.error(
-        "Failed to fetch unread messages:",
-        err
-      );
-    }
-  };
+    // Poll every 60 seconds
+    refetchInterval: 60000,
 
-  // =========================
-  // POLLING
-  // =========================
+    // Also fetch when the window regains focus
+    refetchOnWindowFocus: true,
 
-  useEffect(() => {
-    fetchUnread();
-
-    const interval = setInterval(
-      fetchUnread,
-      60000
-    );
-
-    return () =>
-      clearInterval(interval);
-
-  }, []);
+    staleTime: 30000,
+  });
 
   return {
-    unreadMessages,
+    /* =========================
+       DATA
+    ========================== */
+
+    unreadMessages:
+      query.data ?? 0,
+
+    /* =========================
+       QUERY STATE
+    ========================== */
+
+    loading:
+      query.isLoading,
+
+    isFetching:
+      query.isFetching,
+
+    isError:
+      query.isError,
+
+    error:
+      query.error,
+
+    /* =========================
+       QUERY ACTION
+    ========================== */
+
     refreshUnreadMessages:
-      fetchUnread,
+      query.refetch,
   };
 }

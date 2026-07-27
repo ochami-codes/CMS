@@ -1,11 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import toast from "react-hot-toast";
-
 import { MembersAPI } from "../../utils/api";
 
-export default function useMembers(
-  options
-) {
+export default function useMembers(options) {
   const {
     search = "",
     enabled = true,
@@ -30,31 +26,27 @@ export default function useMembers(
       members:
         data?.members ?? [],
     }),
-
-    onError: (error) => {
-      console.error(error);
-
-      toast.error(
-        error?.message ??
-          "Failed to load members"
-      );
-    },
   });
 
   return {
     members:
       query.data?.members ?? [],
 
+    // Query state
     loading:
-      query.isPending,
+      query.isLoading,
+
+    isError:
+      query.isError,
 
     error:
       query.error,
 
-    refresh:
-      query.refetch,
-
     isFetching:
       query.isFetching,
+
+    // Query action
+    refresh:
+      query.refetch,
   };
 }

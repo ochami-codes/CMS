@@ -46,5 +46,6 @@ export function useAdminMembers(activeChurchId, search) {
     reload: query.refetch,
 
     error: query.error,
+    isError: query.isError,
   };
 }

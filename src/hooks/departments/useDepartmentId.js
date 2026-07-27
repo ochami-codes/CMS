@@ -7,6 +7,7 @@ export default function useDepartmentId(code) {
     departments,
     loading,
     error,
+    isError,
     refresh,
   } = useDepartments();
   const departmentId = useMemo(
@@ -22,6 +23,7 @@ export default function useDepartmentId(code) {
     departmentId,
     loading,
     error,
+    isError,
     refresh,
   };
 }

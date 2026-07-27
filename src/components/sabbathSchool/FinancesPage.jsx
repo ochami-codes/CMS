@@ -4,6 +4,7 @@ import Card from "../Card";
 import Button from "../Button";
 import Loader from "../Loader";
 import ResponsiveDataView from "../ResponsiveDataView";
+import ErrorState from "../ErrorState";
 
 import useTreasuryFundsSummary from "../../hooks/treasury/useTreasuryFundSummary";
 import useSabbathSchoolAttendance from "../../hooks/SabbathSchool/useSabbathSchoolAttendance";
@@ -25,17 +26,20 @@ export default function FinancesPage({ departmentId }) {
   const {
     summary,
     loading: summaryLoading,
-    error,
+    isError: summaryError,
     refresh,
   } = useTreasuryFundsSummary({
     departmentId,
     enabled: !!departmentId,
   });
 
-  const { attendance } = useSabbathSchoolAttendance({ departmentId });
+  const { attendance, isError: attendanceError } = useSabbathSchoolAttendance({
+    departmentId,
+  });
 
   const {
     offerings,
+    isError: financesError,
     loading,
     saving,
     saveOfferings,
@@ -68,6 +72,7 @@ export default function FinancesPage({ departmentId }) {
     setForm(defaultOffering);
     setSessionId("");
   };
+
   if (summaryLoading || loading) {
     return (
       <Card className={styles.state}>
@@ -76,11 +81,13 @@ export default function FinancesPage({ departmentId }) {
     );
   }
 
-  if (error) {
+  if (summaryError || attendanceError || financesError) {
     return (
       <Card className={styles.state}>
-        <p>Failed to load finances.</p>
-        <Button onClick={refresh}>Retry</Button>
+        <ErrorState
+          message="Failed to load finances."
+          onRetry={refresh}
+        />
       </Card>
     );
   }

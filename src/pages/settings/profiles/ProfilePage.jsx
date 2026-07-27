@@ -19,6 +19,7 @@ import Card from "../../../components/Card";
 import Button from "../../../components/Button";
 import Input from "../../../components/Input";
 import Loader from "../../../components/Loader";
+import ErrorState from "../../../components/ErrorState";
 
 import styles from "../../../styles/profiles/ProfilePage.module.css";
 
@@ -32,30 +33,16 @@ function CollapseToggle({ open, onClick }) {
         onClick();
       }}
     >
-      {open ? (
-        <ChevronUp size={18} />
-      ) : (
-        <ChevronDown size={18} />
-      )}
+      {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
     </button>
   );
 }
 
-function Section({
-  title,
-  open,
-  onToggle,
-  children,
-}) {
+function Section({ title, open, onToggle, children }) {
   return (
     <Card
       title={title}
-      action={
-        <CollapseToggle
-          open={open}
-          onClick={onToggle}
-        />
-      }
+      action={<CollapseToggle open={open} onClick={onToggle} />}
     >
       {open && children}
     </Card>
@@ -68,6 +55,8 @@ export default function ProfilePage() {
     loading,
     updating,
     updateProfile,
+    isError: profileError,
+    refresh: refreshProfile,
   } = useProfile();
 
   const password = useChangePassword();
@@ -75,25 +64,27 @@ export default function ProfilePage() {
   const {
     summary,
     transactions,
+    isError: ledgerError,
+    refresh: refreshLedger,
   } = useMyGivingLedger();
 
-  const [showAccount, setShowAccount] =
-    useState(true);
-
-  const [showEdit, setShowEdit] =
-    useState(false);
-
-  const [showPassword, setShowPassword] =
-    useState(false);
-
-  const [
-    showContributions,
-    setShowContributions,
-  ] = useState(false);
+  const [showAccount, setShowAccount] = useState(true);
+  const [showEdit, setShowEdit] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showContributions, setShowContributions] = useState(false);
 
   if (loading) {
+    return <Loader message="Loading profile..." />;
+  }
+
+  if (profileError) {
     return (
-      <Loader message="Loading profile..." />
+      <main className={styles.page}>
+        <ErrorState
+          message="Failed to load profile."
+          onRetry={refreshProfile}
+        />
+      </main>
     );
   }
 
@@ -108,22 +99,9 @@ export default function ProfilePage() {
   }
 
   const profileFields = [
-    {
-      label: "Full Name",
-      value: profile.full_name,
-      Icon: User,
-    },
-    {
-      label: "Email",
-      value: profile.email,
-      Icon: Mail,
-    },
-    {
-      label: "Phone",
-      value:
-        profile.phone || "Not provided",
-      Icon: Phone,
-    },
+    { label: "Full Name", value: profile.full_name, Icon: User },
+    { label: "Email", value: profile.email, Icon: Mail },
+    { label: "Phone", value: profile.phone || "Not provided", Icon: Phone },
   ];
 
   return (
@@ -131,47 +109,25 @@ export default function ProfilePage() {
       <Section
         title="My Account"
         open={showAccount}
-        onToggle={() =>
-          setShowAccount((prev) => !prev)
-        }
+        onToggle={() => setShowAccount((prev) => !prev)}
       >
         <div className={styles.profileGrid}>
-          {profileFields.map(
-            ({
-              label,
-              value,
-              Icon,
-            }) => (
-              <div
-                key={label}
-                className={styles.profileItem}
-              >
-                <Icon
-                  size={20}
-                  className={styles.icon}
-                />
-
-                <div>
-                  <p className={styles.label}>
-                    {label}
-                  </p>
-
-                  <p className={styles.value}>
-                    {value}
-                  </p>
-                </div>
+          {profileFields.map(({ label, value, Icon }) => (
+            <div key={label} className={styles.profileItem}>
+              <Icon size={20} className={styles.icon} />
+              <div>
+                <p className={styles.label}>{label}</p>
+                <p className={styles.value}>{value}</p>
               </div>
-            )
-          )}
+            </div>
+          ))}
         </div>
       </Section>
 
       <Section
         title="Edit Profile"
         open={showEdit}
-        onToggle={() =>
-          setShowEdit((prev) => !prev)
-        }
+        onToggle={() => setShowEdit((prev) => !prev)}
       >
         <ProfileForm
           profile={profile}
@@ -183,60 +139,34 @@ export default function ProfilePage() {
       <Section
         title="Password"
         open={showPassword}
-        onToggle={() =>
-          setShowPassword((prev) => !prev)
-        }
+        onToggle={() => setShowPassword((prev) => !prev)}
       >
-        <div
-          className={styles.passwordSection}
-        >
-          <Button
-            variant="secondary"
-            onClick={password.toggle}
-          >
+        <div className={styles.passwordSection}>
+          <Button variant="secondary" onClick={password.toggle}>
             <Lock size={18} />
             Change Password
           </Button>
 
           {password.show && (
             <form
-              onSubmit={
-                password.changePassword
-              }
-              className={
-                styles.passwordForm
-              }
+              onSubmit={password.changePassword}
+              className={styles.passwordForm}
             >
               <Input
                 label="New Password"
                 type="password"
-                value={
-                  password.newPassword
-                }
-                onChange={(e) =>
-                  password.setNewPassword(
-                    e.target.value
-                  )
-                }
+                value={password.newPassword}
+                onChange={(e) => password.setNewPassword(e.target.value)}
               />
 
               <Input
                 label="Confirm Password"
                 type="password"
-                value={
-                  password.confirmPassword
-                }
-                onChange={(e) =>
-                  password.setConfirmPassword(
-                    e.target.value
-                  )
-                }
+                value={password.confirmPassword}
+                onChange={(e) => password.setConfirmPassword(e.target.value)}
               />
 
-              <Button
-                type="submit"
-                loading={password.loading}
-              >
+              <Button type="submit" loading={password.loading}>
                 Update Password
               </Button>
             </form>
@@ -244,25 +174,32 @@ export default function ProfilePage() {
         </div>
       </Section>
 
-      {summary && (
+      {ledgerError ? (
         <Section
           title="Contributions"
           open={showContributions}
-          onToggle={() =>
-            setShowContributions(
-              (prev) => !prev
-            )
-          }
+          onToggle={() => setShowContributions((prev) => !prev)}
         >
-          <div className={styles.analytics}>
-            <Contributions
-              summary={summary}
-              transactions={transactions}
-            />
-          </div>
+          <ErrorState
+            message="Failed to load contributions."
+            onRetry={refreshLedger}
+          />
         </Section>
+      ) : (
+        summary && (
+          <Section
+            title="Contributions"
+            open={showContributions}
+            onToggle={() => setShowContributions((prev) => !prev)}
+          >
+            <div className={styles.analytics}>
+              <Contributions summary={summary} transactions={transactions} />
+            </div>
+          </Section>
+        )
       )}
     </main>
   );
 }
+
 

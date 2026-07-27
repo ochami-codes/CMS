@@ -1,31 +1,23 @@
-import { useEffect, useState } from "react";
+// hooks/clerk/useClerkOverview.js
+
+import { useQuery } from "@tanstack/react-query";
 import { ClerkAPI } from "../../utils/api";
 
 export function useClerkOverview() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchOverview = async () => {
-    try {
-      setLoading(true);
-      const res = await ClerkAPI.overview();
-      setData(res);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchOverview();
-  }, []);
+  const query = useQuery({
+    queryKey: ["clerk", "overview"],
+    queryFn: ClerkAPI.overview,
+  });
 
   return {
-    data,
-    loading,
-    error,
-    refetch: fetchOverview,
+    data: query.data ?? null,
+
+    // Query state
+    loading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+
+    // Query action
+    refetch: query.refetch,
   };
 }

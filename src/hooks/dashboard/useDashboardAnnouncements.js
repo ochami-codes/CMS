@@ -30,6 +30,9 @@ export default function useDashboardAnnouncements({
     error:
       church.error ||
       department.error,
+    isError:
+       church.isError ||
+       department.isError,  
 
     isFetching:
       church.isFetching ||

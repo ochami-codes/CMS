@@ -1,33 +1,21 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ClerkAPI } from "../../utils/api";
 
 export function useDestinationTransfers() {
-  const [transfers, setTransfers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchTransfers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const data = await ClerkAPI.getDestinationTransfers();
-      setTransfers(data);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTransfers();
-  }, []);
+  const query = useQuery({
+    queryKey: ["clerk", "destination-transfers"],
+    queryFn: ClerkAPI.getDestinationTransfers,
+  });
 
   return {
-    transfers,
-    loading,
-    error,
-    refetch: fetchTransfers,
+    transfers: query.data ?? [],
+
+    // Query state
+    loading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+
+    // Query action
+    refetch: query.refetch,
   };
 }

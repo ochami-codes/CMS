@@ -1,9 +1,12 @@
+// src/components/Announcements.jsx
+
 import { useState } from "react";
 
 import Card from "../Card";
 import Input from "../Input";
 import Button from "../Button";
 import Loader from "../Loader";
+import ErrorState from "../ErrorState";
 
 import useAnnouncements from "../../hooks/communication/useAnnouncements";
 import useCreateAnnouncement from "../../hooks/communication/useCreateAnnouncement";
@@ -16,59 +19,36 @@ export default function Announcements({
   title = "Announcements",
   subtitle = "Share updates with members.",
 }) {
-  const [announcementTitle, setAnnouncementTitle] =
-    useState("");
-
-  const [message, setMessage] =
-    useState("");
+  const [announcementTitle, setAnnouncementTitle] = useState("");
+  const [message, setMessage] = useState("");
 
   const {
     announcements,
     loading,
+    isError,
     error,
     refresh,
     isFetching,
-  } = useAnnouncements({
-    departmentId,
-  });
+  } = useAnnouncements({ departmentId });
 
-  const {
-    createAnnouncement,
-    loading: creating,
-  } = useCreateAnnouncement();
+  const { createAnnouncement, loading: creating } = useCreateAnnouncement();
+  const { deleteAnnouncement, loading: deleting } = useDeleteAnnouncement();
 
-  const {
-    deleteAnnouncement,
-    loading: deleting,
-  } = useDeleteAnnouncement();
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    await createAnnouncement({
-      title: announcementTitle,
-      message,
-      departmentId,
-    });
-
+    await createAnnouncement({ title: announcementTitle, message, departmentId });
     setAnnouncementTitle("");
     setMessage("");
   };
 
   const handleDelete = async (announcementId) => {
-  if (
-    !window.confirm(
-      "Delete this announcement?"
-    )
-  ) {
-    return;
-  }
+    if (!window.confirm("Delete this announcement?")) return;
+    await deleteAnnouncement({ announcementId, departmentId });
+  };
 
-  await deleteAnnouncement({
-    announcementId,
-    departmentId,
-  });
-};
-
+  /* -------------------------
+     LOADING STATE
+  -------------------------- */
   if (loading) {
     return (
       <div className={styles.loading}>
@@ -77,154 +57,88 @@ export default function Announcements({
     );
   }
 
-  if (error) {
+  /* -------------------------
+     ERROR STATE
+  -------------------------- */
+  if (isError) {
     return (
       <div className={styles.loading}>
-        <p>
-          Failed to load announcements.
-        </p>
-
-        <Button onClick={refresh}>
-          Retry
-        </Button>
+        <ErrorState
+          title="Failed to load announcements"
+          message={error?.message ?? "Something went wrong while fetching announcements."}
+          onRetry={refresh}
+        />
       </div>
     );
   }
 
+  /* -------------------------
+     MAIN VIEW
+  -------------------------- */
   return (
     <section className={styles.page}>
       <header className={styles.header}>
         <div>
-          <h2 className={styles.title}>
-            {title}
-          </h2>
-
-          <p className={styles.subtitle}>
-            {subtitle}
-          </p>
+          <h2 className={styles.title}>{title}</h2>
+          <p className={styles.subtitle}>{subtitle}</p>
         </div>
-
-        {isFetching && (
-          <span className={styles.refreshing}>
-            Updating...
-          </span>
-        )}
+        {isFetching && <span className={styles.refreshing}>Updating...</span>}
       </header>
 
       <div className={styles.grid}>
+        {/* New Announcement Form */}
         <Card className={styles.formCard}>
-          <h3 className={styles.cardTitle}>
-            New Announcement
-          </h3>
-
-          <form
-            className={styles.form}
-            onSubmit={handleSubmit}
-          >
+          <h3 className={styles.cardTitle}>New Announcement</h3>
+          <form className={styles.form} onSubmit={handleSubmit}>
             <Input
               label="Title"
               value={announcementTitle}
-              onChange={(e) =>
-                setAnnouncementTitle(
-                  e.target.value
-                )
-              }
+              onChange={(e) => setAnnouncementTitle(e.target.value)}
             />
-
             <Input
               label="Message"
               textarea
               value={message}
-              onChange={(e) =>
-                setMessage(
-                  e.target.value
-                )
-              }
+              onChange={(e) => setMessage(e.target.value)}
             />
-
-            <Button
-              type="submit"
-              loading={creating}
-            >
-              {creating
-                ? "Publishing..."
-                : "Publish"}
+            <Button type="submit" loading={creating}>
+              {creating ? "Publishing..." : "Publish"}
             </Button>
           </form>
         </Card>
 
+        {/* Recent Announcements */}
         <Card className={styles.listCard}>
           <div className={styles.cardHeader}>
-            <h3 className={styles.cardTitle}>
-              Recent Announcements
-            </h3>
-
-            <span className={styles.count}>
-              {announcements.length}
-            </span>
+            <h3 className={styles.cardTitle}>Recent Announcements</h3>
+            <span className={styles.count}>{announcements.length}</span>
           </div>
 
-          {announcements.length ===
-          0 ? (
+          {announcements.length === 0 ? (
             <div className={styles.empty}>
-              <p>
-                No announcements
-                available.
-              </p>
+              <p>No announcements available.</p>
             </div>
           ) : (
             <div className={styles.list}>
-              {announcements.map(
-                (announcement) => (
-                  <article
-                    key={
-                      announcement.id
-                    }
-                    className={
-                      styles.item
-                    }
+              {announcements.map((announcement) => (
+                <article key={announcement.id} className={styles.item}>
+                  <div className={styles.content}>
+                    <h4>{announcement.title}</h4>
+                    <p>{announcement.message}</p>
+                    <small>
+                      {new Date(announcement.created_at).toLocaleString()}
+                    </small>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    loading={deleting}
+                    onClick={() => handleDelete(announcement.id)}
                   >
-                    <div
-                      className={
-                        styles.content
-                      }
-                    >
-                      <h4>
-                        {
-                          announcement.title
-                        }
-                      </h4>
-
-                      <p>
-                        {
-                          announcement.message
-                        }
-                      </p>
-
-                      <small>
-                        {new Date(
-                          announcement.created_at
-                        ).toLocaleString()}
-                      </small>
-                    </div>
-
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      loading={
-                        deleting
-                      }
-                      onClick={() =>
-                        handleDelete(
-                          announcement.id
-                        )
-                      }
-                    >
-                      Delete
-                    </Button>
-                  </article>
-                )
-              )}
+                    Delete
+                  </Button>
+                </article>
+              ))}
             </div>
           )}
         </Card>

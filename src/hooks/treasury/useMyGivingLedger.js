@@ -1,40 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
-
 import { TreasuryAPI } from "../../utils/api";
 
 export default function useMyGivingLedger(
   filters = {}
 ) {
-
   const {
     data,
     isLoading,
     isFetching,
+    isError,
     error,
     refetch,
   } = useQuery({
-
     queryKey: [
       "my-giving-ledger",
       filters,
     ],
 
-    queryFn: async () => {
-      const response =
-        await TreasuryAPI.myGivingLedger(
-          filters
-        );
-
-      return response;
-    },
+    queryFn: () =>
+      TreasuryAPI.myGivingLedger(filters),
 
     staleTime:
       5 * 60 * 1000,
-
   });
 
   return {
-
+    // Data
     member:
       data?.member ?? null,
 
@@ -49,14 +40,18 @@ export default function useMyGivingLedger(
     transactions:
       data?.transactions ?? [],
 
+    // Query state
     loading:
-      isLoading || isFetching,
+      isLoading,
+
+    isFetching,
+
+    isError,
 
     error,
 
+    // Query action
     refresh:
       refetch,
-
   };
-
 }

@@ -77,28 +77,40 @@ export default function useAttendance({
     },
   });
 
-  return {
-    register:
-      registerQuery.data?.register ??
-      [],
+ return {
+  register:
+    registerQuery.data?.register ?? [],
 
-    lastSabbath:
-      registerQuery.data
-        ?.lastSabbath ?? [],
+  lastSabbath:
+    registerQuery.data?.lastSabbath ?? [],
 
-    loading:
-      registerQuery.isPending,
+  // Query state
+  loading:
+    registerQuery.isPending,
 
-    saving:
-      mutation.isPending,
+  isError:
+    registerQuery.isError,
 
-    error:
-      registerQuery.error,
+  error:
+    registerQuery.error,
 
-    refresh:
-      registerQuery.refetch,
+  // Query actions
+  refresh:
+    registerQuery.refetch,
 
-    saveAttendance:
-      mutation.mutateAsync,
-  };
+  // Mutation state
+  saving:
+    mutation.isPending,
+
+  // Mutation action
+  saveAttendance:
+    mutation.mutateAsync,
+
+  // Optional: expose mutation error too
+  saveError:
+    mutation.error,
+
+  saveIsError:
+    mutation.isError,
+};
 }

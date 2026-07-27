@@ -19,35 +19,37 @@ export default function useSabbathSchoolAttendance({
 } = {}) {
   const queryClient = useQueryClient();
 
+  /* =========================
+     FETCH ATTENDANCE
+  ========================== */
+
   const query = useQuery({
     queryKey: [
       "sabbath-school-attendance",
       departmentId,
     ],
 
-    enabled: enabled && !!departmentId,
+    enabled:
+      enabled && !!departmentId,
 
     queryFn: () =>
       SabbathSchoolAPI.getAttendance(
         departmentId
       ),
 
-    staleTime: 5 * 60 * 1000,
+    staleTime:
+      5 * 60 * 1000,
 
     select: (data = []) => ({
       attendance: data,
-      lastAttendance: data[0] ?? null,
+      lastAttendance:
+        data[0] ?? null,
     }),
-
-    onError: (error) => {
-      console.error(error);
-
-      toast.error(
-        error?.message ??
-          "Failed to load attendance."
-      );
-    },
   });
+
+  /* =========================
+     SAVE ATTENDANCE
+  ========================== */
 
   const saveMutation = useMutation({
     mutationFn: (data) =>
@@ -70,7 +72,10 @@ export default function useSabbathSchoolAttendance({
     },
 
     onError: (error) => {
-      console.error(error);
+      console.error(
+        "Save attendance:",
+        error
+      );
 
       toast.error(
         error?.message ??
@@ -78,6 +83,10 @@ export default function useSabbathSchoolAttendance({
       );
     },
   });
+
+  /* =========================
+     DELETE ATTENDANCE
+  ========================== */
 
   const deleteMutation = useMutation({
     mutationFn:
@@ -97,7 +106,10 @@ export default function useSabbathSchoolAttendance({
     },
 
     onError: (error) => {
-      console.error(error);
+      console.error(
+        "Delete attendance:",
+        error
+      );
 
       toast.error(
         error?.message ??
@@ -107,20 +119,71 @@ export default function useSabbathSchoolAttendance({
   });
 
   return {
-    ...defaultData,
-    ...(query.data ?? {}),
+    /* =========================
+       DATA
+    ========================== */
 
-    loading: query.isPending,
-    isFetching: query.isFetching,
-    error: query.error,
-    refresh: query.refetch,
+    attendance:
+      query.data?.attendance ??
+      defaultData.attendance,
+
+    lastAttendance:
+      query.data?.lastAttendance ??
+      defaultData.lastAttendance,
+
+    /* =========================
+       QUERY STATE
+    ========================== */
+
+    loading:
+      query.isLoading,
+
+    isFetching:
+      query.isFetching,
+
+    isError:
+      query.isError,
+
+    error:
+      query.error,
+
+    /* =========================
+       QUERY ACTION
+    ========================== */
+
+    refresh:
+      query.refetch,
+
+    /* =========================
+       SAVE MUTATION
+    ========================== */
 
     saveAttendance:
       saveMutation.mutateAsync,
-    saving: saveMutation.isPending,
+
+    saving:
+      saveMutation.isPending,
+
+    saveIsError:
+      saveMutation.isError,
+
+    saveError:
+      saveMutation.error,
+
+    /* =========================
+       DELETE MUTATION
+    ========================== */
 
     deleteAttendance:
       deleteMutation.mutateAsync,
-    deleting: deleteMutation.isPending,
+
+    deleting:
+      deleteMutation.isPending,
+
+    deleteIsError:
+      deleteMutation.isError,
+
+    deleteError:
+      deleteMutation.error,
   };
 }

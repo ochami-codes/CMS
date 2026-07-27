@@ -18,6 +18,10 @@ export default function useSabbathSchoolFinances({
 } = {}) {
   const queryClient = useQueryClient();
 
+  /* =========================
+     FETCH OFFERINGS
+  ========================== */
+
   const query = useQuery({
     queryKey: [
       "sabbath-school-finances",
@@ -36,17 +40,13 @@ export default function useSabbathSchoolFinances({
       offerings: data,
     }),
 
-    staleTime: 5 * 60 * 1000,
-
-    onError: (error) => {
-      console.error(error);
-
-      toast.error(
-        error?.message ??
-          "Failed to load offerings."
-      );
-    },
+    staleTime:
+      5 * 60 * 1000,
   });
+
+  /* =========================
+     SAVE OFFERINGS
+  ========================== */
 
   const saveMutation = useMutation({
     mutationFn: (data) =>
@@ -69,7 +69,10 @@ export default function useSabbathSchoolFinances({
     },
 
     onError: (error) => {
-      console.error(error);
+      console.error(
+        "Save offering:",
+        error
+      );
 
       toast.error(
         error?.message ??
@@ -77,6 +80,10 @@ export default function useSabbathSchoolFinances({
       );
     },
   });
+
+  /* =========================
+     DELETE OFFERINGS
+  ========================== */
 
   const deleteMutation = useMutation({
     mutationFn:
@@ -96,7 +103,10 @@ export default function useSabbathSchoolFinances({
     },
 
     onError: (error) => {
-      console.error(error);
+      console.error(
+        "Delete offering:",
+        error
+      );
 
       toast.error(
         error?.message ??
@@ -105,23 +115,70 @@ export default function useSabbathSchoolFinances({
     },
   });
 
-  return {
-    ...defaultData,
-    ...(query.data ?? {}),
+  /* =========================
+     DATA
+  ========================== */
 
-    loading: query.isPending,
-    isFetching: query.isFetching,
-    error: query.error,
-    refresh: query.refetch,
+  const offerings =
+    query.data?.offerings ??
+    defaultData.offerings;
+
+  return {
+    offerings,
+
+    /* =========================
+       QUERY STATE
+    ========================== */
+
+    loading:
+      query.isLoading,
+
+    isFetching:
+      query.isFetching,
+
+    isError:
+      query.isError,
+
+    error:
+      query.error,
+
+    /* =========================
+       QUERY ACTION
+    ========================== */
+
+    refresh:
+      query.refetch,
+
+    /* =========================
+       SAVE MUTATION
+    ========================== */
 
     saveOfferings:
       saveMutation.mutateAsync,
+
     saving:
       saveMutation.isPending,
 
+    saveIsError:
+      saveMutation.isError,
+
+    saveError:
+      saveMutation.error,
+
+    /* =========================
+       DELETE MUTATION
+    ========================== */
+
     deleteOfferings:
       deleteMutation.mutateAsync,
+
     deleting:
       deleteMutation.isPending,
+
+    deleteIsError:
+      deleteMutation.isError,
+
+    deleteError:
+      deleteMutation.error,
   };
 }

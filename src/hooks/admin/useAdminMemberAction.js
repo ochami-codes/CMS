@@ -88,10 +88,10 @@ export function useAdminMemberActions(
     updateRoles: updateRolesMutation.mutateAsync,
 
     processingId:
-      suspendMutation.variables?.id ??
-      unsuspendMutation.variables ??
-      activateMutation.variables ??
-      null,
+  suspendMutation.variables?.memberId ??
+  unsuspendMutation.variables?.memberId ??
+  activateMutation.variables ??
+  null,
 
     saving: updateRolesMutation.isPending,
 

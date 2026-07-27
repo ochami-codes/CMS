@@ -1,29 +1,26 @@
+// src/pages/admin/MembersRegister.jsx
+
 import { useState } from "react";
 
 import ResponsiveDataView from "../../components/ResponsiveDataView";
 import Button from "../../components/Button";
 import MemberProfileCard from "../../components/members/MemberProfileCard";
 import EditMemberModal from "../../components/members/EditMemberModal";
+import ErrorState from "../../components/ErrorState";
 import EmptyState from "../../components/EmptyState";
-import { Users, RefreshCw } from "lucide-react";
+import { Users } from "lucide-react";
 import { useClerkActions } from "../../hooks/clerk/useClerkActions";
 import { useMembers } from "../../hooks/clerk/useMembers";
 
 export default function MembersRegister() {
   const [selectedMember, setSelectedMember] = useState(null);
   const [editingMember, setEditingMember] = useState(null);
-  const {
-    members,
-    loading,
-    error,
-    refetch,
-  } = useMembers();
-  const {
-  updateMember,
-} = useClerkActions();
+
+  const { members, loading, isError, error, refetch } = useMembers();
+  const { updateMember } = useClerkActions();
 
   /* -------------------------
-     COLUMNS
+     TABLE COLUMNS
   -------------------------- */
   const columns = [
     { key: "full_name", label: "Name" },
@@ -41,42 +38,24 @@ export default function MembersRegister() {
   /* -------------------------
      ACTIONS
   -------------------------- */
-  const handleEdit = (member) => {
-  setEditingMember(member);
-};
-const handleSaveMember = async ({
-  memberId,
-  payload,
-}) => {
-  try {
-    await updateMember(
-      memberId,
-      payload
-    );
+  const handleEdit = (member) => setEditingMember(member);
 
-    setEditingMember(null);
-
-    refetch();
-  } catch (err) {
-    console.error(err);
-  }
-};
+  const handleSaveMember = async ({ memberId, payload }) => {
+    try {
+      await updateMember(memberId, payload);
+      setEditingMember(null);
+      refetch();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const renderActions = (member) => (
     <div className="actions">
-      <Button
-        variant="primary"
-        size="sm"
-        onClick={() => setSelectedMember(member)}
-      >
+      <Button variant="primary" size="sm" onClick={() => setSelectedMember(member)}>
         View
       </Button>
-
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => handleEdit(member)}
-      >
+      <Button variant="secondary" size="sm" onClick={() => handleEdit(member)}>
         Edit
       </Button>
     </div>
@@ -89,10 +68,8 @@ const handleSaveMember = async ({
     return (
       <div className="page-card">
         <h2 className="card-title">
-          <Users size={18} />
-          Members Register
+          <Users size={18} /> Members Register
         </h2>
-
         <p>Loading members...</p>
       </div>
     );
@@ -101,24 +78,16 @@ const handleSaveMember = async ({
   /* -------------------------
      ERROR STATE
   -------------------------- */
-  if (error) {
+  if (isError) {
     return (
       <div className="page-card">
         <h2 className="card-title">
-          <Users size={18} />
-          Members Register
+          <Users size={18} /> Members Register
         </h2>
-
-        <EmptyState
-          icon={<Users size={28} />}
+        <ErrorState
           title="Failed to load members"
-          message="Something went wrong while fetching members."
-          action={
-            <Button variant="primary" onClick={refetch}>
-              <RefreshCw size={16} />
-              Retry
-            </Button>
-          }
+          message={error?.message ?? "Something went wrong while fetching members."}
+          onRetry={refetch}
         />
       </div>
     );
@@ -131,10 +100,8 @@ const handleSaveMember = async ({
     return (
       <div className="page-card">
         <h2 className="card-title">
-          <Users size={18} />
-          Members Register
+          <Users size={18} /> Members Register
         </h2>
-
         <EmptyState
           icon={<Users size={28} />}
           title="No members found"
@@ -150,17 +117,12 @@ const handleSaveMember = async ({
   return (
     <div className="page-card">
       <h2 className="card-title">
-        <Users size={18} />
-        Members Register
+        <Users size={18} /> Members Register
       </h2>
 
-      <ResponsiveDataView
-        columns={columns}
-        data={members}
-        renderActions={renderActions}
-      />
+      <ResponsiveDataView columns={columns} data={members} renderActions={renderActions} />
 
-     {selectedMember && (
+      {selectedMember && (
         <MemberProfileCard
           member={selectedMember}
           onClose={() => setSelectedMember(null)}
@@ -173,11 +135,11 @@ const handleSaveMember = async ({
 
       {editingMember && (
         <EditMemberModal
-  open={!!editingMember}
-  member={editingMember}
-  onClose={() => setEditingMember(null)}
-  onSave={handleSaveMember}
-/>
+          open
+          member={editingMember}
+          onClose={() => setEditingMember(null)}
+          onSave={handleSaveMember}
+        />
       )}
     </div>
   );

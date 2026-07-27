@@ -39,21 +39,22 @@ export function useMembershipRequests() {
   });
 
   return {
-    /* Data */
-    requests: requestsQuery.data ?? [],
+  /* Data */
+  requests: requestsQuery.data ?? [],
 
-    /* Query state */
-    isLoading: requestsQuery.isLoading,
-    isFetching: requestsQuery.isFetching,
-    error: requestsQuery.error,
+  /* Query state */
+  isLoading: requestsQuery.isLoading,
+  isFetching: requestsQuery.isFetching,
+  isError: requestsQuery.isError,
+  error: requestsQuery.error,
 
-    /* Query actions */
-    refetch: requestsQuery.refetch,
+  /* Query actions */
+  refetch: requestsQuery.refetch,
 
-    /* Mutation */
-    reviewRequest: reviewMutation.mutateAsync,
-    isReviewing: reviewMutation.isPending,
-    reviewVariables: reviewMutation.variables,
-    reviewError: reviewMutation.error,
-  };
+  /* Mutation */
+  reviewRequest: reviewMutation.mutateAsync,
+  isReviewing: reviewMutation.isPending,
+  reviewVariables: reviewMutation.variables,
+  reviewError: reviewMutation.error,
+};
 }

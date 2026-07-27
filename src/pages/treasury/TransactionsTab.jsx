@@ -1,42 +1,29 @@
+import { useState } from "react";
 import {
   Plus,
   ArrowDownCircle,
   ArrowUpCircle,
-  Download,
   Landmark,
   X,
-  ChevronDown,
 } from "lucide-react";
-
-import { useState } from "react";
 
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import ResponsiveDataView from "../../components/ResponsiveDataView";
+import ErrorState from "../../components/ErrorState";
 import { formatDate } from "../../utils/formatDate";
 import ReceiveFundsForm from "../../components/treasury/ReceiveFundsForm";
 import RecordExpenseForm from "../../components/treasury/RecordExpenseForm";
 import AddFundForm from "../../components/treasury/AddFundForm";
 import useTreasuryTransactions from "../../hooks/treasury/useTreasuryTransactions";
+
 import styles from "../../styles/pages/TransactionsTab.module.css";
 
-
-export default function TransactionsTab({
-  onRefresh,
-  onExport,
-}) {
-  const {
-    transactions,
-    summary,
-    refresh,
-  } = useTreasuryTransactions();
+export default function TransactionsTab({ onRefresh }) {
+  const { transactions, summary, refresh, isError } = useTreasuryTransactions();
   const [activeForm, setActiveForm] = useState(null);
 
-
-  const closeForm = () => {
-    setActiveForm(null);
-  };
-
+  const closeForm = () => setActiveForm(null);
 
   const handleSuccess = () => {
     closeForm();
@@ -44,270 +31,125 @@ export default function TransactionsTab({
     onRefresh?.();
   };
 
-
   const columns = [
     {
       key: "transaction_date",
       label: "Date",
-      render: (value) =>
-        formatDate(value, {
-          month: "long",
-        }),
+      render: (value) => formatDate(value, { month: "long" }),
     },
-
-    {
-      key: "fund_name",
-      label: "Fund",
-    },
-
-    {
-      key: "contributor_name",
-      label: "Contributor",
-    },
-
+    { key: "fund_name", label: "Fund" },
+    { key: "contributor_name", label: "Contributor" },
     {
       key: "amount",
       label: "Amount",
-
-      render: (row) =>
-        `KES ${Number(row)
-          .toLocaleString()}`,
+      render: (value) => `KES ${Number(value).toLocaleString()}`,
     },
-
-    {
-      key: "recorded_by_name",
-      label: "Recorded By",
-    },
+    { key: "recorded_by_name", label: "Recorded By" },
   ];
 
+  if (isError) {
+    return (
+      <Card className={styles.state}>
+        <ErrorState
+          message="Failed to load transactions."
+          onRetry={refresh}
+        />
+      </Card>
+    );
+  }
 
   return (
-
     <section className={styles.container}>
-
-
       <div className={styles.header}>
-
         <div>
-
-          <h2>
-            Transactions
-          </h2>
-
-          <p>
-            Record income, expenses and manage funds
-          </p>
-
+          <h2>Transactions</h2>
+          <p>Record income, expenses and manage funds</p>
         </div>
-
       </div>
 
-
-
       <div className={styles.actions}>
-
-
         <Card
           className={styles.actionCard}
           onClick={() => setActiveForm("income")}
         >
-
-          <ArrowDownCircle size={32}/>
-
+          <ArrowDownCircle size={32} />
           <div>
-            <h3>
-              Receive Funds
-            </h3>
-
-            <p>
-              Tithe, offerings, contributions
-            </p>
+            <h3>Receive Funds</h3>
+            <p>Tithe, offerings, contributions</p>
           </div>
-
-          <Plus size={18}/>
-
+          <Plus size={18} />
         </Card>
-
-
 
         <Card
           className={styles.actionCard}
           onClick={() => setActiveForm("expense")}
         >
-
-          <ArrowUpCircle size={32}/>
-
+          <ArrowUpCircle size={32} />
           <div>
-            <h3>
-              Record Expense
-            </h3>
-
-            <p>
-              Payments and spending
-            </p>
+            <h3>Record Expense</h3>
+            <p>Payments and spending</p>
           </div>
-
-          <Plus size={18}/>
-
+          <Plus size={18} />
         </Card>
-
-
 
         <Card
           className={styles.actionCard}
           onClick={() => setActiveForm("fund")}
         >
-
-          <Landmark size={32}/>
-
+          <Landmark size={32} />
           <div>
-            <h3>
-              Add Fund
-            </h3>
-
-            <p>
-              Create local or departmental fund
-            </p>
+            <h3>Add Fund</h3>
+            <p>Create local or departmental fund</p>
           </div>
-
-          <Plus size={18}/>
-
+          <Plus size={18} />
         </Card>
-
-
       </div>
-
-
-
-
-      {/* OVERLAY FORM */}
 
       {activeForm && (
-
         <div className={styles.overlay}>
-
-
           <div className={styles.modal}>
-
-
-            <button
-              className={styles.close}
-              onClick={closeForm}
-            >
-              <X size={20}/>
+            <button className={styles.close} onClick={closeForm}>
+              <X size={20} />
             </button>
 
-
-
             {activeForm === "income" && (
-
-              <ReceiveFundsForm
-                onSuccess={handleSuccess}
-                onCancel={closeForm}
-              />
-
+              <ReceiveFundsForm onSuccess={handleSuccess} onCancel={closeForm} />
             )}
-
-
-
             {activeForm === "expense" && (
-
-              <RecordExpenseForm
-                onSuccess={handleSuccess}
-                onCancel={closeForm}
-              />
-
+              <RecordExpenseForm onSuccess={handleSuccess} onCancel={closeForm} />
             )}
             {activeForm === "fund" && (
-
-  <AddFundForm
-    onSuccess={handleSuccess}
-    onCancel={closeForm}
-  />
-
-)}
-
-
+              <AddFundForm onSuccess={handleSuccess} onCancel={closeForm} />
+            )}
           </div>
-
-
         </div>
-
       )}
 
-
-
-
-
-
       <div className={styles.summary}>
-
-
         <Card>
-          <span>
-            Today's Records
-          </span>
-
-          <strong>
-            {summary.today_count ?? 0}
-          </strong>
-
+          <span>Today's Records</span>
+          <strong>{summary.today_count ?? 0}</strong>
         </Card>
 
-
-
         <Card>
-
-          <span>
-            Amount Recorded Today
-          </span>
-
+          <span>Amount Recorded Today</span>
           <strong className={styles.income}>
-            KES{" "}
-            {summary.today_recorded
-              ?.toLocaleString() ?? 0}
+            KES {summary.today_recorded?.toLocaleString() ?? 0}
           </strong>
-
         </Card>
-
-
 
         <Card>
-
-          <span>
-            Today's Expenses
-          </span>
-
+          <span>Today's Expenses</span>
           <strong className={styles.expense}>
-            KES{" "}
-            {summary.today_expenses
-              ?.toLocaleString() ?? 0}
+            KES {summary.today_expenses?.toLocaleString() ?? 0}
           </strong>
-
         </Card>
-
-
       </div>
 
-
-
-
       <Card className={styles.history}>
-
-        <h3>
-          Recent Transactions
-        </h3>
-
-
-        <ResponsiveDataView
-          columns={columns}
-          data={transactions}
-        />
-
-
+        <h3>Recent Transactions</h3>
+        <ResponsiveDataView columns={columns} data={transactions} />
       </Card>
-
-
     </section>
   );
 }

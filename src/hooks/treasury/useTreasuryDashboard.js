@@ -1,40 +1,64 @@
 import { useQuery } from "@tanstack/react-query";
-import toast from "react-hot-toast";
 
 import { TreasuryAPI } from "../../utils/api";
 
-export function useTreasuryDashboard(params = {}) {
+export function useTreasuryDashboard(
+  params = {}
+) {
   const query = useQuery({
-    queryKey: ["treasury-dashboard", params],
+    queryKey: [
+      "treasury-dashboard",
+      params,
+    ],
 
     queryFn: async () => {
       const data =
         await TreasuryAPI.overview(params);
 
       return {
-        overview:  data ?? null,
+        overview:
+          data ?? null,
       };
     },
 
-    staleTime: 5 * 60 * 1000,
-
-    onError: (error) => {
-      console.error(error);
-      toast.error("Failed to load treasury data");
-    },
+    staleTime:
+      5 * 60 * 1000,
   });
 
   return {
-    data: query.data ?? {
-      overview: null,
-    },
+    /* =========================
+       DATA
+    ========================== */
 
-    loading: query.isPending,
-    error: query.error,
+    data:
+      query.data ?? {
+        overview: null,
+      },
 
-    refresh: query.refetch,
+    /* =========================
+       QUERY STATE
+    ========================== */
 
-    isFetching: query.isFetching,
-    isRefetching: query.isRefetching,
+    loading:
+      query.isLoading,
+
+    isFetching:
+      query.isFetching,
+
+    isRefetching:
+      query.isRefetching,
+
+    isError:
+      query.isError,
+
+    error:
+      query.error,
+
+    /* =========================
+       QUERY ACTION
+    ========================== */
+
+    refresh:
+      query.refetch,
   };
 }

@@ -3,9 +3,11 @@ import { useState } from "react";
 import Card from "../Card";
 import Button from "../Button";
 import Loader from "../Loader";
+import ErrorState from "../ErrorState";
 import ResponsiveDataView from "../ResponsiveDataView";
 import useSabbathSchoolAttendance from "../../hooks/SabbathSchool/useSabbathSchoolAttendance";
 import { formatDate } from "../../utils/formatDate";
+
 import styles from "../../styles/components/SabbathSchoolAttendancePage.module.css";
 
 const defaultAttendance = {
@@ -18,11 +20,16 @@ export default function AttendancePage({ departmentId }) {
   const [attendanceDate, setAttendanceDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-
-  const { attendance, loading, saving, saveAttendance } =
-    useSabbathSchoolAttendance({ departmentId });
-
   const [form, setForm] = useState(defaultAttendance);
+
+  const {
+    attendance,
+    loading,
+    saving,
+    saveAttendance,
+    isError,
+    refresh,
+  } = useSabbathSchoolAttendance({ departmentId });
 
   const handleChange = (field, value) => {
     setForm((current) => ({
@@ -34,11 +41,8 @@ export default function AttendancePage({ departmentId }) {
   const handleSubmit = async () => {
     await saveAttendance({
       attendanceDate,
-      memberCount: form.memberCount,
-      youthCount: form.youthCount,
-      childCount: form.childCount,
+      ...form,
     });
-
     setForm(defaultAttendance);
   };
 
@@ -46,6 +50,17 @@ export default function AttendancePage({ departmentId }) {
     return (
       <Card className={styles.loading}>
         <Loader message="Loading attendance..." fullScreen={false} />
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card className={styles.loading}>
+        <ErrorState
+          message="Failed to load attendance records."
+          onRetry={refresh}
+        />
       </Card>
     );
   }
@@ -125,9 +140,7 @@ export default function AttendancePage({ departmentId }) {
                   key: "attendanceDate",
                   label: "Date",
                   render: (value) =>
-                    formatDate(value, {
-                      month: "long",
-                    }),
+                    formatDate(value, { month: "long" }),
                 },
                 { key: "memberCount", label: "Members" },
                 { key: "youthCount", label: "Youth" },

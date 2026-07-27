@@ -6,37 +6,34 @@ export default function useMemberGivingLedger(
   memberId,
   filters = {}
 ) {
-
   const query = useQuery({
-
     queryKey: [
       "member-giving-ledger",
       memberId,
+      filters,
     ],
 
-    enabled: memberId != null,
+    enabled:
+      memberId != null,
 
-    queryFn: async () => {
-
-      const response =
-        await TreasuryAPI.memberGivingLedger(
-          memberId,
-          filters
-        );
-
-      return response;
-
-    },
+    queryFn: () =>
+      TreasuryAPI.memberGivingLedger(
+        memberId,
+        filters
+      ),
 
     staleTime:
       5 * 60 * 1000,
-
   });
 
   return {
+    /* =========================
+       DATA
+    ========================== */
 
     member:
-      query.data?.member ?? null,
+      query.data?.member ??
+      null,
 
     summary:
       query.data?.summary ?? {
@@ -47,18 +44,30 @@ export default function useMemberGivingLedger(
       },
 
     transactions:
-      query.data?.transactions ?? [],
+      query.data?.transactions ??
+      [],
+
+    /* =========================
+       QUERY STATE
+    ========================== */
 
     loading:
-      query.isLoading ||
+      query.isLoading,
+
+    isFetching:
       query.isFetching,
+
+    isError:
+      query.isError,
 
     error:
       query.error,
 
+    /* =========================
+       QUERY ACTION
+    ========================== */
+
     refresh:
       query.refetch,
-
   };
-
 }

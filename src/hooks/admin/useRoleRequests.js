@@ -78,6 +78,8 @@ export function useRoleRequests({
 
     error:
       requestsQuery.error,
+    isError:
+      requestsQuery.isError,  
 
     refetch:
       requestsQuery.refetch,

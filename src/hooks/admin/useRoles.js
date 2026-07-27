@@ -1,23 +1,18 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { RolesAPI } from "../../utils/api";
 
 export function useRoles() {
-  const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const query = useQuery({
+    queryKey: ["roles"],
+    queryFn: RolesAPI.getAll,
+  });
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const res = await RolesAPI.getAll();
-        setRoles(res.roles ?? []);
-      } finally {
-        setLoading(false);
-      }
-    };
+  return {
+    roles: query.data?.roles ?? [],
+    loading: query.isLoading,
 
-    load();
-  }, []);
-
-  return { roles, loading };
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  };
 }

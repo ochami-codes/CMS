@@ -18,7 +18,14 @@ export default function useTreasuryFunds(
   });
 
   return {
-    ...query,
     funds: query.data ?? [],
+
+    // Query state
+    loading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+
+    // Query actions
+    refetch: query.refetch,
   };
 }

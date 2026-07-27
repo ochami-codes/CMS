@@ -1,59 +1,106 @@
+import { handleApiError } from "../errors/errorHandler";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
-export async function request(endpoint, options = {}, skipAuth = false) {
-  const token = !skipAuth ? localStorage.getItem("access_token") : null;
+export async function request(
+  endpoint,
+  options = {},
+  skipAuth = false
+) {
+  const token = !skipAuth
+    ? localStorage.getItem("access_token")
+    : null;
 
-  const isFormData = options.body instanceof FormData;
-  const isStringBody = typeof options.body === "string";
+  const isFormData =
+    options.body instanceof FormData;
+
+  const isStringBody =
+    typeof options.body === "string";
 
   const headers = {
-    ...(isFormData ? {} : { "Content-Type": "application/json" }),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(isFormData
+      ? {}
+      : {
+          "Content-Type":
+            "application/json",
+        }),
+    ...(token
+      ? {
+          Authorization: `Bearer ${token}`,
+        }
+      : {}),
     ...(options.headers || {}),
   };
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers,
-    body:
-      options.body && !isFormData && !isStringBody
-        ? JSON.stringify(options.body)
-        : options.body,
-  });
+  const res = await fetch(
+    `${API_URL}${endpoint}`,
+    {
+      ...options,
+      headers,
+      body:
+        options.body &&
+        !isFormData &&
+        !isStringBody
+          ? JSON.stringify(options.body)
+          : options.body,
+    }
+  );
 
-  const contentType = res.headers.get("content-type");
+  const contentType =
+    res.headers.get("content-type");
 
-  // 🚨 HANDLE PDF
-  if (contentType?.includes("application/pdf")) {
-    if (!res.ok) throw new Error("PDF request failed");
+  // PDF
+  if (
+    contentType?.includes(
+      "application/pdf"
+    )
+  ) {
+    if (!res.ok) {
+      throw handleApiError({
+        status: res.status,
+        message: "PDF request failed.",
+      });
+    }
+
     return await res.blob();
   }
 
-  // 🚨 HANDLE BINARY
-  if (contentType?.includes("application/octet-stream")) {
-    if (!res.ok) throw new Error("Binary request failed");
+  // Binary
+  if (
+    contentType?.includes(
+      "application/octet-stream"
+    )
+  ) {
+    if (!res.ok) {
+      throw handleApiError({
+        status: res.status,
+        message: "Binary request failed.",
+      });
+    }
+
     return await res.blob();
   }
 
-  // ✅ SAFE JSON PARSING
+  // JSON
   let data = null;
 
   try {
     data = await res.json();
   } catch {
-    // response might be empty (204) or non-JSON
+    // Empty or non-JSON response
   }
 
-  // ❌ ERROR HANDLING
+  // API error
   if (!res.ok) {
-    throw {
+    throw handleApiError({
       status: res.status,
       message:
         data?.message ||
         data?.error ||
         `Request failed with status ${res.status}`,
+      code: data?.code,
       data,
-    };
+    });
   }
 
   return data?.data ?? data;

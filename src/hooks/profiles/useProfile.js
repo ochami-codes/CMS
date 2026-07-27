@@ -49,6 +49,8 @@ export default function useProfile() {
 
     error:
       profileQuery.error,
+    isError:
+      profileQuery.isError,  
 
     refresh:
       profileQuery.refetch,

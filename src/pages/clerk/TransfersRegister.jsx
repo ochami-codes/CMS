@@ -1,3 +1,5 @@
+// src/pages/admin/TransfersRegister.jsx
+
 import { useState } from "react";
 import { formatDate } from "../../utils/formatDate";
 
@@ -7,47 +9,53 @@ import TransferDetailsCard from "../../components/members/TransferDetailsCard";
 import TransferActionModal from "../../components/members/TransferActionModal";
 import TransferRequestModal from "../../components/members/TransferRequestModal";
 import EmptyState from "../../components/EmptyState";
+import ErrorState from "../../components/ErrorState";
 import { useToast } from "../../components/ToastProvider";
+
 import { useSourceTransfers } from "../../hooks/clerk/useSourceTransfers";
 import { useDestinationTransfers } from "../../hooks/clerk/useDestinationTransfers";
 import { useClerkActions } from "../../hooks/clerk/useClerkActions";
 
 import { RefreshCw, ArrowLeftRight } from "lucide-react";
-
 import styles from "../../styles/pages/Clerk.module.css";
 
 export default function TransfersRegister() {
   const [selectedTransfer, setSelectedTransfer] = useState(null);
   const [selectedType, setSelectedType] = useState("in");
-
   const [actionType, setActionType] = useState(null);
   const [notes, setNotes] = useState("");
   const [openTransferModal, setOpenTransferModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  const {
-  transfers: sourceTransfers,
-  loading: loadingSource,
-  error: errorSource,
-   refetchSource,
-} = useSourceTransfers();
 
-const {
-  transfers: destinationTransfers,
-  loading: loadingDestination,
-  error: errorDestination,
- refetchDestination,
-} = useDestinationTransfers();
-  const { approveTransfer, rejectTransfer, createTransfer } =
-    useClerkActions();
+  const {
+    transfers: sourceTransfers,
+    loading: loadingSource,
+    isError: isErrorSource,
+    error: errorSource,
+    refetch: refetchSource,
+  } = useSourceTransfers();
+
+  const {
+    transfers: destinationTransfers,
+    loading: loadingDestination,
+    isError: isErrorDestination,
+    error: errorDestination,
+    refetch: refetchDestination,
+  } = useDestinationTransfers();
+
+  const { approveTransfer, rejectTransfer, createTransfer } = useClerkActions();
   const { showToast } = useToast();
+
   const loading = loadingSource || loadingDestination;
+  const isError = isErrorSource || isErrorDestination;
   const error = errorSource || errorDestination;
+
   const transferOuts = sourceTransfers;
   const transferIns = destinationTransfers;
-  const refetchAll = async () => {
-  await Promise.all([refetchSource(), refetchDestination()]);
-};
 
+  const refetchAll = async () => {
+    await Promise.all([refetchSource(), refetchDestination()]);
+  };
 
   /* -------------------------
      STATUS RENDERER
@@ -92,56 +100,50 @@ const {
   };
 
   const handleCreateTransfer = async (payload) => {
-  try {
-    await createTransfer(payload);
-    showToast("Transfer created successfully", "success");
-    setOpenTransferModal(false);
-    await refetchAll();
-  } catch (err) {
-    showToast(err?.message || "Failed to create transfer", "error");
-  }
-};
+    try {
+      await createTransfer(payload);
+      showToast("Transfer created successfully", "success");
+      setOpenTransferModal(false);
+      await refetchAll();
+    } catch (err) {
+      showToast(err?.message || "Failed to create transfer", "error");
+    }
+  };
 
   const handleSubmitAction = async () => {
-  if (!selectedTransfer || !actionType) return;
+    if (!selectedTransfer || !actionType) return;
 
-  const isApprove = actionType === "approve";
+    const isApprove = actionType === "approve";
 
-  try {
-    setActionLoading(true);
+    try {
+      setActionLoading(true);
 
-    if (isApprove) {
-      await approveTransfer(selectedTransfer.id, notes);
-    } else {
-      await rejectTransfer(selectedTransfer.id, notes);
+      if (isApprove) {
+        await approveTransfer(selectedTransfer.id, notes);
+      } else {
+        await rejectTransfer(selectedTransfer.id, notes);
+      }
+
+      showToast(
+        `Transfer ${isApprove ? "approved" : "rejected"} successfully`,
+        "success"
+      );
+
+      setSelectedTransfer(null);
+      setActionType(null);
+      setNotes("");
+
+      await refetchAll();
+    } catch (err) {
+      showToast(err?.message || "Action failed. Please try again.", "error");
+    } finally {
+      setActionLoading(false);
     }
+  };
 
-    showToast(
-      `Transfer ${isApprove ? "approved" : "rejected"} successfully`,
-      "success"
-    );
-
-    setSelectedTransfer(null);
-    setActionType(null);
-    setNotes("");
-
-    await refetchAll();
-  } catch (err) {
-    showToast(
-      err?.message || "Action failed. Please try again.",
-      "error"
-    );
-  } finally {
-    setActionLoading(false);
-  }
-};
   const renderActions = (transfer, type) => (
     <div className={styles.actions}>
-      <Button
-        variant="primary"
-        size="sm"
-        onClick={() => handleView(transfer, type)}
-      >
+      <Button variant="primary" size="sm" onClick={() => handleView(transfer, type)}>
         View
       </Button>
     </div>
@@ -155,18 +157,12 @@ const {
       <div className={styles.pageCard}>
         <div className={styles.headerRow}>
           <h2 className={styles.cardTitle}>
-            <ArrowLeftRight size={18} />
-            Transfers Register
+            <ArrowLeftRight size={18} /> Transfers Register
           </h2>
-
-          <Button
-            variant="primary"
-            onClick={() => setOpenTransferModal(true)}
-          >
+          <Button variant="primary" onClick={() => setOpenTransferModal(true)}>
             + Manual Transfer
           </Button>
         </div>
-
         <p>Loading transfers...</p>
       </div>
     );
@@ -175,24 +171,16 @@ const {
   /* -------------------------
      ERROR
   -------------------------- */
-  if (error) {
+  if (isError) {
     return (
       <div className={styles.pageCard}>
         <h2 className={styles.cardTitle}>
-          <ArrowLeftRight size={18} />
-          Transfers Register
+          <ArrowLeftRight size={18} /> Transfers Register
         </h2>
-
-        <EmptyState
-          icon={<ArrowLeftRight size={28} />}
+        <ErrorState
           title="Failed to load transfers"
-          message="Something went wrong while fetching transfer data."
-          action={
-            <Button variant="primary" onClick={refetchAll}>
-              <RefreshCw size={16} />
-              Retry
-            </Button>
-          }
+          message={error?.message ?? "Something went wrong while fetching transfer data."}
+          onRetry={refetchAll}
         />
       </div>
     );
@@ -201,14 +189,12 @@ const {
   /* -------------------------
      EMPTY STATE
   -------------------------- */
-  if (sourceTransfers.length === 0 && destinationTransfers.length === 0) {
+  if (transferOuts.length === 0 && transferIns.length === 0) {
     return (
       <div className={styles.pageCard}>
         <h2 className={styles.cardTitle}>
-          <ArrowLeftRight size={18} />
-          Transfers Register
+          <ArrowLeftRight size={18} /> Transfers Register
         </h2>
-
         <EmptyState
           icon={<ArrowLeftRight size={28} />}
           title="No transfers found"
@@ -223,24 +209,18 @@ const {
   -------------------------- */
   return (
     <div className={styles.pageCard}>
-        <div className={styles.headerRow}>
-  <h2 className={styles.cardTitle}>
-    <ArrowLeftRight size={18} />
-    Transfers Register
-  </h2>
-
-  <Button
-    variant="primary"
-    onClick={() => setOpenTransferModal(true)}
-  >
-    + Manual Transfer
-  </Button>
-</div>
+      <div className={styles.headerRow}>
+        <h2 className={styles.cardTitle}>
+          <ArrowLeftRight size={18} /> Transfers Register
+        </h2>
+        <Button variant="primary" onClick={() => setOpenTransferModal(true)}>
+          + Manual Transfer
+        </Button>
+      </div>
 
       {/* Transfer In */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Transfer In</h3>
-
         <ResponsiveDataView
           columns={transferInColumns}
           data={transferIns}
@@ -251,7 +231,6 @@ const {
       {/* Transfer Out */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Transfer Out</h3>
-
         <ResponsiveDataView
           columns={transferOutColumns}
           data={transferOuts}
@@ -273,7 +252,7 @@ const {
       {/* Action Modal */}
       {actionType && selectedTransfer && (
         <TransferActionModal
-          open={true}
+          open
           action={actionType}
           notes={notes}
           setNotes={setNotes}
@@ -289,7 +268,7 @@ const {
       {/* Create Transfer Modal */}
       {openTransferModal && (
         <TransferRequestModal
-          isOpen={true}
+          isOpen
           onClose={() => setOpenTransferModal(false)}
           onSubmit={handleCreateTransfer}
         />

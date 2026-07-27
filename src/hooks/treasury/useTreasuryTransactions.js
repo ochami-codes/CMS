@@ -33,20 +33,47 @@ export default function useTreasuryTransactions({
         type,
       }),
 
-    staleTime: 5 * 60 * 1000,
+    staleTime:
+      5 * 60 * 1000,
   });
 
   return {
-    ...query,
+    /* =========================
+       DATA
+    ========================== */
 
     transactions:
-      query.data?.transactions ?? [],
+      query.data?.transactions ??
+      [],
 
     summary:
       query.data?.summary ??
       DEFAULT_SUMMARY,
 
+    /* =========================
+       QUERY STATE
+    ========================== */
+
     loading:
       query.isLoading,
+
+    isFetching:
+      query.isFetching,
+
+    isRefetching:
+      query.isRefetching,
+
+    isError:
+      query.isError,
+
+    error:
+      query.error,
+
+    /* =========================
+       QUERY ACTION
+    ========================== */
+
+    refresh:
+      query.refetch,
   };
 }

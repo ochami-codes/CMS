@@ -171,6 +171,8 @@ const createMyMutation = useMutation({
 
   error:
     query.error,
+  isError: 
+    query.isError,  
 
   refresh:
     query.refetch,

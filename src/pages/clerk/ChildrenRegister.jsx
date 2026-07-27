@@ -1,23 +1,23 @@
+// src/pages/admin/ChildrenRegister.jsx
+
 import { useState } from "react";
 import ResponsiveDataView from "../../components/ResponsiveDataView";
 import Button from "../../components/Button";
 import ChildrenProfileCard from "../../components/members/ChildrenProfileCard";
 import EditChildModal from "../../components/members/EditChildModal";
+import ErrorState from "../../components/ErrorState";
 import EmptyState from "../../components/EmptyState";
 import { Baby, RefreshCw } from "lucide-react";
 import { useClerkActions } from "../../hooks/clerk/useClerkActions";
-import  useChildren  from "../../hooks/clerk/useChildren";
+import useChildren from "../../hooks/clerk/useChildren";
 
 export default function ChildrenRegister() {
   const [selectedChild, setSelectedChild] = useState(null);
   const [editingChild, setEditingChild] = useState(null);
-  const {
-    children,
-    loading,
-    error,
-    refetch,
-  } = useChildren();
+
+  const { children, loading, error, isError, refetch } = useChildren();
   const { updateChild } = useClerkActions();
+
   /* -------------------------
      AGE CALCULATION
   -------------------------- */
@@ -45,41 +45,24 @@ export default function ChildrenRegister() {
   /* -------------------------
      ACTIONS
   -------------------------- */
-  const handleEdit = (child) => {
-  setEditingChild(child);
-};
-const handleSaveChild = async ({
-  childId,
-  payload,
-}) => {
-  try {
-    await updateChild(
-      childId,
-      payload
-    );
+  const handleEdit = (child) => setEditingChild(child);
 
-    setEditingChild(null);
+  const handleSaveChild = async ({ childId, payload }) => {
+    try {
+      await updateChild(childId, payload);
+      setEditingChild(null);
+      refetch();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-    refetch();
-  } catch (err) {
-    console.error(err);
-  }
-};
   const renderActions = (child) => (
     <div className="actions">
-      <Button
-        variant="primary"
-        size="sm"
-        onClick={() => setSelectedChild(child)}
-      >
+      <Button variant="primary" size="sm" onClick={() => setSelectedChild(child)}>
         View
       </Button>
-
-      <Button
-        variant="primary"
-        size="sm"
-        onClick={() => handleEdit(child)}
-      >
+      <Button variant="primary" size="sm" onClick={() => handleEdit(child)}>
         Edit
       </Button>
     </div>
@@ -92,10 +75,8 @@ const handleSaveChild = async ({
     return (
       <div className="page-card">
         <h2 className="card-title">
-          <Baby size={18} />
-          Children Register
+          <Baby size={18} /> Children Register
         </h2>
-
         <p>Loading children...</p>
       </div>
     );
@@ -104,27 +85,16 @@ const handleSaveChild = async ({
   /* -------------------------
      ERROR STATE
   -------------------------- */
-  if (error) {
+  if (isError) {
     return (
       <div className="page-card">
         <h2 className="card-title">
-          <Baby size={18} />
-          Children Register
+          <Baby size={18} /> Children Register
         </h2>
-
-        <EmptyState
-          icon={<Baby size={28} />}
+        <ErrorState
           title="Failed to load children"
-          message="Something went wrong while fetching data."
-          action={
-            <Button
-              variant="primary"
-              onClick={refetch}
-            >
-              <RefreshCw size={16} />
-              Retry
-            </Button>
-          }
+          message={error?.message ?? "Something went wrong while fetching data."}
+          onRetry={refetch}
         />
       </div>
     );
@@ -137,10 +107,8 @@ const handleSaveChild = async ({
     return (
       <div className="page-card">
         <h2 className="card-title">
-          <Baby size={18} />
-          Children Register
+          <Baby size={18} /> Children Register
         </h2>
-
         <EmptyState
           icon={<Baby size={28} />}
           title="No children registered"
@@ -156,15 +124,10 @@ const handleSaveChild = async ({
   return (
     <div className="page-card">
       <h2 className="card-title">
-        <Baby size={18} />
-        Children Register
+        <Baby size={18} /> Children Register
       </h2>
 
-      <ResponsiveDataView
-        columns={columns}
-        data={children}
-        renderActions={renderActions}
-      />
+      <ResponsiveDataView columns={columns} data={children} renderActions={renderActions} />
 
       {selectedChild && (
         <ChildrenProfileCard
@@ -182,6 +145,6 @@ const handleSaveChild = async ({
           onSave={handleSaveChild}
         />
       )}
-      </div>
+    </div>
   );
 }
