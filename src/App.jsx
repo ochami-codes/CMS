@@ -1,15 +1,22 @@
 // src/App.jsx
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+} from "react-router-dom";
+import NetworkStatus from "./components/NetworkStatus";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./components/ToastProvider";
 import { Toaster } from "react-hot-toast";
+
 import RequirePermission from "./components/RequirePermission";
 
 // Layouts
-
 import PublicLayout from "./layouts/PublicLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
 import OnboardingLayout from "./layouts/OnboardingLayout";
+
 // Auth
 import ProtectedRoute from "./auth/ProtectedRoute";
 import Login from "./auth/Login";
@@ -26,6 +33,8 @@ import CreateChurch from "./pages/CreateChurch";
 import JoinChurch from "./pages/JoinChurch";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
+
+// Department Dashboards
 import YouthDashboard from "./pages/youth/YouthDashboard";
 import ChildrenDashboard from "./pages/children/ChildrenDashboard";
 import TreasuryDashboard from "./pages/treasury/TreasuryDashboard";
@@ -36,87 +45,238 @@ import DeaconryDashboard from "./pages/deaconry/DeaconryDashboard";
 import ClerkDashboard from "./pages/clerk/ClerkDashboard";
 import SabbathSchoolDashboard from "./pages/s_school/SabbathSchoolDashboard";
 import AloDashboard from "./pages/alo/AloDashboard";
-import MessagesPage from "./pages/messages/MessagesPage";
 import AmoDashboard from "./pages/amo/AmoDashboard";
-// Setting
+import MessagesPage from "./pages/messages/MessagesPage";
+
+// Settings
 import ProfilePage from "./pages/settings/profiles/ProfilePage";
 import ChangePassword from "./pages/settings/ChangePassword";
+
+// Members
 import MyRoleRequests from "./components/members/MyRoleRequests";
 
 // Admin
 import AdminDashboard from "./components/admin/AdminDashboard";
 import ManageRoles from "./components/admin/ManageRoles";
+
+
+/* =========================
+   DEPARTMENT ROUTES
+========================= */
+
 const departmentRoutes = [
-  { path: "youth", component: YouthDashboard, permission: "access_youth_dashboard" },
-  { path: "children", component: ChildrenDashboard, permission: "access_children_dashboard" },
-  { path: "choir", component: ChoirDashboard, permission: "access_choir_dashboard" },
-  { path: "deaconry", component: DeaconryDashboard, permission: "access_deaconry_dashboard" },
-  { path: "alo", component: AloDashboard, permission: "access_alo_dashboard" },
-  { path: "amo", component: AmoDashboard, permission: "access_amo_dashboard" },
-  { path: "s-school", component: SabbathSchoolDashboard, permission: "access_s_school_dashboard" },
-  { path: "clerk", component: ClerkDashboard, permission: "access_clerk_dashboard" },
-  { path: "treasury", component: TreasuryDashboard, permission: "access_treasury_dashboard" },
-  { path: "messages", component: MessagesPage, permission: null },  
-{ path: "pastor", component: PastorDashboard, permission: "access_pastor_dashboard" },
-  { path: "communication", component: CommunicationDashboard, permission: "access_media_dashboard" },
+  {
+    path: "youth",
+    component: YouthDashboard,
+    permission: "access_youth_dashboard",
+  },
+  {
+    path: "children",
+    component: ChildrenDashboard,
+    permission: "access_children_dashboard",
+  },
+  {
+    path: "choir",
+    component: ChoirDashboard,
+    permission: "access_choir_dashboard",
+  },
+  {
+    path: "deaconry",
+    component: DeaconryDashboard,
+    permission: "access_deaconry_dashboard",
+  },
+  {
+    path: "alo",
+    component: AloDashboard,
+    permission: "access_alo_dashboard",
+  },
+  {
+    path: "amo",
+    component: AmoDashboard,
+    permission: "access_amo_dashboard",
+  },
+  {
+    path: "s-school",
+    component: SabbathSchoolDashboard,
+    permission: "access_s_school_dashboard",
+  },
+  {
+    path: "clerk",
+    component: ClerkDashboard,
+    permission: "access_clerk_dashboard",
+  },
+  {
+    path: "treasury",
+    component: TreasuryDashboard,
+    permission: "access_treasury_dashboard",
+  },
+  {
+    path: "messages",
+    component: MessagesPage,
+    permission: null,
+  },
+  {
+    path: "pastor",
+    component: PastorDashboard,
+    permission: "access_pastor_dashboard",
+  },
+  {
+    path: "communication",
+    component: CommunicationDashboard,
+    permission: "access_media_dashboard",
+  },
 ];
+
+
 function App() {
-  // Just wrap the component with RequirePermission
-  const withPermission = (Component, permission) => (
+  /* =========================
+     PERMISSION WRAPPER
+  ========================= */
+
+  const withPermission = (
+    Component,
+    permission
+  ) => (
     <RequirePermission permission={permission}>
       <Component />
     </RequirePermission>
   );
 
+
   return (
+    <>
+    <NetworkStatus />
     <ToastProvider>
       <Router>
         <AuthProvider>
-          <Toaster position="top-right" reverseOrder={false} />
+
+          <Toaster
+            position="top-right"
+            reverseOrder={false}
+          />
 
           <Routes>
-            {/* ========== PUBLIC ========== */}
+
+            {/* =========================
+                PUBLIC ROUTES
+            ========================= */}
+
             <Route element={<PublicLayout />}>
-              <Route index element={<Home />} />
-              <Route path="/suspended" element={<SuspendedScreen />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+
+              <Route
+                index
+                element={<Home />}
+              />
+
+              <Route
+                path="/login"
+                element={<Login />}
+              />
+
+              <Route
+                path="/register"
+                element={<Register />}
+              />
+
+              <Route
+                path="/reset-password"
+                element={<ResetPassword />}
+              />
+
               <Route
                 path="/auth/reset-password-confirm"
                 element={<ResetPasswordConfirm />}
               />
-              <Route path="/auth/callback" element={<AuthCallback />} />
+
+              <Route
+                path="/auth/callback"
+                element={<AuthCallback />}
+              />
+
               <Route
                 path="/profile/change-password-success"
                 element={<ChangePasswordSuccess />}
               />
+
             </Route>
 
-            {/* ========== PROTECTED ========== */}
-            <Route element={<ProtectedRoute />}>
-              <Route element={<DashboardLayout />}>
-                {/* Main */}
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/myrolerequest" element={<MyRoleRequests />} />
 
-                {/* Departments (Dynamic) */}
-                {departmentRoutes.map(({ path, component, permission }) => (
-                  <Route
-                    key={path}
-                    path={`/dashboard/${path}`}
-                    element={withPermission(component, permission)}
-                  />
-                ))}
+            {/* =========================
+                SUSPENDED MEMBER ACCESS
+                Dashboard is accessible
+            ========================= */}
+
+            <Route
+              element={
+                <ProtectedRoute
+                  allowSuspended
+                />
+              }
+            >
+              <Route element={<DashboardLayout />}>
+
+                <Route
+                  path="/dashboard"
+                  element={<Dashboard />}
+                />
+
+              </Route>
+            </Route>
+
+
+            {/* =========================
+                FULLY PROTECTED ROUTES
+                Suspended members blocked
+            ========================= */}
+
+            <Route
+              element={<ProtectedRoute />}
+            >
+              <Route element={<DashboardLayout />}>
+
+                {/* Main */}
+
+                <Route
+                  path="/myrolerequest"
+                  element={<MyRoleRequests />}
+                />
+
+
+                {/* Departments */}
+
+                {departmentRoutes.map(
+                  ({
+                    path,
+                    component,
+                    permission,
+                  }) => (
+                    <Route
+                      key={path}
+                      path={`/dashboard/${path}`}
+                      element={withPermission(
+                        component,
+                        permission
+                      )}
+                    />
+                  )
+                )}
+
 
                 {/* Settings */}
-                <Route path="/dashboard/profiles" element={<ProfilePage />} />
+
+                <Route
+                  path="/dashboard/profiles"
+                  element={<ProfilePage />}
+                />
+
                 <Route
                   path="/dashboard/settings/change-password"
                   element={<ChangePassword />}
                 />
 
+
                 {/* Admin */}
+
                 <Route
                   path="/dashboard/admin"
                   element={withPermission(
@@ -124,6 +284,7 @@ function App() {
                     "access_admin_dashboard"
                   )}
                 />
+
                 <Route
                   path="/manage-roles"
                   element={withPermission(
@@ -131,37 +292,55 @@ function App() {
                     "access_admin_dashboard"
                   )}
                 />
+
               </Route>
             </Route>
-           <Route element={<ProtectedRoute allowSuspended />}>
-  <Route element={<OnboardingLayout />}>
 
-    <Route
-      path="/suspended"
-      element={<SuspendedScreen />}
-    />
 
-    <Route
-      path="/join-church"
-      element={<JoinChurch />}
-    />
+            {/* =========================
+                SUSPENDED / ONBOARDING
+                Accessible to suspended users
+            ========================= */}
 
-    <Route
-      path="/create-church"
-      element={<CreateChurch />}
-    />
+            <Route
+              element={
+                <ProtectedRoute
+                  allowSuspended
+                />
+              }
+            >
+              <Route element={<OnboardingLayout />}>
 
-    <Route
-      path="/onboarding"
-      element={<Onboarding />}
-    />
+                <Route
+                  path="/suspended"
+                  element={<SuspendedScreen />}
+                />
 
-  </Route>
-</Route>
+                <Route
+                  path="/join-church"
+                  element={<JoinChurch />}
+                />
+
+                <Route
+                  path="/create-church"
+                  element={<CreateChurch />}
+                />
+
+                <Route
+                  path="/onboarding"
+                  element={<Onboarding />}
+                />
+
+              </Route>
+            </Route>
+
           </Routes>
+
         </AuthProvider>
       </Router>
     </ToastProvider>
+    </>
   );
 }
+
 export default App;

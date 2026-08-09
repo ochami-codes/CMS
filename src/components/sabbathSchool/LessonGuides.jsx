@@ -6,7 +6,7 @@ import Loader from "../Loader";
 import ErrorState from "../ErrorState";
 import ResponsiveDataView from "../ResponsiveDataView";
 import LessonGuideModal from "./LessonGuideModal";
-
+import TextDisplay from "../TextDisplay";
 import useLessonGuides from "../../hooks/SabbathSchool/useLessonGuides";
 
 import styles from "../../styles/components/LessonGuidesPage.module.css";
@@ -57,11 +57,11 @@ export default function LessonGuides({ departmentId }) {
       <section className={styles.page}>
         <header className={styles.header}>
           <div>
-            <h2 className={styles.title}>Lesson Guide Subscriptions</h2>
-            <p className={styles.subtitle}>
+            <TextDisplay as="h2" size="bg">Lesson Guide Subscriptions</TextDisplay>
+            <TextDisplay as="p" size="sm" color="muted">
               Track members who have subscribed for Sabbath School lesson guides
               and prepare quarterly orders.
-            </p>
+            </TextDisplay>
           </div>
 
           <Button onClick={() => setShowModal(true)}>

@@ -5,7 +5,7 @@ import Card from "../../components/Card";
 import Button from "../../components/Button";
 import ResponsiveDataView from "../../components/ResponsiveDataView";
 import MemberLedgerDrawer from "../../components/treasury/MemberLedgerDrawer";
-
+import TextDisplay from "../../components/TextDisplay";
 
 import styles from "../../styles/pages/MemberGivingTab.module.css";
 
@@ -69,16 +69,25 @@ export default function MemberGivingTab({
 
         <div className={styles.intro}>
 
-          <h2>
+          <TextDisplay
+            as="h2"
+            size="2xl"
+            weight="bold"
+            color="primary"
+          >
             Member Giving
-          </h2>
+          </TextDisplay>
 
-          <p>
+          <TextDisplay
+            as="p"
+            size="md"
+            color="muted"
+          >
             Search members and view their
             complete giving ledger, including
             tithe, offerings and other
             contributions.
-          </p>
+          </TextDisplay>
 
         </div>
 

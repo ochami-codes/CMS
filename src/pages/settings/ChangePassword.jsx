@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import Loader from "../../components/Loader";
-import { isStrongPassword } from "../../utils/validators";
+import { isStrongPassword } from "../../utils/validators/validators";
 import { AuthAPI } from "../../utils/api";
 import styles from "../../styles/profiles/ChangePassword.module.css";
 

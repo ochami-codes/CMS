@@ -1,17 +1,12 @@
 import Card from "../../components/Card";
 import StatCard from "../../components/StatCard";
 import Button from "../../components/Button";
-
+import TextDisplay from "../../components/TextDisplay";
 import styles from "../../styles/pages/TreasuryOverview.module.css";
 
 export default function TreasuryOverview({
   overview,
-  isFetching = false,
-
-  onDownloadMonthly,
-  onDownloadMembers,
-  onExportExcel,
-  onPrint,
+  isFetching = false
 }) {
   if (!overview) {
     return (
@@ -27,28 +22,31 @@ export default function TreasuryOverview({
         <div className={styles.snapshot}>
           <div className={styles.header}>
             <div className={styles.heading}>
-  <h2 className={styles.title}>
+  <TextDisplay
+    as="h2"
+    size="2xl"
+    weight="bold"
+    color="primary"
+  >
     Treasury Overview
-  </h2>
-
-  {isFetching && (
-    <span className={styles.updating}>
-      Updating…
-    </span>
-  )}
+  </TextDisplay>
 </div>
 
-            <p className={styles.summary}>
-              Local funds currently stand at{" "}
-              <strong>
-                KES {overview.total_local_funds?.toLocaleString()}
-              </strong>{" "}
-              while trust funds total{" "}
-              <strong>
-                KES {overview.total_trust_funds?.toLocaleString()}
-              </strong>
-              .
-            </p>
+            <TextDisplay
+  as="p"
+  size="sm"
+  color="secondary"
+>
+  Local funds currently stand at{" "}
+  <strong>
+    KES {overview.total_local_funds?.toLocaleString()}
+  </strong>{" "}
+  while trust funds total{" "}
+  <strong>
+    KES {overview.total_trust_funds?.toLocaleString()}
+  </strong>
+  .
+</TextDisplay>
           </div>
 
           <div className={styles.statsGrid}>
@@ -81,7 +79,7 @@ export default function TreasuryOverview({
         </div>
       </Card>
 
-      <Card>
+    {/*  <Card>
         <div className={styles.reports}>
           <div className={styles.reportHeader}>
             <h2 className={styles.reportTitle}>
@@ -105,6 +103,7 @@ export default function TreasuryOverview({
           </div>
 
           <div className={styles.reportActions}>
+        // Will be configured latter
             <Button onClick={onDownloadMonthly}>
               Monthly Treasury Report
             </Button>
@@ -122,9 +121,9 @@ export default function TreasuryOverview({
             >
               Print Report
             </Button>
-          </div>
+          </div> 
         </div>
-      </Card>
+      </Card> */} 
     </section>
   );
 }

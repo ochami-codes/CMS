@@ -1,6 +1,6 @@
 // src/pages/admin/ClerkOverview.jsx
 
-import { useState } from "react";
+//import { useState } from "react";
 import {
   Users,
   UserCheck,
@@ -14,22 +14,20 @@ import Button from "../../components/Button";
 import ErrorState from "../../components/ErrorState";
 import styles from "../../styles/pages/Clerk.module.css";
 import { useClerkOverview } from "../../hooks/clerk/useClerkOverview";
-import { useClerkActions } from "../../hooks/clerk/useClerkActions";
+//import { useClerkActions } from "../../hooks/clerk/useClerkActions";
 
 export default function ClerkOverview() {
   const { data, loading, isError, error, refetch } = useClerkOverview();
-  const { downloadReport, loading: actionLoading } = useClerkActions();
+ // const { downloadReport, loading: actionLoading } = useClerkActions();
 
-  const [reportType, setReportType] = useState("monthly");
+ {/* const [reportType, setReportType] = useState("monthly");
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [quarter, setQuarter] = useState(1);
 
   const reportDownloadLoading = actionLoading.reportDownload;
 
-  /* -------------------------
-     Build shared params
-  -------------------------- */
+  
   const buildParams = () => {
     const params = { period: reportType, year };
 
@@ -39,13 +37,11 @@ export default function ClerkOverview() {
     return params;
   };
 
-  /* -------------------------
-     Download Report
-  -------------------------- */
+  
   const handleDownloadReport = async () => {
     const filename = `church-report-${reportType}-${year}.pdf`;
     await downloadReport(buildParams(), filename);
-  };
+  };*/}
 
   /* -------------------------
      LOADING STATE
@@ -98,14 +94,14 @@ export default function ClerkOverview() {
         />
       </div>
 
-      {/* Report Generator */}
+      {/* Report Generator // will add latter
       <div className={styles.reportCard}>
         <h3 className={styles.sectionTitle}>
           <FileText size={18} /> Reports & Downloads
         </h3>
 
         <div className={styles.reportGrid}>
-          {/* Report Type */}
+          
           <div>
             <label>Report Type</label>
             <select value={reportType} onChange={(e) => setReportType(e.target.value)}>
@@ -115,7 +111,7 @@ export default function ClerkOverview() {
             </select>
           </div>
 
-          {/* Year */}
+          
           <div>
             <label>Year</label>
             <input
@@ -125,7 +121,7 @@ export default function ClerkOverview() {
             />
           </div>
 
-          {/* Month */}
+          
           {reportType === "monthly" && (
             <div>
               <label>Month</label>
@@ -142,7 +138,7 @@ export default function ClerkOverview() {
             </div>
           )}
 
-          {/* Quarter */}
+          
           {reportType === "quarterly" && (
             <div>
               <label>Quarter</label>
@@ -156,7 +152,7 @@ export default function ClerkOverview() {
           )}
         </div>
 
-        {/* Actions */}
+        
         <Button
           variant="secondary"
           onClick={handleDownloadReport}
@@ -164,7 +160,7 @@ export default function ClerkOverview() {
         >
           {reportDownloadLoading ? "Downloading..." : "Download PDF"}
         </Button>
-      </div>
+      </div>*/}
     </div>
   );
 }

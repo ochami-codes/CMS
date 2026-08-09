@@ -7,7 +7,7 @@ import styles from "../../styles/components/EditMemberModal.module.css";
 export default function EditMemberModal({
   open,
   member,
-  loading = false,
+  loading,
   onClose,
   onSave,
 }) {
@@ -37,7 +37,7 @@ export default function EditMemberModal({
         member.membership_type || "",
 
       baptized:
-        member.baptized ?? false,
+        member.baptized || "unknown",
 
       baptismal_date:
         member.baptismal_date
@@ -267,48 +267,27 @@ export default function EditMemberModal({
                   Select membership type
                 </option>
 
-                <option value="baptized">
+                <option value="baptism">
                   Baptized Member
                 </option>
 
                 <option value="profession_of_faith">
                   Profession of Faith
                 </option>
+                <option value="birth">
+                  Birth
+                </option>
 
-                <option value="transfer">
+                <option value="transfer_in">
                   Transfer Member
                 </option>
-              </select>
-            </div>
-
-            <div className={styles.field}>
-              <label>
-                Baptized?
-              </label>
-
-              <select
-                value={
-                  formData.baptized
-                    ? "yes"
-                    : "no"
-                }
-                onChange={(e) =>
-                  updateField(
-                    "baptized",
-                    e.target.value ===
-                      "yes"
-                  )
-                }
-              >
-                <option value="yes">
-                  Yes
-                </option>
-
-                <option value="no">
-                  No
+                <option value="other">
+                  Other
                 </option>
               </select>
             </div>
+
+            <div className={styles.field}> <label> Baptism Status </label> <select value={formData.baptized} onChange={(e) => updateField( "baptized", e.target.value ) } > <option value="unknown"> Unknown </option> <option value="baptized"> Baptized </option> <option value="not_baptized"> Not Baptized </option> </select> </div>
 
             <div className={styles.field}>
               <label>
@@ -451,7 +430,7 @@ export default function EditMemberModal({
 
           <Button
             type="submit"
-            disabled={loading}
+            loading={loading}
           >
             {loading
               ? "Saving..."

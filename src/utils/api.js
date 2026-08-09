@@ -82,8 +82,8 @@ export const MembersAPI = {
 /* ======================
    DEPARTMENTS API
 ====================== */
-
 export const DepartmentsAPI = {
+
   fetch: async (filters = {}) => {
     const query = buildQuery(filters);
 
@@ -91,18 +91,32 @@ export const DepartmentsAPI = {
       query ? `?${query}` : ""
     }`;
 
-    const response = await request(url);
-
-    console.log(
-      "Departments response:",
-      response
-    );
-
-    return response;
+    return request(url);
   },
 
   fetchById: (id) =>
     request(`/reusables/departments/${id}`),
+
+  create: (data) =>
+    request("/reusables/departments", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  activate: (departmentId) =>
+    request(
+      `/reusables/departments/${departmentId}/activate`,
+      {
+        method: "PATCH",
+      }
+    ),
+  deactivate: (departmentId) =>
+    request(
+      `/reusables/departments/${departmentId}/deactivate`,
+      {
+        method: "PATCH",
+      }
+    ),
 };
 
 /* ======================
@@ -257,7 +271,7 @@ export const ClerkAPI = {
       body: JSON.stringify(payload),
     }),
 
-  updateMember: (memberId, payload) =>
+  updateMember: ({ memberId, payload }) =>
     request(`/clerk/members/${memberId}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
@@ -289,29 +303,39 @@ export const ClerkAPI = {
   /* -------------------------
      TRANSFERS
   -------------------------- */
-  getSourceTransfers: (params = "") =>
-    request(`/clerk/transfers/source${params}`),
+  getSourceTransfers: () =>
+    request(`/clerk/transfers/source`),
 
-  getDestinationTransfers: (params = "") =>
-    request(`/clerk/transfers/destination${params}`),
+  getDestinationTransfers: () =>
+    request(`/clerk/transfers/destination`),
 
-  getTransferHistory: (params = "") =>
-    request(`/clerk/transfers/history${params}`),
+  getTransferHistory: () =>
+    request(`/clerk/transfers/history`),
 
   createTransfer: (payload) =>
     request(`/clerk/transfers/create`, {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+  createClerkTransfer: (payload) =>
+    request(`/clerk/transfers/clerk/create`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),  
 
   /* -------------------------
      WORKFLOW ACTIONS
   -------------------------- */
-  approveTransfer: (transferId, payload = {}) =>
-    request(`/clerk/transfers/${transferId}/approve`, {
+  approveSourceTransfer: (transferId, payload = {}) =>
+    request(`/clerk/transfers/source/${transferId}/approve`, {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+  approveDestinationTransfer: (transferId, payload = {}) =>{
+    return request(`/clerk/transfers/destination/${transferId}/approve`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })},
 
   rejectTransfer: (transferId, payload = {}) =>
     request(`/clerk/transfers/${transferId}/reject`, {

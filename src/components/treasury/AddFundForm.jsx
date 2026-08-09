@@ -3,8 +3,8 @@ import { useState } from "react";
 import Card from "../Card";
 import Button from "../Button";
 import ErrorState from "../ErrorState";
-
-import useDepartments from "../../hooks/useDepartment";
+import TextDisplay from "../TextDisplay";
+import useDepartments from "../../hooks/departments/useDepartment";
 import useCreateFund from "../../hooks/treasury/useCreateFund";
 
 import styles from "../../styles/components/AddFundForm.module.css";
@@ -77,14 +77,23 @@ export default function AddFundForm({
         className={styles.form}
       >
         <div>
-          <h2 className={styles.title}>
+          <TextDisplay
+            as="h2"
+            size="2xl"
+            weight="bold"
+            color="primary"
+          >
             Create Fund
-          </h2>
+          </TextDisplay>
 
-          <p className={styles.subtitle}>
+          <TextDisplay
+            as="p"
+            size="md"
+            color="muted"
+          >
             Add a new fund for the church or a
             specific department.
-          </p>
+          </TextDisplay>
         </div>
 
         <div className={styles.field}>
@@ -119,21 +128,21 @@ export default function AddFundForm({
               General Church Fund
             </option>
 
-            {departments.map(
-              (department) => (
-                <option
-                  key={department.id}
-                  value={department.id}
-                >
-                  {department.name}
-                </option>
-              )
-            )}
+            {departments.map((department) => (
+              <option
+                key={department.id}
+                value={department.id}
+              >
+                {department.name}
+              </option>
+            ))}
           </select>
 
           <span className={styles.help}>
             Leave this empty if the fund belongs
-            to the whole church.
+            to the whole church. If the department
+            you need is not listed, contact the
+            church admin to have it added.
           </span>
         </div>
 

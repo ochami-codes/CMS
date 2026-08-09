@@ -10,49 +10,32 @@ import Card from "../components/Card";
 import Loader from "../components/Loader";
 import PageHeader from "../components/PageHeader";
 
-import { ChurchAPI } from "../utils/api";
+import useSearchChurches from "../hooks/churches/useSearchChurches";
 
 import styles from "../styles/pages/JoinChurch.module.css";
 
 export default function JoinChurch() {
   const navigate = useNavigate();
-
-  const {
-    switchChurch,
-    isSwitchingChurch,
-    switchChurchError,
-  } = useAuth();
+  const { switchChurch, isSwitchingChurch, switchChurchError } = useAuth();
 
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const handleSearch = async (e) => {
+  // ✅ Pass an object to the hook
+  const { results, loading, isError } = useSearchChurches({
+    search: searchTerm,
+  });
+
+  const handleSearch = (e) => {
     e.preventDefault();
-
-    if (!query.trim()) return;
-
-    setLoading(true);
-
-    try {
-      const res = await ChurchAPI.getChurches({
-        search: query,
-      });
-
-      setResults(res?.churches || []);
-    } catch {
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return;
+    setSearchTerm(trimmedQuery);
   };
 
   const handleOpenChurch = async (churchId) => {
     try {
       await switchChurch(churchId);
-
-      // switchChurch automatically calls refetchUser()
-      // after the church switch succeeds.
       navigate("/dashboard");
     } catch (err) {
       console.error("Failed to open church:", err);
@@ -76,63 +59,44 @@ export default function JoinChurch() {
         </Card>
       )}
 
-      {/* SEARCH */}
+      {/* Search */}
       <Card className={styles.searchCard}>
-        <form
-          onSubmit={handleSearch}
-          className={styles.form}
-        >
+        <form onSubmit={handleSearch} className={styles.form}>
           <Input
             label="Search Church"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="e.g. Maai Mahiu SDA"
           />
-
-          <Button
-            type="submit"
-            disabled={loading}
-            className={styles.searchBtn}
-          >
+          <Button type="submit" disabled={loading} className={styles.searchBtn}>
             <FaSearch />
-
-            {loading
-              ? "Searching..."
-              : "Search"}
+            {loading ? "Searching..." : "Search"}
           </Button>
         </form>
       </Card>
 
-      {/* RESULTS */}
+      {/* Error */}
+      {isError && (
+        <Card className={styles.error}>
+          <p>Failed to search for churches. Please try again.</p>
+        </Card>
+      )}
+
+      {/* Results */}
       {results.length > 0 && (
         <section>
-          <h2 className={styles.title}>
-            Results
-          </h2>
-
+          <h2 className={styles.title}>Results</h2>
           <div className={styles.grid}>
             {results.map((church) => (
-              <Card
-                key={church.id}
-                className={styles.resultCard}
-              >
+              <Card key={church.id} className={styles.resultCard}>
                 <FaChurch className={styles.icon} />
-
                 <h3>{church.name}</h3>
-
-                <p className={styles.code}>
-                  Code: {church.church_code}
-                </p>
-
+                <p className={styles.code}>Code: {church.church_code}</p>
                 <Button
-                  onClick={() =>
-                    handleOpenChurch(church.id)
-                  }
+                  onClick={() => handleOpenChurch(church.id)}
                   disabled={isSwitchingChurch}
                 >
-                  {isSwitchingChurch
-                    ? "Opening..."
-                    : "Open Church"}
+                  {isSwitchingChurch ? "Opening..." : "Open Church"}
                 </Button>
               </Card>
             ))}
@@ -140,28 +104,17 @@ export default function JoinChurch() {
         </section>
       )}
 
-      {/* EMPTY STATE */}
-      {!loading &&
-        query &&
-        results.length === 0 && (
-          <Card className={styles.empty}>
-            <h3>No churches found</h3>
-
-            <p>
-              Try a different search or create a
-              new church.
-            </p>
-
-            <Button
-              variant="outline"
-              onClick={() =>
-                navigate("/create-church")
-              }
-            >
-              ➕ Create Church
-            </Button>
-          </Card>
-        )}
+      {/* Empty State */}
+      {!loading && searchTerm && results.length === 0 && (
+        <Card className={styles.empty}>
+          <h3>No churches found</h3>
+          <p>Try a different search or create a new church.</p>
+          <Button variant="outline" onClick={() => navigate("/create-church")}>
+            ➕ Create Church
+          </Button>
+        </Card>
+      )}
     </div>
   );
 }
+

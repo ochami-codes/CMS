@@ -9,7 +9,7 @@ import ErrorState from "../../components/ErrorState";
 import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
 import Announcements from "../../components/announcements/Announcements";
-
+import TextDisplay from "../../components/TextDisplay";
 import styles from "../../styles/pages/SharedPages.module.css";
 
 const tabs = [
@@ -31,15 +31,22 @@ export default function YouthDashboard() {
   }
 
   return (
-    <RequirePermission permission="manage_youth">
+    <RequirePermission permission="access_youth_dashboard">
       <main className={`page-container ${styles.page}`}>
         <header className={styles.header}>
           <div>
-            <h1 className={styles.title}>Youth Department</h1>
-            <p className={styles.subtitle}>
+            <TextDisplay
+              as="h1"
+              size="2xl"
+              weight="bold"
+              color="primary"
+            >
+              Youth Department
+            </TextDisplay>
+            <TextDisplay as="p" size="md" color="muted">
               Oversee the church's youth ministry by managing youth department members and publishing
               announcements for all youth-related activities, meetings, and programs.
-            </p>
+            </TextDisplay>
           </div>
         </header>
 

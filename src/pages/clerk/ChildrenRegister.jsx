@@ -16,7 +16,7 @@ export default function ChildrenRegister() {
   const [editingChild, setEditingChild] = useState(null);
 
   const { children, loading, error, isError, refetch } = useChildren();
-  const { updateChild } = useClerkActions();
+  const { updateChild, loading: { updateChild: updateChildLoading } } = useClerkActions();
 
   /* -------------------------
      AGE CALCULATION
@@ -49,7 +49,7 @@ export default function ChildrenRegister() {
 
   const handleSaveChild = async ({ childId, payload }) => {
     try {
-      await updateChild(childId, payload);
+      await updateChild({ childId, payload });
       setEditingChild(null);
       refetch();
     } catch (err) {
@@ -143,6 +143,7 @@ export default function ChildrenRegister() {
           child={editingChild}
           onClose={() => setEditingChild(null)}
           onSave={handleSaveChild}
+          loading={updateChildLoading}
         />
       )}
     </div>

@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import Card from "../Card";
 import Button from "../Button";
 import ErrorState from "../ErrorState";
-
+import TextDisplay from "../TextDisplay";
 import useCreateTransaction from "../../hooks/treasury/useCreateTransaction";
 import useTreasuryFunds from "../../hooks/treasury/useTreasuryFunds";
 import { useMembers } from "../../hooks/clerk/useMembers";
@@ -109,14 +109,29 @@ export default function ReceiveFundsForm({ onSuccess, onCancel }) {
   return (
     <Card className={styles.card}>
       <div className={styles.header}>
-        <h2>Receive Funds</h2>
-        <p>Record tithe, offerings and contributions</p>
+        <TextDisplay
+          as="h2"
+          size="2xl"
+          weight="bold"
+          color="primary"
+        >
+          Receive Funds
+        </TextDisplay>
+        <TextDisplay
+          as="p"
+          size="md"
+          color="muted"
+        >
+          Record tithe, offerings and contributions
+        </TextDisplay>
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
         {/* Fund */}
         <div className={styles.field}>
-          <label>Fund</label>
+          <TextDisplay as="label" size="sm" color="muted">
+            Fund
+          </TextDisplay>
           <select
             name="fund_id"
             value={form.fund_id}
@@ -134,7 +149,9 @@ export default function ReceiveFundsForm({ onSuccess, onCancel }) {
 
         {/* Amount */}
         <div className={styles.field}>
-          <label>Amount</label>
+          <TextDisplay as="label" size="sm" color="muted">
+            Amount
+          </TextDisplay>
           <input
             type="number"
             name="amount"

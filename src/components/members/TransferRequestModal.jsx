@@ -1,15 +1,12 @@
 import { useEffect, useState } from "react";
-
 import Modal from "../Modal";
 import Button from "../Button";
 import SearchBar from "../SearchBar";
 
-import {
-  ChurchAPI,
-  AuthAPI,
-  ClerkAPI,
-} from "../../utils/api";
-
+import useConferences from "../../hooks/conferences/useConferences";
+import useSearchChurches from "../../hooks/churches/useSearchChurches";
+import  {useCreateTransfer} from "../../hooks/clerk/useCreateTransfer";
+import TextDisplay from "../TextDisplay";
 import styles from "../../styles/components/TransferRequestModal.module.css";
 
 const initialForm = {
@@ -19,170 +16,123 @@ const initialForm = {
   reason: "",
 };
 
-export default function TransferRequestModal({
-  isOpen,
-  onClose,
-}) {
-  const [loading, setLoading] = useState(false);
-  const [searching, setSearching] = useState(false);
+export default function TransferRequestModal({ isOpen, onClose }) {
   const [manualChurch, setManualChurch] = useState(false);
-
   const [churchQuery, setChurchQuery] = useState("");
-  const [conferences, setConferences] = useState([]);
-  const [churchResults, setChurchResults] = useState([]);
   const [selectedChurch, setSelectedChurch] = useState(null);
-
   const [formData, setFormData] = useState(initialForm);
 
-  const updateForm = (field, value) => {
+  const updateForm = (field, value) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
 
-  /* RESET ON CLOSE */
+  /* -------------------------
+     Hooks
+  ------------------------- */
+  const { conferences = [] } = useConferences();
+
+  const {
+    results: churchResults = [],
+    loading: searching,
+  } = useSearchChurches({
+    conferenceId: formData.conference_id,
+    search: churchQuery,
+  });
+
+  const { mutateAsync: createTransfer, isPending: loading } = useCreateTransfer();
+
+  /* -------------------------
+     Reset
+  ------------------------- */
   useEffect(() => {
     if (!isOpen) {
       setFormData(initialForm);
       setChurchQuery("");
-      setChurchResults([]);
       setSelectedChurch(null);
       setManualChurch(false);
-      return;
     }
-
-    loadConferences();
   }, [isOpen]);
 
-  async function loadConferences() {
-    try {
-      const data = await AuthAPI.getConferences();
-      setConferences(data?.conferences || []);
-    } catch {
-      setConferences([]);
-    }
-  }
-
-  /* SEARCH CHURCHES */
-  useEffect(() => {
-    if (!formData.conference_id || manualChurch) {
-      setChurchResults([]);
-      return;
-    }
-
-    const searchTerm = churchQuery.trim();
-
-    if (searchTerm.length < 2) {
-      setChurchResults([]);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      try {
-        setSearching(true);
-
-        const data = await ChurchAPI.getChurches({
-          conference_id: formData.conference_id,
-          search: searchTerm,
-          limit: 20,
-        });
-
-        setChurchResults(data.churches || []);
-      } finally {
-        setSearching(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [churchQuery, formData.conference_id, manualChurch]);
-
-  function selectChurch(church) {
+  /* -------------------------
+     Church Selection
+  ------------------------- */
+  const selectChurch = (church) => {
     updateForm("destination_church_id", church.id);
     setSelectedChurch(church);
     setChurchQuery(church.name);
-    setChurchResults([]);
-  }
+  };
 
-  function enableManualChurch() {
+  const enableManualChurch = () => {
     setManualChurch(true);
     setChurchQuery("");
-    setChurchResults([]);
     setSelectedChurch(null);
-
     updateForm("destination_church_id", "");
-  }
+  };
 
-  function enableChurchSearch() {
+  const enableChurchSearch = () => {
     setManualChurch(false);
     updateForm("external_church_name", "");
-  }
+  };
 
-  async function handleSubmit(e) {
+  /* -------------------------
+     Submit
+  ------------------------- */
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    try {
-      setLoading(true);
-      await ClerkAPI.createTransfer(formData);
-      onClose();
-    } finally {
-      setLoading(false);
-    }
-  }
+    await createTransfer(formData);
+    onClose();
+  };
 
   if (!isOpen) return null;
 
   return (
     <Modal open={isOpen} title="Membership Transfer Request" onClose={onClose}>
       <form className={styles.form} onSubmit={handleSubmit}>
-
-        {/* CONFERENCE */}
+        <div className={styles.section}>
+           <TextDisplay as="p" size="sm" color="danger">
+            An administrator cannot request for membership transfer unless they hand over administrative authority
+           </TextDisplay>
+          </div>
+        {/* Conference */}
         <div className={styles.section}>
           <div className={styles.field}>
             <label>Destination Conference</label>
-
             <select
               value={formData.conference_id}
               onChange={(e) => {
                 updateForm("conference_id", e.target.value);
                 updateForm("destination_church_id", "");
                 updateForm("external_church_name", "");
-
                 setSelectedChurch(null);
                 setChurchQuery("");
               }}
               required
             >
               <option value="">Select Conference</option>
-
-              {conferences.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
+              {conferences.map((conference) => (
+                <option key={conference.id} value={conference.id}>
+                  {conference.name}
                 </option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* CHURCH SEARCH */}
+        {/* Church Search */}
         {formData.conference_id && !manualChurch && (
           <div className={styles.section}>
             <div className={styles.field}>
               <label>Destination Church</label>
-
               <SearchBar
                 value={churchQuery}
                 placeholder="Search church..."
                 onChange={(e) => setChurchQuery(e.target.value)}
                 onClear={() => {
                   setChurchQuery("");
-                  setChurchResults([]);
                   setSelectedChurch(null);
                   updateForm("destination_church_id", "");
                 }}
               />
-
-              {searching && (
-                <p className={styles.helperText}>Searching...</p>
-              )}
-
+              {searching && <p className={styles.helperText}>Searching...</p>}
               {churchResults.length > 0 && (
                 <div className={styles.results}>
                   {churchResults.map((church) => (
@@ -197,7 +147,6 @@ export default function TransferRequestModal({
                   ))}
                 </div>
               )}
-
               <button
                 type="button"
                 className={styles.linkButton}
@@ -209,29 +158,25 @@ export default function TransferRequestModal({
           </div>
         )}
 
-        {/* SELECTED CHURCH */}
+        {/* Selected Church */}
         {selectedChurch && (
           <div className={styles.selectedChurch}>
             Selected: <strong>{selectedChurch.name}</strong>
           </div>
         )}
 
-        {/* MANUAL CHURCH */}
+        {/* Manual Church */}
         {manualChurch && (
           <div className={styles.section}>
             <div className={styles.field}>
               <label>Church Name</label>
-
               <input
                 type="text"
                 value={formData.external_church_name}
-                onChange={(e) =>
-                  updateForm("external_church_name", e.target.value)
-                }
+                onChange={(e) => updateForm("external_church_name", e.target.value)}
                 placeholder="Enter church name"
                 required
               />
-
               <button
                 type="button"
                 className={styles.linkButton}
@@ -243,28 +188,23 @@ export default function TransferRequestModal({
           </div>
         )}
 
-        {/* REASON */}
+        {/* Reason */}
         <div className={styles.section}>
           <div className={styles.field}>
             <label>Reason for Transfer</label>
-
             <textarea
               rows={4}
               value={formData.reason}
-              onChange={(e) =>
-                updateForm("reason", e.target.value)
-              }
+              onChange={(e) => updateForm("reason", e.target.value)}
               placeholder="Provide a reason..."
               required
             />
           </div>
         </div>
 
-        {/* SUBMIT */}
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" loading={loading}>
           {loading ? "Submitting..." : "Submit Request"}
         </Button>
-
       </form>
     </Modal>
   );

@@ -3,21 +3,59 @@
 import { ERROR_MESSAGES } from "./errorMessages.js";
 
 export function handleApiError({
-  status,
-  message,
-  code,
-  data = null,
+type = "API",
+status = null,
+message,
+code,
+data = null,
 }) {
-  const error = new Error(
-    ERROR_MESSAGES[code] ||
-      message ||
-      "Something went wrong. Please try again."
-  );
+const errorCode =
+code || getErrorCode(type, status);
 
-  error.status = status || 500;
-  error.code =
-    code || "INTERNAL_SERVER_ERROR";
-  error.data = data;
+const error = new Error(
+ERROR_MESSAGES[errorCode] ||
+message ||
+ERROR_MESSAGES.UNKNOWN_ERROR
+);
 
-  return error;
+error.type = type;
+error.status = status;
+error.code = errorCode;
+error.data = data;
+
+return error;
+}
+
+function getErrorCode(type, status) {
+if (type === "NETWORK") {
+return "NETWORK_ERROR";
+}
+
+if (type === "TIMEOUT") {
+return "REQUEST_TIMEOUT";
+}
+
+if (type === "CANCELLED") {
+return "REQUEST_CANCELLED";
+}
+
+const statusCodes = {
+400: "BAD_REQUEST",
+401: "UNAUTHORIZED",
+403: "FORBIDDEN",
+404: "NOT_FOUND",
+408: "REQUEST_TIMEOUT",
+409: "CONFLICT",
+422: "VALIDATION_ERROR",
+429: "RATE_LIMITED",
+500: "INTERNAL_SERVER_ERROR",
+502: "BAD_GATEWAY",
+503: "SERVICE_UNAVAILABLE",
+504: "GATEWAY_TIMEOUT",
+};
+
+return (
+statusCodes[status] ||
+"INTERNAL_SERVER_ERROR"
+);
 }

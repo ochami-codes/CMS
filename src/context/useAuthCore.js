@@ -1,16 +1,8 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AuthAPI } from "../utils/api";
 import { normalizeRole } from "../config/roles";
 
-/* -------------------------
-   Normalize User
-------------------------- */
-
+/* Normalize User */
 function normalizeUser(data) {
   if (!data?.user) return null;
 
@@ -18,236 +10,97 @@ function normalizeUser(data) {
   const activeChurch = user.active_church ?? null;
 
   return {
-    // -------------------------
-    // Identity
-    // -------------------------
-
     id: user.id,
-
     profileId: user.id,
-
-    authUserId:
-      user.auth_user_id,
-
+    authUserId: user.auth_user_id,
     email: user.email,
+    fullName: user.full_name,
 
-    fullName:
-      user.full_name,
-
-    // -------------------------
-    // Churches
-    // -------------------------
-
-    churches:
-      user.churches || [],
-
-    // -------------------------
-    // Membership Requests
-    // -------------------------
-
-    membershipRequests:
-      user.membership_requests || [],
-
-    // -------------------------
-    // Active Church
-    // -------------------------
+    churches: user.churches ?? [],
+    membershipRequests: user.membership_requests ?? [],
 
     activeChurch: activeChurch
       ? {
           id: activeChurch.id,
-
           name: activeChurch.name,
-
-          membershipId:
-            activeChurch.membershipId,
-
-          status:
-            activeChurch.status,
-
-          roles:
-            (activeChurch.roles || [])
-              .map(normalizeRole),
-
-          permissions:
-            activeChurch.permissions || [],
-
-          departments:
-            activeChurch.departments || [],
+          membershipId: activeChurch.membershipId,
+          status: activeChurch.status,
+          roles: (activeChurch.roles ?? []).map(normalizeRole),
+          permissions: activeChurch.permissions ?? [],
+          departments: activeChurch.departments ?? [],
         }
       : null,
 
-    // -------------------------
-    // Active Church Context
-    // -------------------------
+    activeChurchId: user.active_church_id,
+    activeChurchName: user.active_church_name,
+    activeMemberId: user.active_member_id,
+    activeMembershipStatus: user.active_membership_status,
 
-    activeChurchId:
-      user.active_church_id,
-
-    activeChurchName:
-      user.active_church_name,
-
-    activeMemberId:
-      user.active_member_id,
-
-    activeMembershipStatus:
-      user.active_membership_status,
-
-    // -------------------------
-    // Membership State
-    // -------------------------
-
-    isMember:
-      user.is_member ?? false,
-
-    isPending:
-      user.is_pending ?? false,
-
-    isSuspended:
-      user.is_suspended ?? false,
+    isMember: user.is_member ?? false,
+    isPending: user.is_pending ?? false,
+    isSuspended: user.is_suspended ?? false,
   };
 }
 
-/* -------------------------
-   Auth Core
-------------------------- */
-
+/* Auth Core Hook */
 export function useAuthCore() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
+  const hasAccessToken = !!localStorage.getItem("access_token");
 
-  /* -------------------------
-     Current User
-  ------------------------- */
-
+  // Current User
   const {
     data: user = null,
-
     isLoading,
-
     isFetched,
-
     error: authError,
-
     refetch: refetchUser,
   } = useQuery({
     queryKey: ["me"],
-
-    enabled:
-      !!localStorage.getItem(
-        "access_token"
-      ),
-
+    enabled: hasAccessToken,
     retry: false,
-
     queryFn: async () => {
       try {
-        const data =
-          await AuthAPI.me();
-
+        const data = await AuthAPI.me();
         return normalizeUser(data);
       } catch (err) {
-        localStorage.removeItem(
-          "access_token"
-        );
-
+        localStorage.removeItem("access_token");
         throw err;
       }
     },
   });
 
-  /* -------------------------
-     Login
-  ------------------------- */
+  // Login
+  const loginMutation = useMutation({
+    mutationFn: ({ email, password }) => AuthAPI.login({ email, password }),
+    onSuccess: async (data) => {
+      if (!data?.access_token) throw new Error("Login failed");
 
-  const loginMutation =
-    useMutation({
-      mutationFn: ({
-        email,
-        password,
-      }) =>
-        AuthAPI.login({
-          email,
-          password,
-        }),
+      localStorage.setItem("access_token", data.access_token);
+      await queryClient.invalidateQueries({ queryKey: ["me"] });
+    },
+  });
 
-      onSuccess: async (data) => {
-        if (!data?.access_token) {
-          throw new Error(
-            "Login failed"
-          );
-        }
-
-        localStorage.setItem(
-          "access_token",
-          data.access_token
-        );
-
-        await queryClient.invalidateQueries(
-          {
-            queryKey: ["me"],
-          }
-        );
-      },
-    });
-
-  /* -------------------------
-     Client-Side Logout
-  ------------------------- */
-
+  // Logout
   const logout = () => {
-    localStorage.removeItem(
-      "access_token"
-    );
+    localStorage.removeItem("access_token");
+    queryClient.setQueryData(["me"], null);
+  };
 
-    queryClient.setQueryData(
-      ["me"],
-      null
-    );
-
-    queryClient.removeQueries({
-      queryKey: ["me"],
-    });
+  // Set User manually
+  const setUser = (user) => {
+    queryClient.setQueryData(["me"], user);
   };
 
   return {
-    /* -------------------------
-       User
-    ------------------------- */
-
     user,
+    authReady: hasAccessToken ? isFetched : true,
+    authLoading: hasAccessToken ? isLoading : false,
+    authError: authError?.message ?? null,
 
-    /* -------------------------
-       Auth State
-    ------------------------- */
-
-    authReady:
-      isFetched,
-
-    authLoading:
-      isLoading,
-
-    authError:
-      authError?.message ?? null,
-
-    /* -------------------------
-       Auth Actions
-    ------------------------- */
-
-    login:
-      loginMutation.mutateAsync,
-
+    login: loginMutation.mutateAsync,
     logout,
-
-    /* -------------------------
-       User Utilities
-    ------------------------- */
-
     refetchUser,
-
-    setUser: (user) =>
-      queryClient.setQueryData(
-        ["me"],
-        user
-      ),
+    setUser,
   };
 }
+

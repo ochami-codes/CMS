@@ -1,0 +1,228 @@
+/* src/styles/admin/DepartmentList.module.css */
+
+/* General text styles */
+.muted {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  color: #dc3545;
+}
+
+.refreshing {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.empty,
+.sectionEmpty {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+/* Header */
+.header,
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: none;
+  background: var(--surface-secondary);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sectionHeader:hover {
+  background: var(--surface-hover);
+}
+
+/* Section container */
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Titles */
+.sectionTitle,
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  justify-content: space-between;
+}
+
+.sectionTitle h4,
+.info h4 {
+  margin: 0;
+}
+
+.sectionCount {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Lists and items */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+  background-color: #fff;
+  transition: background-color 0.2s ease;
+}
+
+.item:hover {
+  background-color: #f9f9f9;
+}
+
+.inactive {
+  opacity: 0.6;
+}
+
+/* Info block */
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Badges */
+.systemBadge,
+.customBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.systemBadge {
+  background: var(--badge-system-bg, #6c757d);
+  color: var(--badge-system-text, #fff);
+}
+
+.customBadge {
+  background: var(--badge-custom-bg, #007bff);
+  color: var(--badge-custom-text, #fff);
+}
+
+/* Metadata */
+.metadata {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #555;
+  flex-wrap: wrap;
+}
+
+.active {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.inactiveStatus {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.protected {
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* -------------------------
+   Mobile Responsiveness
+------------------------- */
+@media (max-width: 768px) {
+  .header,
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .titleRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .metadata {
+    font-size: 0.8rem;
+    gap: 0.5rem;
+  }
+
+  .actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .item {
+    padding: 0.75rem;
+  }
+
+  .metadata {
+    font-size: 0.75rem;
+  }
+
+  .systemBadge,
+  .customBadge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+  }
+}

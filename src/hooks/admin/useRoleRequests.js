@@ -11,62 +11,72 @@ const ROLE_REQUESTS_QUERY_KEY = [
   "role-requests",
 ];
 
-export function useRoleRequests({
-  enabled = true,
-} = {}) {
-  const queryClient =
-    useQueryClient();
+export function useRoleRequests({ enabled } = {}) {
+  const queryClient = useQueryClient();
 
   /* ======================
      FETCH ROLE REQUESTS
   ====================== */
 
-  const requestsQuery =
-    useQuery({
-      queryKey:
-        ROLE_REQUESTS_QUERY_KEY,
+  const requestsQuery = useQuery({
+    queryKey: ROLE_REQUESTS_QUERY_KEY,
 
-      queryFn: async () => {
-        const requests =
-          await RoleRequestsAPI
-            .fetchPending();
+    queryFn: async () => {
+      const requests =
+        await RoleRequestsAPI.fetchPending();
 
-        return requests || [];
-      },
+      return requests || [];
+    },
 
-      enabled,
+    enabled,
 
-      // Requests are relatively
-      // short-lived data.
-      staleTime: 30 * 1000,
-    });
-
+    staleTime: 30 * 1000,
+  });
 
   /* ======================
      REVIEW ROLE REQUEST
   ====================== */
 
-  const reviewMutation =
-    useMutation({
-      mutationFn: ({
+  const reviewMutation = useMutation({
+    mutationFn: ({
+      requestId,
+      action,
+    }) =>
+      RoleRequestsAPI.reviewRoleRequest(
         requestId,
-        action,
-      }) =>
-        RoleRequestsAPI.reviewRoleRequest(
-          requestId,
-          action
-        ),
+        action
+      ),
 
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey:
-            ROLE_REQUESTS_QUERY_KEY,
-        });
-      },
-    });
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ROLE_REQUESTS_QUERY_KEY,
+      });
+    },
+  });
 
+  /* ======================
+     MUTATION STATE
+  ====================== */
+
+  const reviewingRequestId =
+    reviewMutation.variables?.requestId;
+
+  const reviewingAction =
+    reviewMutation.variables?.action;
+
+  const isApproving =
+    reviewMutation.isPending &&
+    reviewingAction === "approved";
+
+  const isRejecting =
+    reviewMutation.isPending &&
+    reviewingAction === "rejected";
 
   return {
+    /* ======================
+       QUERY
+    ====================== */
+
     requests:
       requestsQuery.data || [],
 
@@ -78,11 +88,16 @@ export function useRoleRequests({
 
     error:
       requestsQuery.error,
+
     isError:
-      requestsQuery.isError,  
+      requestsQuery.isError,
 
     refetch:
       requestsQuery.refetch,
+
+    /* ======================
+       MUTATION
+    ====================== */
 
     reviewRequest:
       reviewMutation.mutateAsync,
@@ -90,12 +105,15 @@ export function useRoleRequests({
     isReviewing:
       reviewMutation.isPending,
 
-    reviewingRequestId:
-      reviewMutation.variables
-        ?.requestId,
+    isApproving,
 
-    reviewingStatus:
-      reviewMutation.variables
-        ?.status,
+    isRejecting,
+
+    reviewingRequestId,
+
+    reviewingAction,
+
+    reviewError:
+      reviewMutation.error,
   };
 }

@@ -5,7 +5,7 @@ import ResponsiveDataView from "../ResponsiveDataView";
 import ErrorState from "../ErrorState";
 import useDepartmentMembers from "../../hooks/members/useDepartmentMembers";
 import useDeleteMember from "../../hooks/members/useDeleteMember";
-
+import TextDisplay from "../TextDisplay";
 import styles from "../../styles/components/MemberList.module.css";
 
 export default function MemberList({
@@ -59,8 +59,17 @@ export default function MemberList({
     <Card className={styles.card}>
       <header className={styles.header}>
         <div>
-          <h2 className={styles.title}>{title}</h2>
-          <p className={styles.subtitle}>{subtitle}</p>
+          <TextDisplay
+            as="h2"
+            size="xl"
+            weight="bold"
+            color="primary"
+          >
+            {title}
+          </TextDisplay>
+          <TextDisplay as="p" size="md" color="muted">
+            {subtitle}
+          </TextDisplay>
         </div>
         <span className={styles.count}>{members.length}</span>
       </header>

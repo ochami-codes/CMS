@@ -20,29 +20,37 @@ export default function FundsTab() {
     department: false,
   });
 
-  const { remittances, isLoading, isError, remit, cancel, refresh } = useRemittances();
+  const {
+  remittances,
+  loading,
+  isError,
+  remitFunds,
+  cancelRemittance,
+  refresh,
+  isRemitting,
+  isCancelling,
+} = useRemittances();
   const { summary, trustFunds, localFunds, departmentFunds, unremittedMonths } =
     useTreasuryFundsSummary();
 
   const toggle = (key) =>
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+const handleRemit = async (payload) => {
+  try {
+    await remitFunds(payload);
+    setShowRemittance(false);
+  } catch (err) {
+    console.error("Failed to remit funds:", err);
+  }
+};
 
-  const handleRemit = async (payload) => {
-    try {
-      await remit.mutateAsync(payload);
-      setShowRemittance(false);
-    } catch (err) {
-      console.error("Failed to remit funds:", err);
-    }
-  };
-
-  const handleCancel = async (remittanceId) => {
-    try {
-      await cancel.mutateAsync(remittanceId);
-    } catch (err) {
-      console.error("Failed to cancel remittance:", err);
-    }
-  };
+const handleCancel = async (remittanceId) => {
+  try {
+    await cancelRemittance(remittanceId);
+  } catch (err) {
+    console.error("Failed to cancel remittance:", err);
+  }
+};
 
   const renderFunds = (funds) => (
     <div className={styles.fundList}>
@@ -164,14 +172,16 @@ export default function FundsTab() {
         onClose={() => setShowRemittance(false)}
         months={unremittedMonths}
         onSubmit={handleRemit}
+        isSubmitting={isRemitting}
       />
 
       <RemittanceHistory
         open={showRemittanceHistory}
         onClose={() => setShowRemittanceHistory(false)}
         remittances={remittances}
-        loading={isLoading}
+        loading={loading}
         onCancel={handleCancel}
+        isCancelling={isCancelling}
       />
     </>
   );

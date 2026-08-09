@@ -9,14 +9,12 @@ export default function Logout() {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const doLogout = async () => {
-      await logout();
-      navigate("/login", { replace: true });
-    };
-
-    doLogout();
-  }, [logout, navigate]);
+useEffect(() => {
+  logout();
+  navigate("/login", {
+    replace: true,
+  });
+}, [logout, navigate]);
 
   return (
     <div className={styles.container}>

@@ -1,5 +1,4 @@
 // src/components/members/MyRoleRequests.jsx
-
 import { useMemo, useState } from "react";
 import { Shield } from "lucide-react";
 
@@ -9,80 +8,99 @@ import { useMyRoleRequests } from "../../hooks/members/useMyRoleRequests";
 
 import Card from "../Card";
 import RoleSelector from "../RoleSelector";
+import BadgeList from "../BadgeList";
+import TextDisplay from "../TextDisplay";
+import Loader from "../Loader";
 
 import styles from "../../styles/components/MyRoleRequests.module.css";
 
 export default function MyRoleRequests() {
-  const { user, getRoleLabel } = useAuth();
-  const { roles, loading: rolesLoading } = useRoles();
-  const {
-    requests,
-    loading,
-    submitting,
-    submitRequest,
-  } = useMyRoleRequests(user?.id);
+  const { user } = useAuth();
+  const { roles, isLoading: rolesLoading } = useRoles();
+  const { requests, loading, submitting, submitRequest } = useMyRoleRequests(user?.id);
 
   const [selectedRole, setSelectedRole] = useState([]);
 
-  const availableRoles = useMemo(
-    () => roles.filter((role) => role.name !== "admin"),
-    [roles]
+  // -----------------------------------------
+  // Current User Roles
+  // -----------------------------------------
+  const currentRoleNames = useMemo(
+    () => (user?.activeChurch?.roles ?? []).map((role) => role.name),
+    [user]
   );
 
+  // -----------------------------------------
+  // Available Roles (exclude admin + existing)
+  // -----------------------------------------
+  const availableRoles = useMemo(
+    () =>
+      roles.filter(
+        (role) =>
+          role.name !== "admin" &&
+          !currentRoleNames.includes(role.name)
+      ),
+    [roles, currentRoleNames]
+  );
+
+  // -----------------------------------------
+  // Submit Request
+  // -----------------------------------------
   const handleSubmit = async () => {
     const role = selectedRole[0];
     if (!role) return;
 
-    try {
-      await submitRequest(role);
-      setSelectedRole([]);
-    } catch (error) {
-      console.error(error);
-    }
+    await submitRequest(role);
+    setSelectedRole([]);
   };
 
-  const statusClass = (status) => {
-    switch (status) {
-      case "approved":
-        return styles.statusSuccess;
-      case "rejected":
-        return styles.statusDanger;
-      default:
-        return styles.statusWarning;
-    }
-  };
-
+  // -----------------------------------------
+  // Loading State
+  // -----------------------------------------
   if (loading || rolesLoading) {
-    return <Card title="Role Requests">Loading requests...</Card>;
+    return <Loader message="Loading..." fullScreen={false} />;
   }
 
   return (
     <div className={styles.container}>
+      {/* Header */}
       <Card
         title="Role Requests"
         subtitle="Request additional permissions within your church"
         icon={<Shield size={18} />}
       />
+      <TextDisplay as="p" size="sm" color="danger">
+        The administrator cannot request a role
+      </TextDisplay>
 
+      {/* Request New Role */}
       <Card title="Request New Role">
-        <div className={styles.formGroup}>
-          <RoleSelector
-            roles={availableRoles}
-            selectedRoles={selectedRole}
-            onChange={setSelectedRole}
-            multiple={false}
-          />
+        <div className={`${styles.formGroup} ${styles.scrollable}`}>
+          {availableRoles.length > 0 ? (
+            <RoleSelector
+              roles={availableRoles}
+              selectedRoles={selectedRole}
+              onChange={setSelectedRole}
+              multiple={false}
+            />
+          ) : (
+            <p className={styles.textMuted}>
+              You already have all available roles.
+            </p>
+          )}
         </div>
 
-        <button
-          onClick={handleSubmit}
-          disabled={!selectedRole.length || submitting}
-          className={styles.btnPrimary}
-        >
-          {submitting ? "Submitting..." : "Send Request"}
-        </button>
+        {availableRoles.length > 0 && (
+          <button
+            onClick={handleSubmit}
+            disabled={!selectedRole.length || submitting}
+            className={styles.btnPrimary}
+          >
+            {submitting ? "Submitting..." : "Send Request"}
+          </button>
+        )}
       </Card>
 
+      {/* My Requests */}
       <Card title="My Requests">
         {!requests.length ? (
           <p className={styles.textMuted}>No role requests yet</p>
@@ -94,16 +112,27 @@ export default function MyRoleRequests() {
                 className={`${styles.listItem} ${styles.flexBetween}`}
               >
                 <div>
-                  <div className={styles.roleName}>
-                    {getRoleLabel(request.requested_role)}
-                  </div>
+                  <BadgeList
+                    items={request.role ? [request.role] : []}
+                    getKey={(role) => role.name}
+                    getLabel={(role) => role.label}
+                  />
                   <small className={styles.textMuted}>
-                    {new Date(request.role_requested_at).toLocaleDateString()}
+                    {new Date(request.requested_at).toLocaleDateString()}
                   </small>
                 </div>
 
-                <span className={`${styles.statusLabel} ${statusClass(request.role_request_status)}`}>
-                  {request.role_request_status}
+                <span
+                  className={`${styles.statusLabel} ${
+                    styles[
+                      `status${
+                        request.status.charAt(0).toUpperCase() +
+                        request.status.slice(1)
+                      }`
+                    ]
+                  }`}
+                >
+                  {request.status}
                 </span>
               </div>
             ))}
@@ -113,3 +142,5 @@ export default function MyRoleRequests() {
     </div>
   );
 }
+
+

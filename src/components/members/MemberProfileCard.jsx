@@ -68,13 +68,6 @@ export default function MemberProfileCard({
             </div>
 
             <div className={styles.item}>
-              <span className={styles.label}>Joined</span>
-              <span className={styles.value}>
-                {te(member.joined_at)}
-              </span>
-            </div>
-
-            <div className={styles.item}>
               <span className={styles.label}>Created</span>
               <span className={styles.value}>
                 {te(member.created_at)}
@@ -96,9 +89,9 @@ export default function MemberProfileCard({
 
           <div className={styles.grid}>
             <div className={styles.item}>
-              <span className={styles.label}>Baptized</span>
+              <span className={styles.label}>Baptismal Status</span>
               <span className={styles.value}>
-                {formatBaptized(member.baptized)}
+                {(member.baptized)}
               </span>
             </div>
 

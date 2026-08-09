@@ -10,6 +10,7 @@ import MembersPage from "../../components/sabbathSchool/MembersPage";
 import LessonGuidesPage from "../../components/sabbathSchool/LessonGuides";
 import AttendancePage from "../../components/sabbathSchool/AttendancePage";
 import FinancesPage from "../../components/sabbathSchool/FinancesPage";
+import TextDisplay from "../../components/TextDisplay";
 
 import styles from "../../styles/pages/SabbathSchool.module.css";
 
@@ -24,7 +25,7 @@ export default function SabbathSchoolDashboard() {
   const [activeTab, setActiveTab] = useState("members");
 
   const { departmentId, loading, isError } = useDepartmentId("sabbath-school");
-
+  console.log("id:", departmentId);
   if (loading) {
     return <Loader message="Loading Dashboard..." fullScreen />;
   }
@@ -34,14 +35,14 @@ export default function SabbathSchoolDashboard() {
   }
 
   return (
-    <RequirePermission permission="manage_sabbath_school">
+    <RequirePermission permission="access_s_school_dashboard">
       <main className={`page-container ${styles.page}`}>
         <header className={styles.header}>
           <div>
-            <h1 className={styles.title}>Sabbath School Department</h1>
-            <p className={styles.subtitle}>
+            <TextDisplay as="h1" size="bg" >Sabbath School Department</TextDisplay>
+            <TextDisplay as="p" size="sm" color="muted">
               Manage Sabbath School members, lesson guide orders, attendance, and departmental finances.
-            </p>
+            </TextDisplay>
           </div>
         </header>
 

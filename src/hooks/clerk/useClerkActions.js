@@ -1,23 +1,123 @@
-import { useMutation } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+
 import { ClerkAPI } from "../../utils/api";
+import { useToast } from "../../components/ToastProvider";
 
 export function useClerkActions() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
   /* =========================
      TRANSFERS
   ========================== */
 
   const createTransferMutation = useMutation({
     mutationFn: ClerkAPI.createTransfer,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["clerk-transfers"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["clerk-members"],
+      });
+
+      showToast(
+        "Transfer created successfully",
+        "success"
+      );
+    },
+  });
+  const createClerkTransferMutation = useMutation({
+    mutationFn: ClerkAPI.createClerkTransfer,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["clerk-transfers"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["clerk-members"],
+      });
+      showToast(
+        "Transfer created successfully",
+        "success"
+      );
+    }
   });
 
-  const approveTransferMutation = useMutation({
-    mutationFn: ({ id, notes = "" }) =>
-      ClerkAPI.approveTransfer(id, { notes }),
-  });
+  const approveSourceTransferMutation = useMutation({
+  mutationFn: ({ id, notes = "" }) =>
+    ClerkAPI.approveSourceTransfer(id, {
+      notes,
+    }),
+
+  onSuccess: () => {
+    queryClient.invalidateQueries({
+      queryKey: ["clerk-transfers"],
+    });
+
+    queryClient.invalidateQueries({
+      queryKey: ["clerk-members"],
+    });
+
+    showToast("Transfer approved successfully");
+  },
+
+  onError: (error) => {
+    showToast(
+      error?.message ||
+        "Failed to approve transfer.",
+      { type: "error" }
+    );
+  },
+});
+const approveDestinationTransferMutation = useMutation({
+  mutationFn: ({ id, notes = "" }) =>
+   ClerkAPI.approveDestinationTransfer(
+      id,
+      { notes }
+    
+   ),
+
+  onSuccess: () => {
+    queryClient.invalidateQueries({
+      queryKey: ["clerk-transfers"],
+    });
+
+    queryClient.invalidateQueries({
+      queryKey: ["clerk-members"],
+    });
+
+    showToast("Transfer approved successfully");
+  },
+
+  onError: (error) => {
+    showToast(
+      error?.message ||
+        "Failed to approve transfer.",
+      { type: "error" }
+    );
+  },
+});
 
   const rejectTransferMutation = useMutation({
-    mutationFn: ({ id, notes = "" }) =>
+    mutationFn: ( {id, notes = ""} ) =>
       ClerkAPI.rejectTransfer(id, { notes }),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["clerk-transfers"],
+      });
+
+      showToast(
+        "Transfer rejected successfully",
+        "success"
+      );
+    },
   });
 
   /* =========================
@@ -26,15 +126,45 @@ export function useClerkActions() {
 
   const updateMemberMutation = useMutation({
     mutationFn: ({ memberId, payload }) =>
-      ClerkAPI.updateMember(
+      ClerkAPI.updateMember({
         memberId,
-        payload
-      ),
+        payload,
+      }),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["clerk-members"],
+      });
+
+      showToast(
+        "Member updated successfully",
+        "success"
+      );
+    },
   });
 
   /* =========================
      CHILDREN
   ========================== */
+
+  const addChildMutation = useMutation({
+    mutationFn: ClerkAPI.addChild,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["clerk-children"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["clerk-members"],
+      });
+
+      showToast(
+        "Child registered successfully",
+        "success"
+      );
+    },
+  });
 
   const updateChildMutation = useMutation({
     mutationFn: ({ childId, payload }) =>
@@ -42,6 +172,17 @@ export function useClerkActions() {
         childId,
         payload
       ),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["clerk-children"],
+      });
+
+      showToast(
+        "Child updated successfully",
+        "success"
+      );
+    },
   });
 
   /* =========================
@@ -54,6 +195,13 @@ export function useClerkActions() {
         ...params,
         format: "json",
       }),
+
+    onSuccess: () => {
+      showToast(
+        "Report generated successfully",
+        "success"
+      );
+    },
   });
 
   /* =========================
@@ -87,6 +235,7 @@ export function useClerkActions() {
       a.download = filename;
 
       document.body.appendChild(a);
+
       a.click();
 
       document.body.removeChild(a);
@@ -94,6 +243,13 @@ export function useClerkActions() {
       window.URL.revokeObjectURL(url);
 
       return true;
+    },
+
+    onSuccess: () => {
+      showToast(
+        "Report downloaded successfully",
+        "success"
+      );
     },
   });
 
@@ -104,15 +260,22 @@ export function useClerkActions() {
 
     createTransfer:
       createTransferMutation.mutateAsync,
+    createClerkTransfer:
+      createClerkTransferMutation.mutateAsync,
+    approveSourceTransfer:
+      approveSourceTransferMutation.mutateAsync,
 
-    approveTransfer:
-      approveTransferMutation.mutateAsync,
+    approveDestinationTransfer:
+      approveDestinationTransferMutation.mutateAsync,  
 
     rejectTransfer:
       rejectTransferMutation.mutateAsync,
 
     updateMember:
       updateMemberMutation.mutateAsync,
+
+    addChild:
+      addChildMutation.mutateAsync,
 
     updateChild:
       updateChildMutation.mutateAsync,
@@ -128,21 +291,32 @@ export function useClerkActions() {
     ========================== */
 
     loading: {
-      transfer:
-        createTransferMutation.isPending ||
-        approveTransferMutation.isPending ||
+      createTransfer:
+        createTransferMutation.isPending,
+      createClerkTransfer:
+        createClerkTransferMutation.isPending,
+      approveSourceTransfer:
+        approveSourceTransferMutation.isPending,
+
+      approveDestinationTransfer:
+        approveDestinationTransferMutation.isPending,  
+
+      rejectTransfer:
         rejectTransferMutation.isPending,
 
-      member:
+      updateMember:
         updateMemberMutation.isPending,
 
-      child:
+      addChild:
+        addChildMutation.isPending,
+
+      updateChild:
         updateChildMutation.isPending,
 
-      reportPreview:
+      generateReport:
         generateReportMutation.isPending,
 
-      reportDownload:
+      downloadReport:
         downloadReportMutation.isPending,
     },
 
@@ -151,21 +325,32 @@ export function useClerkActions() {
     ========================== */
 
     error: {
-      transfer:
-        createTransferMutation.error ||
-        approveTransferMutation.error ||
+      createTransfer:
+        createTransferMutation.error,
+      createClerkTransfer:
+        createClerkTransferMutation.error,
+      approveSourceTransfer:
+        approveSourceTransferMutation.error,
+
+      approveDestinationTransfer:
+        approveDestinationTransferMutation,  
+
+      rejectTransfer:
         rejectTransferMutation.error,
 
-      member:
+      updateMember:
         updateMemberMutation.error,
 
-      child:
+      addChild:
+        addChildMutation.error,
+
+      updateChild:
         updateChildMutation.error,
 
-      reportPreview:
+      generateReport:
         generateReportMutation.error,
 
-      reportDownload:
+      downloadReport:
         downloadReportMutation.error,
     },
 
@@ -174,21 +359,30 @@ export function useClerkActions() {
     ========================== */
 
     isError: {
-      transfer:
-        createTransferMutation.isError ||
-        approveTransferMutation.isError ||
+      createTransfer:
+        createTransferMutation.isError,
+
+      approveSourceTransfer:
+        approveSourceTransferMutation.isError,
+      approveDestinationTransfer:
+        approveDestinationTransferMutation.isError,  
+
+      rejectTransfer:
         rejectTransferMutation.isError,
 
-      member:
+      updateMember:
         updateMemberMutation.isError,
 
-      child:
+      addChild:
+        addChildMutation.isError,
+
+      updateChild:
         updateChildMutation.isError,
 
-      reportPreview:
+      generateReport:
         generateReportMutation.isError,
 
-      reportDownload:
+      downloadReport:
         downloadReportMutation.isError,
     },
   };

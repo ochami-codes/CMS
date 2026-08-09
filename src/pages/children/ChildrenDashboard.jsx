@@ -10,7 +10,7 @@ import Card from "../../components/Card";
 import ChildrenList from "../../components/children/ChildrenList";
 import ChildrenAttendance from "../../components/children/ChildrenAttendance";
 import ErrorState from "../../components/ErrorState";
-
+import TextDisplay from "../../components/TextDisplay";
 import useDepartmentId from "../../hooks/departments/useDepartmentId";
 import useChildren from "../../hooks/clerk/useChildren";
 
@@ -52,25 +52,31 @@ export default function ChildrenDashboard() {
      MAIN VIEW
   -------------------------- */
   return (
-    <RequirePermission permission="manage_children">
+    <RequirePermission permission="access_children_dashboard">
       <main className={`page-container ${styles.page}`}>
         {/* Header */}
         <header className={styles.header}>
           <div>
-            <h1 className={styles.title}>Children Department</h1>
-            <p className={styles.subtitle}>
+            <TextDisplay
+              as="h1"
+              size="2xl"
+              weight="bold"
+              color="primary"
+            >
+              Children Department
+            </TextDisplay>
+            <TextDisplay as="p" size="md" color="muted">
               View registered children and record Sabbath attendance for your department.
-            </p>
+            </TextDisplay>
           </div>
         </header>
 
         {/* Notice */}
         <Card className={styles.notice}>
-          <h3 className={styles.noticeTitle}>Clerk Managed Register</h3>
-          <p className={styles.noticeText}>
+          <TextDisplay as="p" size="sm" color="success">
             Only children registered by the Church Clerk appear in this list. If a child's name is
             missing, kindly request the Clerk to add them before recording attendance.
-          </p>
+          </TextDisplay>
         </Card>
 
         {/* Tabs */}

@@ -1,24 +1,11 @@
-import {
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
-
+import { useMutation } from "@tanstack/react-query";
 import { TreasuryAPI } from "../../utils/api";
 
-export default function useRemitFunds() {
-  const queryClient =
-    useQueryClient();
-
+export default function useRemitFunds(options = {}) {
   return useMutation({
-    mutationFn:
-      TreasuryAPI.remitFunds,
+    mutationFn: (data) =>
+      TreasuryAPI.remitFunds(data),
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [
-          "treasury-funds-summary",
-        ],
-      });
-    },
+    ...options,
   });
 }

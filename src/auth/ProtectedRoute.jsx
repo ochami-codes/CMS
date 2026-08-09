@@ -2,13 +2,23 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute({
-  requiredPermission = null,
   allowSuspended = false,
 }) {
-  const { user } = useAuth();
+  const {
+    user,
+    authReady,
+  } = useAuth();
 
   /* -------------------------
-     1. Must be logged in
+     WAIT FOR AUTH
+  ------------------------- */
+
+  if (!authReady) {
+    return null;
+  }
+
+  /* -------------------------
+     AUTHENTICATION
   ------------------------- */
 
   if (!user) {
@@ -21,50 +31,24 @@ export default function ProtectedRoute({
   }
 
   /* -------------------------
-     2. Active Church Context
+     ACTIVE CHURCH
   ------------------------- */
-
-  const activeChurch =
-    user.activeChurch;
 
   const status =
-    activeChurch?.status ?? "none";
-
-  const permissions =
-    activeChurch?.permissions ?? [];
+    user.activeChurch?.status ??
+    "none";
 
   /* -------------------------
-     3. Suspended Members
+     SUSPENDED MEMBERS
   ------------------------- */
 
-  const isSuspended =
-    status === "suspended";
-
   if (
-    isSuspended &&
+    status === "suspended" &&
     !allowSuspended
   ) {
     return (
       <Navigate
         to="/suspended"
-        replace
-      />
-    );
-  }
-
-  /* -------------------------
-     4. Permission Check
-  ------------------------- */
-
-  if (
-    requiredPermission &&
-    !permissions.includes(
-      requiredPermission
-    )
-  ) {
-    return (
-      <Navigate
-        to="/dashboard"
         replace
       />
     );

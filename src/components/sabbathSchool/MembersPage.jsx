@@ -3,7 +3,7 @@ import Loader from "../Loader";
 import ResponsiveDataView from "../ResponsiveDataView";
 import ErrorState from "../ErrorState";
 import useMembers from "../../hooks/members/useMembers";
-
+import TextDisplay from "../TextDisplay";
 import styles from "../../styles/components/SabbathSchoolMembersPage.module.css";
 
 export default function MembersPage() {
@@ -42,11 +42,11 @@ export default function MembersPage() {
   return (
     <section className={styles.page}>
       <header className={styles.header}>
-        <h2 className={styles.title}>Church Members</h2>
-        <p className={styles.subtitle}>
+        <TextDisplay as="h2" size="bg">Church Members</TextDisplay>
+        <TextDisplay as="p" size="sm" color="info">
           This list is provided as a quick reference for Sabbath School leaders.
           Member records are maintained by the church clerk and cannot be edited here.
-        </p>
+        </TextDisplay>
       </header>
 
       <Card>

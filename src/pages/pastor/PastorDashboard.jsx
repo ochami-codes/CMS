@@ -15,6 +15,7 @@ import PastorOverview from "./PastorOverview";
 import PastorDepartments from "./PastorDepartments";
 import PastorTreasury from "./PastorTreasury";
 import PastorMembers from "./PastorMembers";
+import TextDisplay from "../../components/TextDisplay";
 
 import styles from "../../styles/pages/PastorDashboard.module.css";
 
@@ -44,14 +45,27 @@ export default function PastorDashboard() {
   }
 
   return (
-    <RequirePermission permission="view_dashboard">
-      <main className={`page-container ${styles.page}`}>
-        <header className={styles.header}>
-          <h1 className={styles.title}>Pastor Dashboard</h1>
-          <p className={styles.subtitle}>
-            View church departments, treasury, and membership insights.
-          </p>
-        </header>
+    <RequirePermission permission="access_pastor_dashboard">
+    <main className={`page-container ${styles.page}`}>
+  <header className={styles.header}>
+    <TextDisplay
+      as="h1"
+      size="2xl"
+      weight="bold"
+      color="primary"
+    >
+      Pastor Dashboard
+    </TextDisplay>
+
+    <TextDisplay
+      as="p"
+      size="md"
+      color="muted"
+    >
+      View church departments, treasury, and membership insights.
+    </TextDisplay>
+  </header>
+
 
         <Tabs
           tabs={tabs}

@@ -9,7 +9,6 @@ import toast from "react-hot-toast";
 import { SabbathSchoolAPI } from "../../utils/api";
 
 export default function useLessonGuides({
-  departmentId,
   quarter,
   enabled = true,
 } = {}) {
@@ -19,16 +18,13 @@ export default function useLessonGuides({
   const query = useQuery({
     queryKey: [
       "lesson-guides",
-      departmentId,
       quarter,
     ],
 
-    enabled:
-      enabled && !!departmentId,
+    enabled,
 
     queryFn: () =>
       SabbathSchoolAPI.getLessonGuides({
-        departmentId,
         quarter,
       }),
 

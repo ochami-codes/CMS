@@ -1,7 +1,7 @@
 import ManageRoles from "./ManageRoles";
 import RoleRequests from "./RoleRequests";
 import MembershipRequests from "./MembershipRequests";
-
+import ManageDepartments from "./ManageDepartments";
 import EmptyState from "../EmptyState";
 
 import styles from "../../styles/admin/AdminContent.module.css";
@@ -10,6 +10,7 @@ const TABS = {
   manage: ManageRoles,
   "membership-requests": MembershipRequests,
   "role-requests": RoleRequests,
+  "manage-departments": ManageDepartments,
 };
 
 export default function AdminContent({ activeTab }) {

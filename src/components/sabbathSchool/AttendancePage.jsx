@@ -7,7 +7,7 @@ import ErrorState from "../ErrorState";
 import ResponsiveDataView from "../ResponsiveDataView";
 import useSabbathSchoolAttendance from "../../hooks/SabbathSchool/useSabbathSchoolAttendance";
 import { formatDate } from "../../utils/formatDate";
-
+import TextDisplay from "../TextDisplay";
 import styles from "../../styles/components/SabbathSchoolAttendancePage.module.css";
 
 const defaultAttendance = {
@@ -70,10 +70,10 @@ export default function AttendancePage({ departmentId }) {
       <div className={styles.grid}>
         {/* Add Attendance Form */}
         <Card>
-          <h3>Add Attendance</h3>
-          <p className={styles.subtitle}>
+          <TextDisplay as="h2" size="bg">Add Attendance</TextDisplay>
+          <TextDisplay as="p" size="sm" color="muted">
             Enter the attendance for a Sabbath and save the record.
-          </p>
+          </TextDisplay>
 
           <label>
             <span>Attendance Date</span>
@@ -83,11 +83,11 @@ export default function AttendancePage({ departmentId }) {
               onChange={(e) => setAttendanceDate(e.target.value)}
               className={styles.date}
             />
-            <small className={styles.helpText}>Format: mm/dd/yyyy</small>
+            <TextDisplay as="small" size="sm" color="muted">Format: mm/dd/yyyy</TextDisplay>
           </label>
 
           <label>
-            <span>Members Present</span>
+            <TextDisplay as="span" size="sm" color="muted">Members Present</TextDisplay>
             <input
               type="number"
               min="0"
@@ -98,7 +98,7 @@ export default function AttendancePage({ departmentId }) {
           </label>
 
           <label>
-            <span>Youth Present</span>
+            <TextDisplay as="span" size="sm" color="muted">Youth Present</TextDisplay>
             <input
               type="number"
               min="0"
@@ -109,7 +109,7 @@ export default function AttendancePage({ departmentId }) {
           </label>
 
           <label>
-            <span>Children Present</span>
+            <TextDisplay as="span" size="sm" color="muted">Children Present</TextDisplay>
             <input
               type="number"
               min="0"
@@ -128,11 +128,11 @@ export default function AttendancePage({ departmentId }) {
 
         {/* Attendance History */}
         <Card>
-          <h3>Attendance History</h3>
+          <TextDisplay as="h3" size="bg">Attendance History</TextDisplay>
           {attendance.length === 0 ? (
-            <p className={styles.emptyState}>
+            <TextDisplay as="p" size="sm" color="warning">
               No attendance has been recorded yet.
-            </p>
+            </TextDisplay>
           ) : (
             <ResponsiveDataView
               columns={[

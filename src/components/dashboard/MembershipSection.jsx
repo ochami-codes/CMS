@@ -1,70 +1,98 @@
-import { UserPlus, Clock, CheckCircle, XCircle, ArrowRightLeft } from "lucide-react";
+import {
+  UserPlus,
+  Clock,
+  CheckCircle,
+  XCircle,
+  ArrowRightLeft,
+} from "lucide-react";
+
 import Card from "../Card";
 import Button from "../Button";
 import PageHeader from "../PageHeader";
+
 import styles from "../../styles/dashboard/MembershipSection.module.css";
 import { useAuth } from "../../context/AuthContext";
 import { useMembershipRequest } from "../../hooks/dashboard/useMembershipRequests";
 
 export default function MembershipSection() {
-  const { isActiveMember, isPendingMember, isRejectedMember, isTransferred } = useAuth();
+  const {
+    isActiveMember,
+    isPendingMember,
+    isRejectedMember,
+    isTransferred,
+  } = useAuth();
+
   const { requestMembership, isRequesting } = useMembershipRequest();
 
+  /* --------------------------------
+     Status Config
+  -------------------------------- */
   const statusConfig = {
-    isPendingMember: {
-      icon: Clock,
-      title: "Request Pending",
-      message: "Your membership request is being reviewed by church admins.",
-      className: styles.pending,
-    },
-    isActiveMember: {
+    active: {
       icon: CheckCircle,
       title: "Member",
-      message: "Your membership is active. You have full access to ministries.",
+      message:
+        "Your membership is active. You have full access to ministries.",
       className: styles.active,
     },
-    isRejectedMember: {
+    pending: {
+      icon: Clock,
+      title: "Request Pending",
+      message:
+        "Your membership request is being reviewed by church admins.",
+      className: styles.pending,
+    },
+    rejected: {
       icon: XCircle,
       title: "Request Declined",
-      message: "Your membership request was declined. Contact the church office for details.",
+      message:
+        "Your previous membership request was declined. You can submit a new request after resolving the issue.",
       className: styles.rejected,
     },
-    isTransferred: {
+    transferred: {
       icon: ArrowRightLeft,
       title: "Membership Transferred",
-      message: "Your membership has been transferred from this church.",
+      message:
+        "Your membership has been transferred from this church.",
       className: styles.none,
     },
     none: {
       icon: UserPlus,
       title: "Join Your Church",
-      message: "Request membership to access ministries, announcements, and more.",
+      message:
+        "Request membership to access ministries, announcements, and more.",
       className: styles.none,
     },
   };
 
-  const config =
-    isActiveMember
-      ? statusConfig.isActiveMember
-      : isRejectedMember
-      ? statusConfig.isRejectedMember
-      : isPendingMember
-      ? statusConfig.isPendingMember
-      : isTransferred
-      ? statusConfig.isTransferred
-      : statusConfig.none;
+  /* --------------------------------
+     Resolve Current Status
+  -------------------------------- */
+  const config = isActiveMember
+    ? statusConfig.active
+    : isRejectedMember
+    ? statusConfig.rejected
+    : isPendingMember
+    ? statusConfig.pending
+    : isTransferred
+    ? statusConfig.transferred
+    : statusConfig.none;
 
   const Icon = config.icon;
 
   const showButton =
-    !isActiveMember &&
-    !isPendingMember &&
-    !isRejectedMember &&
-    !isTransferred;
+    !isActiveMember && !isPendingMember && !isTransferred;
 
+  /* --------------------------------
+     Render
+  -------------------------------- */
   return (
     <section className={styles.section}>
-      <PageHeader level={3} title="Membership" icon={<UserPlus size={18} />} />
+      <PageHeader
+        level={3}
+        title="Membership"
+        icon={<UserPlus size={18} />}
+      />
 
       <Card className={`${styles.card} ${config.className}`}>
         <div className={styles.content}>
@@ -75,17 +103,27 @@ export default function MembershipSection() {
             <div>
               <h4>{config.title}</h4>
               <p className={styles.status}>{config.message}</p>
+              <p className={styles.helper}>
+                Use the <strong>Church Switcher</strong> in the
+                top‑left corner to join or create another church.
+              </p>
             </div>
           </div>
 
           {showButton && (
             <Button
               variant="primary"
-              disabled={isRequesting}
-              onClick={() => requestMembership()}
+              loading={isRequesting}
+              onClick={requestMembership}
               className={styles.btn}
             >
-              {isRequesting ? "Sending request..." : "Request Membership"}
+              {isRequesting
+                ? isRejectedMember
+                  ? "Resubmitting..."
+                  : "Sending request..."
+                : isRejectedMember
+                ? "Request Again"
+                : "Request Membership"}
             </Button>
           )}
         </div>
@@ -93,6 +131,3 @@ export default function MembershipSection() {
     </section>
   );
 }
-
-
-

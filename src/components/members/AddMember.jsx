@@ -7,33 +7,38 @@ import Loader from "../Loader";
 import ErrorState from "../ErrorState";
 import useMembers from "../../hooks/members/useMembers";
 import useAddDepartmentMember from "../../hooks/departments/useAddDepartmentMember";
-
+import TextDisplay from "../TextDisplay";
 import styles from "../../styles/components/AddMemberdept.module.css";
 
 export default function AddMember({ departmentId }) {
   const [query, setQuery] = useState("");
 
-  const { members, loading, isError, refresh } = useMembers({
-    search: query,
-  });
-
+  const { members, loading, isError, refresh } = useMembers({ search: query });
   const { addMember, isLoadingFor } = useAddDepartmentMember();
 
   const handleAdd = async (memberId) => {
-    await addMember({
-      departmentId,
-      memberId,
-    });
+    await addMember({ departmentId, memberId });
     setQuery("");
   };
+
+  const hasResults = !loading && !isError && members.length > 0;
+  const noResults =
+    !loading && !isError && query.trim().length >= 2 && members.length === 0;
 
   return (
     <Card className={styles.card}>
       <header className={styles.header}>
-        <h2 className={styles.title}>Add Department Member</h2>
-        <p className={styles.subtitle}>
+        <TextDisplay
+          as="h2"
+          size="xl"
+          weight="bold"
+          color="primary"
+        >
+          Add Department Member
+        </TextDisplay>
+        <TextDisplay as="p" size="md" color="muted">
           Search existing church members and assign them to this department.
-        </p>
+        </TextDisplay>
       </header>
 
       <SearchBar
@@ -51,30 +56,33 @@ export default function AddMember({ departmentId }) {
 
       {isError && (
         <div className={styles.error}>
-          <ErrorState
-            message="Failed to search members."
-            onRetry={refresh}
-          />
+          <ErrorState message="Failed to search members." onRetry={refresh} />
         </div>
       )}
 
-      {!loading && !isError && query.trim().length >= 2 && members.length === 0 && (
+      {noResults && (
         <div className={styles.empty}>
-          <p>No matching member found.</p>
-          <small>
+          <TextDisplay as="p" size="md" color="muted">
+            No matching member found.
+          </TextDisplay>
+          <TextDisplay as="small" size="sm" color="muted">
             Ask the church clerk to register the member before assigning them to
             this department.
-          </small>
+          </TextDisplay>
         </div>
       )}
 
-      {!loading && !isError && members.length > 0 && (
+      {hasResults && (
         <div className={styles.results}>
           {members.map((member) => (
             <div key={member.id} className={styles.member}>
               <div>
-                <h4>{member.full_name}</h4>
-                <small>{member.phone}</small>
+                <TextDisplay as="h4" size="md" weight="bold" color="primary">
+                  {member.full_name}
+                </TextDisplay>
+                <TextDisplay as="small" size="sm" color="muted">
+                  {member.phone}
+                </TextDisplay>
               </div>
               <Button
                 size="sm"
@@ -90,3 +98,4 @@ export default function AddMember({ departmentId }) {
     </Card>
   );
 }
+

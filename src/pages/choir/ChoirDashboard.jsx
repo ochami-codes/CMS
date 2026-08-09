@@ -8,7 +8,7 @@ import Tabs from "../../components/Tabs";
 import Loader from "../../components/Loader";
 import ErrorState from "../../components/ErrorState";
 import useDepartmentId from "../../hooks/departments/useDepartmentId";
-
+import TextDisplay from "../../components/TextDisplay";
 import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
 import Announcements from "../../components/announcements/Announcements";
@@ -49,16 +49,23 @@ export default function ChoirDashboard() {
      MAIN VIEW
   -------------------------- */
   return (
-    <RequirePermission permission="manage_choir">
+    <RequirePermission permission="access_choir_dashboard">
       <main className={`page-container ${styles.page}`}>
         {/* Header */}
         <header className={styles.header}>
           <div>
-            <h1 className={styles.title}>Choir Department</h1>
-            <p className={styles.subtitle}>
+            <TextDisplay
+              as="h1"
+              size="2xl"
+              weight="bold"
+              color="primary"
+            >
+              Music Department
+            </TextDisplay>
+            <TextDisplay as="p" size="md" color="muted">
               Oversee the church's choir ministry by managing choir department members and publishing
               announcements for all music-related activities, rehearsals, and programs.
-            </p>
+            </TextDisplay>
           </div>
         </header>
 

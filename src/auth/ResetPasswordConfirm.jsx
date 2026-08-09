@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 import { supabase } from "../supabaseClient";
-import { isStrongPassword } from "../utils/validators";
+import { isStrongPassword } from "../utils/validators/validators";
 
 import { useUpdatePassword } from "../hooks/auth/useUpdatePassword";
 

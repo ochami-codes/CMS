@@ -15,6 +15,7 @@ export default function RemittanceHistory({
   remittances = [],
   loading,
   onCancel,
+  isCancelling,
 }) {
   if (!open) return null;
 
@@ -153,6 +154,7 @@ export default function RemittanceHistory({
                           onClick={() =>
                             onCancel(id)
                           }
+                          loading={isCancelling}
                         >
                           Cancel
                           Remittance

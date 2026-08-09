@@ -7,7 +7,7 @@ import Input from "../Input";
 import Button from "../Button";
 import Loader from "../Loader";
 import ErrorState from "../ErrorState";
-
+import TextDisplay from "../TextDisplay";
 import useAnnouncements from "../../hooks/communication/useAnnouncements";
 import useCreateAnnouncement from "../../hooks/communication/useCreateAnnouncement";
 import useDeleteAnnouncement from "../../hooks/communication/useDeleteAnnouncement";
@@ -79,8 +79,21 @@ export default function Announcements({
     <section className={styles.page}>
       <header className={styles.header}>
         <div>
-          <h2 className={styles.title}>{title}</h2>
-          <p className={styles.subtitle}>{subtitle}</p>
+          <TextDisplay
+            as="h2"
+            size="2xl"
+            weight="bold"
+            color="primary"
+          >
+            {title}
+          </TextDisplay>
+          <TextDisplay
+            as="p"
+            size="md"
+            color="muted"
+          >
+            {subtitle}
+          </TextDisplay>
         </div>
         {isFetching && <span className={styles.refreshing}>Updating...</span>}
       </header>
@@ -88,7 +101,14 @@ export default function Announcements({
       <div className={styles.grid}>
         {/* New Announcement Form */}
         <Card className={styles.formCard}>
-          <h3 className={styles.cardTitle}>New Announcement</h3>
+          <TextDisplay
+            as="h3"
+            size="lg"
+            weight="bold"
+            color="primary"
+          >
+            New Announcement
+          </TextDisplay>
           <form className={styles.form} onSubmit={handleSubmit}>
             <Input
               label="Title"
@@ -110,7 +130,14 @@ export default function Announcements({
         {/* Recent Announcements */}
         <Card className={styles.listCard}>
           <div className={styles.cardHeader}>
-            <h3 className={styles.cardTitle}>Recent Announcements</h3>
+            <TextDisplay
+              as="h3"
+              size="lg"
+              weight="bold"
+              color="primary"
+            >
+              Recent Announcements
+            </TextDisplay>
             <span className={styles.count}>{announcements.length}</span>
           </div>
 
@@ -123,11 +150,20 @@ export default function Announcements({
               {announcements.map((announcement) => (
                 <article key={announcement.id} className={styles.item}>
                   <div className={styles.content}>
-                    <h4>{announcement.title}</h4>
-                    <p>{announcement.message}</p>
-                    <small>
+                    <TextDisplay
+                      as="h4"
+                      size="md"
+                      weight="bold"
+                      color="primary"
+                    >
+                      {announcement.title}
+                    </TextDisplay>
+                    <TextDisplay as="p" size="sm" color="muted">
+                      {announcement.message}
+                    </TextDisplay>
+                    <TextDisplay as="small" size="sm" color="muted">
                       {new Date(announcement.created_at).toLocaleString()}
-                    </small>
+                    </TextDisplay>
                   </div>
                   <Button
                     size="sm"

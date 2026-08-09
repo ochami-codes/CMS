@@ -8,7 +8,7 @@ import Loader from "../Loader";
 import ResponsiveDataView from "../ResponsiveDataView";
 import ErrorState from "../ErrorState";
 import useAttendance from "../../hooks/attendance/useAttendance";
-
+import TextDisplay from "../TextDisplay";
 import styles from "../../styles/components/ChildrenAttendance.module.css";
 
 export default function ChildrenAttendance({ departmentId, children = [], loading }) {
@@ -89,8 +89,17 @@ export default function ChildrenAttendance({ departmentId, children = [], loadin
       <Card>
         <header className={styles.header}>
           <div>
-            <h2 className={styles.title}>Record Attendance</h2>
-            <p className={styles.subtitle}>Mark attendance for each registered child.</p>
+            <TextDisplay
+              as="h2"
+              size="xl"
+              weight="bold"
+              color="primary"
+            >
+              Record Attendance
+            </TextDisplay>
+            <TextDisplay as="p" size="md" color="muted">
+              Mark attendance for each registered child.
+            </TextDisplay>
           </div>
 
           <input
@@ -121,8 +130,17 @@ export default function ChildrenAttendance({ departmentId, children = [], loadin
       <Card>
         <header className={styles.header}>
           <div>
-            <h2 className={styles.title}>Last Sabbath Attendance</h2>
-            <p className={styles.subtitle}>Review the previous attendance register.</p>
+            <TextDisplay
+              as="h2"
+              size="xl"
+              weight="bold"
+              color="primary"
+            >
+              Last Sabbath Attendance
+            </TextDisplay>
+            <TextDisplay as="p" size="md" color="muted">
+              Review the previous attendance register.
+            </TextDisplay>
           </div>
         </header>
 
@@ -138,10 +156,12 @@ export default function ChildrenAttendance({ departmentId, children = [], loadin
           <ResponsiveDataView columns={historyColumns} data={lastSabbath} />
         ) : (
           <div className={styles.empty}>
-            <p>No attendance records available.</p>
-            <small>
+            <TextDisplay as="p" size="md" color="muted">
+              No attendance records available.
+            </TextDisplay>
+            <TextDisplay as="small" size="sm" color="muted">
               Once attendance has been recorded, the previous Sabbath's register will appear here.
-            </small>
+            </TextDisplay>
           </div>
         )}
       </Card>

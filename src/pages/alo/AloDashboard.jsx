@@ -8,7 +8,7 @@ import Tabs from "../../components/Tabs";
 import Loader from "../../components/Loader";
 import ErrorState from "../../components/ErrorState";
 import useDepartmentId from "../../hooks/departments/useDepartmentId";
-
+import TextDisplay from "../../components/TextDisplay";
 import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
 import Announcements from "../../components/announcements/Announcements";
@@ -49,16 +49,23 @@ export default function AloDashboard() {
      MAIN VIEW
   -------------------------- */
   return (
-    <RequirePermission permission="manage_women_ministries">
+    <RequirePermission permission="access_alo_dashboard">
       <main className={`page-container ${styles.page}`}>
         {/* Header */}
         <header className={styles.header}>
           <div>
-            <h1 className={styles.title}>Women's Ministries Department</h1>
-            <p className={styles.subtitle}>
+            <TextDisplay
+              as="h1"
+              size="2xl"
+              weight="bold"
+              color="primary"
+            >
+              Women's Ministries Department
+            </TextDisplay>
+            <TextDisplay as="p" size="md" color="muted">
               Oversee the church's women's ministries by managing members and publishing
               announcements for all ministry-related activities, meetings, and programs.
-            </p>
+            </TextDisplay>
           </div>
         </header>
 

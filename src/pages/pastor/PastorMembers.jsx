@@ -6,7 +6,7 @@ import {
 
 import StatCard from "../../components/StatCard";
 import ResponsiveDataView from "../../components/ResponsiveDataView";
-
+import TextDisplay from "../../components/TextDisplay";
 import styles from "../../styles/pages/PastorMembers.module.css";
 
 export default function PastorMembers({
@@ -33,14 +33,23 @@ export default function PastorMembers({
     <section className={styles.page}>
       <header className={styles.header}>
         <div>
-          <h2 className={styles.title}>
+          <TextDisplay
+            as="h2"
+            size="2xl"
+            weight="bold"
+            color="primary"
+          >
             Members
-          </h2>
+          </TextDisplay>
 
-          <p className={styles.subtitle}>
+          <TextDisplay
+            as="p"
+            size="md"
+            color="muted"
+          >
             Overview of church membership and
             contact information.
-          </p>
+          </TextDisplay>
         </div>
 
         {isFetching && (

@@ -13,7 +13,7 @@ export default function useAddMember() {
       toast.success("Member added");
 
       queryClient.invalidateQueries({
-        queryKey: ["members"],
+        queryKey: ["clerk-members"],
       });
     },
 

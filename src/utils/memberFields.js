@@ -4,7 +4,7 @@ export const memberFields = {
     fixedDepartment: "youth",
     fields: [
       {
-        name: "full_name",
+        name: "fullName",
         label: "Full Name",
         type: "text",
         required: true,
@@ -28,45 +28,94 @@ export const memberFields = {
     ],
   },
 
-  children: {
-    table: "children",
-    fields: [
-      {
-        name: "full_name",
-        label: "Child's Name",
-        type: "text",
-        required: true,
-      },
-      {
-        name: "date_of_birth",
-        label: "Date of Birth",
-        type: "date",
-        required: true,
-      },
-      {
-        name: "gender",
-        label: "Gender",
-        type: "select",
-        required: true,
-        options: [
-          { label: "Male", value: "male" },
-          { label: "Female", value: "female" },
-        ],
-      },
-      {
-        name: "parent_name",
-        label: "Parent's Name",
-        type: "text",
-        required: true,
-      },
-      {
-        name: "parent_phone",
-        label: "Parent's Phone",
-        type: "text",
-        required: true,
-      },
-    ],
-  },
+ children: {
+  table: "children",
+
+  fields: [
+    {
+      name: "full_name",
+      label: "Child's Name",
+      type: "text",
+      required: true,
+    },
+
+    {
+      name: "date_of_birth",
+      label: "Date of Birth",
+      type: "date",
+      required: true,
+    },
+
+    {
+      name: "gender",
+      label: "Gender",
+      type: "select",
+      required: true,
+
+      options: [
+        {
+          label: "Male",
+          value: "male",
+        },
+        {
+          label: "Female",
+          value: "female",
+        },
+      ],
+    },
+
+    {
+      name: "parent_name",
+      label: "Parent's Name",
+      type: "text",
+      required: true,
+    },
+
+    {
+      name: "parent_phone",
+      label: "Parent's Phone",
+      type: "tel",
+      required: true,
+    },
+
+    {
+      name: "dedication",
+      label: "Dedication Status",
+      type: "select",
+      required: true,
+
+      options: [
+        {
+          label: "Unknown",
+          value: "unknown",
+        },
+        {
+          label: "Dedicated",
+          value: "dedicated",
+        },
+        {
+          label: "Not Dedicated",
+          value: "not_dedicated",
+        },
+      ],
+    },
+
+    {
+      name: "dedication_date",
+      label: "Dedication Date",
+      type: "date",
+      required: false,
+    },
+
+    {
+      name: "notes",
+      label: "Notes",
+      type: "textarea",
+      required: false,
+    },
+  ],
+},
+ 
 
   members: {
     table: "members",

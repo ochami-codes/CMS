@@ -1,150 +1,53 @@
-import { useMemo, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
-
-import { RolesAPI } from "../utils/api";
+import { useCallback } from "react";
 import { normalizeRole } from "../config/roles";
 
 export function useAuthRoles(user) {
   /* -------------------------
-     Available Roles
-  ------------------------- */
-
-  const {
-    data: roles = [],
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ["roles"],
-
-    queryFn: async () => {
-      const { roles = [] } =
-        await RolesAPI.getAll();
-
-      return roles.map((role) => ({
-        name:
-          normalizeRole(role.name),
-
-        label:
-          role.label ?? role.name,
-
-        permissions:
-          role.permissions ?? [],
-
-        requestable:
-          role.requestable ?? false,
-      }));
-    },
-
-    enabled: !!user,
-
-    staleTime:
-      1000 * 60 * 10,
-  });
-
-  /* -------------------------
-     Active Church Authorization
+     ACTIVE CHURCH
   ------------------------- */
 
   const activeChurch =
     user?.activeChurch ?? null;
 
+  /* -------------------------
+     ROLES
+  ------------------------- */
+
   const userRoles =
-    activeChurch?.roles ?? [];
+    activeChurch?.roles?.map(
+      (role) => role.name
+    ) ?? [];
+
+  /* -------------------------
+     PERMISSIONS
+  ------------------------- */
 
   const userPermissions =
     activeChurch?.permissions ?? [];
 
   /* -------------------------
-     Active Membership State
+     MEMBERSHIP STATE
   ------------------------- */
 
   const activeMembershipStatus =
-    user?.activeMembershipStatus ??
-    "none";
+    activeChurch?.status ?? "none";
 
   const isActiveMember =
-    user?.isMember ?? false;
+    activeMembershipStatus === "active";
 
   const isPendingMember =
-    user?.isPending ?? false;
+    activeMembershipStatus === "pending";
 
   const isSuspendedMember =
-    user?.isSuspended ?? false;
+    activeMembershipStatus === "suspended";
 
   /* -------------------------
-     Role Metadata
-  ------------------------- */
-
-  const roleLabels = useMemo(
-    () =>
-      Object.fromEntries(
-        roles.map((role) => [
-          role.name,
-          role.label,
-        ])
-      ),
-    [roles]
-  );
-
-  const requestableRoles = useMemo(
-    () =>
-      roles
-        .filter(
-          (role) => role.requestable
-        )
-        .map(
-          (role) => role.name
-        ),
-    [roles]
-  );
-
-  const allRoles = useMemo(
-    () =>
-      roles.map(
-        (role) => role.name
-      ),
-    [roles]
-  );
-
-  const allPermissions = useMemo(
-    () => [
-      ...new Set(
-        roles.flatMap(
-          (role) =>
-            role.permissions
-        )
-      ),
-    ],
-    [roles]
-  );
-
-  const rolesData = useMemo(
-    () => ({
-      roles,
-      roleLabels,
-      requestableRoles,
-      allRoles,
-      allPermissions,
-    }),
-    [
-      roles,
-      roleLabels,
-      requestableRoles,
-      allRoles,
-      allPermissions,
-    ]
-  );
-
-  /* -------------------------
-     Role Checks
+     ROLE CHECKS
   ------------------------- */
 
   const isAdmin = useCallback(
     () =>
-      userRoles.includes(
-        "admin"
-      ),
+      userRoles.includes("admin"),
     [userRoles]
   );
 
@@ -157,7 +60,7 @@ export function useAuthRoles(user) {
   );
 
   /* -------------------------
-     Permission Check
+     PERMISSION CHECK
   ------------------------- */
 
   const canUser = useCallback(
@@ -165,7 +68,10 @@ export function useAuthRoles(user) {
       permission,
       options = {}
     ) => {
-      // No authenticated user
+      /* -------------------------
+         AUTHENTICATION
+      ------------------------- */
+
       if (!user) {
         return false;
       }
@@ -176,7 +82,7 @@ export function useAuthRoles(user) {
       } = options;
 
       /* -------------------------
-         Require Active Membership
+         ACTIVE MEMBERSHIP
       ------------------------- */
 
       if (
@@ -187,7 +93,7 @@ export function useAuthRoles(user) {
       }
 
       /* -------------------------
-         Require Specific Roles
+         ROLE REQUIREMENT
       ------------------------- */
 
       if (
@@ -203,7 +109,7 @@ export function useAuthRoles(user) {
       }
 
       /* -------------------------
-         Admin Bypass
+         ADMIN BYPASS
       ------------------------- */
 
       if (isAdmin()) {
@@ -211,14 +117,16 @@ export function useAuthRoles(user) {
       }
 
       /* -------------------------
-         Permission Check
+         PERMISSION
       ------------------------- */
 
-      return permission
-        ? userPermissions.includes(
-            permission
-          )
-        : true;
+      if (!permission) {
+        return true;
+      }
+
+      return userPermissions.includes(
+        permission
+      );
     },
     [
       user,
@@ -229,43 +137,16 @@ export function useAuthRoles(user) {
     ]
   );
 
-  /* -------------------------
-     Role Label
-  ------------------------- */
-
-  const getRoleLabel =
-    useCallback(
-      (role) =>
-        roleLabels[
-          normalizeRole(role)
-        ] ?? role,
-      [roleLabels]
-    );
-
   return {
     /* -------------------------
-       Available Role Definitions
-    ------------------------- */
-
-    rolesData,
-
-    /* -------------------------
-       Query State
-    ------------------------- */
-
-    isLoading,
-    error,
-    refetch,
-
-    /* -------------------------
-       Active Church Authorization
+       AUTHORIZATION
     ------------------------- */
 
     userRoles,
     userPermissions,
 
     /* -------------------------
-       Active Membership
+       MEMBERSHIP
     ------------------------- */
 
     activeMembershipStatus,
@@ -274,12 +155,11 @@ export function useAuthRoles(user) {
     isSuspendedMember,
 
     /* -------------------------
-       Utilities
+       UTILITIES
     ------------------------- */
 
     isAdmin,
     hasRole,
     canUser,
-    getRoleLabel,
   };
 }

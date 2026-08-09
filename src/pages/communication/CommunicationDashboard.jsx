@@ -1,6 +1,6 @@
 import RequirePermission from "../../components/RequirePermission";
 import Announcements from "../../components/announcements/Announcements";
-
+import TextDisplay from "../../components/TextDisplay";
 import styles from "../../styles/pages/CommunicationDashboard.module.css";
 
 export default function CommunicationDashboard() {
@@ -8,13 +8,22 @@ export default function CommunicationDashboard() {
     <RequirePermission permission="access_media_dashboard">
       <main className={`page-container ${styles.page}`}>
         <header className={styles.header}>
-          <h1 className={styles.title}>
+          <TextDisplay
+            as="h1"
+            size="2xl"
+            weight="bold"
+            color="primary"
+          >
             Communication Dashboard
-          </h1>
+          </TextDisplay>
 
-          <p className={styles.subtitle}>
+          <TextDisplay
+            as="p"
+            size="md"
+            color="muted"
+          >
             Publish announcements for the entire church.
-          </p>
+          </TextDisplay>
         </header>
 
         <Announcements />

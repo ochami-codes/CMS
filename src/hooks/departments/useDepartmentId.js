@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import useDepartments from "../useDepartment";
+import useDepartments from "./useDepartment";
 
 export default function useDepartmentId(code) {
   const {
@@ -10,6 +10,7 @@ export default function useDepartmentId(code) {
     isError,
     refresh,
   } = useDepartments();
+  console.log("departments:", departments);
   const departmentId = useMemo(
     () =>
       departments.find(

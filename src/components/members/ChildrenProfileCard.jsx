@@ -1,7 +1,7 @@
 import Card from "../Card";
 import Button from "../Button";
 import styles from "../../styles/components/ChildrenProfile.module.css";
-
+import { formatDate } from "../../utils/formatDate";
 export default function ChildrenProfileCard({
   child,
   onClose,
@@ -75,7 +75,7 @@ export default function ChildrenProfileCard({
                 Date of Birth
               </span>
               <span className={styles.value}>
-                {child.date_of_birth ||
+                { formatDate(child.date_of_birth) ||
                   "Not recorded"}
               </span>
             </div>
@@ -97,6 +97,22 @@ export default function ChildrenProfileCard({
               </span>
               <span className={styles.value}>
                 {child.gender || "-"}
+              </span>
+            </div>
+             <div className={styles.item}>
+              <span className={styles.label}>
+                Dedication
+              </span>
+              <span className={styles.value}>
+                {child.dedication || "-"}
+              </span>
+            </div>
+             <div className={styles.item}>
+              <span className={styles.label}>
+                Dedication Date
+              </span>
+              <span className={styles.value}>
+                {formatDate(child.dedication_date) || "-"}
               </span>
             </div>
           </div>
@@ -128,46 +144,8 @@ export default function ChildrenProfileCard({
                   "Not available"}
               </span>
             </div>
-
-            <div className={styles.item}>
-              <span className={styles.label}>
-                Relationship
-              </span>
-              <span className={styles.value}>
-                {child.relationship || "-"}
-              </span>
-            </div>
           </div>
         </div>
-
-        {/* SABBATH SCHOOL */}
-        <div className={styles.section}>
-          <h3>
-            Sabbath School Details
-          </h3>
-
-          <div className={styles.grid}>
-            <div className={styles.item}>
-              <span className={styles.label}>
-                Class
-              </span>
-              <span className={styles.value}>
-                {child.class ||
-                  "Not assigned yet"}
-              </span>
-            </div>
-
-            <div className={styles.item}>
-              <span className={styles.label}>
-                Status
-              </span>
-              <span className={styles.value}>
-                {child.status || "Active"}
-              </span>
-            </div>
-          </div>
-        </div>
-
         {/* ACTIONS */}
         <div className={styles.actions}>
           <Button

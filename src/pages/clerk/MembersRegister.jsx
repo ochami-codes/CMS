@@ -17,7 +17,7 @@ export default function MembersRegister() {
   const [editingMember, setEditingMember] = useState(null);
 
   const { members, loading, isError, error, refetch } = useMembers();
-  const { updateMember } = useClerkActions();
+  const { updateMember, loading: { updateMember: updateMemberLoading } } = useClerkActions();
 
   /* -------------------------
      TABLE COLUMNS
@@ -42,7 +42,8 @@ export default function MembersRegister() {
 
   const handleSaveMember = async ({ memberId, payload }) => {
     try {
-      await updateMember(memberId, payload);
+      console.log("Saving member:", memberId, payload);
+      await updateMember({ memberId, payload });
       setEditingMember(null);
       refetch();
     } catch (err) {
@@ -137,6 +138,7 @@ export default function MembersRegister() {
         <EditMemberModal
           open
           member={editingMember}
+          loading={updateMemberLoading}
           onClose={() => setEditingMember(null)}
           onSave={handleSaveMember}
         />

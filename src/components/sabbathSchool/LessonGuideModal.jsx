@@ -29,7 +29,6 @@ const lessonTypeOptions = [
 export default function LessonGuideModal({
   open,
   onClose,
-  departmentId,
   mode = "leader",
 }) {
   const isLeader = mode === "leader";
@@ -40,7 +39,6 @@ export default function LessonGuideModal({
     creating,
     creatingMySubscription,
   } = useLessonGuides({
-    departmentId,
     enabled: false,
   });
 

@@ -3,7 +3,7 @@
 import { isSabbathNow } from "./time";
 
 export function getGreeting(user) {
-  const name = user?.full_name || "Child of God";
+  const name = user?.fullName || "Child of God";
 
   const hour = new Date().getHours();
 

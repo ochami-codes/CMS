@@ -1,29 +1,26 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
 /**
  * Debounce component
- * 
+ *
  * Props:
- * - value: the input value to debounce
- * - delay: debounce delay in ms (default: 500)
- * - onDebounce: callback fired after delay with the debounced value
+ * - value: value to debounce
+ * - delay: debounce delay in ms
+ * - onDebounce: callback fired after delay
  */
-export default function Debounce({ value, delay = 500, onDebounce }) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
+export default function Debounce({
+  value,
+  delay = 500,
+  onDebounce,
+}) {
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
+    const timer = setTimeout(() => {
+      onDebounce?.(value);
     }, delay);
 
-    return () => clearTimeout(handler);
-  }, [value, delay]);
+    return () => clearTimeout(timer);
+  }, [value, delay, onDebounce]);
 
-  useEffect(() => {
-    if (onDebounce) {
-      onDebounce(debouncedValue);
-    }
-  }, [debouncedValue, onDebounce]);
-
-  return null; // This component doesn’t render anything
+  return null;
 }
+

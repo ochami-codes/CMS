@@ -1,7 +1,7 @@
 import { Building2 } from "lucide-react";
 
 import StatCard from "../../components/StatCard";
-
+import TextDisplay from "../../components/TextDisplay";
 import styles from "../../styles/pages/PastorDepartments.module.css";
 
 export default function PastorDepartments({
@@ -12,14 +12,23 @@ export default function PastorDepartments({
     <section className={styles.page}>
       <header className={styles.header}>
         <div>
-          <h2 className={styles.title}>
+          <TextDisplay
+            as="h2"
+            size="2xl"
+            weight="bold"
+            color="primary"
+          >
             Departments
-          </h2>
+          </TextDisplay>
 
-          <p className={styles.subtitle}>
+          <TextDisplay
+            as="p"
+            size="md"
+            color="muted"
+          >
             Overview of church departments and their
             current membership.
-          </p>
+          </TextDisplay>
         </div>
 
         {isFetching && (

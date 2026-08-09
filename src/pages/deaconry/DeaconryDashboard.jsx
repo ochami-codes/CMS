@@ -49,7 +49,7 @@ export default function DeaconryDashboard() {
      MAIN VIEW
   -------------------------- */
   return (
-    <RequirePermission permission="manage_deaconry">
+    <RequirePermission permission="access_deaconry_dashboard">
       <main className={`page-container ${styles.page}`}>
         {/* Header */}
         <header className={styles.header}>

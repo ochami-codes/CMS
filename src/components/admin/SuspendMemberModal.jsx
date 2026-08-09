@@ -5,6 +5,7 @@ import Modal from "../Modal";
 
 export default function SuspendMemberModal({
   member,
+  isSuspending,
   onClose,
   onConfirm,
 }) {
@@ -40,6 +41,7 @@ export default function SuspendMemberModal({
           </Button>
 
           <Button
+            loading={isSuspending}
             variant="danger"
             onClick={handleConfirm}
           >

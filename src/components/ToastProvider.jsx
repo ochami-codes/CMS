@@ -18,26 +18,32 @@ export const ToastProvider = ({
 }) => {
   const [toasts, setToasts] = useState([]);
 
-  const showToast = useCallback(
-    (
-      message,
+ const showToast = useCallback(
+  (
+    message,
+    options = {}
+  ) => {
+    const {
       type = "success",
-      duration = 3000
-    ) => {
-      const id =
-        typeof crypto !== "undefined"
-          ? crypto.randomUUID()
-          : Date.now() + Math.random();
+      duration = 3000,
+    } = options;
 
-      setToasts(prev => [
-        ...prev,
-        { id, message, type, duration }
-      ]);
+    const id = crypto.randomUUID();
 
-      return id;
-    },
-    []
-  );
+    setToasts((prev) => [
+      ...prev,
+      {
+        id,
+        message,
+        type,
+        duration,
+      },
+    ]);
+
+    return id;
+  },
+  []
+);
 
   const removeToast = useCallback((id) => {
     setToasts(prev =>

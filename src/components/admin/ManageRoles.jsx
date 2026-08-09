@@ -5,74 +5,83 @@ import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../components/ToastProvider";
 
 import Button from "../Button";
-import Loader from "../Loader";
 import EmptyState from "../EmptyState";
 import PageHeader from "../PageHeader";
 import SearchBar from "../SearchBar";
 import ResponsiveDataView from "../ResponsiveDataView";
 import ManageRolesModal from "./ManageRolesModal";
-import ErrorState from "../../components/ErrorState"
+import ErrorState from "../../components/ErrorState";
 import SuspendMemberModal from "./SuspendMemberModal";
+
 import { useAdminMembers } from "../../hooks/admin/useAdminMembers";
-import { useRoles } from "../../hooks/admin/useRoles";
+import BadgeList from "../BadgeList";
 import { useAdminMemberActions } from "../../hooks/admin/useAdminMemberAction";
 
 import styles from "../../styles/admin/ManageRoles.module.css";
 
 export default function ManageRoles() {
-  const { activeChurchId, getRoleLabel } = useAuth();
+  const { activeChurchId } = useAuth();
   const { showToast } = useToast();
 
-  // UI state
+  // -------------------------
+  // UI State
+  // -------------------------
   const [search, setSearch] = useState("");
   const [selectedMember, setSelectedMember] = useState(null);
   const [suspendTarget, setSuspendTarget] = useState(null);
 
-  // Data hooks
+  // -------------------------
+  // Members
+  // -------------------------
   const {
-  members,
-  initialLoading,
-  refreshing,
-  isError: membersIsError,
-  error: membersError,
-  refetch: refetchMembers,
-} = useAdminMembers(
-  activeChurchId,
-  search
-);
-  const {
-  roles,
-  loading: rolesLoading,
-  isError: rolesIsError,
-  error: rolesError,
-  refetch: refetchRoles,
-} = useRoles();
+    members,
+    initialLoading,
+    refreshing,
+    isError: membersIsError,
+    error: membersError,
+    refetch: refetchMembers,
+  } = useAdminMembers(activeChurchId, search);
 
+  // -------------------------
+  // Member Actions
+  // -------------------------
   const {
     processingId,
     saving,
     suspendMember,
     unsuspendMember,
+    processing,
     activateMember,
     updateRoles,
   } = useAdminMemberActions(activeChurchId, showToast);
 
+  // -------------------------
   // Helpers
+  // -------------------------
   const isProtectedMember = useCallback(
-    (member) => (member.roles ?? []).includes("admin"),
+    (member) => (member.roles ?? []).some((role) => role.name === "admin"),
     []
   );
 
-  const handleSaveRoles = async ({memberId, roles}) => {
-    await updateRoles({memberId, roles});
+  // -------------------------
+  // Role Update
+  // -------------------------
+  const handleSaveRoles = async ({ memberId, roles }) => {
+    await updateRoles({ memberId, roles });
     setSelectedMember(null);
   };
 
+  // -------------------------
+  // Suspend
+  // -------------------------
   const handleSuspendConfirm = async ({ memberId, reason }) => {
-    await suspendMember({memberId, reason});
+    await suspendMember({ memberId, reason });
     setSuspendTarget(null);
   };
 
+  // -------------------------
+  // Toggle Member Status
+  // -------------------------
   const toggleMemberStatus = async (member) => {
     if (isProtectedMember(member)) {
       return showToast("Admins cannot be modified", "error");
@@ -80,18 +89,22 @@ export default function ManageRoles() {
 
     if (member.status === "active") {
       setSuspendTarget(member);
-    } else if (member.status === "suspended") {
-      await unsuspendMember({memberId: member.id});
-    } else {
-      await activateMember({memberId: member.id});
+      return;
     }
+
+    if (member.status === "suspended") {
+      await unsuspendMember({ memberId: member.id });
+      return;
+    }
+
+    await activateMember({ memberId: member.id });
   };
 
+  // -------------------------
+  // Table Columns
+  // -------------------------
   const columns = [
-    {
-      key: "full_name",
-      label: "Member",
-    },
+    { key: "full_name", label: "Member" },
     {
       key: "departments",
       label: "Departments",
@@ -106,18 +119,16 @@ export default function ManageRoles() {
       ),
     },
     {
-      key: "roles",
-      label: "Roles",
-      render: (roles) => (
-        <div className={styles.roles}>
-          {(roles ?? []).map((role) => (
-            <span key={role} className={styles.roleBadge}>
-              {getRoleLabel(role)}
-            </span>
-          ))}
-        </div>
-      ),
-    },
+  key: "roles",
+  label: "Roles",
+  render: (roles) => (
+    <BadgeList
+      items={roles}
+      getKey={(role) => role.name}
+      getLabel={(role) => role.label}
+    />
+  ),
+},
   ];
 
   return (
@@ -127,6 +138,7 @@ export default function ManageRoles() {
         subtitle="Manage members, permissions, and access"
       />
 
+      {/* Search */}
       <SearchBar
         value={search}
         icon={<Search size={16} />}
@@ -134,59 +146,54 @@ export default function ManageRoles() {
         onChange={(e) => setSearch(e.target.value)}
         onClear={() => setSearch("")}
       />
+
+      {/* Members Error */}
       {!initialLoading && membersIsError && (
-  <ErrorState
-    title="Unable to load members"
-    message={
-      membersError?.message ??
-      "We couldn't load the members. Please try again."
-    }
-    onRetry={refetchMembers}
-  />
-)}
+        <ErrorState
+          title="Unable to load members"
+          message={
+            membersError?.message ??
+            "We couldn't load the members. Please try again."
+          }
+          onRetry={refetchMembers}
+        />
+      )}
 
-     {!initialLoading &&
-  !membersIsError &&
-  members.length === 0 && (
-    <EmptyState
-      title={
-        search
-          ? "No members found"
-          : "No members yet"
-      }
-      description={
-        search
-          ? `No results for "${search}"`
-          : undefined
-      }
-    />
-  )}
+      {/* Empty State */}
+      {!initialLoading && !membersIsError && members.length === 0 && (
+        <EmptyState
+          title={search ? "No members found" : "No members yet"}
+          description={search ? `No results for "${search}"` : undefined}
+        />
+      )}
 
+      {/* Members */}
       {!initialLoading && !membersIsError && members.length > 0 && (
         <ResponsiveDataView
           columns={columns}
           data={members}
           refreshing={refreshing}
-          renderActions={(m) => (
+          renderActions={(member) => (
             <>
               <Button
                 variant="secondary"
                 size="sm"
-                disabled={isProtectedMember(m)}
-                onClick={() => setSelectedMember(m)}
+                disabled={isProtectedMember(member)}
+                onClick={() => setSelectedMember(member)}
               >
                 Manage Roles
               </Button>
+
               <Button
-                loading={processingId === m.id}
-                variant={m.status === "active" ? "danger" : "success"}
+                loading={processingId === member.id}
+                variant={member.status === "active" ? "danger" : "success"}
                 size="sm"
-                disabled={isProtectedMember(m)}
-                onClick={() => toggleMemberStatus(m)}
+                disabled={isProtectedMember(member)}
+                onClick={() => toggleMemberStatus(member)}
               >
-                {m.status === "active"
+                {member.status === "active"
                   ? "Suspend"
-                  : m.status === "suspended"
+                  : member.status === "suspended"
                   ? "Unsuspend"
                   : "Activate"}
               </Button>
@@ -197,20 +204,16 @@ export default function ManageRoles() {
 
       {/* Role Modal */}
       <ManageRolesModal
-  member={selectedMember}
-  roles={roles}
-  rolesLoading={rolesLoading}
-  rolesError={rolesError}
-  rolesIsError={rolesIsError}
-  onRetryRoles={refetchRoles}
-  saving={saving}
-  onClose={() => setSelectedMember(null)}
-  onSave={handleSaveRoles}
-/>
+        member={selectedMember}
+        saving={saving}
+        onClose={() => setSelectedMember(null)}
+        onSave={handleSaveRoles}
+      />
 
       {/* Suspend Modal */}
       <SuspendMemberModal
         member={suspendTarget}
+        isSuspending={processing}
         onClose={() => setSuspendTarget(null)}
         onConfirm={handleSuspendConfirm}
       />

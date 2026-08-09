@@ -8,7 +8,7 @@ export default function EncouragementRedirect({
   title = "All set ✨",
   message = "You’ll be redirected shortly.",
   redirectTo = "/login",
-  delay = 10000,
+  delay = 20000,
   onComplete,
 }) {
 

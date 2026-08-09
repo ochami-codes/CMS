@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 import StatCard from "../../components/StatCard";
-
+import TextDisplay from "../../components/TextDisplay";
 import styles from "../../styles/pages/PastorOverview.module.css";
 
 export default function PastorOverview({
@@ -42,14 +42,23 @@ export default function PastorOverview({
     <section className={styles.page}>
       <header className={styles.header}>
         <div>
-          <h2 className={styles.title}>
+          <TextDisplay
+            as="h2"
+            size="2xl"
+            weight="bold"
+            color="primary"
+          >
             Church Overview
-          </h2>
+          </TextDisplay>
 
-          <p className={styles.subtitle}>
+          <TextDisplay
+            as="p"
+            size="md"
+            color="muted"
+          >
             A summary of your church's current
             membership, departments and finances.
-          </p>
+          </TextDisplay>
         </div>
 
         {isFetching && (

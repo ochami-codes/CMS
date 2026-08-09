@@ -12,6 +12,7 @@ export default function Remittance({
   onClose,
   months = [],
   onSubmit,
+  isSubmitting,
 }) {
   const [expanded, setExpanded] =
     useState({});
@@ -201,6 +202,7 @@ export default function Remittance({
           </Button>
 
           <Button
+          loading={isSubmitting}
             disabled={total === 0}
             onClick={() =>
               onSubmit({

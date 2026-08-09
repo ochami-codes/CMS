@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 import StatCard from "../../components/StatCard";
-
+import TextDisplay from "../../components/TextDisplay";
 import styles from "../../styles/pages/PastorTreasury.module.css";
 
 export default function PastorTreasury({
@@ -48,14 +48,23 @@ export default function PastorTreasury({
     <section className={styles.page}>
       <header className={styles.header}>
         <div>
-          <h2 className={styles.title}>
+          <TextDisplay
+            as="h2"
+            size="2xl"
+            weight="bold"
+            color="primary"
+          >
             Treasury Overview
-          </h2>
+          </TextDisplay>
 
-          <p className={styles.subtitle}>
+          <TextDisplay
+            as="p"
+            size="md"
+            color="muted"
+          >
             Read-only summary of the church's
             financial position.
-          </p>
+          </TextDisplay>
         </div>
 
         {isFetching && (

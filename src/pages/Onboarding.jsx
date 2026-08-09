@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 import Loader from "../components/Loader";
@@ -15,14 +15,30 @@ export default function Onboarding() {
     user,
     switchChurch,
   } = useAuth();
-console.log("user", user);
+
   if (!user) {
     return <Loader fullScreen={false} />;
   }
 
-  // -----------------------------------------
-  // User data
-  // -----------------------------------------
+  /* -------------------------
+     SUSPENDED MEMBER
+  ------------------------- */
+
+  const isSuspended =
+    user.activeChurch?.status === "suspended";
+
+  if (isSuspended) {
+    return (
+      <Navigate
+        to="/suspended"
+        replace
+      />
+    );
+  }
+
+  /* -------------------------
+     USER DATA
+  ------------------------- */
 
   const churches =
     user.churches ?? [];
@@ -30,9 +46,9 @@ console.log("user", user);
   const membershipRequests =
     user.membershipRequests ?? [];
 
-  // -----------------------------------------
-  // Membership state
-  // -----------------------------------------
+  /* -------------------------
+     MEMBERSHIP STATE
+  ------------------------- */
 
   const activeChurches =
     churches.filter(
@@ -43,13 +59,7 @@ console.log("user", user);
   const pendingRequests =
     membershipRequests.filter(
       (request) =>
-        request.status === "pending"
-    );
-
-  const rejectedRequests =
-    membershipRequests.filter(
-      (request) =>
-        request.status === "rejected"
+        request.status === "requested"
     );
 
   const hasActiveChurches =
@@ -58,12 +68,9 @@ console.log("user", user);
   const hasPendingRequests =
     pendingRequests.length > 0;
 
-  const hasRejectedRequests =
-    rejectedRequests.length > 0;
-
-  // -----------------------------------------
-  // Open church
-  // -----------------------------------------
+  /* -------------------------
+     OPEN CHURCH
+  ------------------------- */
 
   async function handleOpenChurch(
     churchId
@@ -80,13 +87,13 @@ console.log("user", user);
     <div className={styles.container}>
       <PageHeader
         title={`Welcome, ${
-          user.full_name || "Member"
+          user.fullName || "Member"
         } 🙏`}
         subtitle="Choose a church to continue."
       />
 
       {/* -------------------------
-          Active Churches
+          ACTIVE CHURCHES
       ------------------------- */}
 
       {hasActiveChurches && (
@@ -133,7 +140,7 @@ console.log("user", user);
       )}
 
       {/* -------------------------
-          Pending Requests
+          PENDING REQUESTS
       ------------------------- */}
 
       {hasPendingRequests && (
@@ -180,60 +187,11 @@ console.log("user", user);
       )}
 
       {/* -------------------------
-          Rejected Requests
-      ------------------------- */}
-
-      {hasRejectedRequests && (
-        <section>
-          <h2 className={styles.title}>
-            Membership Requests
-          </h2>
-
-          <div className={styles.grid}>
-            {rejectedRequests.map(
-              (request) => (
-                <Card
-                  key={request.id}
-                  className={
-                    styles.churchCard
-                  }
-                >
-                  <h3>
-                    {request.church?.name ??
-                      "Church"}
-                  </h3>
-
-                  <p
-                    className={
-                      styles.statusError
-                    }
-                  >
-                    Request Declined
-                  </p>
-
-                  <Button
-                    onClick={() =>
-                      navigate(
-                        "/join-church"
-                      )
-                    }
-                  >
-                    Try Another Church
-                  </Button>
-                </Card>
-              )
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* -------------------------
-          No Membership / Requests
+          NO MEMBERSHIP / REQUESTS
       ------------------------- */}
 
       {!hasActiveChurches &&
-        !hasPendingRequests &&
-        !hasRejectedRequests && (
+        !hasPendingRequests && (
           <Card
             className={
               styles.churchCard
@@ -282,12 +240,11 @@ console.log("user", user);
         )}
 
       {/* -------------------------
-          Church Actions
+          CHURCH ACTIONS
       ------------------------- */}
 
       {(hasActiveChurches ||
-        hasPendingRequests ||
-        hasRejectedRequests) && (
+        hasPendingRequests) && (
         <div
           className={
             styles.actions

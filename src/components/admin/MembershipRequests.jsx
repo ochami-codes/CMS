@@ -23,7 +23,8 @@ export default function MembershipRequests() {
     error,
     refetch,
     reviewRequest,
-    isReviewing,
+    isApproving,
+    isRejecting
   } = useMembershipRequests();
 
   /* =======================
@@ -83,14 +84,14 @@ export default function MembershipRequests() {
       <>
         <Button
           variant="success"
-          loading={isReviewing}
+          loading={isApproving(id)}
           onClick={() => handleAction(id, "approve")}
         >
           Approve
         </Button>
         <Button
           variant="danger"
-          loading={isReviewing}
+          loading={isRejecting(id)}
           onClick={() => handleAction(id, "reject")}
         >
           Reject

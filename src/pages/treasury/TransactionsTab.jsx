@@ -16,7 +16,7 @@ import ReceiveFundsForm from "../../components/treasury/ReceiveFundsForm";
 import RecordExpenseForm from "../../components/treasury/RecordExpenseForm";
 import AddFundForm from "../../components/treasury/AddFundForm";
 import useTreasuryTransactions from "../../hooks/treasury/useTreasuryTransactions";
-
+import TextDisplay from "../../components/TextDisplay";
 import styles from "../../styles/pages/TransactionsTab.module.css";
 
 export default function TransactionsTab({ onRefresh }) {
@@ -38,7 +38,7 @@ export default function TransactionsTab({ onRefresh }) {
       render: (value) => formatDate(value, { month: "long" }),
     },
     { key: "fund_name", label: "Fund" },
-    { key: "contributor_name", label: "Contributor" },
+    { key: "member_name", label: "Contributor" },
     {
       key: "amount",
       label: "Amount",
@@ -62,8 +62,21 @@ export default function TransactionsTab({ onRefresh }) {
     <section className={styles.container}>
       <div className={styles.header}>
         <div>
-          <h2>Transactions</h2>
-          <p>Record income, expenses and manage funds</p>
+          <TextDisplay
+            as="h2"
+            size="2xl"
+            weight="bold"
+            color="primary"
+          >
+            Transactions
+          </TextDisplay>
+          <TextDisplay
+            as="p"
+            size="md"
+            color="muted"
+          >
+            Record income, expenses and manage funds
+          </TextDisplay>
         </div>
       </div>
 

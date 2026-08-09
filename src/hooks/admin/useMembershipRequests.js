@@ -17,26 +17,42 @@ export function useMembershipRequests() {
 
   /* ========================= REVIEW REQUEST ========================= */
   const reviewMutation = useMutation({
-    mutationFn: async ({ id, action }) => {
-      const status = action === "approve" ? "approved" : "rejected";
-      return AdminMembershipAPI.review(id, status);
-    },
-    onSuccess: (_data, { id, action }) => {
-      const status = action === "approve" ? "approved" : "rejected";
+  mutationFn: async ({ id, action }) => {
+    const status =
+      action === "approve"
+        ? "approved"
+        : "rejected";
 
-      // Optimistically update cached requests
-      queryClient.setQueryData(MEMBERSHIP_REQUESTS_KEY, (currentRequests = []) =>
+    return AdminMembershipAPI.review(
+      id,
+      status
+    );
+  },
+
+  onSuccess: (_data, { id, action }) => {
+    const status =
+      action === "approve"
+        ? "approved"
+        : "rejected";
+
+    queryClient.setQueryData(
+      MEMBERSHIP_REQUESTS_KEY,
+      (currentRequests = []) =>
         currentRequests.map((request) =>
           request.membership_request_id === id
-            ? { ...request, membership_status: status }
+            ? {
+                ...request,
+                membership_status: status,
+              }
             : request
         )
-      );
+    );
 
-      // Refresh related queries
-      queryClient.invalidateQueries({ queryKey: ["members"] });
-    },
-  });
+    queryClient.invalidateQueries({
+      queryKey: ["members"],
+    });
+  },
+});
 
   return {
   /* Data */
@@ -53,8 +69,19 @@ export function useMembershipRequests() {
 
   /* Mutation */
   reviewRequest: reviewMutation.mutateAsync,
-  isReviewing: reviewMutation.isPending,
-  reviewVariables: reviewMutation.variables,
+
+  isApproving: (id) =>
+    reviewMutation.isPending &&
+    reviewMutation.variables?.id === id &&
+    reviewMutation.variables?.action ===
+      "approve",
+
+  isRejecting: (id) =>
+    reviewMutation.isPending &&
+    reviewMutation.variables?.id === id &&
+    reviewMutation.variables?.action ===
+      "reject",
+
   reviewError: reviewMutation.error,
 };
 }

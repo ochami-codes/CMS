@@ -1,13 +1,9 @@
-// src/components/RequirePermission.jsx
-
 import { Navigate } from "react-router-dom";
-
 import { useAuth } from "../context/AuthContext";
 
 export default function RequirePermission({
   permission = null,
   role = null,
-  requireActiveMember = true,
   children,
 }) {
   const {
@@ -15,11 +11,10 @@ export default function RequirePermission({
     canUser,
     hasRole,
     authReady,
-    isActiveMember,
   } = useAuth();
 
   /* -------------------------
-     Wait for Auth Bootstrap
+     WAIT FOR AUTH
   ------------------------- */
 
   if (!authReady) {
@@ -27,7 +22,7 @@ export default function RequirePermission({
   }
 
   /* -------------------------
-     Authentication
+     AUTHENTICATION
   ------------------------- */
 
   if (!user) {
@@ -40,23 +35,7 @@ export default function RequirePermission({
   }
 
   /* -------------------------
-     Active Membership
-  ------------------------- */
-
-  if (
-    requireActiveMember &&
-    !isActiveMember
-  ) {
-    return (
-      <Navigate
-        to="/dashboard"
-        replace
-      />
-    );
-  }
-
-  /* -------------------------
-     Role Protection
+     ROLE PROTECTION
   ------------------------- */
 
   if (
@@ -72,14 +51,12 @@ export default function RequirePermission({
   }
 
   /* -------------------------
-     Permission Protection
+     PERMISSION PROTECTION
   ------------------------- */
 
   if (
     permission &&
-    !canUser(permission, {
-      requireActiveMember,
-    })
+    !canUser(permission)
   ) {
     return (
       <Navigate

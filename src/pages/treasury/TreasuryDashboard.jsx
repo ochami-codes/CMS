@@ -8,7 +8,7 @@ import RequirePermission from "../../components/RequirePermission";
 import Tabs from "../../components/Tabs";
 import Button from "../../components/Button";
 import ErrorState from "../../components/ErrorState";
-
+import TextDisplay from "../../components/TextDisplay";
 import { useTreasuryDashboard } from "../../hooks/treasury/useTreasuryDashboard";
 import { useMembers } from "../../hooks/clerk/useMembers";
 
@@ -79,16 +79,27 @@ export default function TreasuryDashboard() {
      MAIN VIEW
   -------------------------- */
   return (
-    <RequirePermission permission="view_finances">
+    <RequirePermission permission="access_treasury_dashboard">
       <main className={`page-container ${styles.page}`}>
         {/* Header */}
         <header className={styles.header}>
           <div className={styles.headerContent}>
-            <h1 className={styles.title}>Treasury Management</h1>
-            <p className={styles.subtitle}>
+            <TextDisplay
+              as="h1"
+              size="2xl"
+              weight="bold"
+              color="primary"
+            >
+              Treasury Management
+            </TextDisplay>
+            <TextDisplay
+              as="p"
+              size="md"
+              color="muted"
+            >
               Manage church finances, member giving, fund balances, transactions, and treasury
               reporting.
-            </p>
+            </TextDisplay>
           </div>
         </header>
 

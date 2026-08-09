@@ -1,14 +1,24 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { TreasuryAPI } from "../../utils/api";
 import useRemitFunds from "./useRemit";
 import useCancelRemittance from "./useCancelRemittance";
+import { useToast } from "../../components/ToastProvider";
+
+const REMITTANCES_QUERY_KEY = [
+  "treasury-remittances",
+];
 
 export default function useRemittances() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  /* =========================
+     FETCH REMITTANCES
+  ========================== */
+
   const query = useQuery({
-    queryKey: [
-      "treasury-remittances",
-    ],
+    queryKey: REMITTANCES_QUERY_KEY,
 
     queryFn: () =>
       TreasuryAPI.remittances(),
@@ -17,11 +27,71 @@ export default function useRemittances() {
       5 * 60 * 1000,
   });
 
-  const remit =
-    useRemitFunds();
+  /* =========================
+     REMIT MUTATION
+  ========================== */
 
-  const cancel =
-    useCancelRemittance();
+  const remitMutation =
+    useRemitFunds({
+      onSuccess: () => {
+        showToast(
+          "Funds remitted successfully",
+          "success"
+        );
+
+        queryClient.invalidateQueries({
+          queryKey:
+            [ "treasury-funds-summary"],
+        });
+      },
+
+      onError: (error) => {
+        showToast(
+          error?.message ||
+            "Failed to remit funds",
+          "error"
+        );
+      },
+    });
+
+  /* =========================
+     CANCEL MUTATION
+  ========================== */
+const cancelMutation =
+  useCancelRemittance({
+    onSuccess: () => {
+      showToast(
+        "Remittance cancelled successfully",
+        "success"
+      );
+
+      queryClient.invalidateQueries({
+        queryKey: [
+          "treasury-funds-summary",
+        ],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [
+          "treasury-remittances",
+        ],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [
+          "treasury-transactions",
+        ],
+      });
+    },
+
+    onError: (error) => {
+      showToast(
+        error?.message ||
+          "Failed to cancel remittance",
+        "error"
+      );
+    },
+  });
 
   return {
     /* =========================
@@ -48,22 +118,36 @@ export default function useRemittances() {
       query.error,
 
     /* =========================
-       QUERY ACTION
+       QUERY ACTIONS
     ========================== */
 
     refresh:
       query.refetch,
 
     /* =========================
-       REMIT MUTATION
+       REMIT ACTION
     ========================== */
 
-    remit,
+    remitFunds:
+      remitMutation.mutateAsync,
+
+    isRemitting:
+      remitMutation.isPending,
+
+    remitError:
+      remitMutation.error,
 
     /* =========================
-       CANCEL MUTATION
+       CANCEL ACTION
     ========================== */
 
-    cancel,
+    cancelRemittance:
+      cancelMutation.mutateAsync,
+
+    isCancelling:
+      cancelMutation.isPending,
+
+    cancelError:
+      cancelMutation.error,
   };
 }

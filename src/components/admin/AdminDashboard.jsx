@@ -26,6 +26,10 @@ const TABS = (counts) => [
     label: "Role Requests",
     badge: counts.roles,
   },
+  {
+    key: "manage-departments",
+    label: "Manage Departments",
+  }
 ];
 
 function CenterMessage({ children }) {

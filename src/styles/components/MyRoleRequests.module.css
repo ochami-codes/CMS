@@ -68,3 +68,34 @@
   background-color: #fef3c7;
   color: #92400e;
 }
+.scrollable {
+  max-height: 200px;       /* keeps list compact */
+  overflow-y: auto;        /* enables vertical scroll */
+  padding-right: 8px;      /* space for scrollbar */
+  position: relative;
+}
+
+/* Custom scrollbar styling */
+.scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+
+.scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Hint overlay */
+.scrollable::after {
+  content: "Scroll for more roles ↓";
+  position: absolute;
+  bottom: 4px;
+  right: 8px;
+  font-size: 12px;
+  color: #888;
+  pointer-events: none;
+}

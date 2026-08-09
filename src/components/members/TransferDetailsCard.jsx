@@ -47,7 +47,7 @@ export default function TransferDetailsCard({
 
             <div className={styles.routeBox}>
               <span>To</span>
-              <strong>{transfer.destination_church_name || "-"}</strong>
+              <strong>{transfer.destination_church_name ||transfer.external_church_name|| "-"}</strong>
             </div>
           </div>
         </div>

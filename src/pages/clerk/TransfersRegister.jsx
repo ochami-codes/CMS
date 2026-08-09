@@ -7,10 +7,8 @@ import ResponsiveDataView from "../../components/ResponsiveDataView";
 import Button from "../../components/Button";
 import TransferDetailsCard from "../../components/members/TransferDetailsCard";
 import TransferActionModal from "../../components/members/TransferActionModal";
-import TransferRequestModal from "../../components/members/TransferRequestModal";
 import EmptyState from "../../components/EmptyState";
 import ErrorState from "../../components/ErrorState";
-import { useToast } from "../../components/ToastProvider";
 
 import { useSourceTransfers } from "../../hooks/clerk/useSourceTransfers";
 import { useDestinationTransfers } from "../../hooks/clerk/useDestinationTransfers";
@@ -24,7 +22,6 @@ export default function TransfersRegister() {
   const [selectedType, setSelectedType] = useState("in");
   const [actionType, setActionType] = useState(null);
   const [notes, setNotes] = useState("");
-  const [openTransferModal, setOpenTransferModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
   const {
@@ -43,8 +40,11 @@ export default function TransfersRegister() {
     refetch: refetchDestination,
   } = useDestinationTransfers();
 
-  const { approveTransfer, rejectTransfer, createTransfer } = useClerkActions();
-  const { showToast } = useToast();
+  const {
+  approveSourceTransfer,
+  approveDestinationTransfer,
+  rejectTransfer,
+} = useClerkActions();
 
   const loading = loadingSource || loadingDestination;
   const isError = isErrorSource || isErrorDestination;
@@ -76,7 +76,14 @@ export default function TransfersRegister() {
 
   const transferOutColumns = [
     { key: "member_name", label: "Name" },
-    { key: "destination_church_name", label: "To Church" },
+     {
+    key: "destination_church_name",
+    label: "To Church",
+    render: (_, row) =>
+      row.destination_church_name ||
+      row.external_church_name ||
+      "-",
+  },
     { key: "status", label: "Status", render: statusRenderer },
     { key: "created_at", label: "Date", render: formatDate },
   ];
@@ -99,48 +106,40 @@ export default function TransfersRegister() {
     setActionType("reject");
   };
 
-  const handleCreateTransfer = async (payload) => {
-    try {
-      await createTransfer(payload);
-      showToast("Transfer created successfully", "success");
-      setOpenTransferModal(false);
-      await refetchAll();
-    } catch (err) {
-      showToast(err?.message || "Failed to create transfer", "error");
-    }
-  };
-
   const handleSubmitAction = async () => {
-    if (!selectedTransfer || !actionType) return;
+  if (!selectedTransfer || !actionType) return;
 
-    const isApprove = actionType === "approve";
+  try {
+    setActionLoading(true);
 
-    try {
-      setActionLoading(true);
-
-      if (isApprove) {
-        await approveTransfer(selectedTransfer.id, notes);
+    if (actionType === "approve") {
+      if (selectedType === "out") {
+        await approveSourceTransfer({
+          id: selectedTransfer.id,
+          notes,
+        });
       } else {
-        await rejectTransfer(selectedTransfer.id, notes);
+        await approveDestinationTransfer({
+          id: selectedTransfer.id,
+          notes,
+        });
       }
-
-      showToast(
-        `Transfer ${isApprove ? "approved" : "rejected"} successfully`,
-        "success"
-      );
-
-      setSelectedTransfer(null);
-      setActionType(null);
-      setNotes("");
-
-      await refetchAll();
-    } catch (err) {
-      showToast(err?.message || "Action failed. Please try again.", "error");
-    } finally {
-      setActionLoading(false);
+    } else {
+      await rejectTransfer({
+        id: selectedTransfer.id,
+        notes,
+      });
     }
-  };
 
+    setSelectedTransfer(null);
+    setActionType(null);
+    setNotes("");
+
+    await refetchAll();
+  } finally {
+    setActionLoading(false);
+  }
+};
   const renderActions = (transfer, type) => (
     <div className={styles.actions}>
       <Button variant="primary" size="sm" onClick={() => handleView(transfer, type)}>
@@ -159,9 +158,6 @@ export default function TransfersRegister() {
           <h2 className={styles.cardTitle}>
             <ArrowLeftRight size={18} /> Transfers Register
           </h2>
-          <Button variant="primary" onClick={() => setOpenTransferModal(true)}>
-            + Manual Transfer
-          </Button>
         </div>
         <p>Loading transfers...</p>
       </div>
@@ -213,9 +209,6 @@ export default function TransfersRegister() {
         <h2 className={styles.cardTitle}>
           <ArrowLeftRight size={18} /> Transfers Register
         </h2>
-        <Button variant="primary" onClick={() => setOpenTransferModal(true)}>
-          + Manual Transfer
-        </Button>
       </div>
 
       {/* Transfer In */}
@@ -262,15 +255,6 @@ export default function TransfersRegister() {
           }}
           onSubmit={handleSubmitAction}
           loading={actionLoading}
-        />
-      )}
-
-      {/* Create Transfer Modal */}
-      {openTransferModal && (
-        <TransferRequestModal
-          isOpen
-          onClose={() => setOpenTransferModal(false)}
-          onSubmit={handleCreateTransfer}
         />
       )}
     </div>

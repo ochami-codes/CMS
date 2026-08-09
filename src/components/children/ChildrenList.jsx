@@ -5,7 +5,7 @@ import Loader from "../Loader";
 import Button from "../Button";
 import ResponsiveDataView from "../ResponsiveDataView";
 import ErrorState from "../ErrorState";
-
+import TextDisplay from "../TextDisplay";
 import styles from "../../styles/components/ChildrenList.module.css";
 
 export default function ChildrenList({
@@ -50,20 +50,29 @@ export default function ChildrenList({
     <Card className={styles.card}>
       <header className={styles.header}>
         <div>
-          <h2 className={styles.title}>Registered Children</h2>
-          <p className={styles.subtitle}>
+          <TextDisplay
+            as="h2"
+            size="xl"
+            weight="bold"
+            color="primary"
+          >
+            Registered Children
+          </TextDisplay>
+          <TextDisplay as="p" size="md" color="muted">
             These children have been registered by the Church Clerk.
-          </p>
+          </TextDisplay>
         </div>
         <span className={styles.count}>{children.length}</span>
       </header>
 
       {children.length === 0 ? (
         <div className={styles.empty}>
-          <h3>No registered children</h3>
-          <p>
+          <TextDisplay as="h3" size="lg" color="muted">
+            No registered children
+          </TextDisplay>
+          <TextDisplay as="p" size="md" color="muted">
             If a child should appear here, kindly request the Church Clerk to register them first.
-          </p>
+          </TextDisplay>
         </div>
       ) : (
         <ResponsiveDataView columns={columns} data={children} />

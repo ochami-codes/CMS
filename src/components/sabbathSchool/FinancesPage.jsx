@@ -9,7 +9,7 @@ import ErrorState from "../ErrorState";
 import useTreasuryFundsSummary from "../../hooks/treasury/useTreasuryFundSummary";
 import useSabbathSchoolAttendance from "../../hooks/SabbathSchool/useSabbathSchoolAttendance";
 import useSabbathSchoolFinances from "../../hooks/SabbathSchool/useSabbathSchoolFinances";
-
+import TextDisplay from "../TextDisplay";
 import { formatCurrency } from "../../utils/formatCurrency";
 import { formatDate } from "../../utils/formatDate";
 
@@ -96,24 +96,24 @@ export default function FinancesPage({ departmentId }) {
     <section className={styles.page}>
       {/* Current Balance */}
       <Card>
-        <h3>Department Balance</h3>
-        <strong className={styles.balance}>
+        <TextDisplay as="h3">Department Balance</TextDisplay>
+        <TextDisplay as="p" size="md" color="muted">
+          <strong>
           {formatCurrency(summary.departmentBalance)}
         </strong>
-        <p className={styles.helpText}>
-          Current available balance for the Sabbath School department.
-        </p>
+          (Current available balance for the Sabbath School department.)
+        </TextDisplay>
       </Card>
 
       {/* Record Offering */}
       <Card>
-        <h3>Record Sabbath Offering</h3>
-        <p className={styles.helpText}>
+        <TextDisplay as="h3" size="md">Record Sabbath Offering</TextDisplay>
+        <TextDisplay as="p" size="sm" color="muted">
           Select the attendance session for which these offerings were collected.
-        </p>
+        </TextDisplay>
 
         <label>
-          <span>Attendance Session</span>
+          <TextDisplay as="span" color="muted">Attendance Session</TextDisplay>
           <select
             value={sessionId}
             onChange={(e) => setSessionId(e.target.value)}
@@ -128,14 +128,14 @@ export default function FinancesPage({ departmentId }) {
         </label>
 
         {attendance.length === 0 && (
-          <p className={styles.info}>
+          <TextDisplay as="p" size="sm" color="warning">
             No attendance sessions are available. Record attendance first, then
             return here to record the offering.
-          </p>
+          </TextDisplay>
         )}
 
         <label>
-          <span>Adults (Optional)</span>
+          <TextDisplay as="span" size="sm" color="muted">Adults (Optional)</TextDisplay>
           <input
             type="number"
             min="0"
@@ -145,7 +145,7 @@ export default function FinancesPage({ departmentId }) {
         </label>
 
         <label>
-          <span>Youth (Optional)</span>
+          <TextDisplay as="span" size="sm" color="muted">Youth (Optional)</TextDisplay>
           <input
             type="number"
             min="0"
@@ -155,7 +155,7 @@ export default function FinancesPage({ departmentId }) {
         </label>
 
         <label>
-          <span>Children (Optional)</span>
+          <TextDisplay as="span" size="sm" color="muted">Children (Optional)</TextDisplay>
           <input
             type="number"
             min="0"
@@ -165,7 +165,7 @@ export default function FinancesPage({ departmentId }) {
         </label>
 
         <label>
-          <span>Total Offering</span>
+          <TextDisplay as="span" size="sm" color="muted">Total Offering</TextDisplay>
           <input readOnly value={form.total} />
         </label>
 
@@ -180,9 +180,9 @@ export default function FinancesPage({ departmentId }) {
       <Card>
         <h3>Recent Offerings</h3>
         {offerings.length === 0 ? (
-          <p className={styles.emptyState}>
+          <TextDisplay as="p" size="sm" color="warning">
             No offerings have been recorded yet.
-          </p>
+          </TextDisplay>
         ) : (
           <ResponsiveDataView
             columns={[

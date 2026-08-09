@@ -13,36 +13,33 @@ export function useAdminMemberActions(
     activeChurchId,
   ];
 
-  const invalidateMembers = () => {
-    return queryClient.invalidateQueries({
+  const refreshMembers = () => {
+    queryClient.invalidateQueries({
       queryKey: membersQueryKey,
     });
   };
 
   const suspendMutation = useMutation({
     mutationFn: ({ memberId, reason }) =>
-      AdminAPI.suspendMember({memberId, reason}),
+      AdminAPI.suspendMember({ memberId, reason }),
 
-    onSuccess: async () => {
+    onSuccess: () => {
       showToast("Member suspended", "success");
-      await invalidateMembers();
+      refreshMembers();
     },
 
     onError: () => {
-      showToast(
-        "Failed to suspend member",
-        "error"
-      );
+      showToast("Failed to suspend member", "error");
     },
   });
 
   const unsuspendMutation = useMutation({
-    mutationFn: ({memberId}) =>
-      AdminAPI.unsuspendMember({memberId}),
+    mutationFn: ({ memberId }) =>
+      AdminAPI.unsuspendMember({ memberId }),
 
-    onSuccess: async () => {
+    onSuccess: () => {
       showToast("Member unsuspended", "success");
-      await invalidateMembers();
+      refreshMembers();
     },
 
     onError: () => {
@@ -51,12 +48,12 @@ export function useAdminMemberActions(
   });
 
   const activateMutation = useMutation({
-    mutationFn: (id) =>
-      AdminAPI.activateMember(id),
+    mutationFn: ({ memberId }) =>
+      AdminAPI.activateMember({ memberId }),
 
-    onSuccess: async () => {
+    onSuccess: () => {
       showToast("Member activated", "success");
-      await invalidateMembers();
+      refreshMembers();
     },
 
     onError: () => {
@@ -66,11 +63,14 @@ export function useAdminMemberActions(
 
   const updateRolesMutation = useMutation({
     mutationFn: ({ memberId, roles }) =>
-      AdminAPI.updateMemberRoles({memberId, roles}),
+      AdminAPI.updateMemberRoles({
+        memberId,
+        roles,
+      }),
 
-    onSuccess: async () => {
+    onSuccess: () => {
       showToast("Roles updated", "success");
-      await invalidateMembers();
+      refreshMembers();
     },
 
     onError: () => {
@@ -81,17 +81,22 @@ export function useAdminMemberActions(
     },
   });
 
+  const processingId =
+    suspendMutation.isPending
+      ? suspendMutation.variables?.memberId
+      : unsuspendMutation.isPending
+      ? unsuspendMutation.variables?.memberId
+      : activateMutation.isPending
+      ? activateMutation.variables?.memberId
+      : null;
+
   return {
     suspendMember: suspendMutation.mutateAsync,
     unsuspendMember: unsuspendMutation.mutateAsync,
     activateMember: activateMutation.mutateAsync,
     updateRoles: updateRolesMutation.mutateAsync,
 
-    processingId:
-  suspendMutation.variables?.memberId ??
-  unsuspendMutation.variables?.memberId ??
-  activateMutation.variables ??
-  null,
+    processingId,
 
     saving: updateRolesMutation.isPending,
 
