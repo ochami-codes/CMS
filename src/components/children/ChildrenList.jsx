@@ -67,10 +67,10 @@ export default function ChildrenList({
 
       {children.length === 0 ? (
         <div className={styles.empty}>
-          <TextDisplay as="h3" size="lg" color="muted">
+          <TextDisplay as="p" size="sm" color="muted">
             No registered children
           </TextDisplay>
-          <TextDisplay as="p" size="md" color="muted">
+          <TextDisplay as="p" size="sm" color="warning">
             If a child should appear here, kindly request the Church Clerk to register them first.
           </TextDisplay>
         </div>

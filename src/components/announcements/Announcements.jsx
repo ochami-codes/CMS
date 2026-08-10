@@ -1,5 +1,3 @@
-// src/components/Announcements.jsx
-
 import { useState } from "react";
 
 import Card from "../Card";
@@ -8,9 +6,13 @@ import Button from "../Button";
 import Loader from "../Loader";
 import ErrorState from "../ErrorState";
 import TextDisplay from "../TextDisplay";
-import useAnnouncements from "../../hooks/communication/useAnnouncements";
-import useCreateAnnouncement from "../../hooks/communication/useCreateAnnouncement";
-import useDeleteAnnouncement from "../../hooks/communication/useDeleteAnnouncement";
+
+import useChurchAnnouncements from "../../hooks/communication/useChurchAnnouncement";
+import useDepartmentAnnouncements from "../../hooks/communication/useDepartmentAnnouncement";
+import useCreateChurchAnnouncement from "../../hooks/communication/useCreateChurchAnnouncement";
+import useCreateDepartmentAnnouncement from "../../hooks/communication/useCreateDepartmentAnnouncement";
+import useDeleteChurchAnnouncement from "../../hooks/communication/useDeleteChurchAnnouncement";
+import useDeleteDepartmentAnnouncement from "../../hooks/communication/useDeleteDepartmentAnnouncement";
 
 import styles from "../../styles/components/Announcements.module.css";
 
@@ -19,84 +21,74 @@ export default function Announcements({
   title = "Announcements",
   subtitle = "Share updates with members.",
 }) {
-  const [announcementTitle, setAnnouncementTitle] = useState("");
-  const [message, setMessage] = useState("");
-
-  const {
-    announcements,
-    loading,
-    isError,
-    error,
-    refresh,
-    isFetching,
-  } = useAnnouncements({ departmentId });
-
-  const { createAnnouncement, loading: creating } = useCreateAnnouncement();
-  const { deleteAnnouncement, loading: deleting } = useDeleteAnnouncement();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    await createAnnouncement({ title: announcementTitle, message, departmentId });
-    setAnnouncementTitle("");
-    setMessage("");
-  };
-
-  const handleDelete = async (announcementId) => {
-    if (!window.confirm("Delete this announcement?")) return;
-    await deleteAnnouncement({ announcementId, departmentId });
-  };
-
-  /* -------------------------
-     LOADING STATE
-  -------------------------- */
-  if (loading) {
+  console.log("id", departmentId);
+  if (departmentId) {
     return (
-      <div className={styles.loading}>
-        <Loader message="Loading announcements..." fullScreen={false} />
-      </div>
+      <DepartmentAnnouncements
+        departmentId={departmentId}
+        title={title}
+        subtitle={subtitle}
+      />
     );
   }
 
-  /* -------------------------
-     ERROR STATE
-  -------------------------- */
-  if (isError) {
-    return (
-      <div className={styles.loading}>
-        <ErrorState
-          title="Failed to load announcements"
-          message={error?.message ?? "Something went wrong while fetching announcements."}
-          onRetry={refresh}
-        />
-      </div>
-    );
-  }
-
-  /* -------------------------
-     MAIN VIEW
-  -------------------------- */
   return (
-    <section className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <TextDisplay
-            as="h2"
-            size="2xl"
-            weight="bold"
-            color="primary"
-          >
-            {title}
-          </TextDisplay>
-          <TextDisplay
-            as="p"
-            size="md"
-            color="muted"
-          >
-            {subtitle}
-          </TextDisplay>
-        </div>
-        {isFetching && <span className={styles.refreshing}>Updating...</span>}
-      </header>
+    <ChurchAnnouncements
+      title={title}
+      subtitle={subtitle}
+    />
+  );
+}
+ //  SHARED UI
+function AnnouncementView({
+  title,
+  subtitle,
+  announcements,
+  loading,
+  error,
+  refresh,
+  isFetching,
+  creating,
+  announcementTitle,
+  message,
+  setAnnouncementTitle,
+  setMessage,
+  handleSubmit,
+  handleDelete,
+  deletingId,
+}) {
+  if (loading) {
+    return <Loader message="Loading..." fullScreen={false} />;
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title="Failed to load announcements"
+        message={
+          error?.message ??
+          "Something went wrong while fetching announcements."
+        }
+        onRetry={refresh}
+      />
+    );
+  }
+
+  return (
+    <section>
+      <TextDisplay as="h2" size="xl" weight="bold" color="primary">
+        {title}
+      </TextDisplay>
+
+      <TextDisplay as="p" size="sm" color="muted">
+        {subtitle}
+      </TextDisplay>
+
+      {isFetching && (
+        <TextDisplay size="sm" color="muted">
+          Updating...
+        </TextDisplay>
+      )}
 
       <div className={styles.grid}>
         {/* New Announcement Form */}
@@ -109,18 +101,28 @@ export default function Announcements({
           >
             New Announcement
           </TextDisplay>
-          <form className={styles.form} onSubmit={handleSubmit}>
+
+          <form
+            className={styles.form}
+            onSubmit={handleSubmit}
+          >
             <Input
               label="Title"
               value={announcementTitle}
-              onChange={(e) => setAnnouncementTitle(e.target.value)}
+              onChange={(e) =>
+                setAnnouncementTitle(e.target.value)
+              }
             />
+
             <Input
               label="Message"
               textarea
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) =>
+                setMessage(e.target.value)
+              }
             />
+
             <Button type="submit" loading={creating}>
               {creating ? "Publishing..." : "Publish"}
             </Button>
@@ -138,7 +140,10 @@ export default function Announcements({
             >
               Recent Announcements
             </TextDisplay>
-            <span className={styles.count}>{announcements.length}</span>
+
+            <span className={styles.count}>
+              {announcements.length}
+            </span>
           </div>
 
           {announcements.length === 0 ? (
@@ -148,7 +153,10 @@ export default function Announcements({
           ) : (
             <div className={styles.list}>
               {announcements.map((announcement) => (
-                <article key={announcement.id} className={styles.item}>
+                <article
+                  key={announcement.id}
+                  className={styles.item}
+                >
                   <div className={styles.content}>
                     <TextDisplay
                       as="h4"
@@ -158,18 +166,35 @@ export default function Announcements({
                     >
                       {announcement.title}
                     </TextDisplay>
-                    <TextDisplay as="p" size="sm" color="muted">
+
+                    <TextDisplay
+                      as="p"
+                      size="sm"
+                      color="muted"
+                    >
                       {announcement.message}
                     </TextDisplay>
-                    <TextDisplay as="small" size="sm" color="muted">
-                      {new Date(announcement.created_at).toLocaleString()}
+
+                    <TextDisplay
+                      as="small"
+                      size="sm"
+                      color="muted"
+                    >
+                      {new Date(
+                        announcement.created_at
+                      ).toLocaleString()}
                     </TextDisplay>
                   </div>
+
                   <Button
                     size="sm"
                     variant="danger"
-                    loading={deleting}
-                    onClick={() => handleDelete(announcement.id)}
+                    loading={
+                      deletingId === announcement.id
+                    }
+                    onClick={() =>
+                      handleDelete(announcement.id)
+                    }
                   >
                     Delete
                   </Button>
@@ -180,5 +205,153 @@ export default function Announcements({
         </Card>
       </div>
     </section>
+  );
+}
+  // CHURCH ANNOUNCEMENTS
+function ChurchAnnouncements({ title, subtitle }) {
+  const [announcementTitle, setAnnouncementTitle] =
+    useState("");
+  const [message, setMessage] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
+
+  const {
+    announcements = [],
+    loading,
+    error,
+    refresh,
+    isFetching,
+  } = useChurchAnnouncements();
+
+  const {
+    createChurchAnnouncement,
+    loading: creating,
+  } = useCreateChurchAnnouncement();
+
+  const {
+    deleteChurchAnnouncement,
+  } = useDeleteChurchAnnouncement();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    await createChurchAnnouncement({
+      title: announcementTitle,
+      message,
+    });
+
+    setAnnouncementTitle("");
+    setMessage("");
+  };
+
+  const handleDelete = async (announcementId) => {
+    if (!window.confirm("Delete this announcement?")) {
+      return;
+    }
+
+    setDeletingId(announcementId);
+
+    try {
+      await deleteChurchAnnouncement(announcementId);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  return (
+    <AnnouncementView
+      title={title}
+      subtitle={subtitle}
+      announcements={announcements}
+      loading={loading}
+      error={error}
+      refresh={refresh}
+      isFetching={isFetching}
+      creating={creating}
+      announcementTitle={announcementTitle}
+      message={message}
+      setAnnouncementTitle={setAnnouncementTitle}
+      setMessage={setMessage}
+      handleSubmit={handleSubmit}
+      handleDelete={handleDelete}
+      deletingId={deletingId}
+    />
+  );
+}
+ //  DEPARTMENT ANNOUNCEMENTS
+function DepartmentAnnouncements({
+  departmentId,
+  title,
+  subtitle,
+}) {
+  const [announcementTitle, setAnnouncementTitle] =
+    useState("");
+  const [message, setMessage] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
+
+  const {
+    announcements = [],
+    loading,
+    error,
+    refresh,
+    isFetching,
+  } = useDepartmentAnnouncements({departmentId});
+
+  const {
+    createDepartmentAnnouncement,
+    loading: creating,
+  } = useCreateDepartmentAnnouncement();
+
+  const {
+    deleteDepartmentAnnouncement,
+  } = useDeleteDepartmentAnnouncement();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    await createDepartmentAnnouncement({
+      departmentId,
+      title: announcementTitle,
+      message,
+    });
+
+    setAnnouncementTitle("");
+    setMessage("");
+  };
+
+  const handleDelete = async (announcementId) => {
+    if (!window.confirm("Delete this announcement?")) {
+      return;
+    }
+
+    setDeletingId(announcementId);
+
+    try {
+      await deleteDepartmentAnnouncement({
+        departmentId,
+        announcementId,
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  return (
+    <AnnouncementView
+      title={title}
+      subtitle={subtitle}
+      announcements={announcements}
+      loading={loading}
+      error={error}
+      refresh={refresh}
+      isFetching={isFetching}
+      creating={creating}
+      announcementTitle={announcementTitle}
+      message={message}
+      setAnnouncementTitle={setAnnouncementTitle}
+      setMessage={setMessage}
+      handleSubmit={handleSubmit}
+      handleDelete={handleDelete}
+      deletingId={deletingId}
+    />
   );
 }

@@ -572,9 +572,14 @@ deleteOfferings(sessionId) {
    ANNOUNCEMENTS / COMMUNICATION API
 ====================== */
 export const AnnouncementsAPI = {
-  fetchChurch(limit = 5) {
+  fetchChurch( limit = 5) {
     return request(
       `/announcements/church?limit=${limit}`
+    );
+  },
+  fetchDepartmentAnnouncements( departmentId, limit=5) {
+    return request(
+      `/announcements/departments/${departmentId}?limit=${limit}`
     );
   },
 

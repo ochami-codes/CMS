@@ -1,20 +1,9 @@
-import useAnnouncements from "../communication/useAnnouncements";
+import useChurchAnnouncements from "../communication/useChurchAnnouncement";
+import useMyDepartmentAnnouncements from "../communication/useMyDepartmentAnnouncement";
+export default function useDashboardAnnouncements() {
+  const church = useChurchAnnouncements();
 
-export default function useDashboardAnnouncements({
-  limit = 5,
-  enabled = true,
-} = {}) {
-  const church = useAnnouncements({
-    type: "church",
-    limit,
-    enabled,
-  });
-
-  const department = useAnnouncements({
-    type: "departments",
-    limit,
-    enabled,
-  });
+  const department = useMyDepartmentAnnouncements();
 
   return {
     churchAnnouncements:

@@ -7,7 +7,7 @@ import styles from "../../styles/dashboard/SabbathSection.module.css";
 export default function SabbathSection({ isSabbath, sabbathTimer }) {
   return (
     <section className={styles.section}>
-      <PageHeader level={3} title="Sabbath" icon={<Calendar size={18} />} />
+      <PageHeader level={3} title="Sabbath Counter" icon={<Calendar size={18} />} />
 
       <Card className={`${styles.card} ${isSabbath ? styles.cardActive : ""}`}>
         {isSabbath ? (
