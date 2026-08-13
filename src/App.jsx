@@ -24,7 +24,6 @@ import Register from "./auth/Register";
 import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordConfirm from "./auth/ResetPasswordConfirm";
 import AuthCallback from "./auth/Callback";
-import ChangePasswordSuccess from "./auth/ChangePasswordSuccess";
 
 // Pages
 import SuspendedScreen from "./pages/SuspendedScreen";
@@ -50,7 +49,6 @@ import MessagesPage from "./pages/messages/MessagesPage";
 
 // Settings
 import ProfilePage from "./pages/settings/profiles/ProfilePage";
-import ChangePassword from "./pages/settings/ChangePassword";
 
 // Members
 import MyRoleRequests from "./components/members/MyRoleRequests";
@@ -193,11 +191,6 @@ function App() {
                 element={<AuthCallback />}
               />
 
-              <Route
-                path="/profile/change-password-success"
-                element={<ChangePasswordSuccess />}
-              />
-
             </Route>
 
 
@@ -268,12 +261,6 @@ function App() {
                   path="/dashboard/profiles"
                   element={<ProfilePage />}
                 />
-
-                <Route
-                  path="/dashboard/settings/change-password"
-                  element={<ChangePassword />}
-                />
-
 
                 {/* Admin */}
 

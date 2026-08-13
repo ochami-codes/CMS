@@ -1,48 +1,44 @@
+// src/hooks/profiles/useChangePassword.js
+
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 
-import { AuthAPI } from "../../utils/api";
+import { ProfileAPI } from "../../utils/api";
+import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../components/ToastProvider";
 
 export default function useChangePassword() {
-  const navigate = useNavigate();
+  const { logout } = useAuth();
   const { showToast } = useToast();
 
-  const [show, setShow] = useState(false);
-  const [newPassword, setNewPassword] =
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] =
     useState("");
-  const [
-    confirmPassword,
-    setConfirmPassword,
-  ] = useState("");
 
   const mutation = useMutation({
-    mutationFn: async (password) => {
-      return await AuthAPI.changePassword({
+    mutationFn: (password) =>
+      ProfileAPI.changePassword({
         newPassword: password,
-      });
-    },
+      }),
 
-    onSuccess: () => {
+    onSuccess: async (data) => {
+      setNewPassword("");
+      setConfirmPassword("");
+
       showToast(
-        "Password updated successfully.",
+        data?.message ||
+          "Password updated successfully. Please sign in again.",
         "success"
       );
 
-      navigate(
-        "/profile/change-password-success",
-        {
-          state: {
-            fromProfile: true,
-          },
-        }
-      );
+      if (data?.logout) {
+        await logout();
+      }
     },
 
     onError: (err) => {
       showToast(
-        err?.message ??
+        err?.message ||
           "Failed to update password.",
         "error"
       );
@@ -52,12 +48,17 @@ export default function useChangePassword() {
   const changePassword = async (e) => {
     e.preventDefault();
 
+    if (mutation.isPending) {
+      return false;
+    }
+
     if (!newPassword || !confirmPassword) {
       showToast(
         "Both password fields are required.",
         "error"
       );
-      return;
+
+      return false;
     }
 
     if (newPassword !== confirmPassword) {
@@ -65,7 +66,8 @@ export default function useChangePassword() {
         "Passwords do not match.",
         "error"
       );
-      return;
+
+      return false;
     }
 
     if (newPassword.length < 6) {
@@ -73,16 +75,16 @@ export default function useChangePassword() {
         "Password must be at least 6 characters.",
         "error"
       );
-      return;
+
+      return false;
     }
 
     await mutation.mutateAsync(newPassword);
+
+    return true;
   };
 
   return {
-    show,
-    toggle: () => setShow((v) => !v),
-
     newPassword,
     setNewPassword,
 
@@ -92,5 +94,9 @@ export default function useChangePassword() {
     changePassword,
 
     loading: mutation.isPending,
+
+    isError: mutation.isError,
+
+    error: mutation.error,
   };
 }

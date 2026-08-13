@@ -17,13 +17,11 @@ export default function useProfile() {
 
   const updateMutation = useMutation({
     mutationFn: (updates) =>
-      ProfileAPI.update(updates),
+      ProfileAPI.updateProfile(updates),
 
     onSuccess: () => {
       showToast(
-        "Profile updated successfully",
-        "success"
-      );
+        "Profile updated successfully");
 
       queryClient.invalidateQueries({
         queryKey: ["profile"],

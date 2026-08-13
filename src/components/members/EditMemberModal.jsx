@@ -24,9 +24,6 @@ export default function EditMemberModal({
       phone:
         member.phone || "",
 
-      email:
-        member.email || "",
-
       marital_status:
         member.marital_status || "",
 
@@ -142,26 +139,6 @@ export default function EditMemberModal({
                   )
                 }
                 placeholder="e.g. 0712345678"
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label>
-                Email Address
-              </label>
-
-              <input
-                type="email"
-                value={
-                  formData.email
-                }
-                onChange={(e) =>
-                  updateField(
-                    "email",
-                    e.target.value
-                  )
-                }
-                placeholder="e.g. member@email.com"
               />
             </div>
 

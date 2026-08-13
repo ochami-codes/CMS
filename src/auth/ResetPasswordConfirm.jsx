@@ -16,6 +16,7 @@ export default function ResetPasswordConfirm() {
   const navigate = useNavigate();
 
   const [sessionReady, setSessionReady] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -30,30 +31,119 @@ export default function ResetPasswordConfirm() {
   /* ------------------ session setup ------------------ */
 
   useEffect(() => {
-    const hash = window.location.hash.replace("#", "");
-    const params = new URLSearchParams(hash);
+    let mounted = true;
 
-    const access_token = params.get("access_token");
-    const refresh_token = params.get("refresh_token");
+    const initializeRecoverySession = async () => {
+      try {
+        /*
+         * Supabase may have placed the recovery tokens
+         * in the URL hash.
+         */
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
 
-    if (!access_token || !refresh_token) {
-      setError("Invalid or expired password reset link.");
-      return;
-    }
+        const accessToken = params.get("access_token");
+        const refreshToken = params.get("refresh_token");
+        const type = params.get("type");
 
-    supabase.auth
-      .setSession({
-        access_token,
-        refresh_token,
-      })
-      .then(({ error }) => {
-        if (error) {
-          setError("Invalid or expired password reset link.");
+        /*
+         * If Supabase gave us recovery tokens, establish
+         * the session explicitly.
+         */
+        if (
+          type === "recovery" &&
+          accessToken &&
+          refreshToken
+        ) {
+          const { error: sessionError } =
+            await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+          if (!mounted) return;
+
+          if (sessionError) {
+            console.error(
+              "Recovery session error:",
+              sessionError
+            );
+
+            setError(
+              "Invalid or expired password reset link."
+            );
+
+            setCheckingSession(false);
+            return;
+          }
+
+          setSessionReady(true);
+          setCheckingSession(false);
+
           return;
         }
 
-        setSessionReady(true);
-      });
+        /*
+         * The Supabase client may already have processed
+         * the recovery session.
+         */
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!mounted) return;
+
+        if (session) {
+          setSessionReady(true);
+        } else {
+          setError(
+            "Invalid or expired password reset link."
+          );
+        }
+
+        setCheckingSession(false);
+      } catch (err) {
+        console.error(
+          "Password recovery initialization error:",
+          err
+        );
+
+        if (!mounted) return;
+
+        setError(
+          "Invalid or expired password reset link."
+        );
+
+        setCheckingSession(false);
+      }
+    };
+
+    initializeRecoverySession();
+
+    /*
+     * Also listen for Supabase's recovery event.
+     */
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!mounted) return;
+
+        if (
+          event === "PASSWORD_RECOVERY" &&
+          session
+        ) {
+          setSessionReady(true);
+          setCheckingSession(false);
+          setError("");
+        }
+      }
+    );
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   /* ------------------ submit ------------------ */
@@ -65,13 +155,11 @@ export default function ResetPasswordConfirm() {
 
     setError("");
 
-    /* Password confirmation */
     if (password !== confirm) {
       setError("Passwords do not match.");
       return;
     }
 
-    /* Password strength */
     if (!isStrongPassword(password)) {
       setError(
         "Password must be at least 6 characters and include letters and numbers."
@@ -79,7 +167,6 @@ export default function ResetPasswordConfirm() {
       return;
     }
 
-    /* Update password */
     updatePassword(password, {
       onSuccess: async () => {
         await supabase.auth.signOut();
@@ -98,15 +185,24 @@ export default function ResetPasswordConfirm() {
     });
   };
 
+  /* ------------------ checking ------------------ */
+
+  if (checkingSession) {
+    return (
+      <Loader
+        message="Verifying reset link… God loves you!"
+        fullScreen={false}
+      />
+    );
+  }
+
   /* ------------------ invalid link ------------------ */
 
   if (error && !sessionReady) {
     return (
       <div className={styles.container}>
         <div className={styles.card}>
-          <p className={styles.error}>
-            {error}
-          </p>
+          <p className={styles.error}>{error}</p>
 
           <Link
             to="/login"
@@ -116,14 +212,6 @@ export default function ResetPasswordConfirm() {
           </Link>
         </div>
       </div>
-    );
-  }
-
-  /* ------------------ loading ------------------ */
-
-  if (!sessionReady) {
-    return (
-      <Loader message="Verifying reset link… God loves you!" fullScreen={false} />
     );
   }
 
@@ -165,9 +253,7 @@ export default function ResetPasswordConfirm() {
           />
 
           {error && (
-            <p className={styles.error}>
-              {error}
-            </p>
+            <p className={styles.error}>{error}</p>
           )}
 
           <Button

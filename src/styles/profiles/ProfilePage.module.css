@@ -45,20 +45,18 @@
 .collapseToggle:active {
   transform: scale(0.94);
 }
-
-
 /* =========================================================
    ACCOUNT INFORMATION
    ========================================================= */
 
-.profileGrid {
+.profileFields {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   padding: 4px 0;
 }
 
-.profileItem {
+.profileField {
   min-width: 0;
   display: flex;
   align-items: flex-start;
@@ -75,13 +73,13 @@
     transform 0.2s ease;
 }
 
-.profileItem:hover {
+.profileField:hover {
   border-color: var(--primary-light, #bfdbfe);
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
   transform: translateY(-1px);
 }
 
-.icon {
+.profileField > svg {
   flex-shrink: 0;
   width: 40px;
   height: 40px;
@@ -93,23 +91,27 @@
   color: var(--primary, #2563eb);
 }
 
-.label {
+.fieldLabel {
+  display: block;
   margin: 0 0 5px;
+
   font-size: 12px;
   font-weight: 600;
   line-height: 1.4;
+
   color: var(--text-secondary, #64748b);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.value {
-  margin: 0;
+.fieldValue {
+  display: block;
   max-width: 100%;
 
   font-size: 15px;
   font-weight: 600;
   line-height: 1.5;
+
   color: var(--text-primary, #0f172a);
 
   overflow: hidden;
@@ -119,32 +121,196 @@
 
 
 /* =========================================================
-   PASSWORD SECTION
+   SECTION ACTIONS
    ========================================================= */
 
-.passwordSection {
+.sectionActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.editButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+  padding: 0;
+
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+
+  color: var(--text-secondary, #64748b);
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.editButton:hover {
+  background: var(--primary-light-bg, #eff6ff);
+  color: var(--primary, #2563eb);
+}
+
+.editButton:focus-visible {
+  outline: 2px solid var(--primary, #2563eb);
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .profileFields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .profileFields {
+    grid-template-columns: 1fr;
+  }
+
+  .profileField {
+    padding: 16px;
+  }
+}
+  /* =========================================================
+   ACCOUNT SECURITY
+   ========================================================= */
+
+.securitySection {
   display: flex;
   flex-direction: column;
+  gap: 0;
+}
+
+.securityItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 20px;
+
+  padding: 18px 0;
 }
 
-.passwordSection > button {
-  align-self: flex-start;
+.securityInfo {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.passwordForm {
-  width: 100%;
-  max-width: 520px;
+.securityInfo > svg {
+  flex-shrink: 0;
+
+  width: 40px;
+  height: 40px;
+  padding: 10px;
+  box-sizing: border-box;
+
+  border-radius: 10px;
+
+  background: var(--primary-light-bg, #eff6ff);
+  color: var(--primary, #2563eb);
+}
+
+.securityInfo > div {
+  min-width: 0;
 
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 4px;
+}
 
-  padding-top: 20px;
-  border-top: 1px solid var(--border-color, #e2e8f0);
+.securityLabel {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+
+  color: var(--text-secondary, #64748b);
+
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.securityValue {
+  max-width: 100%;
+
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+
+  color: var(--text-primary, #0f172a);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 
+/* =========================================================
+   DIVIDER
+   ========================================================= */
+
+.divider {
+  width: 100%;
+  height: 1px;
+
+  margin: 4px 0;
+
+  background: var(--border-color, #e2e8f0);
+}
+
+
+/* =========================================================
+   SECURITY FORMS
+   ========================================================= */
+
+.securitySection form {
+  width: 100%;
+
+  margin: 0 0 18px;
+  padding: 18px;
+
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+
+  background: var(--surface-secondary, #f8fafc);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .securityItem {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .securityItem button {
+    width: 100%;
+  }
+
+  .securityInfo {
+    width: 100%;
+  }
+
+  .securityValue {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
 /* =========================================================
    CONTRIBUTIONS / FINANCES
    ========================================================= */

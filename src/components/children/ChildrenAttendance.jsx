@@ -7,14 +7,21 @@ import Button from "../Button";
 import Loader from "../Loader";
 import ResponsiveDataView from "../ResponsiveDataView";
 import ErrorState from "../ErrorState";
-import useAttendance from "../../hooks/attendance/useAttendance";
 import TextDisplay from "../TextDisplay";
+
+import useAttendance from "../../hooks/attendance/useAttendance";
+
 import styles from "../../styles/components/ChildrenAttendance.module.css";
 
-export default function ChildrenAttendance({ departmentId, children = [], loading }) {
+export default function ChildrenAttendance({
+  departmentId,
+  children = [],
+  loading,
+}) {
   const [attendanceDate, setAttendanceDate] = useState(
     () => new Date().toISOString().split("T")[0]
   );
+
   const [attendance, setAttendance] = useState([]);
 
   const {
@@ -30,61 +37,121 @@ export default function ChildrenAttendance({ departmentId, children = [], loadin
     attendanceDate,
   });
 
-  const hasAttendance = attendance.some((child) => child.present);
-
+  /*
+   * Initialize the attendance register whenever
+   * the children list changes.
+   */
   useEffect(() => {
-    setAttendance((current) =>
-      children.map((child) => {
-        const existing = current.find((item) => item.id === child.id);
-        return {
-          ...child,
-          present: existing?.present ?? false,
-        };
-      })
+    setAttendance(
+      children.map((child) => ({
+        ...child,
+        status: "absent",
+        remarks: "",
+      }))
     );
   }, [children]);
 
-  const toggleAttendance = (id) => {
+  const toggleAttendance = (childId) => {
+    setAttendance((current) =>
+      current.map((child) => {
+        if (child.id !== childId) {
+          return child;
+        }
+
+        return {
+          ...child,
+          status:
+            child.status === "present"
+              ? "absent"
+              : "present",
+        };
+      })
+    );
+  };
+  const updateRemarks = (childId, remarks) => {
     setAttendance((current) =>
       current.map((child) =>
-        child.id === id ? { ...child, present: !child.present } : child
+        child.id === childId
+          ? {
+              ...child,
+              remarks,
+            }
+          : child
       )
     );
   };
-
   const handleSave = async () => {
     await saveAttendance({
       attendanceDate,
-      attendance: attendance.map(({ id, present }) => ({
-        childId: id,
-        present,
+
+      records: attendance.map((child) => ({
+        memberId: null,
+        childId: child.id,
+        status: child.status,
+        remarks: child.remarks?.trim() || null,
       })),
     });
   };
 
   const columns = [
-    { key: "full_name", label: "Name" },
-    { key: "parent_name", label: "Parent" },
+  {
+    key: "full_name",
+    label: "Name",
+  },
+
+  {
+    key: "parent_name",
+    label: "Parent",
+  },
+
+  {
+    key: "status",
+    label: "Present",
+    render: (status, child) => (
+      <input
+        type="checkbox"
+        checked={status === "present"}
+        onChange={() => toggleAttendance(child.id)}
+      />
+    ),
+  },
+
+  {
+    key: "remarks",
+    label: "Remarks",
+    render: (remarks, child) => (
+      <input
+        type="text"
+        value={remarks ?? ""}
+        placeholder="Optional"
+        onChange={(event) =>
+          updateRemarks(child.id, event.target.value)
+        }
+      />
+    ),
+  },
+];
+  const historyColumns = [
     {
-      key: "present",
-      label: "Present",
-      render: (child) => (
-        <input
-          type="checkbox"
-          checked={child.present}
-          onChange={() => toggleAttendance(child.id)}
-        />
-      ),
+      key: "full_name",
+      label: "Name",
+    },
+
+    {
+      key: "status",
+      label: "Status",
+    },
+
+    {
+      key: "remarks",
+      label: "Remarks",
     },
   ];
 
-  const historyColumns = [
-    { key: "full_name", label: "Name" },
-    { key: "status", label: "Status" },
-  ];
+  const hasChildren = attendance.length > 0;
 
   return (
-    <div className={styles.wrapper}>
+    <div className={styles.container}>
       {/* Record Attendance */}
       <Card>
         <header className={styles.header}>
@@ -97,7 +164,12 @@ export default function ChildrenAttendance({ departmentId, children = [], loadin
             >
               Record Attendance
             </TextDisplay>
-            <TextDisplay as="p" size="md" color="muted">
+
+            <TextDisplay
+              as="p"
+              size="md"
+              color="muted"
+            >
               Mark attendance for each registered child.
             </TextDisplay>
           </div>
@@ -106,22 +178,46 @@ export default function ChildrenAttendance({ departmentId, children = [], loadin
             type="date"
             value={attendanceDate}
             className={styles.date}
-            onChange={(e) => setAttendanceDate(e.target.value)}
+            onChange={(event) =>
+              setAttendanceDate(event.target.value)
+            }
           />
         </header>
 
         {loading ? (
-          <Loader message="Loading children..." fullScreen={false} />
+          <Loader
+            message="Loading children..."
+            fullScreen={false}
+          />
+        ) : attendance.length === 0 ? (
+          <div className={styles.empty}>
+            <TextDisplay
+              as="p"
+              size="md"
+              color="muted"
+            >
+              No registered children found.
+            </TextDisplay>
+          </div>
         ) : (
-          <ResponsiveDataView columns={columns} data={attendance} />
+          <ResponsiveDataView
+            columns={columns}
+            data={attendance}
+          />
         )}
 
         <footer className={styles.actions}>
           <Button
-            disabled={loading || saving || !hasAttendance}
+            disabled={
+              loading ||
+              saving ||
+              !hasChildren
+            }
             onClick={handleSave}
           >
-            {saving ? "Saving attendance..." : "Save Attendance"}
+            {saving
+              ? "Saving attendance..."
+              : "Save Attendance"}
           </Button>
         </footer>
       </Card>
@@ -136,31 +232,55 @@ export default function ChildrenAttendance({ departmentId, children = [], loadin
               weight="bold"
               color="primary"
             >
-              Last Sabbath Attendance
+              Previous Attendance
             </TextDisplay>
-            <TextDisplay as="p" size="md" color="muted">
+
+            <TextDisplay
+              as="p"
+              size="md"
+              color="muted"
+            >
               Review the previous attendance register.
             </TextDisplay>
           </div>
         </header>
 
         {attendanceLoading ? (
-          <Loader message="Loading attendance..." fullScreen={false} />
+          <Loader
+            message="Loading attendance..."
+            fullScreen={false}
+          />
         ) : isError ? (
           <ErrorState
             title="Unable to load attendance"
-            message={error?.message ?? "We couldn't load attendance records."}
+            message={
+              error?.message ??
+              "We couldn't load attendance records."
+            }
             onRetry={refresh}
           />
         ) : lastSabbath.length > 0 ? (
-          <ResponsiveDataView columns={historyColumns} data={lastSabbath} />
+          <ResponsiveDataView
+            columns={historyColumns}
+            data={lastSabbath}
+          />
         ) : (
           <div className={styles.empty}>
-            <TextDisplay as="p" size="md" color="muted">
+            <TextDisplay
+              as="p"
+              size="md"
+              color="muted"
+            >
               No attendance records available.
             </TextDisplay>
-            <TextDisplay as="small" size="sm" color="muted">
-              Once attendance has been recorded, the previous Sabbath's register will appear here.
+
+            <TextDisplay
+              as="p"
+              size="sm"
+              color="muted"
+            >
+              Once attendance has been recorded, the
+              previous Sabbath's register will appear here.
             </TextDisplay>
           </div>
         )}

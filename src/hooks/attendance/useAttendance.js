@@ -13,62 +13,58 @@ export default function useAttendance({
   attendanceDate,
   enabled = true,
 } = {}) {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
+  /*
+   * Fetch attendance register
+   */
   const registerQuery = useQuery({
     queryKey: [
-  "attendance",
-  departmentId,
-  attendanceDate,
-],
+      "attendance",
+      departmentId,
+      attendanceDate,
+    ],
 
     enabled:
-      enabled && !!attendanceDate,
+      enabled &&
+      !!departmentId &&
+      !!attendanceDate,
 
     queryFn: () =>
-      AttendanceAPI.save({
+      AttendanceAPI.fetch({
         departmentId,
         attendanceDate,
       }),
 
-    staleTime:
-      5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
 
     select: (data) => ({
-      register:
-        data?.register ?? [],
-
-      lastSabbath:
-        data?.lastSabbath ?? [],
+      register: data?.register ?? [],
+      lastSabbath: data?.lastSabbath ?? [],
     }),
-
-    onError: (error) => {
-      console.error(error);
-
-      toast.error(
-        error?.message ??
-          "Failed to load attendance"
-      );
-    },
   });
 
+  /*
+   * Save attendance
+   */
   const mutation = useMutation({
-    mutationFn:
-      AttendanceAPI.save,
+    mutationFn: (payload) =>
+      AttendanceAPI.save({
+        departmentId,
+        attendanceDate,
+        records: payload.records,
+      }),
 
     onSuccess: () => {
-      toast.success(
-        "Attendance saved"
-      );
+      toast.success("Attendance saved");
 
       queryClient.invalidateQueries({
-        queryKey:["attendance"]
+        queryKey: ["attendance"],
       });
     },
 
     onError: (error) => {
-      console.error(error);
+      console.error("Save attendance error:", error);
 
       toast.error(
         error?.message ??
@@ -77,40 +73,65 @@ export default function useAttendance({
     },
   });
 
- return {
-  register:
-    registerQuery.data?.register ?? [],
+  return {
+    /*
+     * Attendance data
+     */
+    register:
+      registerQuery.data?.register ?? [],
 
-  lastSabbath:
-    registerQuery.data?.lastSabbath ?? [],
+    lastSabbath:
+      registerQuery.data?.lastSabbath ?? [],
 
-  // Query state
-  loading:
-    registerQuery.isPending,
+    /*
+     * Query state
+     */
+    loading:
+      registerQuery.isPending,
 
-  isError:
-    registerQuery.isError,
+    isError:
+      registerQuery.isError,
 
-  error:
-    registerQuery.error,
+    error:
+      registerQuery.error,
 
-  // Query actions
-  refresh:
-    registerQuery.refetch,
+    /*
+     * Query actions
+     */
+    refresh:
+      registerQuery.refetch,
 
-  // Mutation state
-  saving:
-    mutation.isPending,
+    /*
+     * Mutation state
+     */
+    saving:
+      mutation.isPending,
 
-  // Mutation action
-  saveAttendance:
-    mutation.mutateAsync,
+    /*
+     * Mutation action
+     *
+     * Expected:
+     * {
+     *   records: [
+     *     {
+     *       memberId: null,
+     *       childId: 123,
+     *       status: "present",
+     *       remarks: "..."
+     *     }
+     *   ]
+     * }
+     */
+    saveAttendance:
+      mutation.mutateAsync,
 
-  // Optional: expose mutation error too
-  saveError:
-    mutation.error,
+    /*
+     * Mutation error state
+     */
+    saveError:
+      mutation.error,
 
-  saveIsError:
-    mutation.isError,
-};
+    saveIsError:
+      mutation.isError,
+  };
 }
