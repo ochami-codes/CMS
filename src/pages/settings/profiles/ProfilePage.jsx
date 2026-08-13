@@ -4,6 +4,7 @@ import {
   Mail,
   Phone,
   Lock,
+  Pencil,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -11,13 +12,13 @@ import {
 import useProfile from "../../../hooks/profiles/useProfile";
 import useChangePassword from "../../../hooks/profiles/useChangePassword";
 import useMyGivingLedger from "../../../hooks/treasury/useMyGivingLedger";
+import { useAuth } from "../../../context/AuthContext";
 
 import ProfileForm from "./ProfileForm";
 import Contributions from "./Contributions";
-
+import ChangePassword from "./ChangePassword";
 import Card from "../../../components/Card";
 import Button from "../../../components/Button";
-import Input from "../../../components/Input";
 import Loader from "../../../components/Loader";
 import ErrorState from "../../../components/ErrorState";
 
@@ -32,17 +33,20 @@ function CollapseToggle({ open, onClick }) {
         e.stopPropagation();
         onClick();
       }}
+      aria-label={open ? "Collapse section" : "Expand section"}
     >
       {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
     </button>
   );
 }
 
-function Section({ title, open, onToggle, children }) {
+function Section({ title, open, onToggle, action, children }) {
   return (
     <Card
       title={title}
-      action={<CollapseToggle open={open} onClick={onToggle} />}
+      action={
+        action || <CollapseToggle open={open} onClick={onToggle} />
+      }
     >
       {open && children}
     </Card>
@@ -60,42 +64,41 @@ export default function ProfilePage() {
   } = useProfile();
 
   const password = useChangePassword();
+  const { user } = useAuth();
+
+  const hasChurchMembership = user?.churches.some(
+    (church) => church.status === "active"
+  );
 
   const {
     summary,
     transactions,
     isError: ledgerError,
     refresh: refreshLedger,
-  } = useMyGivingLedger();
+  } = useMyGivingLedger({
+    enabled: hasChurchMembership,
+  });
 
+  // Section toggles
   const [showAccount, setShowAccount] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showSecurity, setShowSecurity] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const [showContributions, setShowContributions] = useState(false);
 
-  if (loading) {
-    return <Loader message="Loading profile..." />;
-  }
+  if (loading) return <Loader />;
 
   if (profileError) {
     return (
-      <main className={styles.page}>
-        <ErrorState
-          message="Failed to load profile."
-          onRetry={refreshProfile}
-        />
-      </main>
+      <ErrorState
+        message="Failed to load your profile."
+        onRetry={refreshProfile}
+      />
     );
   }
 
   if (!profile) {
-    return (
-      <main className={styles.page}>
-        <Card>
-          <p>Profile not found.</p>
-        </Card>
-      </main>
-    );
+    return <ErrorState message="Profile not found." />;
   }
 
   const profileFields = [
@@ -106,100 +109,111 @@ export default function ProfilePage() {
 
   return (
     <main className={styles.page}>
+      {/* My Account */}
       <Section
         title="My Account"
         open={showAccount}
         onToggle={() => setShowAccount((prev) => !prev)}
+        action={
+          <div className={styles.sectionActions}>
+            <button
+              type="button"
+              className={styles.editButton}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowEdit((prev) => !prev);
+                setShowAccount(true);
+              }}
+              aria-label={showEdit ? "Close profile editor" : "Edit profile"}
+            >
+              <Pencil size={18} />
+            </button>
+            <CollapseToggle
+              open={showAccount}
+              onClick={() => setShowAccount((prev) => !prev)}
+            />
+          </div>
+        }
       >
-        <div className={styles.profileGrid}>
-          {profileFields.map(({ label, value, Icon }) => (
-            <div key={label} className={styles.profileItem}>
-              <Icon size={20} className={styles.icon} />
+        {showEdit ? (
+          <ProfileForm
+            profile={profile}
+            onUpdate={updateProfile}
+            loading={updating}
+          />
+        ) : (
+          <div className={styles.profileFields}>
+            {profileFields.map(({ label, value, Icon }) => (
+              <div key={label} className={styles.profileField}>
+                <Icon size={18} />
+                <div>
+                  <span className={styles.fieldLabel}>{label}</span>
+                  <span className={styles.fieldValue}>{value}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
+
+      {/* Account Security */}
+      <Section
+        title="Account Security"
+        open={showSecurity}
+        onToggle={() => setShowSecurity((prev) => !prev)}
+      >
+        <div className={styles.securitySection}>
+
+          <div className={styles.divider} />
+
+          {/* PASSWORD */}
+          <div className={styles.securityItem}>
+            <div className={styles.securityInfo}>
+              <Lock size={18} />
               <div>
-                <p className={styles.label}>{label}</p>
-                <p className={styles.value}>{value}</p>
+                <span className={styles.securityLabel}>Password</span>
+                <span className={styles.securityValue}>••••••••••••</span>
               </div>
             </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section
-        title="Edit Profile"
-        open={showEdit}
-        onToggle={() => setShowEdit((prev) => !prev)}
-      >
-        <ProfileForm
-          profile={profile}
-          onUpdate={updateProfile}
-          loading={updating}
-        />
-      </Section>
-
-      <Section
-        title="Password"
-        open={showPassword}
-        onToggle={() => setShowPassword((prev) => !prev)}
-      >
-        <div className={styles.passwordSection}>
-          <Button variant="secondary" onClick={password.toggle}>
-            <Lock size={18} />
-            Change Password
-          </Button>
-
-          {password.show && (
-            <form
-              onSubmit={password.changePassword}
-              className={styles.passwordForm}
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowChangePassword((prev) => !prev)}
             >
-              <Input
-                label="New Password"
-                type="password"
-                value={password.newPassword}
-                onChange={(e) => password.setNewPassword(e.target.value)}
-              />
+              {showChangePassword ? "Cancel" : "Change Password"}
+            </Button>
+          </div>
 
-              <Input
-                label="Confirm Password"
-                type="password"
-                value={password.confirmPassword}
-                onChange={(e) => password.setConfirmPassword(e.target.value)}
-              />
-
-              <Button type="submit" loading={password.loading}>
-                Update Password
-              </Button>
-            </form>
+          {showChangePassword && (
+            <ChangePassword
+              onSuccess={() => setShowChangePassword(false)}
+              onCancel={() => setShowChangePassword(false)}
+            />
           )}
         </div>
       </Section>
 
-      {ledgerError ? (
+      {/* Contributions */}
+      {hasChurchMembership && (
         <Section
           title="Contributions"
           open={showContributions}
           onToggle={() => setShowContributions((prev) => !prev)}
         >
-          <ErrorState
-            message="Failed to load contributions."
-            onRetry={refreshLedger}
-          />
-        </Section>
-      ) : (
-        summary && (
-          <Section
-            title="Contributions"
-            open={showContributions}
-            onToggle={() => setShowContributions((prev) => !prev)}
-          >
+          {ledgerError ? (
+            <ErrorState
+              message="Failed to load contributions."
+              onRetry={refreshLedger}
+            />
+          ) : summary ? (
             <div className={styles.analytics}>
               <Contributions summary={summary} transactions={transactions} />
             </div>
-          </Section>
-        )
+          ) : (
+            <Loader />
+          )}
+        </Section>
       )}
     </main>
   );
 }
-
-

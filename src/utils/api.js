@@ -27,9 +27,11 @@ const buildQuery = (filters = {}) => {
    PROFILE API
 ====================== */
 export const ProfileAPI = {
-  get: () => request("/profile"),
-  update: (updates) =>
-    request("/profile", { method: "PUT", body: JSON.stringify(updates) }),
+  get: () => request("/profile/me"),
+  updateProfile: (updates) =>
+    request("/profile/me", { method: "PATCH", body: JSON.stringify(updates) }),
+  changePassword: (password) =>
+    request("/profile/me/password", { method: "PATCH", body: JSON.stringify({password})}),
 };
 
 /* ======================
@@ -380,7 +382,7 @@ export const AuthAPI = {
   me: () => request("/auth/me"),
  
   login: (payload) => request("/auth/login", { method: "POST", body: JSON.stringify(payload) }),
- 
+  logout: () => request("/auth/logout", { method: "POST"}),
   register: (payload) => request("/auth/register", { method: "POST", body: JSON.stringify(payload) }),
  
   resendVerification: (email) =>
@@ -388,8 +390,6 @@ export const AuthAPI = {
  
   resetPassword: (email) =>
     request("/auth/password/reset", { method: "POST", body: JSON.stringify({ email }) }),
-  changePassword: (newPassword) =>
-    request("/auth/password/change", { method: "POST", body: JSON.stringify({ newPassword }) }),
 
   getConferences: () => request("/reusables/conferences"),
 };
@@ -397,8 +397,10 @@ export const AuthAPI = {
 /* ======================
    ATTENDANCE API
 ====================== */
-
 export const AttendanceAPI = {
+  /*
+   * Fetch attendance register
+   */
   fetch: ({
     departmentId,
     attendanceDate,
@@ -427,13 +429,23 @@ export const AttendanceAPI = {
         : "/attendance"
     );
   },
-
-  save: (payload) =>
+  save: ({
+    departmentId,
+    attendanceDate,
+    records = [],
+  } = {}) =>
     request("/attendance", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        departmentId,
+        attendanceDate,
+        records,
+      }),
     }),
 
+  /*
+   * Attendance summary
+   */
   summary: ({
     departmentId,
     period,

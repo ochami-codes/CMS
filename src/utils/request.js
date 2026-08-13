@@ -1,5 +1,3 @@
-// utils/request.js
-
 import { handleApiError } from "../errors/errorHandler";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -9,16 +7,16 @@ export async function request(
   options = {},
   skipAuth = false
 ) {
-  const token = !skipAuth
-    ? localStorage.getItem("access_token")
-    : null;
-
   const {
     signal: externalSignal,
     ...fetchOptions
   } = options;
 
   const controller = new AbortController();
+
+  /* ----------------------------------------
+     EXTERNAL ABORT SIGNAL
+  ---------------------------------------- */
 
   if (externalSignal) {
     if (externalSignal.aborted) {
@@ -38,19 +36,16 @@ export async function request(
   const isStringBody =
     typeof fetchOptions.body === "string";
 
+  /* ----------------------------------------
+     HEADERS
+  ---------------------------------------- */
+
   const headers = {
     ...(isFormData
       ? {}
       : {
-          "Content-Type":
-            "application/json",
+          "Content-Type": "application/json",
         }),
-
-    ...(token
-      ? {
-          Authorization: `Bearer ${token}`,
-        }
-      : {}),
 
     ...(fetchOptions.headers || {}),
   };
@@ -60,7 +55,24 @@ export async function request(
       `${API_URL}${endpoint}`,
       {
         ...fetchOptions,
+
+        /*
+        ----------------------------------------
+        COOKIE AUTHENTICATION
+
+        Browser automatically sends:
+        access_token
+        refresh_token
+
+        React cannot access HttpOnly cookies.
+        ----------------------------------------
+        */
+        credentials: skipAuth
+          ? "omit"
+          : "include",
+
         headers,
+
         signal: controller.signal,
 
         body:
@@ -75,14 +87,11 @@ export async function request(
     );
 
     const contentType =
-      res.headers.get("content-type") ||
-      "";
+      res.headers.get("content-type") || "";
 
-    /*
-    ----------------------------------------
-    PDF RESPONSE
-    ----------------------------------------
-    */
+    /* ----------------------------------------
+       PDF RESPONSE
+    ---------------------------------------- */
 
     if (
       contentType.includes(
@@ -92,19 +101,16 @@ export async function request(
       if (!res.ok) {
         throw handleApiError({
           status: res.status,
-          message:
-            "PDF request failed.",
+          message: "PDF request failed.",
         });
       }
 
       return await res.blob();
     }
 
-    /*
-    ----------------------------------------
-    BINARY RESPONSE
-    ----------------------------------------
-    */
+    /* ----------------------------------------
+       BINARY RESPONSE
+    ---------------------------------------- */
 
     if (
       contentType.includes(
@@ -122,11 +128,9 @@ export async function request(
       return await res.blob();
     }
 
-    /*
-    ----------------------------------------
-    JSON RESPONSE
-    ----------------------------------------
-    */
+    /* ----------------------------------------
+       JSON RESPONSE
+    ---------------------------------------- */
 
     let data = null;
 
@@ -136,11 +140,9 @@ export async function request(
       // Empty or non-JSON response
     }
 
-    /*
-    ----------------------------------------
-    API ERROR
-    ----------------------------------------
-    */
+    /* ----------------------------------------
+       API ERROR
+    ---------------------------------------- */
 
     if (!res.ok) {
       throw handleApiError({
@@ -156,31 +158,25 @@ export async function request(
 
     return data?.data ?? data;
   } catch (error) {
-    /*
-    ----------------------------------------
-    ALREADY NORMALIZED ERROR
-    ----------------------------------------
-    */
+    /* ----------------------------------------
+       ALREADY NORMALIZED ERROR
+    ---------------------------------------- */
 
     if (error?.type || error?.code) {
       throw error;
     }
 
-    /*
-    ----------------------------------------
-    REQUEST CANCELLED
-    ----------------------------------------
-    */
+    /* ----------------------------------------
+       REQUEST CANCELLED
+    ---------------------------------------- */
 
     if (error?.name === "AbortError") {
       throw error;
     }
 
-    /*
-    ----------------------------------------
-    NETWORK ERROR
-    ----------------------------------------
-    */
+    /* ----------------------------------------
+       NETWORK ERROR
+    ---------------------------------------- */
 
     if (error instanceof TypeError) {
       throw handleApiError({
@@ -189,11 +185,9 @@ export async function request(
       });
     }
 
-    /*
-    ----------------------------------------
-    UNKNOWN ERROR
-    ----------------------------------------
-    */
+    /* ----------------------------------------
+       UNKNOWN ERROR
+    ---------------------------------------- */
 
     throw handleApiError({
       type: "UNKNOWN",

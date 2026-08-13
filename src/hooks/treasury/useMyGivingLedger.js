@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { TreasuryAPI } from "../../utils/api";
 
-export default function useMyGivingLedger(
-  filters = {}
-) {
+export default function useMyGivingLedger({
+  filters = {},
+  enabled = true,
+} = {}) {
   const {
     data,
     isLoading,
@@ -19,6 +20,8 @@ export default function useMyGivingLedger(
 
     queryFn: () =>
       TreasuryAPI.myGivingLedger(filters),
+
+    enabled,
 
     staleTime:
       5 * 60 * 1000,

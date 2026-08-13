@@ -1,8 +1,15 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+
 import { AuthAPI } from "../utils/api";
 import { normalizeRole } from "../config/roles";
 
-/* Normalize User */
+/* -----------------------------------------
+   Normalize User
+----------------------------------------- */
 function normalizeUser(data) {
   if (!data?.user) return null;
 
@@ -15,10 +22,8 @@ function normalizeUser(data) {
     authUserId: user.auth_user_id,
     email: user.email,
     fullName: user.full_name,
-
     churches: user.churches ?? [],
     membershipRequests: user.membership_requests ?? [],
-
     activeChurch: activeChurch
       ? {
           id: activeChurch.id,
@@ -30,22 +35,21 @@ function normalizeUser(data) {
           departments: activeChurch.departments ?? [],
         }
       : null,
-
     activeChurchId: user.active_church_id,
     activeChurchName: user.active_church_name,
     activeMemberId: user.active_member_id,
     activeMembershipStatus: user.active_membership_status,
-
     isMember: user.is_member ?? false,
     isPending: user.is_pending ?? false,
     isSuspended: user.is_suspended ?? false,
   };
 }
 
-/* Auth Core Hook */
+/* -----------------------------------------
+   Auth Core Hook
+----------------------------------------- */
 export function useAuthCore() {
   const queryClient = useQueryClient();
-  const hasAccessToken = !!localStorage.getItem("access_token");
 
   // Current User
   const {
@@ -56,51 +60,55 @@ export function useAuthCore() {
     refetch: refetchUser,
   } = useQuery({
     queryKey: ["me"],
-    enabled: hasAccessToken,
-    retry: false,
     queryFn: async () => {
-      try {
-        const data = await AuthAPI.me();
-        return normalizeUser(data);
-      } catch (err) {
-        localStorage.removeItem("access_token");
-        throw err;
-      }
+      const data = await AuthAPI.me();
+      return normalizeUser(data);
     },
+    retry: false,
   });
 
   // Login
   const loginMutation = useMutation({
-    mutationFn: ({ email, password }) => AuthAPI.login({ email, password }),
-    onSuccess: async (data) => {
-      if (!data?.access_token) throw new Error("Login failed");
-
-      localStorage.setItem("access_token", data.access_token);
-      await queryClient.invalidateQueries({ queryKey: ["me"] });
+    mutationFn: ({ email, password }) =>
+      AuthAPI.login({ email, password }),
+    onSuccess: async () => {
+      await queryClient.refetchQueries({
+        queryKey: ["me"],
+        type: "all",
+      });
     },
   });
 
   // Logout
-  const logout = () => {
-    localStorage.removeItem("access_token");
-    queryClient.setQueryData(["me"], null);
-  };
+  const logoutMutation = useMutation({
+    mutationFn: () => AuthAPI.logout(),
+    onSuccess: () => {
+      // Clear current user
+      queryClient.setQueryData(["me"], null);
 
-  // Set User manually
+      // Remove other authenticated cached data
+      queryClient.removeQueries({
+        predicate: (query) => query.queryKey[0] !== "me",
+      });
+    },
+  });
+
+  // Manual User Setter
   const setUser = (user) => {
     queryClient.setQueryData(["me"], user);
   };
 
   return {
     user,
-    authReady: hasAccessToken ? isFetched : true,
-    authLoading: hasAccessToken ? isLoading : false,
+    authReady: isFetched,
+    authLoading:
+      isLoading ||
+      loginMutation.isPending ||
+      logoutMutation.isPending,
     authError: authError?.message ?? null,
-
     login: loginMutation.mutateAsync,
-    logout,
+    logout: logoutMutation.mutateAsync,
     refetchUser,
     setUser,
   };
 }
-
