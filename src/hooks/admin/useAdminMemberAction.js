@@ -1,9 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AdminAPI } from "../../utils/api";
-
+import { useToast } from "../../components/ToastProvider";
 export function useAdminMemberActions(
   activeChurchId,
-  showToast
 ) {
   const queryClient = useQueryClient();
 
@@ -18,18 +17,18 @@ export function useAdminMemberActions(
       queryKey: membersQueryKey,
     });
   };
-
+  const { showToast } = useToast();
   const suspendMutation = useMutation({
     mutationFn: ({ memberId, reason }) =>
       AdminAPI.suspendMember({ memberId, reason }),
 
     onSuccess: () => {
-      showToast("Member suspended", "success");
+      showToast("Member suspended");
       refreshMembers();
     },
 
     onError: () => {
-      showToast("Failed to suspend member", "error");
+      showToast("Failed to suspend member", {type: "error"});
     },
   });
 
@@ -38,12 +37,12 @@ export function useAdminMemberActions(
       AdminAPI.unsuspendMember({ memberId }),
 
     onSuccess: () => {
-      showToast("Member unsuspended", "success");
+      showToast("Member unsuspended");
       refreshMembers();
     },
 
     onError: () => {
-      showToast("Action failed", "error");
+      showToast("Action failed", {type: "error"});
     },
   });
 
@@ -52,12 +51,12 @@ export function useAdminMemberActions(
       AdminAPI.activateMember({ memberId }),
 
     onSuccess: () => {
-      showToast("Member activated", "success");
+      showToast("Member activated");
       refreshMembers();
     },
 
     onError: () => {
-      showToast("Action failed", "error");
+      showToast("Action failed", {type:"error"});
     },
   });
 
@@ -69,14 +68,14 @@ export function useAdminMemberActions(
       }),
 
     onSuccess: () => {
-      showToast("Roles updated", "success");
+      showToast("Roles updated");
       refreshMembers();
     },
 
     onError: () => {
       showToast(
         "Failed to update roles",
-        "error"
+        {type: "error"}
       );
     },
   });

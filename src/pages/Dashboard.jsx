@@ -65,19 +65,26 @@ export default function Dashboard() {
      Dashboard Data
   ------------------------- */
 
-  const {
-    loading,
-    initialized,
-    verse,
-    churchAnnouncements,
-    departmentAnnouncements,
-    birthday,
-    todayBirthdays,
-    upcomingBirthdays,
-  } = useDashboardData({
-    user,
-    churchId: activeChurchId,
-  });
+  const isMemberDashboard =
+  dashboardMode === "member";
+
+const {
+  loading,
+  initialized,
+  verse,
+  churchAnnouncements,
+  departmentAnnouncements,
+  birthday,
+  todayBirthdays,
+  upcomingBirthdays,
+} = useDashboardData({
+  user,
+  churchId: activeChurchId,
+  enabled:
+    !!user &&
+    !!activeChurchId &&
+    isMemberDashboard,
+});
 
   const {
     isSabbath,

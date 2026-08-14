@@ -1,9 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 import { TreasuryAPI } from "../../utils/api";
 
 export default function useCreateFund() {
+  const {showToast} = useToast();
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -11,7 +12,7 @@ export default function useCreateFund() {
       TreasuryAPI.createFund(payload),
 
     onSuccess: () => {
-      toast.success(
+      showToast(
         "Fund created successfully."
       );
 
@@ -27,14 +28,10 @@ export default function useCreateFund() {
     },
 
     onError: (error) => {
-      console.error(
-        "Create fund:",
-        error
-      );
 
-      toast.error(
+      showToast(
         error?.message ??
-          "Failed to create fund."
+          "Failed to create fund.", {type:"error"}
       );
     },
   });

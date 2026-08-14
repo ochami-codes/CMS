@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 import { getDailyVerse } from "../../utils/api";
 
 export default function useDailyVerse({
   enabled = true,
 } = {}) {
+  const {showToast} = useToast();
   const query = useQuery({
     queryKey: ["daily-verse"],
 
@@ -20,9 +21,10 @@ export default function useDailyVerse({
     onError: (error) => {
       console.error(error);
 
-      toast.error(
+      showToast(
         error?.message ??
-          "Failed to load today's verse"
+          "Failed to load today's verse",
+          {type:"error"}
       );
     },
   });

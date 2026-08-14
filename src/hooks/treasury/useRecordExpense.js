@@ -23,7 +23,7 @@ export default function useRecordExpense({
     },
 
     onSuccess: (data) => {
-      showToast("Expense recorded successfully", "success");
+      showToast("Expense recorded successfully");
 
       // Refresh treasury-related data
       queryClient.invalidateQueries({
@@ -48,7 +48,7 @@ export default function useRecordExpense({
     onError: (error) => {
       showToast(
         error?.message || "Failed to record expense",
-        "error"
+        {type:"error"}
       );
     },
   });

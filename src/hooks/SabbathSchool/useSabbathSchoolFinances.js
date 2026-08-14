@@ -4,7 +4,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 import { SabbathSchoolAPI } from "../../utils/api";
 
@@ -16,6 +16,7 @@ export default function useSabbathSchoolFinances({
   departmentId,
   enabled = true,
 } = {}) {
+  const {showToast} = useToast();
   const queryClient = useQueryClient();
 
   /* =========================
@@ -56,7 +57,7 @@ export default function useSabbathSchoolFinances({
       ),
 
     onSuccess: () => {
-      toast.success(
+      showToast(
         "Offering recorded successfully."
       );
 
@@ -69,14 +70,10 @@ export default function useSabbathSchoolFinances({
     },
 
     onError: (error) => {
-      console.error(
-        "Save offering:",
-        error
-      );
 
-      toast.error(
+      showToast(
         error?.message ??
-          "Failed to record offering."
+          "Failed to record offering.", {type:"error"}
       );
     },
   });
@@ -90,7 +87,7 @@ export default function useSabbathSchoolFinances({
       SabbathSchoolAPI.deleteOfferings,
 
     onSuccess: () => {
-      toast.success(
+      showToast(
         "Offering deleted successfully."
       );
 
@@ -103,14 +100,10 @@ export default function useSabbathSchoolFinances({
     },
 
     onError: (error) => {
-      console.error(
-        "Delete offering:",
-        error
-      );
 
-      toast.error(
+      showToast(
         error?.message ??
-          "Failed to delete offering."
+          "Failed to delete offering.", {type:"error"}
       );
     },
   });

@@ -8,7 +8,6 @@ import PageHeader from "../components/PageHeader";
 import ErrorState from "../components/ErrorState";
 
 import { useAuth } from "../context/AuthContext";
-import { useToast } from "../components/ToastProvider";
 import useConferences from "../hooks/conferences/useConferences";
 import useCreateChurch from "../hooks/churches/useCreateChurch";
 
@@ -17,7 +16,6 @@ import styles from "../styles/pages/CreateChurch.module.css";
 export default function CreateChurch() {
   const navigate = useNavigate();
   const { refetchUser } = useAuth();
-  const toast = useToast();
 
   const [form, setForm] = useState({
     churchName: "",
@@ -95,21 +93,14 @@ export default function CreateChurch() {
       return;
     }
 
-    try {
       await createChurch({
         churchName: cleanedName,
         conferenceId: form.conferenceId,
       });
 
-      toast?.showToast?.("Church created successfully 🎉", "success");
       await refetchUser?.();
       navigate("/dashboard");
-    } catch (err) {
-      const message = err?.message || "Failed to create church";
-      setErrors({ global: message });
-      toast?.showToast?.(message, "error");
-    }
-  };
+    } 
 
   /* -------------------------
      Render

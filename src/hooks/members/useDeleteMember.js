@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 import { MembersAPI } from "../../utils/api";
 
 export default function useDeleteMember() {
+  const {showToast} = useToast();
   const queryClient = useQueryClient();
   const [deletingIds, setDeletingIds] = useState(new Set());
 
@@ -16,7 +17,7 @@ export default function useDeleteMember() {
     },
 
     onSuccess: (_, { departmentId, memberId }) => {
-      toast.success("Member removed from department.");
+      showToast("Member removed from department.");
 
       queryClient.invalidateQueries({
         queryKey: ["department-members", departmentId],
@@ -32,7 +33,7 @@ export default function useDeleteMember() {
     onError: (error, { memberId }) => {
       console.error(error);
 
-      toast.error(error?.message ?? "Failed to remove member from department.");
+      showToast(error?.message ?? "Failed to remove member from department.", {type:"error"});
 
       setDeletingIds((prev) => {
         const next = new Set(prev);

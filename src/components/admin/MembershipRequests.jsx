@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 
 import { useMembershipRequests } from "../../hooks/admin/useMembershipRequests";
-import { useToast } from "../../components/ToastProvider";
 
 import ErrorState from "../ErrorState";
 import Card from "../Card";
@@ -14,7 +13,6 @@ import Button from "../Button";
 import ResponsiveDataView from "../ResponsiveDataView";
 
 export default function MembershipRequests() {
-  const { showToast } = useToast();
 
   const {
     requests,
@@ -31,17 +29,9 @@ export default function MembershipRequests() {
      APPROVE / REJECT
   ======================= */
   async function handleAction(id, action) {
-    const status = action === "approve" ? "approved" : "rejected";
 
-    try {
       await reviewRequest({ id, action });
-      showToast(
-        status === "approved" ? "Membership approved" : "Membership rejected",
-        "success"
-      );
-    } catch (err) {
-      showToast(err?.message || "Action failed", "error");
-    }
+    
   }
 
   /* =======================

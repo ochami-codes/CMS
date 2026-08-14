@@ -4,7 +4,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 import { AttendanceAPI } from "../../utils/api";
 
@@ -13,6 +13,7 @@ export default function useAttendance({
   attendanceDate,
   enabled = true,
 } = {}) {
+  const {showToast} = useToast();
   const queryClient = useQueryClient();
 
   /*
@@ -56,7 +57,7 @@ export default function useAttendance({
       }),
 
     onSuccess: () => {
-      toast.success("Attendance saved");
+      showToast("Attendance saved");
 
       queryClient.invalidateQueries({
         queryKey: ["attendance"],
@@ -64,11 +65,10 @@ export default function useAttendance({
     },
 
     onError: (error) => {
-      console.error("Save attendance error:", error);
 
-      toast.error(
+      showToast(
         error?.message ??
-          "Failed to save attendance"
+          "Failed to save attendance", {type: "error"}
       );
     },
   });

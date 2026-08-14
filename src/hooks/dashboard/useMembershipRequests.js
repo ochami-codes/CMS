@@ -1,11 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MembershipAPI } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 const MEMBERSHIP_QUERY_KEY = ["user", "membership"];
 
 export function useMembershipRequest() {
+  const {showToast} = useToast();
   const queryClient = useQueryClient();
   const { refetchUser } = useAuth();
 
@@ -16,10 +17,10 @@ export function useMembershipRequest() {
     onSuccess: async () => {
       await refetchUser();
       queryClient.invalidateQueries({ queryKey: MEMBERSHIP_QUERY_KEY });
-      toast.success("Membership request submitted 🙏");
+      showToast("Membership request submitted 🙏");
     },
     onError: (err) => {
-      toast.error(err?.response?.data?.message || "Request failed");
+      showToast(err?.response?.data?.message || "Request failed", {type:"error"});
     },
   });
 

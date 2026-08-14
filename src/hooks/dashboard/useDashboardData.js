@@ -6,70 +6,68 @@ import useGuestMembership from "./useGuestMembership";
 export default function useDashboardData({
   churchId,
   departmentId,
-  isGuest,
+  isGuest = false,
+  enabled = true,
 } = {}) {
-  const verseQuery =
-    useDailyVerse();
+  const verseQuery = useDailyVerse();
 
-  const announcementsQuery =
-    useDashboardAnnouncements({
-      departmentId,
-      limit: 10,
-    });
+  const announcementsQuery = useDashboardAnnouncements({
+    departmentId,
+    limit: 10,
+    enabled,
+  });
 
-  const birthdaysQuery =
-    useBirthdays({
-      churchId,
-      enabled: !isGuest,
-    });
+  const birthdaysQuery = useBirthdays({
+    churchId,
+    enabled: enabled && !isGuest,
+  });
 
-  const membershipQuery =
-    useGuestMembership({
-      enabled: isGuest,
-    });
+  const membershipQuery = useGuestMembership({
+    enabled: enabled && isGuest,
+  });
 
   return {
-  loading:
-    verseQuery.loading ||
-    announcementsQuery.loading ||
-    birthdaysQuery.loading ||
-    membershipQuery.loading,
+    loading:
+      verseQuery.loading ||
+      announcementsQuery.loading ||
+      birthdaysQuery.loading ||
+      membershipQuery.loading,
 
-  initialized: true,
+    initialized: true,
 
-  verse: verseQuery.verse,
+    verse: verseQuery.verse,
 
-  churchAnnouncements:
-    announcementsQuery.churchAnnouncements,
+    churchAnnouncements:
+      announcementsQuery.churchAnnouncements,
 
-  departmentAnnouncements:
-    announcementsQuery.departmentAnnouncements,
+    departmentAnnouncements:
+      announcementsQuery.departmentAnnouncements,
 
-  birthday:
-    birthdaysQuery.birthday,
+    birthday:
+      birthdaysQuery.birthday,
 
-  todayBirthdays:
-    birthdaysQuery.todayBirthdays,
+    todayBirthdays:
+      birthdaysQuery.todayBirthdays,
 
-  upcomingBirthdays:
-    birthdaysQuery.upcomingBirthdays,
+    upcomingBirthdays:
+      birthdaysQuery.upcomingBirthdays,
 
-  membership:
-    membershipQuery.membership,
+    membership:
+      membershipQuery.membership,
 
-  refresh: async () => {
-    await Promise.all([
-      verseQuery.refresh(),
-      announcementsQuery.refresh(),
-      birthdaysQuery.refresh(),
-      membershipQuery.refresh(),
-    ]);
-  },
+    refresh: async () => {
+      await Promise.all([
+        verseQuery.refresh(),
+        announcementsQuery.refresh(),
+        birthdaysQuery.refresh(),
+        membershipQuery.refresh(),
+      ]);
+    },
 
-  isFetching:
-    verseQuery.isFetching ||
-    announcementsQuery.isFetching ||
-    birthdaysQuery.isFetching ||
-    membershipQuery.isFetching,
-};
+    isFetching:
+      verseQuery.isFetching ||
+      announcementsQuery.isFetching ||
+      birthdaysQuery.isFetching ||
+      membershipQuery.isFetching,
+  };
 }

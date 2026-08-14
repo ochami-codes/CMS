@@ -35,8 +35,7 @@ export default function useRemittances() {
     useRemitFunds({
       onSuccess: () => {
         showToast(
-          "Funds remitted successfully",
-          "success"
+          "Funds remitted successfully"
         );
 
         queryClient.invalidateQueries({
@@ -49,7 +48,7 @@ export default function useRemittances() {
         showToast(
           error?.message ||
             "Failed to remit funds",
-          "error"
+          {type:"error"}
         );
       },
     });
@@ -61,8 +60,7 @@ const cancelMutation =
   useCancelRemittance({
     onSuccess: () => {
       showToast(
-        "Remittance cancelled successfully",
-        "success"
+        "Remittance cancelled successfully"
       );
 
       queryClient.invalidateQueries({
@@ -88,7 +86,7 @@ const cancelMutation =
       showToast(
         error?.message ||
           "Failed to cancel remittance",
-        "error"
+        {type:"error"}
       );
     },
   });

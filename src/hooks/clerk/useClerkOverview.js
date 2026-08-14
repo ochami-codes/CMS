@@ -2,11 +2,21 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { ClerkAPI } from "../../utils/api";
+import { useToast } from "../../components/ToastProvider";
 
 export function useClerkOverview() {
+  const { showToast } = useToast();
+
+  /* ======================
+     QUERY: CLERK OVERVIEW
+  ====================== */
   const query = useQuery({
     queryKey: ["clerk", "overview"],
     queryFn: ClerkAPI.overview,
+    onError: (err) => {
+      showToast(err.message || "Failed to fetch clerk overview", {type:"error"});
+    },
+    staleTime: 60 * 1000, // optional: cache for 1 minute
   });
 
   return {
@@ -17,7 +27,7 @@ export function useClerkOverview() {
     isError: query.isError,
     error: query.error,
 
-    // Query action
+    // Query actions
     refetch: query.refetch,
   };
 }
