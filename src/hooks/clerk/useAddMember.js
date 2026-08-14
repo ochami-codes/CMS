@@ -1,16 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 import { ClerkAPI } from "../../utils/api";
 
 export default function useAddMember() {
   const queryClient = useQueryClient();
-
+  const {showToast} = useToast();
   const mutation = useMutation({
     mutationFn: ClerkAPI.addMember,
 
     onSuccess: () => {
-      toast.success("Member added");
+      showToast("Member added");
 
       queryClient.invalidateQueries({
         queryKey: ["clerk-members"],
@@ -20,9 +20,9 @@ export default function useAddMember() {
     onError: (error) => {
       console.error(error);
 
-      toast.error(
+      showToast(
         error?.message ??
-          "Failed adding member"
+          "Failed adding member", {type: "error"}
       );
     },
   });

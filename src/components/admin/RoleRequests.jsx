@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 
 import { useAuth } from "../../context/AuthContext";
-import { useToast } from "../ToastProvider";
 import { useRoleRequests } from "../../hooks/admin/useRoleRequests";
 import BadgeList from "../BadgeList";
 import Loader from "../Loader";
@@ -14,7 +13,6 @@ import PageHeader from "../PageHeader";
 
 export default function RoleRequests() {
   const { authReady, activeChurchId } = useAuth();
-  const { showToast } = useToast();
 
   const enabled = authReady && Boolean(activeChurchId);
 
@@ -36,16 +34,8 @@ export default function RoleRequests() {
      REVIEW REQUEST
   ====================== */
   async function handleReview(request, action) {
-    try {
+    
       await reviewRequest({ requestId: request.id, action });
-
-      showToast(
-        `Request ${action === "approved" ? "approved" : "rejected"}`,
-        "success"
-      );
-    } catch (err) {
-      showToast(err?.message || "Action failed", "error");
-    }
   }
 
   /* ======================

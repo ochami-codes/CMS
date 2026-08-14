@@ -4,7 +4,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 import { SabbathSchoolAPI } from "../../utils/api";
 
@@ -12,6 +12,7 @@ export default function useLessonGuides({
   quarter,
   enabled = true,
 } = {}) {
+  const {showToast} = useToast();
   const queryClient =
     useQueryClient();
 
@@ -48,7 +49,7 @@ export default function useLessonGuides({
     onError: (error) => {
       console.error(error);
 
-      toast.error(
+      showToast(
         error?.message ??
           "Failed to load lesson guides"
       );
@@ -65,16 +66,16 @@ const createMutation = useMutation({
     SabbathSchoolAPI.createLessonGuide,
 
   onSuccess: () => {
-    toast.success("Subscription added");
+    showToast("Subscription added");
     invalidateLessonGuides();
   },
 
   onError: (error) => {
     console.error(error);
 
-    toast.error(
+    showToast(
       error?.message ??
-        "Failed to add subscription"
+        "Failed to add subscription", {type:"error"}
     );
   },
 });
@@ -84,7 +85,7 @@ const createMyMutation = useMutation({
     SabbathSchoolAPI.createMyLessonGuide,
 
   onSuccess: () => {
-    toast.success(
+    showToast(
       "You have successfully subscribed."
     );
 
@@ -94,9 +95,9 @@ const createMyMutation = useMutation({
   onError: (error) => {
     console.error(error);
 
-    toast.error(
+    showToast(
       error?.message ??
-        "Failed to subscribe"
+        "Failed to subscribe", {type:"error"}
     );
   },
 });
@@ -107,7 +108,7 @@ const createMyMutation = useMutation({
         SabbathSchoolAPI.updateLessonGuide,
 
       onSuccess: () => {
-        toast.success(
+        showToast(
           "Subscription updated"
         );
 
@@ -121,9 +122,9 @@ const createMyMutation = useMutation({
       onError: (error) => {
         console.error(error);
 
-        toast.error(
+        showToast(
           error?.message ??
-            "Failed to update subscription"
+            "Failed to update subscription", {type:"error"}
         );
       },
     });
@@ -134,7 +135,7 @@ const createMyMutation = useMutation({
         SabbathSchoolAPI.deleteLessonGuide,
 
       onSuccess: () => {
-        toast.success(
+        showToast(
           "Subscription removed"
         );
 
@@ -148,9 +149,9 @@ const createMyMutation = useMutation({
       onError: (error) => {
         console.error(error);
 
-        toast.error(
+        showToast(
           error?.message ??
-            "Failed to remove subscription"
+            "Failed to remove subscription", {type:"error"}
         );
       },
     });

@@ -20,12 +20,9 @@ export function useMyRoleRequests(userId) {
     },
     enabled: !!userId,
     onError: (error) => {
-      showToast({
-        type: "error",
-        message:
-          error?.message ||
+      showToast(error?.message ||
           "Failed to load role requests. Please try again.",
-      });
+      {type:"error"});
     },
   });
 

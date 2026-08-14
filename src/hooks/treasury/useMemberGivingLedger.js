@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { TreasuryAPI } from "../../utils/api";
-
 export default function useMemberGivingLedger(
   memberId,
   filters = {}

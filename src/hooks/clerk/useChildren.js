@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 import { ClerkAPI } from "../../utils/api";
 
@@ -7,6 +7,7 @@ export default function useChildren({
   params = "",
   enabled = true,
 } = {}) {
+  const {showToast} = useToast();
   const query = useQuery({
     queryKey: [
       "children",
@@ -28,9 +29,9 @@ export default function useChildren({
     onError: (error) => {
       console.error(error);
 
-      toast.error(
+      showToast(
         error?.message ??
-          "Failed to load children"
+          "Failed to load children", {type: "error"}
       );
     },
   });

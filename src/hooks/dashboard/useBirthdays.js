@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 import {
   getMyBirthday,
@@ -11,6 +11,7 @@ export default function useBirthdays({
   churchId,
   enabled = true,
 } = {}) {
+  const {showToast} = useToast();
   const query = useQuery({
     queryKey: ["birthdays", churchId],
 
@@ -46,9 +47,10 @@ export default function useBirthdays({
     onError: (error) => {
       console.error(error);
 
-      toast.error(
+      showToast(
         error?.message ??
-          "Failed to load birthdays"
+          "Failed to load birthdays",
+          {type: "error"}
       );
     },
   });

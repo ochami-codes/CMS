@@ -1,52 +1,37 @@
 import { useQuery } from "@tanstack/react-query";
 import { MembersAPI } from "../../utils/api";
+import { useToast } from "../../components/ToastProvider";
 
 export default function useMembers(options) {
-  const {
-    search = "",
-    enabled = true,
-  } = options ?? {};
+  const { showToast } = useToast();
+  const { search = "", enabled = true } = options ?? {};
 
+  /* ======================
+     QUERY: MEMBERS
+  ====================== */
   const query = useQuery({
-    queryKey: [
-      "members",
-      search,
-    ],
-
-    queryFn: () =>
-      MembersAPI.fetchAll({
-        search,
-      }),
-
+    queryKey: ["members", search],
+    queryFn: () => MembersAPI.fetchAll({ search }),
     enabled,
-
-    staleTime: 5 * 60 * 1000,
-
+    staleTime: 5 * 60 * 1000, // cache for 5 minutes
     select: (data) => ({
-      members:
-        data?.members ?? [],
+      members: data?.members ?? [],
     }),
+    onError: (err) => {
+      showToast(err.message || "Failed to fetch members", {type:"error"});
+    },
   });
 
   return {
-    members:
-      query.data?.members ?? [],
+    members: query.data?.members ?? [],
 
     // Query state
-    loading:
-      query.isLoading,
+    loading: query.isLoading,
+    isFetching: query.isFetching,
+    isError: query.isError,
+    error: query.error,
 
-    isError:
-      query.isError,
-
-    error:
-      query.error,
-
-    isFetching:
-      query.isFetching,
-
-    // Query action
-    refresh:
-      query.refetch,
+    // Query actions
+    refresh: query.refetch,
   };
 }

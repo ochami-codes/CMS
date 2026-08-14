@@ -2,8 +2,6 @@ import { useState, useCallback } from "react";
 
 import { ClerkAPI } from "../../utils/api";
 import { validateChildForm } from "../../utils/validators/childrenValidation";
-
-import { useToast } from "../../components/ToastProvider";
 import SearchBar from "../../components/SearchBar";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
@@ -22,51 +20,47 @@ const INITIAL_FORM = {
 };
 
 export default function AddChild({ onChildAdded }) {
-  const { showToast } = useToast();
-
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [selectedParent, setSelectedParent] = useState(null);
   const [searching, setSearching] = useState(false);
   const [errors, setErrors] = useState({});
+
   const {
-  addChild,
-  loading:{addChild: addChildLoading},
-} = useClerkActions();
+    addChild,
+    loading: { addChild: addChildLoading },
+  } = useClerkActions();
+
   /* =========================
      SEARCH PARENTS
   ========================== */
-  const searchParents = useCallback(
-    async (searchTerm) => {
-      const term = searchTerm.trim();
-      if (term.length < 2) {
-        setResults([]);
-        setSearching(false);
-        return;
-      }
+  const searchParents = useCallback(async (searchTerm) => {
+    const term = searchTerm.trim();
+    if (term.length < 2) {
+      setResults([]);
+      setSearching(false);
+      return;
+    }
 
-      try {
-        setSearching(true);
-        const data = await ClerkAPI.searchParents(term);
-        setResults(data?? []);
-      } catch (err) {
-        setResults([]);
-        showToast(err.message || "Failed to search parents", "error");
-      } finally {
-        setSearching(false);
-      }
-    },
-    [showToast]
-  );
+    try {
+      setSearching(true);
+      const data = await ClerkAPI.searchParents(term);
+      setResults(data ?? []);
+    } catch {
+      setResults([]);
+    } finally {
+      setSearching(false);
+    }
+  }, []);
 
   /* =========================
      FIELD UPDATE
   ========================== */
   const updateField = (name, value) => {
-    setFormData((prev) => ({...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors((prev) => ({...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
@@ -77,8 +71,7 @@ export default function AddChild({ onChildAdded }) {
     e.preventDefault();
 
     if (!selectedParent) {
-      showToast("Select a parent first", "error");
-      return;
+      return <TextDisplay as="p" size="sm" color="danger">Please select parent first</TextDisplay>
     }
 
     const validationErrors = validateChildForm(formData, selectedParent);
@@ -87,7 +80,6 @@ export default function AddChild({ onChildAdded }) {
       return;
     }
 
-    try {
       const payload = {
         parent_member_id: selectedParent.id,
         child: formData,
@@ -102,11 +94,7 @@ export default function AddChild({ onChildAdded }) {
       setResults([]);
       setSelectedParent(null);
       setErrors({});
-    } catch (err) {
-      showToast(err.message || "Failed to register child", "error");
-    }
-  };
-
+    } 
   return (
     <Card className={styles.card}>
       <h2 className={styles.title}>Register Child</h2>
@@ -137,11 +125,14 @@ export default function AddChild({ onChildAdded }) {
 
           {searching && <p className={styles.notice}>Searching...</p>}
 
-          {query.trim().length >= 2 &&!searching && results.length === 0 &&!selectedParent && (
-            <p className={styles.notice}>No matching parent found.</p>
-          )}
+          {query.trim().length >= 2 &&
+            !searching &&
+            results.length === 0 &&
+            !selectedParent && (
+              <p className={styles.notice}>No matching parent found.</p>
+            )}
 
-          {results.length > 0 &&!selectedParent && (
+          {results.length > 0 && !selectedParent && (
             <div className={styles.results}>
               {results.map((member) => (
                 <button
@@ -192,7 +183,11 @@ export default function AddChild({ onChildAdded }) {
               onChange={(e) => updateField("full_name", e.target.value)}
               required
             />
-            {errors.full_name && <TextDisplay as="span" size="sm" color="danger">{errors.full_name}</TextDisplay>}
+            {errors.full_name && (
+              <TextDisplay as="span" size="sm" color="danger">
+                {errors.full_name}
+              </TextDisplay>
+            )}
           </div>
 
           <div className={styles.field}>
@@ -204,7 +199,11 @@ export default function AddChild({ onChildAdded }) {
               onChange={(e) => updateField("date_of_birth", e.target.value)}
               required
             />
-            {errors.date_of_birth && <TextDisplay as="span" size="sm" color="danger">{errors.date_of_birth}</TextDisplay>}
+            {errors.date_of_birth && (
+              <TextDisplay as="span" size="sm" color="danger">
+                {errors.date_of_birth}
+              </TextDisplay>
+            )}
           </div>
 
           <div className={styles.field}>
@@ -219,7 +218,11 @@ export default function AddChild({ onChildAdded }) {
               <option value="male">Male</option>
               <option value="female">Female</option>
             </select>
-            {errors.gender && <TextDisplay as="span" size="sm" color="danger">{errors.gender}</TextDisplay>}
+            {errors.gender && (
+              <TextDisplay as="span" size="sm" color="danger">
+                {errors.gender}
+              </TextDisplay>
+            )}
           </div>
         </div>
 
@@ -242,11 +245,17 @@ export default function AddChild({ onChildAdded }) {
                 className={styles.input}
                 type="date"
                 value={formData.dedication_date}
-                onChange={(e) => updateField("dedication_date", e.target.value)}
+                onChange={(e) =>
+                  updateField("dedication_date", e.target.value)
+                }
               />
             )}
           </div>
-          {errors.dedication_date && <TextDisplay as="span" size="sm" color="danger">{errors.dedication_date}</TextDisplay>}
+          {errors.dedication_date && (
+            <TextDisplay as="span" size="sm" color="danger">
+              {errors.dedication_date}
+            </TextDisplay>
+          )}
         </div>
 
         {/* NOTES */}
@@ -263,7 +272,7 @@ export default function AddChild({ onChildAdded }) {
         {/* SUBMIT */}
         <div className={styles.actions}>
           <Button type="submit" loading={addChildLoading}>
-            {addChildLoading? "Registering..." : "Register Child"}
+            {addChildLoading ? "Registering..." : "Register Child"}
           </Button>
         </div>
       </form>

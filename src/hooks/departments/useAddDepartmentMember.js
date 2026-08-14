@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 import { MembersAPI } from "../../utils/api";
 
 export default function useAddDepartmentMember() {
+  const {showToast} = useToast();
   const queryClient = useQueryClient();
   const [activeMemberId, setActiveMemberId] = useState(null);
 
@@ -15,7 +16,7 @@ export default function useAddDepartmentMember() {
     },
 
     onSuccess: (_, { departmentId }) => {
-      toast.success("Member added to department.");
+      showToast("Member added to department.");
 
       queryClient.invalidateQueries({
         queryKey: ["department-members", departmentId],
@@ -27,7 +28,7 @@ export default function useAddDepartmentMember() {
     onError: (error) => {
       console.error(error);
 
-      toast.error(error?.message ?? "Failed to add member to department.");
+      showToast(error?.message ?? "Failed to add member to department.", {type:"error"});
       setActiveMemberId(null);
     },
   });

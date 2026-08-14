@@ -1,22 +1,23 @@
 import { useMutation } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 import { TreasuryAPI } from "../../utils/api";
 
 export default function useCreateTransaction() {
+  const {showToast} = useToast();
   const mutation = useMutation({
     mutationFn: TreasuryAPI.createTransaction,
 
     onSuccess: () => {
-      toast.success("Funds recorded successfully");
+      showToast("Funds recorded successfully");
     },
 
     onError: (error) => {
       console.error("Create transaction:", error);
 
-      toast.error(
+      showToast(
         error?.message ??
-          "Failed recording funds"
+          "Failed recording funds", {type:"error"}
       );
     },
   });

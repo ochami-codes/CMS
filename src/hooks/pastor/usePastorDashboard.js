@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { OverviewAPI } from "../../utils/api";
+import { useToast } from "../../components/ToastProvider";
 
 const defaultData = {
   overview: {
@@ -8,16 +9,13 @@ const defaultData = {
     totalDepartments: 0,
     totalFunds: 0,
   },
-
   departments: [],
-
   treasury: {
     totalGiving: 0,
     totalTithe: 0,
     localFunds: 0,
     trustFunds: 0,
   },
-
   members: {
     summary: {
       totalMembers: 0,
@@ -25,26 +23,26 @@ const defaultData = {
       totalMale: 0,
       totalFemale: 0,
     },
-
     list: [],
   },
 };
 
 export default function usePastorDashboard() {
+  const { showToast } = useToast();
+
+  /* ======================
+     QUERY: PASTOR DASHBOARD
+  ====================== */
   const query = useQuery({
     queryKey: ["pastor-dashboard"],
-
     queryFn: async () => {
-      const data =
-        await OverviewAPI.fetchPastorOverview();
-
-      return {
-        ...defaultData,
-        ...(data ?? {}),
-      };
+      const data = await OverviewAPI.fetchPastorOverview();
+      return { ...defaultData, ...(data ?? {}) };
     },
-
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // cache for 5 minutes
+    onError: (err) => {
+      showToast(err.message || "Failed to fetch pastor dashboard", "error");
+    },
   });
 
   return {
@@ -58,7 +56,7 @@ export default function usePastorDashboard() {
     isFetching: query.isFetching,
     isRefetching: query.isRefetching,
 
-    // Query action
+    // Query actions
     refresh: query.refetch,
   };
 }

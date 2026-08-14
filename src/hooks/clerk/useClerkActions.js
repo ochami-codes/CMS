@@ -27,8 +27,7 @@ export function useClerkActions() {
       });
 
       showToast(
-        "Transfer created successfully",
-        "success"
+        "Transfer created successfully"
       );
     },
   });
@@ -43,8 +42,7 @@ export function useClerkActions() {
         queryKey: ["clerk-members"],
       });
       showToast(
-        "Transfer created successfully",
-        "success"
+        "Transfer created successfully"
       );
     }
   });
@@ -115,7 +113,6 @@ const approveDestinationTransferMutation = useMutation({
 
       showToast(
         "Transfer rejected successfully",
-        "success"
       );
     },
   });
@@ -138,7 +135,6 @@ const approveDestinationTransferMutation = useMutation({
 
       showToast(
         "Member updated successfully",
-        "success"
       );
     },
   });
@@ -160,9 +156,7 @@ const approveDestinationTransferMutation = useMutation({
       });
 
       showToast(
-        "Child registered successfully",
-        "success"
-      );
+        "Child registered successfully");
     },
   });
 
@@ -179,8 +173,7 @@ const approveDestinationTransferMutation = useMutation({
       });
 
       showToast(
-        "Child updated successfully",
-        "success"
+        "Child updated successfully"
       );
     },
   });
@@ -198,8 +191,7 @@ const approveDestinationTransferMutation = useMutation({
 
     onSuccess: () => {
       showToast(
-        "Report generated successfully",
-        "success"
+        "Report generated successfully"
       );
     },
   });
@@ -247,8 +239,7 @@ const approveDestinationTransferMutation = useMutation({
 
     onSuccess: () => {
       showToast(
-        "Report downloaded successfully",
-        "success"
+        "Report downloaded successfully"
       );
     },
   });

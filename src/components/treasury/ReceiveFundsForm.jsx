@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { Save } from "lucide-react";
-import toast from "react-hot-toast";
-
 import Card from "../Card";
 import Button from "../Button";
 import ErrorState from "../ErrorState";
@@ -53,16 +51,13 @@ export default function ReceiveFundsForm({ onSuccess, onCancel }) {
     if (saving) return;
 
     if (!form.fund_id) {
-      toast.error("Select a fund");
-      return;
+       return <TextDisplay as="p" size="sm" color="danger">Please select fund</TextDisplay>
     }
 
     if (!form.amount || Number(form.amount) <= 0) {
-      toast.error("Enter a valid amount");
-      return;
+      return <TextDisplay as="p" size="sm" color="danger">Please enter valid amount</TextDisplay>
     }
 
-    try {
       await createTransaction({
         fund_id: form.fund_id,
         amount: Number(form.amount),
@@ -75,12 +70,8 @@ export default function ReceiveFundsForm({ onSuccess, onCancel }) {
         notes: form.notes || null,
       });
 
-      toast.success("Funds recorded successfully");
       setForm(createInitialForm());
       onSuccess?.();
-    } catch {
-      // Error toast is already handled by useCreateTransaction
-    }
   };
 
   /* -------------------------

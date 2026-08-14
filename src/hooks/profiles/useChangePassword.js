@@ -27,8 +27,7 @@ export default function useChangePassword() {
 
       showToast(
         data?.message ||
-          "Password updated successfully. Please sign in again.",
-        "success"
+          "Password updated successfully. Please sign in again."
       );
 
       if (data?.logout) {
@@ -40,7 +39,7 @@ export default function useChangePassword() {
       showToast(
         err?.message ||
           "Failed to update password.",
-        "error"
+        {type:"error"}
       );
     },
   });
@@ -55,7 +54,7 @@ export default function useChangePassword() {
     if (!newPassword || !confirmPassword) {
       showToast(
         "Both password fields are required.",
-        "error"
+        {type:"error"}
       );
 
       return false;
@@ -64,7 +63,7 @@ export default function useChangePassword() {
     if (newPassword !== confirmPassword) {
       showToast(
         "Passwords do not match.",
-        "error"
+        {type:"error"}
       );
 
       return false;
@@ -73,7 +72,7 @@ export default function useChangePassword() {
     if (newPassword.length < 6) {
       showToast(
         "Password must be at least 6 characters.",
-        "error"
+        {type:"error"}
       );
 
       return false;

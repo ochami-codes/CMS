@@ -32,7 +32,7 @@ export default function useProfile() {
       showToast(
         err?.message ||
           "Profile update failed",
-        "error"
+        {type:"error"}
       );
     },
   });

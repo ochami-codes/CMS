@@ -4,7 +4,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 import { SabbathSchoolAPI } from "../../utils/api";
 
@@ -17,6 +17,7 @@ export default function useSabbathSchoolAttendance({
   departmentId,
   enabled = true,
 } = {}) {
+  const {showToast} = useToast();
   const queryClient = useQueryClient();
 
   /* =========================
@@ -59,7 +60,7 @@ export default function useSabbathSchoolAttendance({
       ),
 
     onSuccess: () => {
-      toast.success(
+      showToast(
         "Attendance saved successfully."
       );
 
@@ -77,9 +78,9 @@ export default function useSabbathSchoolAttendance({
         error
       );
 
-      toast.error(
+      showToast(
         error?.message ??
-          "Failed to save attendance."
+          "Failed to save attendance.", {type:"error"}
       );
     },
   });
@@ -93,7 +94,7 @@ export default function useSabbathSchoolAttendance({
       SabbathSchoolAPI.deleteAttendance,
 
     onSuccess: () => {
-      toast.success(
+      showToast(
         "Attendance deleted successfully."
       );
 
@@ -106,14 +107,14 @@ export default function useSabbathSchoolAttendance({
     },
 
     onError: (error) => {
-      console.error(
+      showToast(
         "Delete attendance:",
-        error
+        {type:"error"}
       );
 
-      toast.error(
+      showToast(
         error?.message ??
-          "Failed to delete attendance."
+          "Failed to delete attendance.", {type:"error"}
       );
     },
   });

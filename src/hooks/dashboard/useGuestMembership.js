@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { useToast } from "../../components/ToastProvider";
 
 import { MembershipAPI } from "../../utils/api";
 
 export default function useGuestMembership({
   enabled = true,
 } = {}) {
+  const {showToast} = useToast();
   const query = useQuery({
     queryKey: ["guest-membership"],
 
@@ -31,9 +32,10 @@ export default function useGuestMembership({
     onError: (error) => {
       console.error(error);
 
-      toast.error(
+      showToast(
         error?.message ??
-          "Failed to load membership status"
+          "Failed to load membership status",
+          {type: "error"}
       );
     },
   });
