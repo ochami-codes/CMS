@@ -1,296 +1,141 @@
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import InboxList from "./InboxList";
 import ChatWindow from "./ChatWindow";
 import NewMessageModal from "./NewMessageModal";
 
-import { MessagesAPI } from "../../utils/api";
-import { useAuth } from "../../context/AuthContext";
+import useInbox from "../../hooks/messages/useInbox";
+import useMarkThreadAsRead from "../../hooks/messages/useMarkThreadAsRead";
+import useThreadWithUser from "../../hooks/messages/useThreadWithUser";
 
 import styles from "../../styles/messages/MessagesPage.module.css";
 
 export default function MessagesPage() {
+  const [activeThreadId, setActiveThreadId] = useState(null);
+  const [activeRecipient, setActiveRecipient] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [view, setView] = useState("inbox");
 
-  const { user } = useAuth();
-  const currentProfileId = user?.id;
+  const {
+    data: inbox = [],
+    isLoading,
+    error,
+  } = useInbox();
 
-  const [activeThreadId, setActiveThreadId] =
-    useState(null);
+  const markThreadAsRead = useMarkThreadAsRead();
+  const { getThreadWithUser, isLoadingUser } = useThreadWithUser();
 
-  const [activeRecipient, setActiveRecipient] =
-    useState(null);
+  const handleSelectThread = async (thread) => {
+    setActiveThreadId(thread.thread_id);
+    setActiveRecipient({
+      id: thread.other_user_id,
+      full_name: thread.other_user_name,
+    });
+    setView("chat");
 
-  const [showModal, setShowModal] =
-    useState(false);
-
-  const [inbox, setInbox] =
-    useState([]);
-
-  const [view, setView] =
-    useState("inbox");
-
-
-  const loadInbox = async () => {
-    try {
-      const res =
-        await MessagesAPI.getInbox();
-
-      setInbox(
-        Array.isArray(res.inbox)
-          ? res.inbox
-          : []
-      );
-
-    } catch (err) {
-      console.error(err);
+    if (thread.unread_count > 0) {
+      try {
+        await markThreadAsRead.mutateAsync(thread.thread_id);
+      } catch (err) {
+        console.error("Failed to mark thread as read:", err);
+      }
     }
   };
 
-
-  useEffect(() => {
-    loadInbox();
-  }, []);
-
-
-  const handleSelectThread =
-    async (thread) => {
-
-      setActiveThreadId(
-        thread.thread_id
-      );
-
-      setActiveRecipient({
-        id:
-          thread.other_user_id,
-
-        full_name:
-          thread.other_user_name,
-      });
-
+  const handleNewMessage = async (user) => {
+    try {
+      const response = await getThreadWithUser(user.id);
+      setActiveRecipient(user);
+      setActiveThreadId(response?.threadId || null);
       setView("chat");
+      setShowModal(false);
+    } catch (err) {
+      console.error("Failed to get conversation:", err);
+    }
+  };
 
-      if (
-        thread.unread_count > 0
-      ) {
+  const handleNewChat = () => {
+    setActiveThreadId(null);
+    setActiveRecipient(null);
+    setShowModal(true);
+  };
 
-        setInbox(prev =>
-          prev.map(item =>
-            item.thread_id ===
-            thread.thread_id
-              ? {
-                  ...item,
-                  unread_count: 0,
-                }
-              : item
-          )
-        );
+  const handleBack = () => {
+    setView("inbox");
+  };
 
-        try {
-          await MessagesAPI.markAsRead(
-            thread.thread_id
-          );
-
-        } catch {
-          loadInbox();
-        }
-      }
-    };
-
+  if (error) {
+    console.error("Failed to load inbox:", error);
+  }
 
   return (
-
     <div className={styles.page}>
-
       {/* Inbox */}
-
       <AnimatePresence mode="wait">
-
         {view === "inbox" && (
-
           <motion.div
-            className={
-              styles.sidebar
-            }
-
-            initial={{
-              opacity:0
-            }}
-
-            animate={{
-              opacity:1
-            }}
-
-            exit={{
-              opacity:0
-            }}
+            className={styles.sidebar}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-
-            <div
-             className={
-              styles.sidebarHeader
-             }
-            >
-
-              <h3
-               className={
-                styles.title
-               }
-              >
-
-                Message leaders and members
-
-              </h3>
-
+            <div className={styles.sidebarHeader}>
+              <h3 className={styles.title}>Message leaders and members</h3>
               <button
-                className={`
-                btn
-                btn-primary
-                ${styles.newBtn}
-                `}
-                onClick={()=>{
-                  setActiveThreadId(null);
-                  setActiveRecipient(null);
-                  setShowModal(true);
-                }}
+                className={`btn btn-primary ${styles.newBtn}`}
+                onClick={handleNewChat}
               >
-
                 + New
-
               </button>
-
             </div>
 
-
-            <div
-             className={
-              styles.inbox
-             }
-            >
-
-              <InboxList
-                inbox={inbox}
-                activeThreadId={
-                  activeThreadId
-                }
-
-                onSelect={
-                  handleSelectThread
-                }
-              />
-
+            <div className={styles.inbox}>
+              {isLoading ? (
+                <p>Loading inbox...</p>
+              ) : (
+                <InboxList
+                  inbox={inbox}
+                  activeThreadId={activeThreadId}
+                  onSelect={handleSelectThread}
+                />
+              )}
             </div>
-
           </motion.div>
-
         )}
-
       </AnimatePresence>
-
-
 
       {/* Chat */}
-
       <AnimatePresence mode="wait">
-
         {view === "chat" && (
-
           <motion.div
-            className={
-              styles.content
-            }
-
-            initial={{
-              x:50,
-              opacity:0
-            }}
-
-            animate={{
-              x:0,
-              opacity:1
-            }}
-
-            exit={{
-              x:50,
-              opacity:0
-            }}
+            className={styles.content}
+            initial={{ x: 50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 50, opacity: 0 }}
           >
-
-            <ChatWindow
-              threadId={
-                activeThreadId
-              }
-
-              recipient={
-                activeRecipient
-              }
-
-              onThreadCreated={
-                setActiveThreadId
-              }
-
-              onMessageSent={
-                loadInbox
-              }
-
-              onBack={()=>
-                setView("inbox")
-              }
-
-            />
-
+            {isLoadingUser ? (
+              <p>Loading conversation...</p>
+            ) : (
+              <ChatWindow
+                threadId={activeThreadId}
+                recipient={activeRecipient}
+                onThreadCreated={setActiveThreadId}
+                onBack={handleBack}
+              />
+            )}
           </motion.div>
-
         )}
-
       </AnimatePresence>
 
-
-
-      {/* Modal */}
-
+      {/* New Message Modal */}
       {showModal && (
-
-        <div
-         className={
-          styles.modalOverlay
-         }
-        >
-
+        <div className={styles.modalOverlay}>
           <NewMessageModal
-            onClose={() =>
-              setShowModal(false)
-            }
-
-            onSelect={
-              async(user)=>{
-
-                const res =
-                 await MessagesAPI
-                 .getThreadWith(
-                   user.id
-                 );
-
-                setActiveRecipient(
-                  user
-                );
-
-                setActiveThreadId(
-                  res.thread_id || null
-                );
-
-                setView("chat");
-                setShowModal(false);
-              }
-            }
-
+            onClose={() => setShowModal(false)}
+            onSelect={handleNewMessage}
           />
-
         </div>
-
       )}
-
     </div>
-
   );
 }

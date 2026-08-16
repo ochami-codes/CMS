@@ -1,20 +1,27 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Inbox, Menu } from "lucide-react";
+import { Mail, Menu } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "../components/Sidebar";
 import NotificationBell from "../components/NotificationBell";
 import Badge from "../components/Badge";
-import useUnreadMessages from "../hooks/useUnreadMessages";
+import useUnreadMessages from "../hooks/messages/useUnreadMessages";
 import styles from "../styles/layouts/DashboardLayout.module.css";
 
 export default function DashboardLayout() {
-  const { logout } = useAuth();
+  const { logout, dashboardMode } = useAuth();
   const navigate = useNavigate();
-  const { unreadMessages } = useUnreadMessages();
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const enabled = dashboardMode === "member";
+
+  const { unreadMessages } =
+    useUnreadMessages(enabled);
+
+  const [sidebarOpen, setSidebarOpen] =
+    useState(false);
+
+  const [collapsed, setCollapsed] =
+    useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -32,35 +39,44 @@ export default function DashboardLayout() {
         <Menu size={22} />
       </button>
 
-      <Sidebar 
-        open={sidebarOpen} 
+      <Sidebar
+        open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed(!collapsed)}
+        onToggleCollapse={() =>
+          setCollapsed(!collapsed)
+        }
         onLogout={handleLogout}
       />
 
       {/* MAIN */}
-      <div 
+      <div
         className={styles.main}
-        style={{ 
+        style={{
           marginLeft: collapsed ? 72 : 260,
         }}
       >
         {/* NAVBAR */}
         <header className={styles.navbar}>
-          <h3 className={styles.title}>ChurchApp</h3>
+          <h3 className={styles.title}>
+            ChurchApp
+          </h3>
 
           <div className={styles.icons}>
             {/* Messages */}
             <button
               className={styles.iconBtn}
-              onClick={() => navigate("/dashboard/messages")}
+              onClick={() =>
+                navigate("/dashboard/messages")
+              }
               aria-label="Messages"
             >
-              <Inbox size={20} />
+              <Mail size={20} />
+
               {unreadMessages > 0 && (
-                <Badge type="danger">{unreadMessages}</Badge>
+                <Badge type="danger">
+                  {unreadMessages}
+                </Badge>
               )}
             </button>
 

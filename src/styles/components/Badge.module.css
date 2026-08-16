@@ -1,19 +1,30 @@
-.badge{
- padding:.3rem .7rem;
-
- border-radius:999px;
-
- font-size:.8rem;
+.icon {
+  position: relative; /* parent container for the badge */
+  display: inline-block;
 }
 
-.success{
- background:#dcfce7;
+.badge {
+  position: absolute;
+  top: -0.4rem;   /* adjust vertical suspension */
+  right: -0.4rem; /* adjust horizontal suspension */
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1;
+  color: #dcfce7;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15); /* subtle floating effect */
 }
 
-.warning{
- background:#fef9c3;
+.success {
+  background: #dcfce7;
 }
 
-.danger{
- background:#fee2e2;
+.warning {
+  background: #f17006;
 }
+
+.danger {
+  background: #eb0707;
+}
+

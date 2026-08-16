@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { MessagesAPI } from "../utils/api";
+import { MessagesAPI } from "../../utils/api";
 
-export default function useUnreadMessages() {
+export default function useUnreadMessages(
+  enabled = true
+) {
   const query = useQuery({
     queryKey: [
       "messages",
@@ -16,6 +18,8 @@ export default function useUnreadMessages() {
       return response?.count ?? 0;
     },
 
+    enabled,
+
     // Poll every 60 seconds
     refetchInterval: 60000,
 
@@ -26,16 +30,8 @@ export default function useUnreadMessages() {
   });
 
   return {
-    /* =========================
-       DATA
-    ========================== */
-
     unreadMessages:
       query.data ?? 0,
-
-    /* =========================
-       QUERY STATE
-    ========================== */
 
     loading:
       query.isLoading,
@@ -48,10 +44,6 @@ export default function useUnreadMessages() {
 
     error:
       query.error,
-
-    /* =========================
-       QUERY ACTION
-    ========================== */
 
     refreshUnreadMessages:
       query.refetch,
