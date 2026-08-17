@@ -51,6 +51,22 @@
   justify-content: space-between;
   backdrop-filter: blur(8px);
 }
+.brand {
+  display: flex;
+  align-items: center;
+}
+
+.brandName {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.brandName span {
+  color: var(--brand);
+}
 
 .title {
   margin: 0;

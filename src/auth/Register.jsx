@@ -5,7 +5,7 @@ import PasswordInput from "../components/PasswordInput";
 import Button from "../components/Button";
 import EncouragementRedirect from "../components/EncouragementRedirect";
 import TextDisplay from "../components/TextDisplay";
-
+import Logo from "../components/Logo";
 import { useRegister } from "../hooks/auth/useRegister";
 
 import {
@@ -357,79 +357,134 @@ export default function Register() {
     }
   };
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <h2 className={styles.title}>
-          Create Account
-        </h2>
+ return (
+  <main className={styles.container}>
+    <div className={styles.card}>
 
-        {/* Progress */}
-        <div className={styles.progress}>
-          Step {currentStep + 1} of{" "}
-          {fields.length}
+      {/* Brand */}
+      <div className={styles.brand}>
+        <Logo
+          variant="full"
+          width={190}
+          alt="ChurchApp"
+        />
+
+        <p className={styles.tagline}>
+          Church management, organized.
+        </p>
+      </div>
+
+      {/* Header */}
+      <div className={styles.header}>
+        <h1 className={styles.title}>
+          Create your account
+        </h1>
+
+        <p className={styles.subtitle}>
+          Get started with ChurchApp.
+        </p>
+      </div>
+
+      {/* Progress */}
+      <div className={styles.progressWrapper}>
+        <div className={styles.progressInfo}>
+          <span>
+            Step {currentStep + 1} of {fields.length}
+          </span>
+
+          <span>
+            {Math.round(
+              ((currentStep + 1) / fields.length) * 100
+            )}%
+          </span>
         </div>
 
-        {/* Global Error */}
-        {errors.global && (
-          <TextDisplay
-            as="p"
-            size="sm"
-            color="danger"
-          >
-            {errors.global}
-          </TextDisplay>
-        )}
-
-        <form
-          onSubmit={
-            isLastStep
-              ? handleRegister
-              : (e) => {
-                  e.preventDefault();
-                  handleNext();
-                }
-          }
-          className={styles.form}
+        <div
+          className={styles.progressTrack}
+          aria-hidden="true"
         >
-          {/* Current Field */}
-          {renderCurrentField()}
-
-          {/* Navigation */}
-          <div className={styles.navigation}>
-            {currentStep > 0 && (
-              <Button
-                type="button"
-                onClick={handleBack}
-                disabled={isPending}
-              >
-                Back
-              </Button>
-            )}
-
-            {!isLastStep && (
-              <Button
-                type="submit"
-                className="btn-primary"
-              >
-                Continue
-              </Button>
-            )}
-
-            {isLastStep && (
-              <Button
-                type="submit"
-                loading={isPending}
-                className="btn-primary"
-              >
-                {isPending
-                  ? "Creating account…"
-                  : "Register"}
-              </Button>
-            )}
-          </div>
-        </form>
+          <div
+            className={styles.progressBar}
+            style={{
+              width: `${
+                ((currentStep + 1) / fields.length) * 100
+              }%`,
+            }}
+          />
+        </div>
       </div>
+
+      {/* Global Error */}
+      {errors.global && (
+        <TextDisplay
+          as="p"
+          size="sm"
+          color="danger"
+        >
+          {errors.global}
+        </TextDisplay>
+      )}
+
+      <form
+        onSubmit={
+          isLastStep
+            ? handleRegister
+            : (e) => {
+                e.preventDefault();
+                handleNext();
+              }
+        }
+        className={styles.form}
+      >
+        {/* Current Field */}
+        {renderCurrentField()}
+
+        {/* Navigation */}
+        <div className={styles.navigation}>
+          {currentStep > 0 && (
+            <Button
+              type="button"
+              onClick={handleBack}
+              disabled={isPending}
+            >
+              Back
+            </Button>
+          )}
+
+          {!isLastStep && (
+            <Button
+              type="submit"
+              className="btn-primary"
+            >
+              Continue
+            </Button>
+          )}
+
+          {isLastStep && (
+            <Button
+              type="submit"
+              loading={isPending}
+              className="btn-primary"
+            >
+              {isPending
+                ? "Creating account…"
+                : "Create Account"}
+            </Button>
+          )}
+        </div>
+      </form>
+
+      {/* Login link */}
+      <p className={styles.login}>
+        Already have an account?{" "}
+        <a
+          href="/login"
+          className={styles.link}
+        >
+          Sign in
+        </a>
+      </p>
     </div>
-  );
+  </main>
+);
 }

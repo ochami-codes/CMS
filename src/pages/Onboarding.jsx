@@ -5,7 +5,7 @@ import Loader from "../components/Loader";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import PageHeader from "../components/PageHeader";
-
+import Logo from "../components/Logo";
 import styles from "../styles/pages/Onboarding.module.css";
 
 export default function Onboarding() {
@@ -85,12 +85,20 @@ export default function Onboarding() {
 
   return (
     <div className={styles.container}>
-      <PageHeader
-        title={`Welcome, ${
-          user.fullName || "Member"
-        } 🙏`}
-        subtitle="Choose a church to continue."
+    <div className={styles.brand}>
+      <Logo
+        variant="full"
+        width={190}
+        alt="ChurchApp"
       />
+    </div>
+
+    <PageHeader
+      title={`Welcome, ${
+        user.fullName || "Member"
+      }`}
+      subtitle="Choose a church to continue."
+    />
 
       {/* -------------------------
           ACTIVE CHURCHES

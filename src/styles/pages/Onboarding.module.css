@@ -15,6 +15,17 @@
   );
   min-height: 100vh;
 }
+.brand {
+  display: flex;
+  justify-content: center;
+
+  margin-bottom: var(--space-4);
+}
+
+.brand img {
+  display: block;
+  height: auto;
+}
 
 /* ---------------- TITLES ---------------- */
 

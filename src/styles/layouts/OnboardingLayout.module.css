@@ -1,61 +1,144 @@
 .layout {
   min-height: 100vh;
 
-  display: flex;
-  flex-direction: column;
+  background:
+    radial-gradient(
+      700px 350px at 50% 0%,
+      rgba(20, 121, 232, 0.08),
+      transparent
+    ),
+    var(--background);
 
-  background: var(--background);
+  color: var(--text);
 }
 
-/* main wrapper */
+
+/* ================================
+   Main
+================================ */
+
 .main {
-  flex: 1;
+  min-height: 100vh;
 
   display: flex;
   flex-direction: column;
 }
 
-/* navbar */
+
+/* ================================
+   Navbar
+================================ */
+
 .navbar {
-  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  min-height: 68px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  padding: 0 1rem;
+  padding: 0 var(--space-4);
 
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.96);
 
   border-bottom: 1px solid var(--border);
+
+  backdrop-filter: blur(12px);
 }
 
-.title {
-  font-size: 1.1rem;
-  font-weight: 600;
 
-  color: var(--text);
+/* ================================
+   ChurchApp wordmark
+================================ */
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+
+  font-size: 1.35rem;
+  font-weight: 800;
+
+  letter-spacing: -0.04em;
+  line-height: 1;
 }
 
-/* right side */
+.brandChurch {
+  color: var(--primary);
+}
+
+.brandApp {
+  color: var(--brand-dark);
+}
+
+
+/* ================================
+   Actions
+================================ */
+
 .actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+
+  gap: var(--space-2);
 }
 
 .email {
-  font-size: 0.9rem;
+  max-width: 280px;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
   color: var(--text-light);
+
+  font-size: 0.9rem;
 }
 
-/* page */
+
+/* ================================
+   Page
+================================ */
+
 .page {
   flex: 1;
 
-  padding: 1.5rem;
+  width: min(1080px, 100%);
 
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  margin-inline: auto;
+
+  padding: var(--space-6) var(--space-2);
+}
+
+
+/* ================================
+   Mobile
+================================ */
+
+@media (max-width: 600px) {
+  .navbar {
+    min-height: 60px;
+
+    padding-inline: var(--space-2);
+  }
+
+  .brand {
+    font-size: 1.2rem;
+  }
+
+  .actions {
+    gap: 0.5rem;
+  }
+
+  .email {
+    display: none;
+  }
+
+  .page {
+    padding-block: var(--space-4);
+  }
 }

@@ -8,6 +8,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { AuthAPI } from "../utils/api";
 
+import Logo from "../components/Logo";
 import Input from "../components/Input";
 import PasswordInput from "../components/PasswordInput";
 import Button from "../components/Button";
@@ -25,28 +26,16 @@ export default function Login() {
     authLoading,
   } = useAuth();
 
-  const verified =
-    location.state?.verified;
+  const verified = location.state?.verified;
 
   const [email, setEmail] = useState("");
-  const [password, setPassword] =
-    useState("");
+  const [password, setPassword] = useState("");
 
-  const [error, setError] =
-    useState("");
+  const [error, setError] = useState("");
+  const [resendMessage, setResendMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const [resendMessage, setResendMessage] =
-    useState("");
-
-  const [submitting, setSubmitting] =
-    useState(false);
-
-  /* -------------------------
-     Combined Loading State
-  ------------------------- */
-
-  const loading =
-    authLoading || submitting;
+  const loading = authLoading || submitting;
 
   /* -------------------------
      Redirect After Login
@@ -59,8 +48,7 @@ export default function Login() {
 
     const hasActiveChurch =
       user.churches?.some(
-        (church) =>
-          church.status === "active"
+        (church) => church.status === "active"
       );
 
     if (hasActiveChurch) {
@@ -72,11 +60,7 @@ export default function Login() {
         replace: true,
       });
     }
-  }, [
-    authReady,
-    user,
-    navigate,
-  ]);
+  }, [authReady, user, navigate]);
 
   /* -------------------------
      Submit Login
@@ -112,50 +96,66 @@ export default function Login() {
      Resend Verification
   ------------------------- */
 
-  const handleResendVerification =
-    async () => {
-      if (loading) {
-        return;
-      }
+  const handleResendVerification = async () => {
+    if (loading) {
+      return;
+    }
 
-      if (!email) {
-        setResendMessage(
-          "Please enter your email first."
-        );
+    if (!email) {
+      setResendMessage(
+        "Please enter your email first."
+      );
 
-        return;
-      }
+      return;
+    }
 
-      setResendMessage("");
-      setSubmitting(true);
+    setResendMessage("");
+    setSubmitting(true);
 
-      try {
-        await AuthAPI.resendVerification(
-          email
-        );
+    try {
+      await AuthAPI.resendVerification(email);
 
-        setResendMessage(
-          "Verification email sent. Check your inbox."
-        );
-      } catch {
-        setResendMessage(
-          "Failed to resend verification email."
-        );
-      } finally {
-        setSubmitting(false);
-      }
-    };
+      setResendMessage(
+        "Verification email sent. Check your inbox."
+      );
+    } catch {
+      setResendMessage(
+        "Failed to resend verification email."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
-    <div className={styles.container}>
+    <main className={styles.container}>
       <div className={styles.card}>
-        <h2 className={styles.title}>
-          Login
-        </h2>
 
-        {/* -------------------------
-            Messages
-        ------------------------- */}
+        {/* Brand */}
+        <div className={styles.brand}>
+          <Logo
+            variant="full"
+            width={200}
+            alt="ChurchApp"
+          />
+
+          <p className={styles.tagline}>
+            Church management, organized.
+          </p>
+        </div>
+
+        {/* Heading */}
+        <div className={styles.header}>
+          <h1 className={styles.title}>
+            Welcome back
+          </h1>
+
+          <p className={styles.subtitle}>
+            Sign in to continue to your church dashboard.
+          </p>
+        </div>
+
+        {/* Messages */}
 
         {verified && (
           <p
@@ -181,9 +181,7 @@ export default function Login() {
           </p>
         )}
 
-        {/* -------------------------
-            Form
-        ------------------------- */}
+        {/* Form */}
 
         <form
           onSubmit={handleSubmit}
@@ -219,9 +217,7 @@ export default function Login() {
             <Button
               type="button"
               className={`btn-primary w-full ${styles.resendBtn}`}
-              onClick={
-                handleResendVerification
-              }
+              onClick={handleResendVerification}
               loading={loading}
               disabled={loading}
             >
@@ -243,13 +239,9 @@ export default function Login() {
           </Button>
         </form>
 
-        {/* -------------------------
-            Forgot Password
-        ------------------------- */}
+        {/* Forgot Password */}
 
-        <div
-          className={styles.forgot}
-        >
+        <div className={styles.forgot}>
           <Link
             to="/reset-password"
             className={styles.link}
@@ -257,8 +249,19 @@ export default function Login() {
             Forgot password?
           </Link>
         </div>
+
+        {/* Registration */}
+
+        <p className={styles.register}>
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            className={styles.link}
+          >
+            Create one
+          </Link>
+        </p>
       </div>
-    </div>
+    </main>
   );
 }
-

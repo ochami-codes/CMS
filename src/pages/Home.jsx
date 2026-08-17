@@ -10,7 +10,7 @@ import {
 
 import Button from "../components/Button";
 import styles from "../styles/pages/Home.module.css";
-
+import Logo from "../components/Logo";
 export default function Home() {
   const features = [
     {
@@ -48,32 +48,38 @@ export default function Home() {
   return (
     <div className={styles.container}>
       {/* Hero */}
-      <section className={styles.hero}>
-        <div className={styles.badge}>
-          <FaChurch />
-          Built for churches
-        </div>
+     <section className={styles.hero}>
+  <Logo
+    variant="full"
+    width={220}
+    className={styles.heroLogo}
+  />
 
-        <h1>
-          Your church.<br />
-          <span>Better organized.</span>
-        </h1>
+  <div className={styles.badge}>
+    <FaChurch />
+    Built for churches
+  </div>
 
-        <p>
-          A secure, all-in-one platform for managing church members,
-          departments, finances, announcements, and leadership access.
-        </p>
+  <h1>
+    Your church.<br />
+    <span>Better organized.</span>
+  </h1>
 
-        <div className={styles.buttons}>
-          <Button to="/register" variant="primary">
-            Get Started
-          </Button>
+  <p>
+    A secure, all-in-one platform for managing church members,
+    departments, finances, announcements, and leadership access.
+  </p>
 
-          <Button to="/login" variant="ghost">
-            Sign In
-          </Button>
-        </div>
-      </section>
+  <div className={styles.buttons}>
+    <Button to="/register" variant="primary">
+      Get Started
+    </Button>
+
+    <Button to="/login" variant="ghost">
+      Sign In
+    </Button>
+  </div>
+</section>
 
       {/* Features */}
       <section>

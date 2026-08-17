@@ -1,25 +1,27 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
 import styles from "../styles/layouts/PublicLayout.module.css";
 import Button from "../components/Button";
-export default function PublicLayout() {
 
+export default function PublicLayout() {
   return (
     <div className={styles.layout}>
-
       {/* NAVBAR */}
       <nav className={styles.navbar}>
-
-        <h1 className={styles.brand}>
-          ChurchApp
-        </h1>
+        <div className={styles.brand}>
+          <span className={styles.brandChurch}>
+            Church
+          </span>
+          <span className={styles.brandApp}>
+            App
+          </span>
+        </div>
 
         <div className={styles.links}>
-
           <Button
             to="/login"
             size="md"
-            variant="primary"
+            variant="ghost"
           >
             Login
           </Button>
@@ -31,9 +33,7 @@ export default function PublicLayout() {
           >
             Register
           </Button>
-
         </div>
-
       </nav>
 
       {/* MAIN CONTENT */}
@@ -43,9 +43,9 @@ export default function PublicLayout() {
 
       {/* FOOTER */}
       <footer className={styles.footer}>
-        &copy; {new Date().getFullYear()} ChurchApp. All rights reserved.
+        &copy; {new Date().getFullYear()} ChurchApp.
+        All rights reserved.
       </footer>
-
     </div>
   );
 }

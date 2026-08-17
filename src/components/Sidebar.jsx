@@ -22,6 +22,7 @@ import {
   HandHelping,
   ClipboardList,
   PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 
 /* -------------------------
@@ -40,10 +41,6 @@ const SIDEBAR_ITEMS = [
     icon: User,
   },
 
-  /* -------------------------
-     Ministries
-  ------------------------- */
-
   {
     type: "group",
     key: "ministries",
@@ -57,7 +54,6 @@ const SIDEBAR_ITEMS = [
     permission: "access_pastor_dashboard",
     group: "ministries",
   },
-
   {
     label: "Treasury",
     path: "/dashboard/treasury",
@@ -65,7 +61,6 @@ const SIDEBAR_ITEMS = [
     permission: "access_treasury_dashboard",
     group: "ministries",
   },
-
   {
     label: "Communication",
     path: "/dashboard/communication",
@@ -73,7 +68,6 @@ const SIDEBAR_ITEMS = [
     permission: "access_media_dashboard",
     group: "ministries",
   },
-
   {
     label: "Music",
     path: "/dashboard/choir",
@@ -81,7 +75,6 @@ const SIDEBAR_ITEMS = [
     permission: "access_choir_dashboard",
     group: "ministries",
   },
-
   {
     label: "Youth",
     path: "/dashboard/youth",
@@ -89,7 +82,6 @@ const SIDEBAR_ITEMS = [
     permission: "access_youth_dashboard",
     group: "ministries",
   },
-
   {
     label: "Children",
     path: "/dashboard/children",
@@ -97,7 +89,6 @@ const SIDEBAR_ITEMS = [
     permission: "access_children_dashboard",
     group: "ministries",
   },
-
   {
     label: "ALO",
     path: "/dashboard/alo",
@@ -105,7 +96,6 @@ const SIDEBAR_ITEMS = [
     permission: "access_alo_dashboard",
     group: "ministries",
   },
-
   {
     label: "AMO",
     path: "/dashboard/amo",
@@ -113,7 +103,6 @@ const SIDEBAR_ITEMS = [
     permission: "access_amo_dashboard",
     group: "ministries",
   },
-
   {
     label: "Church Clerk",
     path: "/dashboard/clerk",
@@ -121,7 +110,6 @@ const SIDEBAR_ITEMS = [
     permission: "access_clerk_dashboard",
     group: "ministries",
   },
-
   {
     label: "Sabbath School",
     path: "/dashboard/s-school",
@@ -129,7 +117,6 @@ const SIDEBAR_ITEMS = [
     permission: "access_s_school_dashboard",
     group: "ministries",
   },
-
   {
     label: "Deaconry",
     path: "/dashboard/deaconry",
@@ -137,10 +124,6 @@ const SIDEBAR_ITEMS = [
     permission: "access_deaconry_dashboard",
     group: "ministries",
   },
-
-  /* -------------------------
-     Admin
-  ------------------------- */
 
   {
     type: "group",
@@ -168,19 +151,11 @@ export default function Sidebar({
   collapsed,
   onToggleCollapse,
 }) {
-  const {
-    user,
-    canUser,
-  } = useAuth();
+  const { user, canUser } = useAuth();
 
   if (!user) return null;
 
-  /* -------------------------
-     Active Church Context
-  ------------------------- */
-
-  const activeChurch =
-    user.activeChurch ?? null;
+  const activeChurch = user.activeChurch ?? null;
 
   const churchName =
     activeChurch?.name ??
@@ -197,31 +172,23 @@ export default function Sidebar({
      Filter Visible Items
   ------------------------- */
 
-  const visibleItems =
-    SIDEBAR_ITEMS.filter((item) => {
-      // Group labels handled separately
+  const visibleItems = SIDEBAR_ITEMS.filter(
+    (item) => {
       if (item.type === "group") {
         return false;
       }
 
-      // General items
       if (!item.permission) {
         return true;
       }
 
-      // Guests cannot access
-      // ministry/admin areas
       if (isGuest) {
         return false;
       }
 
-      // Permission-based visibility
       return canUser(item.permission);
-    });
-
-  /* -------------------------
-     Determine Visible Groups
-  ------------------------- */
+    }
+  );
 
   const hasMinistryItems =
     visibleItems.some(
@@ -235,19 +202,10 @@ export default function Sidebar({
         item.group === "admin"
     );
 
-  /* -------------------------
-     Render Navigation
-  ------------------------- */
-
-  const renderNavigation = () => {
-    return visibleItems.filter(
+  const renderNavigation = () =>
+    visibleItems.filter(
       (item) => !item.group
     );
-  };
-
-  /* -------------------------
-     Render Navigation Item
-  ------------------------- */
 
   const renderNavItem = (item) => {
     const Icon = item.icon;
@@ -276,17 +234,11 @@ export default function Sidebar({
         />
 
         {!collapsed && (
-          <span>
-            {item.label}
-          </span>
+          <span>{item.label}</span>
         )}
       </NavLink>
     );
   };
-
-  /* -------------------------
-     Render Group
-  ------------------------- */
 
   const renderGroup = (
     group,
@@ -322,7 +274,6 @@ export default function Sidebar({
   return (
     <>
       {/* Mobile overlay */}
-
       {open && (
         <div
           className={styles.overlay}
@@ -334,11 +285,7 @@ export default function Sidebar({
         className={`
           ${styles.sidebar}
           ${open ? styles.open : ""}
-          ${
-            collapsed
-              ? styles.collapsed
-              : ""
-          }
+          ${collapsed ? styles.collapsed : ""}
         `}
       >
         {/* -------------------------
@@ -388,11 +335,13 @@ export default function Sidebar({
             )}
           </div>
 
+          {/* Header actions */}
           <div
             className={
               styles.headerActions
             }
           >
+            {/* Desktop collapse */}
             <button
               className={
                 styles.collapseBtn
@@ -400,13 +349,29 @@ export default function Sidebar({
               onClick={
                 onToggleCollapse
               }
-              aria-label="Toggle sidebar"
+              aria-label={
+                collapsed
+                  ? "Expand sidebar"
+                  : "Collapse sidebar"
+              }
+              title={
+                collapsed
+                  ? "Expand sidebar"
+                  : "Collapse sidebar"
+              }
             >
-              <PanelLeftClose
-                size={18}
-              />
+              {collapsed ? (
+                <PanelLeftOpen
+                  size={18}
+                />
+              ) : (
+                <PanelLeftClose
+                  size={18}
+                />
+              )}
             </button>
 
+            {/* Mobile close */}
             <button
               className={
                 styles.closeBtn
@@ -428,24 +393,16 @@ export default function Sidebar({
             styles.scrollArea
           }
         >
-          <nav
-            className={styles.nav}
-          >
-            {/* General */}
-
+          <nav className={styles.nav}>
             {renderNavigation().map(
               renderNavItem
             )}
-
-            {/* Ministries */}
 
             {hasMinistryItems &&
               renderGroup(
                 "ministries",
                 "Ministries"
               )}
-
-            {/* Admin */}
 
             {hasAdminItems &&
               renderGroup(

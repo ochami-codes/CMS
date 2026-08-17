@@ -1,11 +1,15 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Mail, Menu } from "lucide-react";
+
 import { useAuth } from "../context/AuthContext";
+
 import Sidebar from "../components/Sidebar";
 import NotificationBell from "../components/NotificationBell";
 import Badge from "../components/Badge";
+
 import useUnreadMessages from "../hooks/messages/useUnreadMessages";
+
 import styles from "../styles/layouts/DashboardLayout.module.css";
 
 export default function DashboardLayout() {
@@ -30,14 +34,16 @@ export default function DashboardLayout() {
 
   return (
     <div className={styles.layout}>
-      {/* Mobile hamburger */}
-      <button
-        className={styles.hamburger}
-        onClick={() => setSidebarOpen(true)}
-        aria-label="Open menu"
-      >
-        <Menu size={22} />
-      </button>
+      {/* Mobile header */}
+      {!sidebarOpen && (
+  <button
+    className={styles.hamburger}
+    onClick={() => setSidebarOpen(true)}
+    aria-label="Open menu"
+  >
+    <Menu size={22} />
+  </button>
+)}
 
       <Sidebar
         open={sidebarOpen}
@@ -58,9 +64,11 @@ export default function DashboardLayout() {
       >
         {/* NAVBAR */}
         <header className={styles.navbar}>
-          <h3 className={styles.title}>
-            ChurchApp
-          </h3>
+          <div className={styles.brand}>
+            <span className={styles.brandName}>
+              Church<span>App</span>
+            </span>
+          </div>
 
           <div className={styles.icons}>
             {/* Messages */}

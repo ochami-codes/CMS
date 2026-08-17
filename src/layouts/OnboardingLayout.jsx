@@ -2,10 +2,10 @@ import { Outlet, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
 import Button from "../components/Button";
+
 import styles from "../styles/layouts/OnboardingLayout.module.css";
 
 export default function OnboardingLayout() {
-
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
@@ -13,37 +13,40 @@ export default function OnboardingLayout() {
     await logout();
 
     navigate("/login", {
-      replace: true
+      replace: true,
     });
   };
 
   return (
     <div className={styles.layout}>
-
-      {/* MAIN */}
       <main className={styles.main}>
 
         {/* NAVBAR */}
         <header className={styles.navbar}>
+          <div className={styles.brand}>
+            <span className={styles.brandChurch}>
+              Church
+            </span>
 
-          <h3 className={styles.title}>
-            Welcome
-          </h3>
+            <span className={styles.brandApp}>
+              App
+            </span>
+          </div>
 
           <div className={styles.actions}>
-
-            <span className={styles.email}>
-              {user?.email}
-            </span>
+            {user?.email && (
+              <span className={styles.email}>
+                {user.email}
+              </span>
+            )}
 
             <Button
               onClick={handleLogout}
-              >
+              variant="ghost"
+            >
               Logout
             </Button>
-
           </div>
-
         </header>
 
         {/* PAGE CONTENT */}
@@ -52,7 +55,6 @@ export default function OnboardingLayout() {
         </section>
 
       </main>
-
     </div>
   );
 }

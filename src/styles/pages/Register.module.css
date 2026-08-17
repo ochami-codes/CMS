@@ -1,78 +1,273 @@
 .container {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background: var(--background);
+
+  display: grid;
+  place-items: center;
+
+  padding: var(--space-4);
+
+  background:
+    radial-gradient(
+      700px 350px at 50% 0%,
+      rgba(20, 121, 232, 0.10),
+      transparent
+    ),
+    var(--background);
 }
 
 .card {
-  width: 100%;
-  max-width: 520px;
+  width: min(100%, 440px);
+
+  padding: var(--space-6);
+
   background: var(--surface);
+
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 2rem;
-  box-shadow: var(--shadow-md);
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+
+  border-radius: var(--radius-xl);
+
+  box-shadow: var(--shadow-lg);
+}
+
+
+/* Brand */
+
+.brand {
+  display: grid;
+  justify-items: center;
+
+  gap: 0.75rem;
+
+  margin-bottom: var(--space-6);
+}
+
+.brand img {
+  display: block;
+  height: auto;
+}
+
+.tagline {
+  margin: 0;
+
+  color: var(--text-light);
+
+  font-size: 0.9rem;
+
+  text-align: center;
+}
+
+
+/* Header */
+
+.header {
+  text-align: center;
+
+  margin-bottom: var(--space-4);
 }
 
 .title {
-  text-align: center;
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: var(--text);
+  margin: 0;
+
+  color: var(--primary);
+
+  font-size: 1.8rem;
+
+  font-weight: 750;
+
+  letter-spacing: -0.025em;
 }
 
-.progress {
-  text-align: center;
-  font-size: 0.9rem;
-  color: var(--text-muted);
+.subtitle {
+  margin: 0.5rem auto 0;
+
+  color: var(--text-light);
+
+  font-size: 0.95rem;
+
+  line-height: 1.5;
 }
+
+
+/* Progress */
+
+.progressWrapper {
+  margin-bottom: var(--space-4);
+}
+
+.progressInfo {
+  display: flex;
+
+  justify-content: space-between;
+
+  margin-bottom: 0.5rem;
+
+  color: var(--text-light);
+
+  font-size: 0.8rem;
+
+  font-weight: 600;
+}
+
+.progressTrack {
+  width: 100%;
+
+  height: 6px;
+
+  overflow: hidden;
+
+  border-radius: var(--radius-full);
+
+  background: var(--border);
+}
+
+.progressBar {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--primary),
+      var(--accent)
+    );
+
+  transition: width 0.25s ease;
+}
+
+
+/* Form */
 
 .form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  display: grid;
+
+  gap: var(--space-3);
 }
 
-.error {
-  font-size: 0.85rem;
-  text-align: center;
-  color: #ef4444;
-}
 
-.selectGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.select {
-  padding: 0.6rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  font-size: 1rem;
-  color: var(--text);
-}
-
-.selectError {
-  padding: 0.6rem;
-  border: 1px solid #ef4444;
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  font-size: 1rem;
-  color: var(--text);
-}
+/* Navigation */
 
 .navigation {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 1rem;
+
+  justify-content: flex-end;
+
+  gap: var(--space-2);
+
+  margin-top: var(--space-2);
+}
+
+
+/* Select */
+
+.selectGroup {
+  display: grid;
+
+  gap: 0.5rem;
+}
+
+.selectGroup label {
+  color: var(--text);
+
+  font-size: 0.9rem;
+
+  font-weight: 600;
+}
+
+.select {
+  width: 100%;
+
+  min-height: 44px;
+
+  padding: 0.65rem 0.75rem;
+
+  border: 1px solid var(--border);
+
+  border-radius: var(--radius-md);
+
+  background: var(--surface);
+
+  color: var(--text);
+
+  outline: none;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.select:focus {
+  border-color: var(--accent);
+
+  box-shadow:
+    0 0 0 3px rgba(20, 121, 232, 0.12);
+}
+
+.selectError {
+  composes: select;
+
+  border-color: var(--danger);
+}
+
+.error {
+  margin: 0;
+
+  color: var(--danger);
+
+  font-size: 0.8rem;
+}
+
+
+/* Login */
+
+.login {
+  margin: var(--space-4) 0 0;
+
+  padding-top: var(--space-4);
+
+  border-top: 1px solid var(--border);
+
+  text-align: center;
+
+  color: var(--text-light);
+
+  font-size: 0.9rem;
+}
+
+.link {
+  color: var(--primary);
+
+  font-weight: 600;
+
+  transition: color 0.15s ease;
+}
+
+.link:hover {
+  color: var(--brand-dark);
+}
+
+
+/* Mobile */
+
+@media (max-width: 480px) {
+  .container {
+    padding: var(--space-2);
+  }
+
+  .card {
+    padding: var(--space-4);
+
+    border-radius: var(--radius-lg);
+
+    box-shadow: var(--shadow-md);
+  }
+
+  .navigation {
+    justify-content: stretch;
+  }
+
+  .navigation button {
+    flex: 1;
+  }
 }
 

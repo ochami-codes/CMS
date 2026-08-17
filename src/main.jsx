@@ -7,9 +7,6 @@ import QueryProvider from "./providers/QueryProvider";
 import AppErrorBoundary from "./components/ErrorBoundary";
 
 import "./styles/general/globals.css";
-import "./styles/general/variables.css";
-import "./styles/general/typography.css";
-import "./styles/general/utilities.css";
 
 ReactDOM.createRoot(
   document.getElementById("root")
