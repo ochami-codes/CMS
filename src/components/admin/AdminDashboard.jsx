@@ -8,7 +8,7 @@ import AdminContent from "./AdminContent";
 import Tabs from "../Tabs";
 import Loader from "../Loader";
 import Card from "../Card";
-
+import BackButton from "../BackButton";
 import styles from "../../styles/admin/AdminDashboard.module.css";
 
 const TABS = (counts) => [
@@ -102,6 +102,7 @@ export default function AdminDashboard({
 
   return (
     <div className={styles.page}>
+<BackButton/>
       <AdminHeader />
 
       <Tabs
