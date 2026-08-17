@@ -11,7 +11,7 @@ import LessonGuidesPage from "../../components/sabbathSchool/LessonGuides";
 import AttendancePage from "../../components/sabbathSchool/AttendancePage";
 import FinancesPage from "../../components/sabbathSchool/FinancesPage";
 import TextDisplay from "../../components/TextDisplay";
-
+import BackButton from "../../components/BackButton";
 import styles from "../../styles/pages/SabbathSchool.module.css";
 
 const tabs = [
@@ -24,18 +24,19 @@ const tabs = [
 export default function SabbathSchoolDashboard() {
   const [activeTab, setActiveTab] = useState("members");
 
-  const { departmentId, loading, isError } = useDepartmentId("sabbath-school");
-  console.log("id:", departmentId);
+  const { departmentId, loading, isError, error } = useDepartmentId("sabbath-school");
+  
   if (loading) {
     return <Loader message="Loading Dashboard..." fullScreen />;
   }
 
   if (isError) {
-    return <ErrorState message="Failed to load department data." />;
+    return <ErrorState  error={error} message="Failed to load department data." />;
   }
 
   return (
     <RequirePermission permission="access_s_school_dashboard">
+      <BackButton/>
       <main className={`page-container ${styles.page}`}>
         <header className={styles.header}>
           <div>

@@ -16,7 +16,7 @@ import PastorDepartments from "./PastorDepartments";
 import PastorTreasury from "./PastorTreasury";
 import PastorMembers from "./PastorMembers";
 import TextDisplay from "../../components/TextDisplay";
-
+import BackButton from "../../components/BackButton";
 import styles from "../../styles/pages/PastorDashboard.module.css";
 
 const tabs = [
@@ -29,7 +29,7 @@ const tabs = [
 export default function PastorDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
 
-  const { data, loading, refresh, isFetching, isError } = usePastorDashboard();
+  const { data, loading, refresh, isFetching, isError, error } = usePastorDashboard();
 
   if (loading) {
     return <Loader message="Loading dashboard..." fullScreen={false} />;
@@ -38,6 +38,7 @@ export default function PastorDashboard() {
   if (isError) {
     return (
       <ErrorState
+        error={error}
         title="Failed to load dashboard."
         onRetry={refresh}
       />
@@ -46,6 +47,7 @@ export default function PastorDashboard() {
 
   return (
     <RequirePermission permission="access_pastor_dashboard">
+      <BackButton/>
     <main className={`page-container ${styles.page}`}>
   <header className={styles.header}>
     <TextDisplay

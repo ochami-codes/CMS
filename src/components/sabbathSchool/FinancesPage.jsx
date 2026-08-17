@@ -27,6 +27,7 @@ export default function FinancesPage({ departmentId }) {
     summary,
     loading: summaryLoading,
     isError: summaryError,
+    error,
     refresh,
   } = useTreasuryFundsSummary({
     departmentId,
@@ -84,10 +85,12 @@ export default function FinancesPage({ departmentId }) {
   if (summaryError || attendanceError || financesError) {
     return (
       <Card className={styles.state}>
-        <ErrorState
-          message="Failed to load finances."
-          onRetry={refresh}
-        />
+       <ErrorState
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={refresh}
+/>
       </Card>
     );
   }

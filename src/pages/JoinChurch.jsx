@@ -9,7 +9,7 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import Loader from "../components/Loader";
 import PageHeader from "../components/PageHeader";
-
+import BackButton from "../components/BackButton";
 import useSearchChurches from "../hooks/churches/useSearchChurches";
 
 import styles from "../styles/pages/JoinChurch.module.css";
@@ -48,6 +48,7 @@ export default function JoinChurch() {
 
   return (
     <div className={styles.container}>
+      <BackButton/>
       <PageHeader
         title="Find Your Church"
         subtitle="Search for your church or create a new one"

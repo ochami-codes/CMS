@@ -11,7 +11,7 @@ import MemberList from "../../components/members/MemberList";
 import Announcements from "../../components/announcements/Announcements";
 import TextDisplay from "../../components/TextDisplay";
 import styles from "../../styles/pages/SharedPages.module.css";
-
+import BackButton from "../../components/BackButton";
 const tabs = [
   { key: "members", label: "Members", Icon: Users },
   { key: "announcements", label: "Announcements", Icon: Megaphone },
@@ -20,18 +20,19 @@ const tabs = [
 export default function YouthDashboard() {
   const [activeTab, setActiveTab] = useState("members");
 
-  const { departmentId, loading, isError } = useDepartmentId("youth");
+  const { departmentId, loading, isError, error } = useDepartmentId("youth");
 
   if (loading) {
     return <Loader message="Loading Dashboard..." fullScreen />;
   }
 
   if (isError) {
-    return <ErrorState message="Failed to load department data." />;
+    return <ErrorState  error={error} message="Failed to load department data." />;
   }
 
   return (
     <RequirePermission permission="access_youth_dashboard">
+      <BackButton/>
       <main className={`page-container ${styles.page}`}>
         <header className={styles.header}>
           <div>

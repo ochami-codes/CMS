@@ -2,10 +2,11 @@ import RequirePermission from "../../components/RequirePermission";
 import Announcements from "../../components/announcements/Announcements";
 import TextDisplay from "../../components/TextDisplay";
 import styles from "../../styles/pages/CommunicationDashboard.module.css";
-
+import BackButton from "../../components/BackButton";
 export default function CommunicationDashboard() {
   return (
     <RequirePermission permission="access_media_dashboard">
+      <BackButton/>
       <main className={`page-container ${styles.page}`}>
         <header className={styles.header}>
           <TextDisplay

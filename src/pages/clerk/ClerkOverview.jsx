@@ -57,6 +57,7 @@ export default function ClerkOverview() {
     return (
       <ErrorState
         title="Unable to load overview"
+        error={error}
         message={error?.message ?? "Something went wrong while fetching data."}
         onRetry={refetch}
       />

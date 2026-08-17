@@ -7,7 +7,7 @@ export default function Navbar({
   title = "Dashboard"
 }) {
 
-  const { user, logout } = useAuth();
+  const { user, logout, authLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -32,8 +32,9 @@ export default function Navbar({
         </span>
 
         <button
-          className={styles.logout}
+          className={"danger"}
           onClick={handleLogout}
+          loading={authLoading}
         >
           Logout
         </button>

@@ -11,6 +11,7 @@ export default function MembersPage() {
     members,
     loading,
     isError,
+    error,
     refresh,
   } = useMembers();
 
@@ -32,9 +33,11 @@ export default function MembersPage() {
     return (
       <Card className={styles.state}>
         <ErrorState
-          message="Failed to load members."
-          onRetry={refresh}
-        />
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={refresh}
+/>
       </Card>
     );
   }

@@ -51,7 +51,7 @@ export default function useMyGivingLedger({
 
     isError,
 
-    error,
+    errorLedger: error,
 
     // Query action
     refresh:

@@ -252,13 +252,11 @@ export default function ChildrenAttendance({
           />
         ) : isError ? (
           <ErrorState
-            title="Unable to load attendance"
-            message={
-              error?.message ??
-              "We couldn't load attendance records."
-            }
-            onRetry={refresh}
-          />
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={refresh}
+/>
         ) : lastSabbath.length > 0 ? (
           <ResponsiveDataView
             columns={historyColumns}

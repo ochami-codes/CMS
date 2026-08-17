@@ -117,13 +117,11 @@ export default function RoleRequests() {
 
         {!isLoading && isError && (
           <ErrorState
-            title="Unable to load membership requests"
-            message={
-              error?.message ??
-              "We couldn't load membership requests. Please try again."
-            }
-            onRetry={refetch}
-          />
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={refetch}
+/>
         )}
 
         {!isLoading && blocked && (

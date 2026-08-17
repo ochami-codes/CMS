@@ -10,7 +10,7 @@ import ErrorState from "../components/ErrorState";
 import { useAuth } from "../context/AuthContext";
 import useConferences from "../hooks/conferences/useConferences";
 import useCreateChurch from "../hooks/churches/useCreateChurch";
-
+import BackButton from "../components/BackButton";
 import styles from "../styles/pages/CreateChurch.module.css";
 
 export default function CreateChurch() {
@@ -31,6 +31,7 @@ export default function CreateChurch() {
     data: conferences = [],
     loadingConference,
     isError,
+    error
   } = useConferences();
 
   /* -------------------------
@@ -106,11 +107,16 @@ export default function CreateChurch() {
      Render
   ------------------------- */
   if (isError) {
-    return <ErrorState message="Failed to load conferences. Please try again." />;
-  }
+    return <ErrorState
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+/>
+  };
 
   return (
     <div className={styles.container}>
+      <BackButton/>
       <PageHeader
         title="Create Church"
         subtitle="Set up a new church workspace"

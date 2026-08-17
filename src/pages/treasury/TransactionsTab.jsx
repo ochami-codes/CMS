@@ -4,7 +4,6 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   Landmark,
-  X,
 } from "lucide-react";
 
 import Card from "../../components/Card";
@@ -17,10 +16,11 @@ import RecordExpenseForm from "../../components/treasury/RecordExpenseForm";
 import AddFundForm from "../../components/treasury/AddFundForm";
 import useTreasuryTransactions from "../../hooks/treasury/useTreasuryTransactions";
 import TextDisplay from "../../components/TextDisplay";
+import Modal from "../../components/Modal"; // ✅ use Modal here
 import styles from "../../styles/pages/TransactionsTab.module.css";
 
 export default function TransactionsTab({ onRefresh }) {
-  const { transactions, summary, refresh, isError } = useTreasuryTransactions();
+  const { transactions, summary, refresh, isError, error } = useTreasuryTransactions();
   const [activeForm, setActiveForm] = useState(null);
 
   const closeForm = () => setActiveForm(null);
@@ -51,6 +51,7 @@ export default function TransactionsTab({ onRefresh }) {
     return (
       <Card className={styles.state}>
         <ErrorState
+          error={error}
           message="Failed to load transactions."
           onRetry={refresh}
         />
@@ -60,31 +61,21 @@ export default function TransactionsTab({ onRefresh }) {
 
   return (
     <section className={styles.container}>
+      {/* Header */}
       <div className={styles.header}>
         <div>
-          <TextDisplay
-            as="h2"
-            size="2xl"
-            weight="bold"
-            color="primary"
-          >
+          <TextDisplay as="h2" size="2xl" weight="bold" color="primary">
             Transactions
           </TextDisplay>
-          <TextDisplay
-            as="p"
-            size="md"
-            color="muted"
-          >
+          <TextDisplay as="p" size="md" color="muted">
             Record income, expenses and manage funds
           </TextDisplay>
         </div>
       </div>
 
+      {/* Action Cards */}
       <div className={styles.actions}>
-        <Card
-          className={styles.actionCard}
-          onClick={() => setActiveForm("income")}
-        >
+        <Card className={styles.actionCard} onClick={() => setActiveForm("income")}>
           <ArrowDownCircle size={32} />
           <div>
             <h3>Receive Funds</h3>
@@ -93,10 +84,7 @@ export default function TransactionsTab({ onRefresh }) {
           <Plus size={18} />
         </Card>
 
-        <Card
-          className={styles.actionCard}
-          onClick={() => setActiveForm("expense")}
-        >
+        <Card className={styles.actionCard} onClick={() => setActiveForm("expense")}>
           <ArrowUpCircle size={32} />
           <div>
             <h3>Record Expense</h3>
@@ -105,10 +93,7 @@ export default function TransactionsTab({ onRefresh }) {
           <Plus size={18} />
         </Card>
 
-        <Card
-          className={styles.actionCard}
-          onClick={() => setActiveForm("fund")}
-        >
+        <Card className={styles.actionCard} onClick={() => setActiveForm("fund")}>
           <Landmark size={32} />
           <div>
             <h3>Add Fund</h3>
@@ -118,26 +103,33 @@ export default function TransactionsTab({ onRefresh }) {
         </Card>
       </div>
 
+      {/* Modal for Forms */}
       {activeForm && (
-        <div className={styles.overlay}>
-          <div className={styles.modal}>
-            <button className={styles.close} onClick={closeForm}>
-              <X size={20} />
-            </button>
-
-            {activeForm === "income" && (
-              <ReceiveFundsForm onSuccess={handleSuccess} onCancel={closeForm} />
-            )}
-            {activeForm === "expense" && (
-              <RecordExpenseForm onSuccess={handleSuccess} onCancel={closeForm} />
-            )}
-            {activeForm === "fund" && (
-              <AddFundForm onSuccess={handleSuccess} onCancel={closeForm} />
-            )}
-          </div>
-        </div>
+        <Modal
+          open={!!activeForm}
+          onClose={closeForm}
+          title={
+            activeForm === "income"
+              ? "Receive Funds"
+              : activeForm === "expense"
+              ? "Record Expense"
+              : "Add Fund"
+          }
+          size="md"
+        >
+          {activeForm === "income" && (
+            <ReceiveFundsForm onSuccess={handleSuccess} onCancel={closeForm} />
+          )}
+          {activeForm === "expense" && (
+            <RecordExpenseForm onSuccess={handleSuccess} onCancel={closeForm} />
+          )}
+          {activeForm === "fund" && (
+            <AddFundForm onSuccess={handleSuccess} onCancel={closeForm} />
+          )}
+        </Modal>
       )}
 
+      {/* Summary */}
       <div className={styles.summary}>
         <Card>
           <span>Today's Records</span>
@@ -159,6 +151,7 @@ export default function TransactionsTab({ onRefresh }) {
         </Card>
       </div>
 
+      {/* Recent Transactions */}
       <Card className={styles.history}>
         <h3>Recent Transactions</h3>
         <ResponsiveDataView columns={columns} data={transactions} />
@@ -166,3 +159,4 @@ export default function TransactionsTab({ onRefresh }) {
     </section>
   );
 }
+

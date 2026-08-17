@@ -13,7 +13,7 @@ import ErrorState from "../../components/ErrorState";
 import TextDisplay from "../../components/TextDisplay";
 import useDepartmentId from "../../hooks/departments/useDepartmentId";
 import useChildren from "../../hooks/clerk/useChildren";
-
+import BackButton from "../../components/BackButton";
 import styles from "../../styles/pages/ChildrenDashboard.module.css";
 
 const tabs = [
@@ -42,6 +42,7 @@ export default function ChildrenDashboard() {
     return (
       <ErrorState
         title="Failed to load department"
+        error={deptErrorDetails}
         message={deptErrorDetails?.message ?? "Something went wrong while fetching department data."}
         onRetry={refetch}
       />
@@ -53,6 +54,7 @@ export default function ChildrenDashboard() {
   -------------------------- */
   return (
     <RequirePermission permission="access_children_dashboard">
+      <BackButton/>
       <main className={`page-container ${styles.page}`}>
         {/* Header */}
         <header className={styles.header}>

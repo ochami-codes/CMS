@@ -45,7 +45,7 @@ export default function useProfile() {
       profileQuery.isPending ||
       profileQuery.isFetching,
 
-    error:
+    errorProfile:
       profileQuery.error,
     isError:
       profileQuery.isError,  

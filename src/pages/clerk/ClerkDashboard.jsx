@@ -8,7 +8,7 @@ import ClerkOverview from "./ClerkOverview";
 import MembersRegister from "./MembersRegister";
 import ChildrenRegister from "./ChildrenRegister";
 import TransfersRegister from "./TransfersRegister";
-
+import BackButton from "../../components/BackButton";
 import AddMember from "./AddMember";
 import AddChild from "./AddChild";
 
@@ -111,6 +111,7 @@ export default function ClerkDashboard() {
 
   return (
     <RequirePermission permission="access_clerk_dashboard">
+      <BackButton/>
       <div className={styles.page}>
         <div className={styles.tabsWrapper}>
           <Tabs

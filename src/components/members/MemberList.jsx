@@ -18,6 +18,7 @@ export default function MemberList({
     loading,
     refresh,
     isError,
+    error,
   } = useDepartmentMembers(departmentId);
 
   const { deleteMember, isDeleting } = useDeleteMember();
@@ -47,10 +48,12 @@ export default function MemberList({
   if (isError) {
     return (
       <Card className={styles.loading}>
-        <ErrorState
-          message="Failed to load members."
-          onRetry={refresh}
-        />
+    <ErrorState
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={refresh}
+/>
       </Card>
     );
   }

@@ -19,6 +19,7 @@ export default function LessonGuides({ departmentId }) {
     summary,
     loading,
     isError,
+    error,
     refresh,
   } = useLessonGuides({ departmentId });
 
@@ -45,9 +46,11 @@ export default function LessonGuides({ departmentId }) {
     return (
       <Card className={styles.state}>
         <ErrorState
-          message="Failed to load lesson guide subscriptions."
-          onRetry={refresh}
-        />
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={refresh}
+/>
       </Card>
     );
   }

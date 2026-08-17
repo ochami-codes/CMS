@@ -13,7 +13,7 @@ import styles from "../../styles/components/AddMemberdept.module.css";
 export default function AddMember({ departmentId }) {
   const [query, setQuery] = useState("");
 
-  const { members, loading, isError, refresh } = useMembers({ search: query });
+  const { members, loading, isError, error, refresh } = useMembers({ search: query });
   const { addMember, isLoadingFor } = useAddDepartmentMember();
 
   const handleAdd = async (memberId) => {
@@ -56,7 +56,12 @@ export default function AddMember({ departmentId }) {
 
       {isError && (
         <div className={styles.error}>
-          <ErrorState message="Failed to search members." onRetry={refresh} />
+         <ErrorState
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={refresh}
+/>
         </div>
       )}
 

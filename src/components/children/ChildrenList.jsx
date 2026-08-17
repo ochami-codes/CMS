@@ -37,10 +37,11 @@ export default function ChildrenList({
     return (
       <Card className={styles.loading}>
         <ErrorState
-          title="Unable to load children"
-          message={error?.message ?? "Failed to load the children register."}
-          onRetry={onRefresh}
-        />
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={onRefresh}
+/>
       </Card>
     );
   }

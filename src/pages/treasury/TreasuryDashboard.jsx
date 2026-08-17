@@ -16,7 +16,7 @@ import TreasuryOverview from "./TreasuryOverview";
 import TransactionsTab from "./TransactionsTab";
 import MemberGivingTab from "./MemberGivingTab";
 import FundsTab from "./FundsTab";
-
+import BackButton from "../../components/BackButton";
 import styles from "../../styles/pages/TreasuryDashboard.module.css";
 
 const tabs = [
@@ -64,6 +64,7 @@ export default function TreasuryDashboard() {
       <div className={styles.loadingWrapper}>
         <ErrorState
           title="Failed to load treasury dashboard"
+          error={error}
           message={
             error?.message ||
             membersErrorDetails?.message ||
@@ -80,6 +81,7 @@ export default function TreasuryDashboard() {
   -------------------------- */
   return (
     <RequirePermission permission="access_treasury_dashboard">
+      <BackButton/>
       <main className={`page-container ${styles.page}`}>
         {/* Header */}
         <header className={styles.header}>

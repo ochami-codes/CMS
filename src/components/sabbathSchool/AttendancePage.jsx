@@ -28,6 +28,7 @@ export default function AttendancePage({ departmentId }) {
     saving,
     saveAttendance,
     isError,
+    error,
     refresh,
   } = useSabbathSchoolAttendance({ departmentId });
 
@@ -57,10 +58,12 @@ export default function AttendancePage({ departmentId }) {
   if (isError) {
     return (
       <Card className={styles.loading}>
-        <ErrorState
-          message="Failed to load attendance records."
-          onRetry={refresh}
-        />
+   <ErrorState
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={refresh}
+/>
       </Card>
     );
   }

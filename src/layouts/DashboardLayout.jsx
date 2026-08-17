@@ -1,12 +1,12 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, Menu } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
 
 import Sidebar from "../components/Sidebar";
-import NotificationBell from "../components/NotificationBell";
 import Badge from "../components/Badge";
+import NotificationBell from "../components/NotificationBell";
 
 import useUnreadMessages from "../hooks/messages/useUnreadMessages";
 
@@ -27,27 +27,76 @@ export default function DashboardLayout() {
   const [collapsed, setCollapsed] =
     useState(false);
 
+  const [isScrolling, setIsScrolling] =
+    useState(false);
+
+  /* -------------------------
+     Show menu while scrolling
+  ------------------------- */
+
+  useEffect(() => {
+    let timeout;
+
+    const handleScroll = () => {
+      setIsScrolling(true);
+
+      clearTimeout(timeout);
+
+      timeout = setTimeout(() => {
+        setIsScrolling(false);
+      }, 5000);
+    };
+
+    window.addEventListener(
+      "scroll",
+      handleScroll,
+      { passive: true }
+    );
+
+    return () => {
+      window.removeEventListener(
+        "scroll",
+        handleScroll
+      );
+
+      clearTimeout(timeout);
+    };
+  }, []);
+
+  /* -------------------------
+     Logout
+  ------------------------- */
+
   const handleLogout = async () => {
     await logout();
-    navigate("/login", { replace: true });
+
+    navigate("/login", {
+      replace: true,
+    });
   };
 
   return (
     <div className={styles.layout}>
-      {/* Mobile header */}
-      {!sidebarOpen && (
-  <button
-    className={styles.hamburger}
-    onClick={() => setSidebarOpen(true)}
-    aria-label="Open menu"
-  >
-    <Menu size={22} />
-  </button>
-)}
+
+      {/* Mobile menu */}
+      {!sidebarOpen && isScrolling && (
+        <button
+  className={`${styles.hamburger} ${
+    isScrolling ? styles.hamburgerVisible : ""
+  }`}
+  onClick={() => setSidebarOpen(true)}
+  aria-label="Open menu"
+  aria-hidden={!isScrolling}
+>
+  <Menu size={22} />
+</button>
+      )}
 
       <Sidebar
         open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+        onClose={() =>
+          setSidebarOpen(false)
+        }
         collapsed={collapsed}
         onToggleCollapse={() =>
           setCollapsed(!collapsed)
@@ -62,20 +111,27 @@ export default function DashboardLayout() {
           marginLeft: collapsed ? 72 : 260,
         }}
       >
+
         {/* NAVBAR */}
         <header className={styles.navbar}>
+
           <div className={styles.brand}>
-            <span className={styles.brandName}>
+            <span
+              className={styles.brandName}
+            >
               Church<span>App</span>
             </span>
           </div>
 
           <div className={styles.icons}>
+
             {/* Messages */}
             <button
               className={styles.iconBtn}
               onClick={() =>
-                navigate("/dashboard/messages")
+                navigate(
+                  "/dashboard/messages"
+                )
               }
               aria-label="Messages"
             >
@@ -90,6 +146,7 @@ export default function DashboardLayout() {
 
             {/* Notifications */}
             <NotificationBell />
+
           </div>
         </header>
 
@@ -97,6 +154,7 @@ export default function DashboardLayout() {
         <section className={styles.page}>
           <Outlet />
         </section>
+
       </div>
     </div>
   );

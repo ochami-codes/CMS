@@ -17,7 +17,7 @@ export default function AddFundForm({
     departments,
     loading: departmentsLoading,
     isError: departmentsError,
-    error: departmentsErrorDetails,
+    error: departmentError,
     refresh,
   } = useDepartments();
 
@@ -59,13 +59,11 @@ export default function AddFundForm({
     return (
       <Card className={styles.card}>
         <ErrorState
-          title="Unable to load departments"
-          message={
-            departmentsErrorDetails?.message ??
-            "Failed to load departments."
-          }
-          onRetry={refresh}
-        />
+  error={departmentError}
+  title="Failed to load data"
+  message={departmentError?.message}
+  onRetry={refresh}
+/>
       </Card>
     );
   }

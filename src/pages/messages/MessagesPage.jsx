@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import InboxList from "./InboxList";
 import ChatWindow from "./ChatWindow";
 import NewMessageModal from "./NewMessageModal";
-
+import BackButton from "../../components/BackButton";
 import useInbox from "../../hooks/messages/useInbox";
 import useMarkThreadAsRead from "../../hooks/messages/useMarkThreadAsRead";
 import useThreadWithUser from "../../hooks/messages/useThreadWithUser";
@@ -69,6 +69,7 @@ export default function MessagesPage() {
   }
 
   return (
+    
     <div className={styles.page}>
       {/* Inbox */}
       <AnimatePresence mode="wait">
@@ -79,7 +80,9 @@ export default function MessagesPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
+            <BackButton/>
             <div className={styles.sidebarHeader}>
+              
               <h3 className={styles.title}>Message leaders and members</h3>
               <button
                 className={`btn btn-primary ${styles.newBtn}`}

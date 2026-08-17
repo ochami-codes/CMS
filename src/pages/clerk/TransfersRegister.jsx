@@ -175,6 +175,7 @@ export default function TransfersRegister() {
         </h2>
         <ErrorState
           title="Failed to load transfers"
+          error={error}
           message={error?.message ?? "Something went wrong while fetching transfer data."}
           onRetry={refetchAll}
         />

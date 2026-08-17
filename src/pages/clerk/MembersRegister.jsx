@@ -87,6 +87,7 @@ export default function MembersRegister() {
         </h2>
         <ErrorState
           title="Failed to load members"
+          error={error}
           message={error?.message ?? "Something went wrong while fetching members."}
           onRetry={refetch}
         />

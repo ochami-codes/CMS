@@ -93,6 +93,7 @@ export default function ChildrenRegister() {
         </h2>
         <ErrorState
           title="Failed to load children"
+          error={error}
           message={error?.message ?? "Something went wrong while fetching data."}
           onRetry={refetch}
         />

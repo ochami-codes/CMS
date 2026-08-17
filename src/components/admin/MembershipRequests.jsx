@@ -106,14 +106,12 @@ export default function MembershipRequests() {
         )}
 
         {!isLoading && isError && (
-          <ErrorState
-            title="Unable to load membership requests"
-            message={
-              error?.message ??
-              "We couldn't load membership requests. Please try again."
-            }
-            onRetry={refetch}
-          />
+        <ErrorState
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={refetch}
+/>
         )}
 
         {!isLoading && !isError && requests.length === 0 && (

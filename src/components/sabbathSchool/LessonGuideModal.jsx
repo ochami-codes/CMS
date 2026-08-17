@@ -52,7 +52,7 @@ export default function LessonGuideModal({
   const [remarks, setRemarks] = useState("");
 
   const submitting = creating || creatingMySubscription;
-  const { members, isError, refresh } = useMembers({
+  const { members, isError, error, refresh } = useMembers({
     enabled: isLeader,
   });
 
@@ -96,9 +96,11 @@ export default function LessonGuideModal({
       <Card>
         {isLeader && isError ? (
           <ErrorState
-            message="Failed to load members."
-            onRetry={refresh}
-          />
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={refresh}
+/>
         ) : (
           <form onSubmit={handleSubmit} className={styles.form}>
             {isLeader && (

@@ -79,14 +79,12 @@ export default function ManageDepartments() {
         )}
 
         {!loading && isError && (
-          <ErrorState
-            title="Unable to load departments"
-            message={
-              error?.message ??
-              "Failed to load departments."
-            }
-            onRetry={refresh}
-          />
+         <ErrorState
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={refresh}
+/>
         )}
 
         {!loading &&

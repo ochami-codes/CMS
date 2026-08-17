@@ -21,7 +21,7 @@ import Card from "../../../components/Card";
 import Button from "../../../components/Button";
 import Loader from "../../../components/Loader";
 import ErrorState from "../../../components/ErrorState";
-
+import BackButton from "../../../components/BackButton";
 import styles from "../../../styles/profiles/ProfilePage.module.css";
 
 function CollapseToggle({ open, onClick }) {
@@ -60,6 +60,7 @@ export default function ProfilePage() {
     updating,
     updateProfile,
     isError: profileError,
+    errorProfile,
     refresh: refreshProfile,
   } = useProfile();
 
@@ -74,6 +75,7 @@ export default function ProfilePage() {
     summary,
     transactions,
     isError: ledgerError,
+    errorLedger,
     refresh: refreshLedger,
   } = useMyGivingLedger({
     enabled: hasChurchMembership,
@@ -93,6 +95,7 @@ export default function ProfilePage() {
       <ErrorState
         message="Failed to load your profile."
         onRetry={refreshProfile}
+        error={errorProfile}
       />
     );
   }
@@ -109,6 +112,7 @@ export default function ProfilePage() {
 
   return (
     <main className={styles.page}>
+      <BackButton/>
       {/* My Account */}
       <Section
         title="My Account"
@@ -202,6 +206,7 @@ export default function ProfilePage() {
         >
           {ledgerError ? (
             <ErrorState
+            error={errorLedger}
               message="Failed to load contributions."
               onRetry={refreshLedger}
             />

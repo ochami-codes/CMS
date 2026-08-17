@@ -149,14 +149,12 @@ export default function ManageRoles() {
 
       {/* Members Error */}
       {!initialLoading && membersIsError && (
-        <ErrorState
-          title="Unable to load members"
-          message={
-            membersError?.message ??
-            "We couldn't load the members. Please try again."
-          }
-          onRetry={refetchMembers}
-        />
+     <ErrorState
+  error={membersError}
+  title="Failed to load data"
+  message={membersError?.message}
+  onRetry={refetchMembers}
+/>
       )}
 
       {/* Empty State */}

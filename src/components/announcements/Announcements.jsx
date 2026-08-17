@@ -63,14 +63,12 @@ function AnnouncementView({
 
   if (error) {
     return (
-      <ErrorState
-        title="Failed to load announcements"
-        message={
-          error?.message ??
-          "Something went wrong while fetching announcements."
-        }
-        onRetry={refresh}
-      />
+    <ErrorState
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={refresh}
+/>
     );
   }
 

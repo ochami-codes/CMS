@@ -24,6 +24,7 @@ export default function FundsTab() {
   remittances,
   loading,
   isError,
+  error,
   remitFunds,
   cancelRemittance,
   refresh,
@@ -99,6 +100,7 @@ const handleCancel = async (remittanceId) => {
     return (
       <Card className={styles.state}>
         <ErrorState
+          error={error}
           message="Failed to load remittances."
           onRetry={refresh}
         />

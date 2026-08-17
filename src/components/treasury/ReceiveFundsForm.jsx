@@ -40,7 +40,12 @@ export default function ReceiveFundsForm({ onSuccess, onCancel }) {
     error: membersErrorDetails,
     refetch: refetchMembers,
   } = useMembers();
-
+   const formError =
+  fundsErrorDetails?.code === "UNAUTHORIZED"
+    ? fundsErrorDetails
+    : membersErrorDetails?.code === "UNAUTHORIZED"
+    ? membersErrorDetails
+    : fundsErrorDetails || membersErrorDetails;
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -80,17 +85,14 @@ export default function ReceiveFundsForm({ onSuccess, onCancel }) {
   if (fundsError || membersError) {
     return (
       <ErrorState
-        title="Unable to load form data"
-        message={
-          fundsErrorDetails?.message ||
-          membersErrorDetails?.message ||
-          "Something went wrong while fetching data."
-        }
-        onRetry={() => {
-          refetchFunds();
-          refetchMembers();
-        }}
-      />
+  title="Unable to load form data"
+  message="Something went wrong while fetching data."
+  error={formError}
+  onRetry={() => {
+    refetchFunds();
+    refetchMembers();
+  }}
+/>
     );
   }
 

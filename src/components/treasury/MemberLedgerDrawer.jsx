@@ -18,6 +18,7 @@ export default function MemberLedgerDrawer({ member, onClose }) {
     summary,
     transactions,
     isError,
+    error,
     loading,
     refresh,
   } = useMemberGivingLedger(member?.id);
@@ -57,9 +58,11 @@ export default function MemberLedgerDrawer({ member, onClose }) {
 
         {isError ? (
           <ErrorState
-            message="Failed to load member ledger."
-            onRetry={refresh}
-          />
+  error={error}
+  title="Failed to load data"
+  message={error?.message}
+  onRetry={refresh}
+/>
         ) : (
           <>
             {/* Summary */}

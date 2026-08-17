@@ -12,7 +12,7 @@ import useDepartmentId from "../../hooks/departments/useDepartmentId";
 import AddMember from "../../components/members/AddMember";
 import MemberList from "../../components/members/MemberList";
 import Announcements from "../../components/announcements/Announcements";
-
+import BackButton from "../../components/BackButton";
 import styles from "../../styles/pages/SharedPages.module.css";
 
 const tabs = [
@@ -39,6 +39,7 @@ export default function DeaconryDashboard() {
     return (
       <ErrorState
         title="Failed to load department"
+        error={error}
         message={error?.message ?? "Something went wrong while fetching department data."}
         onRetry={refetch}
       />
@@ -50,6 +51,7 @@ export default function DeaconryDashboard() {
   -------------------------- */
   return (
     <RequirePermission permission="access_deaconry_dashboard">
+      <BackButton/>
       <main className={`page-container ${styles.page}`}>
         {/* Header */}
         <header className={styles.header}>
