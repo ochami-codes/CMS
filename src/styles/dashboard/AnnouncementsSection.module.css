@@ -1,93 +1,166 @@
 .section {
-  margin-top: 2rem;
+  margin-top: var(--space-4);
 }
+
+/* =========================
+   GRID
+========================= */
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
 }
 
+/* =========================
+   CARD
+========================= */
+
 .card {
-  padding: 1rem;
-  background: #fff;
-  border-radius: 8px;
+  padding: var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
 
+/* =========================
+   HEADING
+========================= */
+
 .heading {
+  margin: 0 0 var(--space-2);
+
   font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: var(--text-primary);
+  font-weight: 700;
+  color: var(--text);
 }
+
+/* =========================
+   LIST
+========================= */
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-2);
 }
 
+/* =========================
+   ITEM
+========================= */
+
 .item {
-  padding: 1rem;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: var(--background-light);
-  transition: background 0.2s ease;
+  padding: var(--space-2);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  background: var(--surface-alt);
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .item:hover {
-  background: var(--background-hover);
+  background: var(--surface);
+  border-color: var(--border-light);
+  transform: translateY(-1px);
 }
+
+/* =========================
+   ITEM HEADER
+========================= */
 
 .itemHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-2);
 }
 
 .title {
+  margin: 0;
+
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
 }
 
+/* =========================
+   BADGE
+========================= */
+
 .badge {
-  background: var(--accent);
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
+  flex-shrink: 0;
+
+  padding: 0.25rem 0.6rem;
+
+  border-radius: var(--radius-full);
+
+  background: var(--primary);
+  color: white;
+
+  font-size: 0.7rem;
+  font-weight: 700;
 }
+
+/* =========================
+   MESSAGE
+========================= */
 
 .message {
   margin: 0.5rem 0;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.4;
+
+  font-size: 0.875rem;
+  line-height: 1.5;
+
+  color: var(--text-light);
 }
+
+/* =========================
+   META
+========================= */
 
 .meta {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8rem;
+
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
+/* =========================
+   NEW ITEM
+========================= */
+
 .isNew {
   border-color: var(--accent);
-  background: var(--accent-light);
+  background: rgba(20, 121, 232, 0.05);
 }
 
-/* ========================= MOBILE RESPONSIVE ========================= */
+/* =========================
+   MOBILE
+========================= */
+
 @media (max-width: 768px) {
+  .section {
+    margin-top: var(--space-3);
+  }
+
   .grid {
-    grid-template-columns: 1fr; /* collapse to single column */
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
   }
 
   .card {
+    padding: var(--space-2);
+  }
+
+  .item {
     padding: 0.75rem;
   }
 
@@ -95,20 +168,15 @@
     font-size: 0.95rem;
   }
 
-  .item {
-    padding: 0.75rem;
-  }
-
   .title {
     font-size: 0.9rem;
   }
 
   .message {
-    font-size: 0.85rem;
+    font-size: 0.825rem;
   }
 
   .meta {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
 }
-

@@ -49,3 +49,26 @@
   --shadow-md: 0 8px 24px rgba(11, 42, 91, 0.08);
   --shadow-lg: 0 16px 40px rgba(11, 42, 91, 0.12);
 }
+
+
+/* Global box sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+
+/* Prevent accidental horizontal overflow */
+html,
+body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-width: 320px;
+  background: var(--background);
+  color: var(--text);
+}

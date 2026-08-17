@@ -18,45 +18,17 @@ export default function Button({
 
   const classes = [
     styles.btn,
-    styles[variant],
-    styles[size],
+    styles[variant] || styles.primary,
+    styles[size] || styles.md,
     fullWidth ? styles.full : "",
     isDisabled ? styles.disabled : "",
     className,
-  ].join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 
-  if (to) {
-    return (
-      <Link
-        to={isDisabled ? "#" : to}
-        className={classes}
-        aria-disabled={isDisabled}
-        onClick={
-          isDisabled
-            ? (e) => e.preventDefault()
-            : props.onClick
-        }
-        {...props}
-      >
-        {loading && (
-          <span
-            className={styles.spinner}
-            aria-hidden="true"
-          />
-        )}
-
-        {children}
-      </Link>
-    );
-  }
-
-  return (
-    <button
-      className={classes}
-      disabled={isDisabled}
-      type={type}
-      {...props}
-    >
+  const content = (
+    <>
       {loading && (
         <span
           className={styles.spinner}
@@ -64,7 +36,48 @@ export default function Button({
         />
       )}
 
-      {children}
+      <span className={loading ? styles.loadingText : ""}>
+        {children}
+      </span>
+    </>
+  );
+
+  /* -------------------------
+     Link button
+  ------------------------- */
+
+  if (to) {
+    return (
+      <Link
+        to={isDisabled ? "#" : to}
+        className={classes}
+        aria-disabled={isDisabled}
+        tabIndex={isDisabled ? -1 : undefined}
+        onClick={
+          isDisabled
+            ? (e) => e.preventDefault()
+            : props.onClick
+        }
+        {...props}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  /* -------------------------
+     Native button
+  ------------------------- */
+
+  return (
+    <button
+      className={classes}
+      type={type}
+      disabled={isDisabled}
+      aria-busy={loading}
+      {...props}
+    >
+      {content}
     </button>
   );
 }
