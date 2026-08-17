@@ -1,9 +1,4 @@
 import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
   useMutation,
   useQuery,
   useQueryClient,
@@ -11,7 +6,6 @@ import {
 
 import { AuthAPI } from "../utils/api";
 import { normalizeRole } from "../config/roles";
-import { supabase } from "../supabaseClient";
 
 /* -----------------------------------------
    Normalize User
@@ -92,75 +86,6 @@ export function useAuthCore() {
     useQueryClient();
 
   /* ---------------------------------------
-     Supabase Session State
-  --------------------------------------- */
-
-  const [sessionReady, setSessionReady] =
-    useState(false);
-
-  const [hasSession, setHasSession] =
-    useState(false);
-
-  /* ---------------------------------------
-     Initialize Session
-  --------------------------------------- */
-
-  useEffect(() => {
-    let mounted = true;
-
-    const initializeSession =
-      async () => {
-        const {
-          data,
-          error,
-        } =
-          await supabase.auth.getSession();
-
-        if (!mounted) {
-          return;
-        }
-
-        if (error) {
-          setHasSession(false);
-        } else {
-          setHasSession(
-            !!data.session
-          );
-        }
-
-        setSessionReady(true);
-      };
-
-    initializeSession();
-
-    /* -------------------------------------
-       Listen For Auth Changes
-    ------------------------------------- */
-
-    const {
-      data: {
-        subscription,
-      },
-    } =
-      supabase.auth.onAuthStateChange(
-        (_event, session) => {
-          if (!mounted) {
-            return;
-          }
-
-          setHasSession(
-            !!session
-          );
-        }
-      );
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  /* ---------------------------------------
      Current User
   --------------------------------------- */
 
@@ -181,13 +106,12 @@ export function useAuthCore() {
     },
 
     /*
-     * /me only executes after we know
-     * whether a Supabase session exists.
+     * /me is called directly.
+     *
+     * The backend is responsible for
+     * determining whether the request is
+     * authenticated.
      */
-    enabled:
-      sessionReady &&
-      hasSession,
-
     retry: false,
   });
 
@@ -208,10 +132,8 @@ export function useAuthCore() {
 
       onSuccess: async () => {
         /*
-         * Supabase auth state should now
-         * contain the authenticated session.
-         *
-         * Refetch /me after login.
+         * Login establishes the authenticated
+         * session. Now fetch the current user.
          */
         await queryClient.refetchQueries({
           queryKey: ["me"],
@@ -246,12 +168,6 @@ export function useAuthCore() {
           predicate: (query) =>
             query.queryKey[0] !== "me",
         });
-
-        /*
-         * Explicitly mark that there is
-         * no authenticated user.
-         */
-        setHasSession(false);
       },
     });
 
@@ -271,11 +187,7 @@ export function useAuthCore() {
   --------------------------------------- */
 
   const authReady =
-    sessionReady &&
-    (
-      !hasSession ||
-      isFetched
-    );
+    isFetched;
 
   /* ---------------------------------------
      Return
@@ -287,7 +199,6 @@ export function useAuthCore() {
     authReady,
 
     authLoading:
-      !sessionReady ||
       isLoading ||
       loginMutation.isPending ||
       logoutMutation.isPending,
