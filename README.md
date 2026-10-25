@@ -1,16 +1,63 @@
-# React + Vite
+# CMS - Church Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A frontend platform for church management, modeled around the Seventh-day Adventist church workflow. My first deep dive into React and how a full-stack app really works.
 
-Currently, two official plugins are available:
+> Built to organize members, departments, and church operations with role-based dashboards.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**Live Demo:** `https://your-cms.vercel.app` 
+**Deployed on:** Vercel
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Why this project?
 
-## Expanding the ESLint configuration
+This was my first real React project. Before this I was dumping HTML files (see Advent-project). Here I learned:
+- How React actually works
+- State management, component structure
+- Talking to a backend API
+- Role-based access & dashboards
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Roles & Dashboards
+
+The system is built around real Adventist church structure:
+
+- **Admin Dashboard** - Overall control, user management, church settings
+- **Pastor Dashboard** - Sermons, member pastoral care, appointments
+- **Treasury Dashboard** - Offerings, expenses, financial reports
+- **Clerk Dashboard** - Membership records, transfers, reports, baptism records
+- **Department Leaders** - Manage their departments (Youth, Sabbath School etc.)
+- **Members** - View profile, giving history, announcements
+
+### Features
+
+- Role-based authentication & routing
+- Member management (add, edit, transfer, archive)
+- Finance tracking for treasury
+- Clerk records management
+- Department management
+- Responsive UI for desktop and mobile
+- Protected routes per role
+
+### Tech Stack
+
+- **Frontend:** React + JavaScript
+- **Data Fetching / State:** TanStack Query (React Query)
+- **Routing:** React Router
+- **Styling:**  CSS Modules
+- **Forms:** React Hook Form
+- **Backend:** Node/Express/Supabase
+- **Deployment:** Vercel
+
+### What I Learned 
+ 1. React component lifecycle and composition
+ 2. How to structure large frontend app
+ 3. Role-based dashboards in real-world workflow
+ 4. Tanstack query for caching, loading and error states
+ 5. Connecting frontend and backend securely
+ ### License 
+ MIT
+
+ ### Author 
+ Ian Ochami —
+ First react project, now building full platforms.
+    
